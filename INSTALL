@@ -1,0 +1,88 @@
+To compile and install ReconcileDuplications, two libraries are required:
+- Bio++
+- Boost with MPI enabled
+
+Then the program ReconcileDuplications can be compiled.
+
+You can find below how the two libraries are to be installed, and then how ReconcileDuplications can be compiled.
+
+########################
+## Bio++ installation ##
+########################
+
+The latest available Bio++ libraries should be installed. To this end, the CVS versions should be used. First, the files must be downloaded, and 
+then compiled and installed in the directory INSTALLATION_DIRECTORY_BIOPP (where you want the Bio++ libraries to be installed). The Bio++ installation 
+described here uses cmake, as it is the most efficient procedure for installing these libraries.
+
+In a terminal: 
+- Anonymous login:
+cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot login
+When asked for a password, just hit enter.
+
+- Downloading the libraries:
+cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot checkout utils
+cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot checkout numcalc
+cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot checkout seqlib
+cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot checkout phyllib
+
+- Compilation of the libraries (beware of the order, it needs to be utils first, then numcalc, seqlib, phyllib):
+cd utils
+cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP
+make install
+
+cd ../numcalc
+cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP 
+make install
+
+cd ../seqlib
+cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP
+make install
+
+cd ../phyllib
+cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP
+make install
+
+The Bio++ libraries should now be installed in the directory INSTALLATION_DIRECTORY_BIOPP.
+
+########################
+## Boost installation ##
+########################
+
+The files must be downloaded, and then compiled and installed in the directory INSTALLATION_DIRECTORY_BOOST (where you want the libraries to be 
+installed). In the directory INSTALLATION_DIRECTORY_BOOST, both header files (in a "include" directory) and compiled libraries (in a "lib" directory) 
+will be installed. In the following lines, I call INCLUDE_DIRECTORY the whole path to the "include" directory (INSTALLATION_DIRECTORY_BOOST/include), and LIB_DIRECTORY the whole 
+path to the "lib" directory (INSTALLATION_DIRECTORY_BOOST/lib)).
+
+The Boost libraries can be dowloaded from this link:
+http://sourceforge.net/projects/boost/files/boost/1.40.0/boost_1_40_0.tar.gz/download
+
+In a terminal:
+tar zxvf boost_1_40_0.tar.gz
+cd boost_1_40_0
+./bootstrap.sh --libdir=LIB_DIRECTORY --includedir=INCLUDE_DIRECTORY --prefix=INSTALLATION_DIRECTORY_BOOST --with-libraries=mpi
+./bjam install
+
+The Boost libraries should now be installed.
+
+
+#######################################
+## ReconcileDuplications compilation ##
+#######################################
+
+Compiling ReconcileDuplications involves first changing 4 lines in the file "Makefile_Template", and then entering "make -f Makefile_Template" in the terminal.
+
+The 4 lines to change in the Makefile are at the beginning of the file.
+
+After "BOOST_INCLUDE = ", you should enter the complete path to the Boost "include" directory (i.e. INCLUDE_DIRECTORY above).
+
+After "BIOPP_INCLUDE = ", you should enter the complete	path to	the Biopp "include" directory (i.e. INSTALLATION_DIRECTORY_BIOPP/include).
+ 
+After "BIOPP_LIBRARIES = ", you should enter the complete path to the Biopp "lib" directory (i.e. INSTALLATION_DIRECTORY_BIOPP/lib).
+
+After "BOOST_LIBRARIES = ", you should enter the complete path to the Boost "lib" directory (i.e. LIB_DIRECTORY above).
+
+Once these 4 lines have been corrected to correspond to the proper values for your system, typing "make" in the terminal should compile the 
+program, and produce an executable file "ReconcileDuplications", ready to run.
+
+
+

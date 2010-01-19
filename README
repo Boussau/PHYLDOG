@@ -1,0 +1,12 @@
+ReconcileDuplications is a program allowing to simultaneously build gene and species trees when gene families have undergone duplications and losses. 
+Trees and parameters are estimated in the maximum likelihood framework.
+
+For instructions about installation, please see the INSTALL file.
+
+To use it, type:
+
+mpirun -np 2 ReconcileDuplications
+
+This should show a list of options that need to be given to the program.
+
+
