@@ -475,6 +475,7 @@ int main(int args, char ** argv)
 				while(getline(inListNames,line)) {
 					spNames.push_back(line);
 				}
+        std::cout <<"Number Of lines in species name file "<<spNamesFile<<" : "<<spNames.size() <<std::endl;
 				int maxStrSize=0;
 				std::vector <int> toRemove;
 				int i=0;
@@ -498,6 +499,7 @@ int main(int args, char ** argv)
 				}
         if (spNames.size()<2) {
           std::cout <<"No more than two species: no need to make a species tree! Quitting."<<std::endl;
+          exit (0);
         }
 				tree = TreeTemplateTools::getRandomTree(spNames);
         tree->setBranchLengths(1.0);
