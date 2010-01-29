@@ -343,12 +343,6 @@ std::vector <double> operator + (std::vector <double> x, std::vector <double> y)
 
 int main(int args, char ** argv)
 {
-	std::cout << "******************************************************************" << std::endl;
-	std::cout << "*       Bio++ Tree Reconciliation Program, version 1.1.0      *" << std::endl;
-	std::cout << "* Author: B. Boussau                        Created 16/07/07 *" << std::endl;
-	std::cout << "******************************************************************" << std::endl;
-	std::cout << std::endl;
-
 	if(args == 1)
 	{
 		help();
@@ -420,6 +414,15 @@ int main(int args, char ** argv)
     //##################################################################################################################
     
 		if (rank == server) { 
+      
+      std::cout << "******************************************************************" << std::endl;
+      std::cout << "*       Bio++ Tree Reconciliation Program, version 1.1.0      *" << std::endl;
+      std::cout << "* Author: B. Boussau                        Created 16/07/07 *" << std::endl;
+      std::cout << "******************************************************************" << std::endl;
+      std::cout << std::endl;
+      
+      
+      
 		 std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
 /*
       std::cout <<"PROBA "<<1-RandomTools::pChisq(1, 1)<<std::endl;
@@ -1069,6 +1072,9 @@ int main(int args, char ** argv)
       //For duplication rates
       for (int i =0; i<branchNumbers.size() ; i++ ) {
         bestTree->getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationProbabilities[i]));
+        if (bestTree->getNode(i)->hasFather()) {
+          bestTree->getNode(i)->setDistanceToFather(duplicationProbabilities[i]);
+        }
       }
       
       //Outputting the results of the algorithm, server side.
@@ -1079,6 +1085,9 @@ int main(int args, char ** argv)
       //For loss rates
       for (int i =0; i<branchNumbers.size() ; i++ ) {
         bestTree->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossProbabilities[i]));
+        if (bestTree->getNode(i)->hasFather()) {
+          bestTree->getNode(i)->setDistanceToFather(lossProbabilities[i]);
+        }
       }
       std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
 			out.open (lossTree.c_str(), std::ios::out);

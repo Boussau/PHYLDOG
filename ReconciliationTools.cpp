@@ -13,7 +13,7 @@ void assignArbitraryBranchLengths(TreeTemplate<Node> & tree){
 			for (std::vector <Node *>::iterator it = ns.begin() ; it!= ns.end(); it++) {
 				if ((*it)->hasFather()) {
 					if (!(*it)->hasDistanceToFather()) {
-						(*it)->setDistanceToFather(0.1);
+						(*it)->setDistanceToFather(1);
 					}
 				}
 			}
@@ -905,7 +905,7 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
     if (temp<=0) {
       lossProbability = 0.0001;//SMALLPROBA;
     }
-  /*  else if (temp>=1){ //To be honest, those are not probabilities but rates, so they can exceed 1.
+  /*  else if (temp>=1){ //To be honest, those are not probabilities but expected number of events, so they can exceed 1.
       lossProbability = BIGPROBA;
     }*/
     else {
@@ -1057,7 +1057,10 @@ double computeBranchProbabilityAtRoot (double duplicationProbability, double los
 
 
 /**************************************************************************
- * Computes the log of the above probability. 
+ * Computes the log of the above probability (if it had not been changed not to!):
+ * Update as of January 28th, 2010.
+ * Now we do not consider gene originations anymore.
+ * Therefore events at the root are considered as on any other branch.
  **************************************************************************/
 double computeLogBranchProbabilityAtRoot (double duplicationProbability, double lossProbability, int numberOfLineages) {
   //UNDONE TEST 1409
@@ -1067,7 +1070,12 @@ double computeLogBranchProbabilityAtRoot (double duplicationProbability, double 
   else {
    return(-numberOfLineages+1);
   }*/
- return(log(computeBranchProbabilityAtRoot(duplicationProbability, lossProbability, numberOfLineages)));
+  //Update as of January 28th, 2010.
+  //Now we do not consider gene originations anymore.
+  //Therefore, we do not make a special case when we are at the root.
+// return(log(computeBranchProbabilityAtRoot(duplicationProbability, lossProbability, numberOfLineages)));
+  //instead, we use:
+  return(log(computeBranchProbability(duplicationProbability, lossProbability, numberOfLineages)));
 }
 
 
@@ -3231,12 +3239,6 @@ void removeLeaf(TreeTemplate<Node> & tree, std::string toRemove){
 }
 
 /**************************************************************************/
-
-
-
-
-
-
 
 
 
