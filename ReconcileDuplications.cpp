@@ -365,10 +365,10 @@ int main(int args, char ** argv)
 	std::vector <int> num2Lineages;
 
 	//  char currentSpeciesTree[MAXSPECIESTREESIZE];
- std::string currentSpeciesTree;
+	std::string currentSpeciesTree;
 	int SpeciesNodeNumber;
- std::string initTree;
- std::string allFileNames;
+	std::string initTree;
+	std::string allFileNames;
 	std::vector <int> numbersOfGenesPerClient;
 	std::vector <std::vector<std::string> > listOfOptionsPerClient;
 	double optimizationTolerance;
@@ -377,17 +377,17 @@ int main(int args, char ** argv)
 	mpi::communicator world;
 	rank = world.rank();
 	size = world.size();
-  std::vector <std::string> spNames;
- std::string line;
+	std::vector <std::string> spNames;
+	std::string line;
 
 	try {
 
 		ApplicationTools::startTimer();
 
 		//We use a std::vector to record the list of gene option files
-	 std::vector<std::string> listOptions;
+		std::vector<std::string> listOptions;
 		double logL = 0.0;  int z=0;
-	 std::map<std::string, std::string> params;
+		std::map<std::string, std::string> params;
 		//Matrices to store numbers of duplications and losses from the clients
 		std::vector <std::vector<int> > AllDuplications;
 		std::vector <std::vector<int> > AllLosses;
@@ -395,7 +395,7 @@ int main(int args, char ** argv)
 		std::vector <std::vector<int> > allNum0Lineages;
 		std::vector <std::vector<int> > allNum1Lineages;
 		std::vector <std::vector<int> > allNum2Lineages;
-	 std::string affectedFilename;
+		std::string affectedFilename;
 		std::vector <std::string> affectedFilenames;
 		int affectedNumberOfGenes;
 		int heuristicsLevel;
@@ -404,7 +404,7 @@ int main(int args, char ** argv)
 		bool stop = false; 
 		bool rearrange = false;
 		int bestIndex = 0;
-	 std::string branchProbaOptimization;
+		std::string branchProbaOptimization;
 		int sprLimit;
 
     //##################################################################################################################
@@ -478,7 +478,7 @@ int main(int args, char ** argv)
 				while(getline(inListNames,line)) {
 					spNames.push_back(line);
 				}
-        std::cout <<"Number Of lines in species name file "<<spNamesFile<<" : "<<spNames.size() <<std::endl;
+				std::cout <<"Number Of lines in species name file "<<spNamesFile<<" : "<<spNames.size() <<std::endl;
 				int maxStrSize=0;
 				std::vector <int> toRemove;
 				int i=0;
