@@ -1453,7 +1453,7 @@ int main(int args, char ** argv)
               ApplicationTools::displayError("!!! Looking at each site:");
               for(unsigned int k = 0; k < sites->getNumberOfSites(); k++)
                 {
-                  *ApplicationTools::error << "Site " << sites->getSite(k).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(k) << std::endl;
+                  (*ApplicationTools::error << "Site " << sites->getSite(k).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(k)).endLine();
                 }
               ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularly if datasets are big (>~500 sequences).");
               exit(-1);
