@@ -276,33 +276,34 @@ void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int s
 
 void help()
 {
-	*ApplicationTools::message << "__________________________________________________________________________" << std::endl;
-	*ApplicationTools::message << "ReconcileDuplications parameter1_name=parameter1_value parameter2_name=parameter2_value"    << std::endl;
-	*ApplicationTools::message << "      ... param=option_file" << std::endl;
-	*ApplicationTools::message << std::endl;
-	
-	/*SequenceApplicationTools::printInputAlignmentHelp();
-	PhylogeneticsApplicationTools::printInputTreeHelp();
-	PhylogeneticsApplicationTools::printSubstitutionModelHelp();
-	PhylogeneticsApplicationTools::printRateDistributionHelp();
-	PhylogeneticsApplicationTools::printCovarionModelHelp();
-	PhylogeneticsApplicationTools::printOptimizationHelp(true, false);
-	PhylogeneticsApplicationTools::printOutputTreeHelp();*/
-	*ApplicationTools::message << "output.infos                      | file where to write site infos" << std::endl;
-	*ApplicationTools::message << "output.estimates                  | file where to write estimated parameter values" << std::endl;
-	*ApplicationTools::message << "starting.tree.file                | file where to write the initial tree" << std::endl;
-	*ApplicationTools::message << "init.species.tree                 | user or random" << std::endl;
-	*ApplicationTools::message << "species.tree.file                 | if the former is set to \"user\", path to a species tree"  << std::endl;
-	*ApplicationTools::message << "species.names.file                | if instead it was set to \"random\", path to a list of species names " << std::endl;
-	*ApplicationTools::message << "heuristics.level                  | 0, 1, 2, or 3; 0: DR exact algorithm (default); 1 fast heuristics; 2: exhaustive and fast; 3: exhaustive and slow"<<std::endl;
-	*ApplicationTools::message << "species.id.limit.for.root.position| Threshold for trying root positions" << std::endl;
-	*ApplicationTools::message << "genelist.file                     | file containing a list of gene option files to analyse" << std::endl;
-	*ApplicationTools::message << "branchProbabilities.optimization  | average, branchwise, average_then_branchwise or no: how we optimize duplication and loss probabilities" << std::endl;
-	*ApplicationTools::message << "genome.coverage.file              | file giving the percent coverage of the genomes used" << std::endl;
-	*ApplicationTools::message << "spr.limit                         | integer giving the breadth of SPR movements, in number of nodes. 0.1* number of nodes in the species tree might be OK." << std::endl;
-	*ApplicationTools::message << "  Refer to the Bio++ Program Suite Manual for a list of supplementary options." << std::endl;
-	*ApplicationTools::message << "__________________________________________________________________________" << std::endl;	
+  (*ApplicationTools::message << "__________________________________________________________________________").endLine();
+  (*ApplicationTools::message << "ReconcileDuplications parameter1_name=parameter1_value parameter2_name=parameter2_value"   ).endLine();
+  (*ApplicationTools::message << "      ... param=option_file").endLine();
+  (*ApplicationTools::message).endLine();
+  
+  /*SequenceApplicationTools::printInputAlignmentHelp();
+    PhylogeneticsApplicationTools::printInputTreeHelp();
+    PhylogeneticsApplicationTools::printSubstitutionModelHelp();
+    PhylogeneticsApplicationTools::printRateDistributionHelp();
+    PhylogeneticsApplicationTools::printCovarionModelHelp();
+    PhylogeneticsApplicationTools::printOptimizationHelp(true, false);
+    PhylogeneticsApplicationTools::printOutputTreeHelp();*/
+  (*ApplicationTools::message << "output.infos                      | file where to write site infos").endLine();
+  (*ApplicationTools::message << "output.estimates                  | file where to write estimated parameter values").endLine();
+  (*ApplicationTools::message << "starting.tree.file                | file where to write the initial tree").endLine();
+  (*ApplicationTools::message << "init.species.tree                 | user or random").endLine();
+  (*ApplicationTools::message << "species.tree.file                 | if the former is set to \"user\", path to a species tree" ).endLine();
+  (*ApplicationTools::message << "species.names.file                | if instead it was set to \"random\", path to a list of species names ").endLine();
+  (*ApplicationTools::message << "heuristics.level                  | 0, 1, 2, or 3; 0: DR exact algorithm (default); 1 fast heuristics; 2: exhaustive and fast; 3: exhaustive and slow").endLine();
+  (*ApplicationTools::message << "species.id.limit.for.root.position| Threshold for trying root positions").endLine();
+  (*ApplicationTools::message << "genelist.file                     | file containing a list of gene option files to analyse").endLine();
+  (*ApplicationTools::message << "branchProbabilities.optimization  | average, branchwise, average_then_branchwise or no: how we optimize duplication and loss probabilities").endLine();
+  (*ApplicationTools::message << "genome.coverage.file              | file giving the percent coverage of the genomes used").endLine();
+  (*ApplicationTools::message << "spr.limit                         | integer giving the breadth of SPR movements, in number of nodes. 0.1* number of nodes in the species tree might be OK.").endLine();
+  (*ApplicationTools::message << "  Refer to the Bio++ Program Suite Manual for a list of supplementary options.").endLine();
+  (*ApplicationTools::message << "__________________________________________________________________________").endLine();
 }
+
 
 /******************************************************************************/
 /***************************Adding two std::vectors*********************************/
