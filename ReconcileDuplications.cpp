@@ -82,6 +82,8 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Utils/Clonable.h>
 #include <Utils/Number.h>
 #include <Utils/BppString.h>
+#include <Utils/KeyvalTools.h>
+
 
 //#include <Phyl/SAHomogeneousTreeLikelihood.h>
 #include "ReconciliationTools.h"
@@ -225,9 +227,7 @@ bool sortMinFunction (std::pair <std::vector<std::string>, double> i, std::pair 
 void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int size, std::vector <std::vector<std::string> > &listOfOptionsPerClient, std::vector <int> &numberOfGenesPerClient) {
   std::vector <std::pair <std::string, double> > elements;
   for (int i = 0; i<listOptions.size() ; i++) {
-    std::cout <<listOptions[i]<<std::endl;
     StringTokenizer st1 = StringTokenizer::StringTokenizer (listOptions[i], ":", true);
-    std::cout <<st1.getToken(0)<<" "<<st1.getToken(1)<<std::endl;
     elements.push_back(std::pair <std::string, double>(st1.getToken(0), TextTools::toDouble(st1.getToken(1))) );
   }
 
@@ -425,20 +425,6 @@ int main(int args, char ** argv)
       
       
 		 std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
-/*
-      std::cout <<"PROBA "<<1-RandomTools::pChisq(1, 1)<<std::endl;
-      std::cout <<"PROBA2 "<<1-RandomTools::pChisq(10, 1)<<std::endl;
-      std::cout <<"PROBA3 "<<1-0.5*(RandomTools::pChisq(1, 1)+RandomTools::pChisq(1, 0))<<std::endl;
-      std::cout <<"PROBA4 "<<RandomTools::pChisq(1, 1)<<std::endl;
-      std::cout <<"PROBA5 "<<RandomTools::pChisq(1, 0)<<std::endl;
-      std::cout <<"PROBA6 "<<RandomTools::pGamma(1, 0, 0.5)<<std::endl;
-      std::vector <double> res;
-      for (int i=0 ; i<1000 ; i++) {
-        res.push_back(RandomTools::randExponential(1));
-      }
-      VectorTools::print(res);
-      std::cout <<"mean: "<< VectorTools::mean<double, double>(res)<< "variance "<< VectorTools::var<double, double>(res)<<std::endl;
-  */    
 			/****************************************************************************
 			 //First, we need to get the species tree.
 			 *****************************************************************************/
@@ -479,7 +465,6 @@ int main(int args, char ** argv)
 				while(getline(inListNames,line)) {
 					spNames.push_back(line);
 				}
-				std::cout <<"Number Of lines in species name file "<<spNamesFile<<" : "<<spNames.size() <<std::endl;
 				int maxStrSize=0;
 				std::vector <int> toRemove;
 				int i=0;
@@ -597,9 +582,9 @@ int main(int args, char ** argv)
 					}
 				}
 			}
-			for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
+			/*for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
 				std::cout <<it->first<<" : "<<it->second<<std::endl;
-			}
+			}*/
 
 			/****************************************************************************
 			 // Then, we handle all gene families.
@@ -1168,13 +1153,37 @@ int main(int args, char ** argv)
 			std::vector <VectorSiteContainer *>   allDatasets;
 			std::vector <SubstitutionModel *> allModels;
 			std::vector <DiscreteDistribution *> allDistributions;
-			std::vector <SubstitutionModel *> allModelsCov;
-			std::vector <DiscreteDistribution *> allDistributionsCov;
-			std::vector <TreeTemplate<Node> *> allGeneTrees;
+      std::vector <TreeTemplate<Node> *> allGeneTrees;
 			std::vector <TreeTemplate<Node> *> allUnrootedGeneTrees;
 
       int numDeletedFamilies=0;
       bool avoidFamily;
+      
+     /* 
+     // This bit of code is useful to use GDB on clients:
+      //launch the application, which will output the client pid
+      //then launch gdb, attach to the given pid ("attach pid" or "gdb ReconcileDuplications pid"), 
+      //use "up" to go up the stacks, and set the variable z to !=0 to get out of the loop with "set var z = 8".
+			 
+              int z = 0;
+       //   char hostname[256];
+       //gethostname(hostname, sizeof(hostname));
+       std::cout <<"PID: "<<getpid()<<std::endl;
+       std::cout <<"z: "<<z<<std::endl;
+        //printf("PID %d on %s ready for attach\n", getpid(), hostname);
+       // fflush(stdout);
+       while (0 == z){
+       std::cout <<z<<std::endl;
+       sleep(5);
+       }
+       */
+       
+      
+      
+      
+      
+      
+      
       //Here we are going to get all necessary information regarding all gene families the client is in charge of.
 			for (int i = 0 ; i< affectedFilenames.size() ; i++) { //For each file
         avoidFamily = false;
@@ -1194,21 +1203,9 @@ int main(int args, char ** argv)
 
         //Sequences and model of evolution
 				Alphabet * alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
-        VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params);
-        VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(* allSites, params);
-				delete allSites;
-        SubstitutionModel * model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params);
-        DiscreteDistribution * rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
-			 std::string covarion = ApplicationTools::getStringParameter("covarion", params, "none", "", false, false);
-				SubstitutionModel * modelCov = NULL;
-				DiscreteDistribution * rDistCov = NULL;
-				if(covarion != "none")
-				{
-					modelCov = model; 
-					rDistCov = rDist;
-					rDist = new ConstantDistribution(1.);
-					// NOT NORMAL  model = PhylogeneticsApplicationTools::getCovarionProcess(modelCov, rDistCov, params, "", false, true);
-				}
+        VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params);       
+        VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
+				delete allSites;             
 				//method to optimize the gene tree root; only useful if heuristics.level!=0.
         bool rootOptimization;
 				if (ApplicationTools::getStringParameter("root.optimization",params,"normal")=="intensive") {
@@ -1312,7 +1309,6 @@ int main(int args, char ** argv)
 				 *****************************************************************************/
         //If we need to remove all sequences or all sequences except one, 
         //better remove the gene family
-        std::cout <<"seqsToRemove "<<seqsToRemove.size()<<" sites->getNumberOfSequences() "<<sites->getNumberOfSequences() <<std::endl;
         if (seqsToRemove.size()>=sites->getNumberOfSequences()-1) {
           numDeletedFamilies = numDeletedFamilies+1;
           avoidFamily=true;
@@ -1367,7 +1363,7 @@ int main(int args, char ** argv)
           resetVector(allNum2Lineages[i-numDeletedFamilies]);
           
           /********************************************COMPUTING LIKELIHOOD********************************************/
-          ReconciliationTreeLikelihood *tl;
+     
           bool computeLikelihood = ApplicationTools::getBooleanParameter("compute.likelihood", params, true, "", false, false);
           if(!computeLikelihood)
             {
@@ -1379,57 +1375,92 @@ int main(int args, char ** argv)
             }
           
           // Setting branch lengths?
-          std::string initBrLenMethod = ApplicationTools::getStringParameter("init.brlen.method", params, "input", "", true, false);
-          ApplicationTools::displayResult("Branch lengths", TextTools::toString(initBrLenMethod));
-          if(initBrLenMethod == "input")
+          std::string initBrLenMethod = ApplicationTools::getStringParameter("init.brlen.method", params, "Input", "", true, false);
+          std::string cmdName;
+          std::map<std::string, std::string> cmdArgs;
+          KeyvalTools::parseProcedure(initBrLenMethod, cmdName, cmdArgs);
+          if (cmdName == "Input")
             {
-              //Do nothing!
+              // Do nothing!
             }
-          else if(initBrLenMethod == "equal")
+          else if (cmdName == "Equal")
             {
-              double value = ApplicationTools::getDoubleParameter("init.brlen.method_equal.value", params, 0.1, "", true, false);
-              if(value <= 0) throw Exception("Value for branch length must be superior to 0");
-              ApplicationTools::displayResult("Branch lengths set to", TextTools::toString(value));
+              double value = ApplicationTools::getDoubleParameter("value", cmdArgs, 0.1, "", true, false);
+              if (value <= 0)
+                throw Exception("Value for branch length must be superior to 0");
+              ApplicationTools::displayResult("Branch lengths set to", value);
               tree->setBranchLengths(value);
             }
-          else if(initBrLenMethod == "clock")
+          else if (cmdName == "Clock")
             {
               TreeTools::convertToClockTree(*tree, tree->getRootId(), true);
             }
-          else if(initBrLenMethod == "grafen")
+          else if (cmdName == "Grafen")
             {
-              std::string grafenHeight = ApplicationTools::getStringParameter("init.brlen.method_grafen.height", params, "input", "", true, false);
+              std::string grafenHeight = ApplicationTools::getStringParameter("height", cmdArgs, "Input", "", true, false);
               double h;
-              if(grafenHeight == "input")
+              if (grafenHeight == "input")
                 {
                   h = TreeTools::getHeight(*tree, tree->getRootId());
                 }
               else
                 {
                   h = TextTools::toDouble(grafenHeight);
-                  if(h <= 0) throw Exception("Height must be positive in Grafen's method.");
+                  if (h <= 0) throw Exception("Height must be positive in Grafen's method.");
                 }
               ApplicationTools::displayResult("Total height", TextTools::toString(h));
               
-              double rho = ApplicationTools::getDoubleParameter("init.brlen.method_grafen.rho", params, 1., "", true, false);
-              ApplicationTools::displayResult("Grafen's rho", TextTools::toString(rho));
+              double rho = ApplicationTools::getDoubleParameter("rho", cmdArgs, 1., "", true, false);
+              ApplicationTools::displayResult("Grafen's rho", rho);
               TreeTools::computeBranchLengthsGrafen(*tree, rho);
               double nh = TreeTools::getHeight(*tree, tree->getRootId());
-              tree->scaleTree(h/nh);
+              tree->scaleTree(h / nh);
             }
           else throw Exception("Method '" + initBrLenMethod + "' unknown for computing branch lengths.");
+          ApplicationTools::displayResult("Branch lengths", cmdName);
+
+          //     ReconciliationTreeLikelihood *tl;
+          //   NNIHomogeneousTreeLikelihood *tl2;
+          DiscreteRatesAcrossSitesTreeLikelihood* tl;
+        //  DiscreteRatesAcrossSitesTreeLikelihood* tl2;
+          
           
           std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params, "no", "", true, false);
           ApplicationTools::displayResult("Clock", optimizeClock);
           bool optimizeTopo = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
-          unsigned int nbBS = ApplicationTools::getParameter<unsigned int>("bootstrap.number", params, 0, "", true, false);
-          bool bootstrapVerbose = ApplicationTools::getBooleanParameter("bootstrap.verbose", params, false, "", true, false);
-          if(optimizeClock == "global"){}// This has not been implemented!
+          
+          SubstitutionModel*    model    = 0;
+          SubstitutionModelSet* modelSet = 0;
+          DiscreteDistribution* rDist    = 0;
+          
+          if(optimizeClock == "global")
+            {
+              std::cout<<"Sorry, clocklike trees have not been impemented yet."<<std::endl;
+              exit(0);
+            }// This has not been implemented!
           else if(optimizeClock == "no")
             {
+              model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params); 
+              if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
+              if (model->getNumberOfStates() >= 2 * model->getAlphabet()->getSize())
+                {
+                  // Markov-modulated Markov model!
+                  rDist = new ConstantDistribution(1.);
+                }
+              else
+                {
+                  rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
+                }
+              
+             // tl2 = new NNIHomogeneousTreeLikelihood(*geneTree, *sites, model, rDist, true, true);
+
               tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, allLossNumbers[i-numDeletedFamilies], lossProbabilities, allDuplicationNumbers[i-numDeletedFamilies], duplicationProbabilities, allBranchNumbers[i-numDeletedFamilies], allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization);
+
             }
           else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
+         // tl2->initialize();
+        //  std::cout<<"Value tl2: "<<tl2->getValue()<<std::endl;
+
           tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
           allLogLs.push_back(tl->getValue());
           if(std::isinf(allLogLs[i-numDeletedFamilies]))
@@ -1443,7 +1474,8 @@ int main(int args, char ** argv)
                 {
                   if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
                 }
-              tl->initParameters();
+              dynamic_cast<ReconciliationTreeLikelihood*>(tl)->initParameters();
+              
               allLogLs[i-numDeletedFamilies]= tl->f(tl->getParameters());
             }
           ApplicationTools::displayResult("Initial likelihood", TextTools::toString(allLogLs[i-numDeletedFamilies], 15));
@@ -1459,41 +1491,25 @@ int main(int args, char ** argv)
               exit(-1);
             }
           
-          treeLikelihoods.push_back(tl);
+          treeLikelihoods.push_back(dynamic_cast<ReconciliationTreeLikelihood*>(tl));
           allParams.push_back(params); 
           allAlphabets.push_back(alphabet);
           allDatasets.push_back(sites);
           allModels.push_back(model);
           allDistributions.push_back(rDist);
-          if(modelCov != NULL) allModelsCov.push_back(modelCov);
-          if(rDistCov != NULL) allDistributionsCov.push_back(rDistCov);
           allGeneTrees.push_back(geneTree);
           allUnrootedGeneTrees.push_back(unrootedGeneTree);
         }
 			}//End for each file
 
-			/*This bit of code is useful to use GDB on clients
-			 {
-				 //       int z = 0;
-				 //   char hostname[256];
-				 // gethostname(hostname, sizeof(hostname));
-				 std::cout <<"PID: "<<getpid()<<std::endl;
-				 std::cout <<"z: "<<z<<std::endl;
-				 //    printf("PID %d on %s ready for attach\n", getpid(), hostname);
-				 // fflush(stdout);
-				 while (0 == z){
-					 std::cout <<z<<std::endl;
-					 sleep(5);
-		}
-		}
-		*/
-
+			
 			std::vector <std::vector <std::string> > reconciledTrees;
 			std::vector <std::vector <std::string> > duplicationTrees;
 			std::vector <std::vector <std::string> > lossTrees;
 			std::vector <std::string> t;  
 			std::vector <std::map<std::string, std::string> > allParamsBackup = allParams;
 			for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) {
+
 				reconciledTrees.push_back(t);
 				duplicationTrees.push_back(t);
 				lossTrees.push_back(t);
@@ -1504,15 +1520,18 @@ int main(int args, char ** argv)
         allParams[i][ std::string("optimization")] = "false"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
         treeLikelihoods[i]->OptimizeSequenceLikelihood(false);
 			}
+
 			bool recordGeneTrees = false; //At the beginning, we do not record the gene trees.
 			int startRecordingTreesFrom = 0; //This int is incremented until the gene trees start to be backed-up, when we start the second phase of the algorithm.
       bool firstTimeImprovingGeneTrees = false; //When for the first time we optimize gene trees, we set it at true
-      
+
       //We make a backup of the gene tree likelihoods.
       for (int i =0 ; i<treeLikelihoods.size() ; i++) {
         backupTreeLikelihoods.push_back(treeLikelihoods[i]->clone());
       }      
-			while (!stop) {
+
+      while (!stop) {      //MAIN LOOP STARTS HERE
+
 				logL=0.0;
 				resetVector(duplicationNumbers);
 				resetVector(lossNumbers);
@@ -1580,7 +1599,7 @@ int main(int args, char ** argv)
         //Should the computations stop? The server tells us.
 				broadcast(world, stop, server);
 
-				if (!stop) {	// Main loop
+				if (!stop) {	// we continue the loop
           //Reset the gene trees by resetting treeLikelihoods
           //We always start from ML trees according to sequences only
           for (int i=0 ; i<treeLikelihoods.size() ; i++) {
@@ -1588,7 +1607,6 @@ int main(int args, char ** argv)
             treeLikelihoods[i] = backupTreeLikelihoods[i]->clone();
             delete tempL;
           }          
-          
 					if (!rearrange) {
 						broadcast(world, rearrange, server);
 					} 
@@ -1614,7 +1632,7 @@ int main(int args, char ** argv)
             treeLikelihoods[i]->computeTreeLikelihood();
           }
 				}
-				else { //The end
+				else { //The end, outputting the results
 					broadcast(world, bestIndex, server);
 					for (int i = 0 ; i< affectedFilenames.size() ; i++) {
 					 std::string reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
@@ -1632,17 +1650,14 @@ int main(int args, char ** argv)
 					}
 					break;
 				}
-			}//End while
+			}//End while, END OF MAIN LOOP
 
 			for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) {  
 				delete allAlphabets[i];
 				delete allDatasets[i];
 				delete allModels[i];
 				delete allDistributions[i];
-				if (allModelsCov.size()>i) {
-					if(allModelsCov[i] != NULL) delete allModelsCov[i];
-					if(allDistributionsCov[i] != NULL) delete allDistributionsCov[i];} 
-        //delete allGeneTrees[i];
+			        //delete allGeneTrees[i];
 				//delete allUnrootedGeneTrees[i];
 				//delete treeLikelihoods[i];
 			}

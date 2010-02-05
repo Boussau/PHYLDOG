@@ -41,7 +41,6 @@
 #define _RECONCILIATIONTREELIKELIHOOD_H_
 
 #include <Phyl/NNIHomogeneousTreeLikelihood.h>
-#include <Phyl/NNISearchable.h>
 
 // From NumCalc:
 #include <NumCalc/VectorTools.h>
@@ -52,10 +51,11 @@
 #include "ReconciliationTools.h"
 #include "mpi.h" 
 
-using namespace bpp;
+namespace bpp 
+{
 
 /**
- * @brief This class adds support for NNI topology estimation to the DRHomogeneousTreeLikelihood class.
+ * @brief This class adds support for reconciliation to a species tree to the NNIHomogeneousTreeLikelihood class.
  */
 class ReconciliationTreeLikelihood:
   public NNIHomogeneousTreeLikelihood
@@ -101,13 +101,28 @@ class ReconciliationTreeLikelihood:
      * @param tree The tree to use.
      * @param model The substitution model to use.
      * @param rDist The rate across sites distribution to use.
+     * @param spTree The species tree
+     * @param rootedTree rooted version of the gene tree
+     * @param seqSp link between sequence and species names
+     * @param spId link between species name and species ID
+     * @param lossNumbers vector to store loss numbers per branch
+     * @param lossProbabilities vector to store expected numbers of losses per branch
+     * @param duplicationNumbers vector to store duplication numbers per branch
+     * @param duplicationProbabilities vector to store expected numbers of duplications per branch
+     * @param branchNumbers vector to store branch numbers in the tree
+     * @param num0Lineages vectors to store numbers of branches ending with a loss
+     * @param num1Lineages vectors to store numbers of branches ending with 1 gene
+     * @param num2Lineages vectors to store numbers of branches ending with 2 genes
+     * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
+     * @param heuristicsLevel type of heuristics used
+     * @param MLindex ML rooting position
      * @param checkRooted Tell if we have to check for the tree to be unrooted.
      * If true, any rooted tree will be unrooted before likelihood computation.
      * @param verbose Should I display some info?
      * @throw Exception in an error occured.
      */
     ReconciliationTreeLikelihood(
-                                 const TreeTemplate<Node> & tree,
+                                 const Tree & tree,
                                  SubstitutionModel * model,
                                  DiscreteDistribution * rDist,
                                  TreeTemplate<Node> & spTree,  
@@ -137,13 +152,28 @@ class ReconciliationTreeLikelihood:
      * @param data Sequences to use.
      * @param model The substitution model to use.
      * @param rDist The rate across sites distribution to use.
+     * @param spTree The species tree
+     * @param rootedTree rooted version of the gene tree
+     * @param seqSp link between sequence and species names
+     * @param spId link between species name and species ID
+     * @param lossNumbers vector to store loss numbers per branch
+     * @param lossProbabilities vector to store expected numbers of losses per branch
+     * @param duplicationNumbers vector to store duplication numbers per branch
+     * @param duplicationProbabilities vector to store expected numbers of duplications per branch
+     * @param branchNumbers vector to store branch numbers in the tree
+     * @param num0Lineages vectors to store numbers of branches ending with a loss
+     * @param num1Lineages vectors to store numbers of branches ending with 1 gene
+     * @param num2Lineages vectors to store numbers of branches ending with 2 genes
+     * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
+     * @param heuristicsLevel type of heuristics used
+     * @param MLindex ML rooting position     
      * @param checkRooted Tell if we have to check for the tree to be unrooted.
      * If true, any rooted tree will be unrooted before likelihood computation.
      * @param verbose Should I display some info?
      * @throw Exception in an error occured.
      */
     ReconciliationTreeLikelihood(
-                                 const TreeTemplate<Node> & tree,
+                                 const Tree & tree,
                                  const SiteContainer & data,
                                  SubstitutionModel * model,
                                  DiscreteDistribution * rDist,
@@ -174,11 +204,16 @@ class ReconciliationTreeLikelihood:
     
     ReconciliationTreeLikelihood & operator=(const ReconciliationTreeLikelihood & lik);
     
-    //  virtual ~ReconciliationTreeLikelihood();
+    virtual ~ReconciliationTreeLikelihood();
     
-    ReconciliationTreeLikelihood * clone() const { return new ReconciliationTreeLikelihood(*this); }
+      
+#ifndef NO_VIRTUAL_COV
+    ReconciliationTreeLikelihood*
+#else
+    Clonable*
+#endif
+    clone() const { return new ReconciliationTreeLikelihood(*this); }
     
-  public:
     void initParameters();
     void resetMLindex() ;
     /**
@@ -234,11 +269,12 @@ class ReconciliationTreeLikelihood:
     
     double getSequenceLikelihood();
     
-    void OptimizeSequenceLikelihood(bool yesOrNo)const  {
+    void OptimizeSequenceLikelihood(bool yesOrNo) const  {
       _optimizeSequenceLikelihood = yesOrNo;
     }
     
   };
+} //end of namespace bpp.
 
 #endif  //_RECONCILIATIONTREELIKELIHOOD_H_
 

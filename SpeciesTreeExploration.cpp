@@ -1642,8 +1642,6 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world, int &in
   resetVector(num2Lineages);
   gather(world, logL, logLs, server);
   logL = VectorTools::sum(logLs);
- std::cout<<std::setprecision(15);
- std::cout <<"LogL "<<logL<< std::endl;
   gather(world, duplicationNumbers, AllDuplications, server); 
   gather(world, lossNumbers, AllLosses, server);
   gather(world, branchNumbers, AllBranches, server);

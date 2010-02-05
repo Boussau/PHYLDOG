@@ -53,7 +53,7 @@ using namespace bpp;
 
 /******************************************************************************/
 ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(
-                                                           const TreeTemplate<Node> & tree,
+                                                           const Tree & tree,
                                                            SubstitutionModel * model,
                                                            DiscreteDistribution * rDist,
                                                            TreeTemplate<Node> & spTree,
@@ -107,7 +107,7 @@ throw (Exception):
 /******************************************************************************/
 
 ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(
-                                                           const TreeTemplate<Node> & tree,
+                                                           const Tree & tree,
                                                            const SiteContainer & data,
                                                            SubstitutionModel * model,
                                                            DiscreteDistribution * rDist,
@@ -130,7 +130,8 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(
                                                            bool verbose,
                                                            bool rootOptimization)
 throw (Exception):
-NNIHomogeneousTreeLikelihood(tree, data, model, rDist, checkRooted, verbose), _spTree(spTree),_rootedTree(rootedTree), _seqSp (seqSp), _spId(spId)
+NNIHomogeneousTreeLikelihood(tree, data, model, rDist, checkRooted, verbose), 
+_spTree(spTree), _rootedTree(rootedTree), _seqSp (seqSp), _spId(spId)
 {
   _lossNumbers = lossNumbers;
   _lossProbabilities = lossProbabilities;
@@ -231,6 +232,16 @@ ReconciliationTreeLikelihood & ReconciliationTreeLikelihood::operator=(const Rec
   _tentativeNodesToTryInNNISearch = lik._tentativeNodesToTryInNNISearch;
   _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
   return *this;
+}
+
+
+
+
+/******************************************************************************/
+
+ReconciliationTreeLikelihood::~ReconciliationTreeLikelihood()
+{
+
 }
 
 /******************************************************************************/
@@ -357,7 +368,7 @@ throw (Exception)
 
 void ReconciliationTreeLikelihood::fireParameterChanged(const ParameterList & params)
 {
- // std::cout << "!!!!!!!!!!!!!!!!!!!!!!IN FIRE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
+// std::cout << "!!!!!!!!!!!!!!!!!!!!!!IN FIRE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
   applyParameters();
   
   if(rateDistribution_->getParameters().getCommonParametersWith(params).size() > 0
@@ -402,9 +413,9 @@ void ReconciliationTreeLikelihood::fireParameterChanged(const ParameterList & pa
     }
   _sequenceLikelihood = ll;
   minusLogLik_ = -_sequenceLikelihood;
-/*cout.precision(10); 
-  std::cout << "!!!!!!!!!!!!!!!!!!!!!!IN FIRE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< minusLogLik_<<std::endl;
-  */
+ // std::cout.precision(10); 
+ // std::cout << "!!!!!!!!!!!!!!!!!!!!!!IN FIRE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< minusLogLik_<<std::endl;
+  
 }
 
 

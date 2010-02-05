@@ -14,6 +14,7 @@
 
 // From NumCalc:
 #include <NumCalc/VectorTools.h>
+#include <NumCalc/NumConstants.h>
 
 // From Utils:
 #include <Utils/AttributesTools.h>

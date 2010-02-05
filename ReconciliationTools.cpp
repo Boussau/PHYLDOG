@@ -1010,6 +1010,10 @@ double computeBranchProbability (double duplicationProbability, double lossProba
     if (std::isnan(temp)) {
       std::cout <<"ISNAN2 beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
     }
+    else if (temp == 0) {
+     // std::cerr <<"TEMP equals 0; beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
+      temp = NumConstants::VERY_TINY ;
+    }
     return(temp);
   }
 }
@@ -1051,6 +1055,10 @@ double computeBranchProbabilityAtRoot (double duplicationProbability, double los
     if (std::isnan(temp)) {
       std::cout <<"ISNAN2 beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
     }
+   else if (temp == 0) {
+    // std::cerr <<"TEMP equals 0; beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
+     temp = NumConstants::VERY_TINY ;
+   }
     return(temp);
   }
 }
@@ -1999,12 +2007,13 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
           rootDupData += son0DupData+son1DupData;
           rootLikelihood-=(computeLogBranchProbability(duplicationRates[a0], lossRates[a0], son0DupData) + 
                            computeLogBranchProbability(duplicationRates[b0], lossRates[b0], son1DupData));
-          
+
         }//there has been no loss, here
         else if (b==b0) { //The loss has occured before a0
           rootDupData += son1DupData+1;
           rootLikelihood-=computeLogBranchProbability(duplicationRates[b0], lossRates[b0], son1DupData);
           recoverLossesWithDuplication(temp0, a, olda, tree, rootLikelihood, lossRates, duplicationRates);
+
         //  if (son0DupData>0) {
           /*  std::cout <<"C On branch "<<a0<< "number of genes :"<<son0DupData<<std::endl;
             son0Likelihood += computeLogBranchProbability(duplicationRates[a0], lossRates[a0], son0DupData);*/
@@ -2014,6 +2023,7 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
           rootDupData += son0DupData+1;
           rootLikelihood-=computeLogBranchProbability(duplicationRates[a0], lossRates[a0], son0DupData);
           recoverLossesWithDuplication(temp1, b, oldb, tree, rootLikelihood, lossRates, duplicationRates);
+
         //  if (son1DupData>0) {
           /*  std::cout <<"D On branch "<<b0<< "number of genes :"<<son1DupData<<std::endl;
             son1Likelihood += computeLogBranchProbability(duplicationRates[b0], lossRates[b0], son1DupData);*/
@@ -2040,9 +2050,13 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
          // std::cout <<"E  duplication on branch "<<a<< "number of genes :"<<rootDupData<<std::endl;
         if(atRoot) {
           rootLikelihood += computeLogBranchProbabilityAtRoot(duplicationRates[a], lossRates[a], rootDupData);
+
         }
         else {
           rootLikelihood += computeLogBranchProbability(duplicationRates[a], lossRates[a], rootDupData);
+         // std::cout<<"rootLikelihood5: "<< rootLikelihood<<std::endl;  
+
+
         }
       //  }
       }
@@ -2063,6 +2077,7 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
          // std::cout <<"F duplication on branch "<<a<< "number of genes :"<<rootDupData<<std::endl;
         if (atRoot) {
           rootLikelihood += computeLogBranchProbabilityAtRoot(duplicationRates[a], lossRates[a], rootDupData);
+
         }else {
           rootLikelihood += computeLogBranchProbability(duplicationRates[a], lossRates[a], rootDupData);
         }
@@ -2070,11 +2085,13 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
       }
     //Setting the lower conditional likelihood for the node of interest.
     rootLikelihood += son0Likelihood + son1Likelihood;
+
    // std::cout <<"HERErootlikelihood "<<rootLikelihood<<std::endl;
   }
   else {
     //std::cout << "Error in computeLowerConditionalLikelihoodAndAssignSpId: initial conditional likelihood != 0."<<std::endl;
   }
+
   return(rootLikelihood);
 }
 
@@ -2267,7 +2284,6 @@ void computeSubtreeLikelihoodPreorder(TreeTemplate<Node> & spTree,
                                       std::vector <std::vector<int> > & dupData,
                                       int sonNumber, 
                                       std::map <double, Node*> & LksToNodes) {
-  
   computeRootingLikelihood(spTree, node, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData, sonNumber, LksToNodes);
   if (node->isLeaf()) {
     return; 
@@ -2693,6 +2709,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   dupData = speciesIDs;
   // Getting a well-rooted tree
   TreeTemplate<Node > * tree = geneTree->clone();
+  
   tree->newOutGroup(LksToNodes.rbegin()->second->getId());
  // std::cout << TreeTools::treeToParenthesis (*tree, true)<<std::endl;
 
