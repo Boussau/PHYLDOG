@@ -865,18 +865,20 @@ void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node *
 void computeDuplicationAndLossProbabilities (int i, int j, int k, 
                                              double & lossProbability, 
                                              double & duplicationProbability) {
- // std::cout <<"in computeDuplicationAndLossProbabilities 0 "<<i<<" "<<j<<" "<<k<<std::endl;
   double id=double(i);
   double jd=double(j);
   double kd=double(k);
   
   if (id==0) {
+    std::cout<<"0 loss on a branch"<<std::endl;
     id=0.01;
   }
   if (jd==0) {
+    std::cout<<"0 times 1 lineage on a branch"<<std::endl;
     jd=0.01;
   }
   if (kd==0) {
+    std::cout<<"0 duplication on a branch"<<std::endl;
     kd=0.01;
   }
   while((id < 1.0)||(jd < 1.0)||(kd < 1.0 )) {
@@ -884,10 +886,7 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
     jd = jd*100;
     kd = kd*100;
   }
- // std::cout <<"in computeDuplicationAndLossProbabilities 1"<<std::endl;
-
-  
-  
+    
   if (id==jd==kd) {
     id=id+0.00001;
   }
@@ -944,7 +943,7 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
 
 
 void computeDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> numOGenes, std::vector <int> num1Genes, std::vector <int> num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities) {
-  //The trick for the root:
+  //The trick for the root, already done in alterLineages...:
  /*
   int totNum0=0, totNum12=0;
   for (int i =1 ; i< lossProbabilities.size() ; i++) {
@@ -954,26 +953,22 @@ void computeDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> num
   //At branch 0, by definition, we never count cases where there has been a loss, so we set it to an average value.
   numOGenes[0] = (int)floor( ((double)totNum0/(double)totNum12)*((double)num1Genes[0]+(double)num2Genes[0]));
   */
-//  std::cout <<"num0Genes "<< numOGenes[0] <<std::endl;
   for (int i =0 ; i< lossProbabilities.size() ; i++) {
-  // std::cout <<"before computeDuplicationAndLossProbabilities "<<i<<" "<<numOGenes[i]<<" "<<num1Genes[i]<<" "<<num2Genes[i]<<" "<<lossProbabilities[i]<<" "<<duplicationProbabilities[i]<<std::endl;
     computeDuplicationAndLossProbabilities (numOGenes[i], num1Genes[i], num2Genes[i], lossProbabilities[i], duplicationProbabilities[i]);
-   /* FORMERLY TEST 1009:
-    if (duplicationProbabilities[i]>0.0013) {duplicationProbabilities[i]=0.0013;}*/
-  //  std::cout <<"after computeDuplicationAndLossProbabilities "<<i<<" "<<numOGenes[i]<<" "<<num1Genes[i]<<" "<<num2Genes[i]<<" "<<lossProbabilities[i]<<" "<<duplicationProbabilities[i]<<std::endl;
-  }
+    }
   return;
 }
 
 
 void computeAverageDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> numOGenes, std::vector <int> num1Genes, std::vector <int> num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities) {
   //The trick for the root:
-  int totNum0=0, totNum12=0;
+ /* int totNum0=0, totNum12=0;
   for (int i =1 ; i< lossProbabilities.size() ; i++) {
     totNum0+=numOGenes[i];
     totNum12+=num1Genes[i]+num2Genes[i];
   }
   numOGenes[0] = (int)floor( ((double)totNum0/(double)totNum12)*((double)num1Genes[0]+(double)num2Genes[0]));
+  */
   int sumOGene = VectorTools::sum(numOGenes);
   int sum1Gene = VectorTools::sum(num1Genes);
   int sum2Gene = VectorTools::sum(num2Genes);
@@ -2934,6 +2929,7 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
   double avg2d = (double)VectorTools::median<int>(num2);
  */
   if (avg0d+avg1d+avg2d==0) {//This shouldn't happen but if it does...
+    std::cerr<<"WARNING: No event on average on all branches. Setting default values."<<std::endl;
     avg0d = 267;
     avg1d = 723;
     avg2d = 10;
@@ -2997,37 +2993,21 @@ if ((avg0d<=0)||(avg1d<=0)||(avg2d<=0)||toPrint) {
   else {
     //At branch 0, by definition, we never count cases where there has been a loss, so we set it to an average value.
     //In fact, we put all num0, num1, and num2 values at the average values computed above
-//    num0lineages[0] = (int)((propLoss)*((double)num1lineages[0]+(double)num2lineages[0])/(1-propLoss));
     num0lineages[0]=avg0;
     num1lineages[0]=avg1;
-    //UNDONE TEST1409
     num2lineages[0]=avg2;
-  //  num2lineages[0]=avg2*100;
-  //  std::cout <<"num0Genes "<< num0lineages[0] <<std::endl;
   }
     
   //  Now we apply corrections for poorly sequenced genomes
   for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
     int id = tree.getLeafId(it->first);
-  //  std::cout <<"APPLYING CORRECTIONS ??? "<<id<<std::endl;
     int percent = it->second;
-//    if (percent <0) {percent=0;}
     if (percent>0) {
       double percentd = (double)percent/100.0;
-      double totLoss = propLoss +percentd;
-      /* double totLoss;
-       if (propLoss>percentd) {
-       totLoss = propLoss;
-       }
-       else {
-       totLoss = percentd;
-       }*/
-     
-      
+      double totLoss = propLoss +percentd;     
       if (totLoss>0.99) {
         totLoss=0.99;
       }
-     // std::cout <<"percentd "<<percentd<<" propLoss "<<propLoss<<" totLoss "<<totLoss<<std::endl;
       
       while((num1lineages[id] < 10)||(num2lineages[id] < 10)) {
         num1lineages[id] = num1lineages[id]*100;
@@ -3164,19 +3144,13 @@ std::map <std::string, int> computeSpeciesNamesToIdsMap (TreeTemplate<Node> & tr
 void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOptimization, std::vector <int> & num0Lineages, std::vector <int> & num1Lineages, std::vector <int> & num2Lineages, std::vector<double> & lossProbabilities, std::vector<double> & duplicationProbabilities, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
   std::cout <<"Updating Rates"<<std::endl; 
   if (branchProbaOptimization=="average") {
-  //   std::cout <<"before alterLineageCountsWithCoveragesAverage"<<std::endl;
-  //  alterLineageCountsWithCoveragesAverage(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree);
     alterLineageCountsWithCoverages(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree, true);
-//	computeAverageDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities);
   }
   else {
-   // std::cout <<"before alterLineageCountsWithCoverages"<<std::endl;
     alterLineageCountsWithCoverages(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree, false);
   }
-//  std::cout <<"before computeDuplicationAndLossProbabilitiesForAllBranches"<<std::endl;
   computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities);
 
-//  std::cout <<"after computeDuplicationAndLossProbabilitiesForAllBranches"<<std::endl;
 }
 
 
