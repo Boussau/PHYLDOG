@@ -888,8 +888,11 @@ int main(int args, char ** argv)
           fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, index, bestIndex, stop, logL, bestlogL, lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, branchProbaOptimization, genomeMissing, sprLimit, true);
           
           noMoreSPR=true;
-                   
-          std::cout << "\n\n\t\t\tEntering directly the final optimization steps, without SPRs\n\n"<<std::endl;
+          
+          numericalOptimizationOfDuplicationAndLossRates(world, index, stop, logL, lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *currentTree, bestlogL);
+          
+          
+          std::cout << "\n\n\t\t\tNow entering the final optimization steps, without SPRs\n\n"<<std::endl;
           std::cout << TreeTools::treeToParenthesis(*currentTree, true)<<std::endl;
 				}
 

@@ -1664,7 +1664,7 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world, int &in
 
 /************************************************************************
  * Computes the likelihood of a species tree, optimizes the duplication and loss
- * rates, and updates the likelihood of ths species tree. This way the likelihood
+ * rates, and updates the likelihood of the species tree. This way the likelihood
  * of this species tree is computed with adequate rates. 
  ************************************************************************/
 
@@ -1720,6 +1720,55 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
     
   }
  std::cout << i<< " iterations of likelihood computation for optimizing duplication and loss rates have been done."<< std::endl;
+}
+
+
+
+/************************************************************************
+ * Optimizes the duplication and loss rates with a numerical algorithm.
+ * As we should start from overestimated values, we start by decreasing all 
+ * values, and keep on trying to minimize these rates until the likelihood stops 
+ * increasing. 
+ ************************************************************************/
+void numericalOptimizationOfDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, bool rearrange, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL) {
+  std::cout<<"Numerical optimization of Duplication And Loss expected numbers of events"<<std::endl;
+  std::cout<<"Before optimization: Duplications"<<std::endl;
+  VectorTools::print(duplicationProbabilities);  
+  std::cout<<"Before optimization: Losses"<<std::endl;
+  VectorTools::print(lossProbabilities);
+  
+  std::vector <double> formerDupRates = duplicationProbabilities;
+  std::vector <double> formerLossRates = lossProbabilities;
+  
+  std::vector <double> newDupRates = duplicationProbabilities;
+  std::vector <double> newLossRates = lossProbabilities;
+  double currentlogL = -UNLIKELY;
+
+  while (currentlogL > logL + 0.01) {
+    currentlogL = logL;
+    formerDupRates = newDupRates;
+    formerLossRates = newLossRates;
+    newDupRates = newDupRates * 0.5;
+    newLossRates = newLossRates * 0.5;
+    computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, newLossRates, newDupRates, rearrange, server, branchProbaOptimization, genomeMissing, tree, bestlogL);
+  }
+  
+  //If we have improved the log-likelihood
+  if (currentlogL < bestlogL) {
+    duplicationProbabilities = formerDupRates;
+    lossProbabilities = formerLossRates;
+    bestlogL = currentlogL;
+    std::cout<<"Better logLikelihood! logL: "<< currentlogL <<std::endl;
+    std::cout<<"After optimization: Duplications"<<std::endl;
+    VectorTools::print(duplicationProbabilities);  
+    std::cout<<"After optimization: Losses"<<std::endl;
+    VectorTools::print(lossProbabilities);
+  }
+  else {
+    std::cout<<"No improvement in logLikelihood."<<std::endl;
+  }
+  
+  return;
 }
 
 
