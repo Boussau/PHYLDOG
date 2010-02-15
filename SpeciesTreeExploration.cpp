@@ -1660,18 +1660,17 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world, int &in
   return currentSpeciesTree;
 }
 
-
-
 /************************************************************************
  * Computes the likelihood of a species tree, optimizes the duplication and loss
  * rates, and updates the likelihood of the species tree. This way the likelihood
  * of this species tree is computed with adequate rates. 
  ************************************************************************/
-
-
 void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, bool rearrange, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL) {
   //First we compute the likelihood with old duplication and loss rates
   computeDuplicationAndLossRatesForTheSpeciesTreeInitially (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, tree);
+  //TEST: what if we diminish the expected numbers to 0.1 their estimated values?
+  lossProbabilities = 0.1 * lossProbabilities;
+  duplicationProbabilities = 0.1 * duplicationProbabilities;
   std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index, stop, logL, lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, duplicationProbabilities, lossProbabilities, tree);
   double currentlogL = -UNLIKELY;
   int i=1;
@@ -1748,8 +1747,8 @@ void numericalOptimizationOfDuplicationAndLossRates(const mpi::communicator& wor
     currentlogL = logL;
     formerDupRates = newDupRates;
     formerLossRates = newLossRates;
-    newDupRates = newDupRates * 0.5;
-    newLossRates = newLossRates * 0.5;
+    newDupRates = newDupRates * 0.1;
+    newLossRates = newLossRates * 0.1;
     computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, newLossRates, newDupRates, rearrange, server, branchProbaOptimization, genomeMissing, tree, bestlogL);
   }
   
