@@ -356,7 +356,9 @@ throw (Exception)
    {
     if(!isInitialized()) throw Exception("reconciliationTreeLikelihood::getValue(). Instance is not initialized.");
    // return (-getLogLikelihood());
-     return (minusLogLik_ - _scenarioLikelihood);
+     //TEST 16 02 2010
+     return (_sequenceLikelihood - _scenarioLikelihood);
+     //return (minusLogLik_ - _scenarioLikelihood);
      //return (-minusLogLik_);
   }
 }
@@ -404,15 +406,16 @@ void ReconciliationTreeLikelihood::fireParameterChanged(const ParameterList & pa
     }
   double ll =0.0;
   //minusLogLik_ = - getLogLikelihood();
-  Vdouble * lik = & likelihoodData_->getRootRateSiteLikelihoodArray();
-  const std::vector<unsigned int> * w = & likelihoodData_->getWeights();
+  Vdouble * lik = & getLikelihoodData()->getRootRateSiteLikelihoodArray();
+  const std::vector<unsigned int> * w = & getLikelihoodData()->getWeights();
   for(unsigned int i = 0; i < nbDistinctSites_; i++)
     {
       ll += (* w)[i] * log((* lik)[i]);
       //std::cout << i << "\t" << (* w)[i] << "\t" << log((* lik)[i]) << std::endl;
     }
   _sequenceLikelihood = ll;
-  minusLogLik_ = -_sequenceLikelihood;
+  //TEST 16 02 2010
+ // minusLogLik_ = -_sequenceLikelihood;
  // std::cout.precision(10); 
  // std::cout << "!!!!!!!!!!!!!!!!!!!!!!IN FIRE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< minusLogLik_<<std::endl;
   
@@ -597,7 +600,7 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
       
       
       //Retrieving arrays of interest:
-      const DRASDRTreeLikelihoodNodeData * parentData = & likelihoodData_->getNodeData(parent->getId());
+      const DRASDRTreeLikelihoodNodeData * parentData = & getLikelihoodData()->getNodeData(parent->getId());
       const VVVdouble                    * sonArray   = & parentData->getLikelihoodArrayForNeighbor(son->getId());
       std::vector<const Node *> parentNeighbors = TreeTemplateTools::getRemainingNeighbors(parent, grandFather, son);
       unsigned int nbParentNeighbors = parentNeighbors.size();
@@ -610,7 +613,7 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
           parentTProbs[k] = & pxy_[n->getId()];
         }
       
-      const DRASDRTreeLikelihoodNodeData * grandFatherData = & likelihoodData_->getNodeData(grandFather->getId());
+      const DRASDRTreeLikelihoodNodeData * grandFatherData = & getLikelihoodData()->getNodeData(grandFather->getId());
       const VVVdouble                    * uncleArray      = & grandFatherData->getLikelihoodArrayForNeighbor(uncle->getId()); 
       std::vector<const Node *> grandFatherNeighbors = TreeTemplateTools::getRemainingNeighbors(grandFather, parent, uncle);
       unsigned int nbGrandFatherNeighbors = grandFatherNeighbors.size();

@@ -736,6 +736,13 @@ int main(int args, char ** argv)
       for (int i =0; i<branchNumbers.size() ; i++ ) {
         std::cout <<"branch Number#"<< i<<"  du Rate: "<< duplicationProbabilities[i]<<"  loss Rate: "<< lossProbabilities[i]<<"  br Num: "<< branchNumbers[i]<<std::endl;
       }
+      duplicationProbabilities = duplicationProbabilities * 0.1;
+      lossProbabilities = lossProbabilities * 0.1;
+      std::cout << "After correction:"<<std::endl;
+      for (int i =0; i<branchNumbers.size() ; i++ ) {
+        std::cout <<"branch Number#"<< i<<"  du Rate: "<< duplicationProbabilities[i]<<"  loss Rate: "<< lossProbabilities[i]<<"  br Num: "<< branchNumbers[i]<<std::endl;
+      }
+      
       
       //We also need to send the species tree to all clients
 			currentSpeciesTree = TreeTools::treeToParenthesis(*tree, true);
