@@ -844,6 +844,8 @@ int main(int args, char ** argv)
       bestNum1Lineages = num1Lineages;
       bestNum2Lineages = num2Lineages;
       
+      //TEST 16 02 2010
+      /*
       if(branchProbaOptimization=="average_then_branchwise") {
         std::string temp = "average";
         computeDuplicationAndLossRatesForTheSpeciesTree (temp, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, *tree);
@@ -851,7 +853,7 @@ int main(int args, char ** argv)
       else {
         computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, *tree);
       }
-      
+      */
 			std::cout << "\t\tServer: total initial Likelihood value "<<logL<<std::endl;
 			bestlogL = logL;
       for (int i =0; i<branchNumbers.size() ; i++ ) {
@@ -869,6 +871,7 @@ int main(int args, char ** argv)
           
           //Now we update the rates before starting a new round of tree exploration
           computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *currentTree, bestlogL);
+                    
           
           if (logL+0.01<bestlogL) {
             bestlogL =logL;
