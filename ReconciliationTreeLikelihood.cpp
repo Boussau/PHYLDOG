@@ -344,6 +344,9 @@ double ReconciliationTreeLikelihood::getLogLikelihood() const
   //Now we add the scenario likelihood
   //  std::cout << "COMPUTING LOGLIKELIHOOD :" << ll  << " SCENARIO LOGLIKELIHOOD :" << _scenarioLikelihood <<" TOTAL : "<< ll + _scenarioLikelihood <<std::endl;
 
+  //TEST 16 02 2010
+  DRHomogeneousTreeLikelihood::getLogLikelihood();
+  
   ll = _sequenceLikelihood + _scenarioLikelihood;
  // ll = _sequenceLikelihood ;
   return ll;

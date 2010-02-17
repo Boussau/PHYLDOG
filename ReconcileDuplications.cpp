@@ -867,7 +867,7 @@ int main(int args, char ** argv)
           //This first function does not optimize duplication and loss rates, 
           //as proved by the last "false" argument.
           fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, index, bestIndex, stop, logL, bestlogL, lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, branchProbaOptimization, genomeMissing, sprLimit, false);
-					std::cout <<"Before updating rates; current Likelihood "<<logL<<std::endl;
+					std::cout <<"Before updating rates; current Likelihood "<<bestlogL<<std::endl;
           
           //Now we update the rates before starting a new round of tree exploration
           computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *currentTree, bestlogL);
