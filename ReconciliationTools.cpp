@@ -190,14 +190,14 @@ void changeBranchProperty(Node & noeud, const std::string & name, const Clonable
 
 
 
-void resetLossesAndDuplications(TreeTemplate<Node> & tree, std::vector <int> &lossNumbers, std::vector <double> &lossProbabilities, std::vector <int> &duplicationNumbers, std::vector <double> &duplicationProbabilities) {
+void resetLossesAndDuplications(TreeTemplate<Node> & tree, /*std::vector <int> &lossNumbers, */std::vector <double> &lossProbabilities, /*std::vector <int> &duplicationNumbers, */std::vector <double> &duplicationProbabilities) {
   std::vector< int > nodesIds = tree.getNodesId ();
   Number<int> zero = Number<int>(0);
   for (int i=0; i<nodesIds.size(); i++) {
     changeBranchProperty(*(tree.getNode(nodesIds[i])),LOSSES, zero);
     changeBranchProperty(*(tree.getNode(nodesIds[i])),DUPLICATIONS, zero);
-    lossNumbers[nodesIds[i]] = 0;
-    duplicationNumbers[nodesIds[i]] = 0;
+    /*lossNumbers[nodesIds[i]] = 0;
+    duplicationNumbers[nodesIds[i]] = 0;*/
   }
 }
 
@@ -868,17 +868,13 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   double id=double(i);
   double jd=double(j);
   double kd=double(k);
-  
   if (id==0) {
-    std::cout<<"0 loss on a branch"<<std::endl;
     id=0.01;
   }
   if (jd==0) {
-    std::cout<<"0 times 1 lineage on a branch"<<std::endl;
     jd=0.01;
   }
   if (kd==0) {
-    std::cout<<"0 duplication on a branch"<<std::endl;
     kd=0.01;
   }
   while((id < 1.0)||(jd < 1.0)||(kd < 1.0 )) {
@@ -886,10 +882,13 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
     jd = jd*100;
     kd = kd*100;
   }
-    
-  if (id==jd==kd) {
-    id=id+0.00001;
+  
+  
+  /*Old Formulas as of 18 02 2010
+  if (id==kd) {
+    kd=kd-0.00001;
   }
+  
   double denom = kd*id-jd*kd-kd*kd+jd*id;
   if (denom==0) {
     denom=0.00000001;
@@ -904,10 +903,7 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
     if (temp<=0) {
       lossProbability = 0.0001;//SMALLPROBA;
     }
-  /*  else if (temp>=1){ //To be honest, those are not probabilities but expected number of events, so they can exceed 1.
-      lossProbability = BIGPROBA;
-    }*/
-    else {
+     else {
       lossProbability = temp;
     }
   }
@@ -917,9 +913,6 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
     if (temp<=0) {
       duplicationProbability = 0.0001;//SMALLPROBA;
     }
-    /*else if (temp>=1){
-      duplicationProbability = BIGPROBA;
-    }*/
     else {
       duplicationProbability = temp;
     }
@@ -930,7 +923,50 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   if (duplicationProbability <0.0001) {
     duplicationProbability = 0.0001;//1e-6;
   }
+  */
+  
+  //New formulas as of 18 02 2010
+  double sum = id +jd +kd;
+  double X = id/sum;
+  double Y = jd/sum;
+  double Z = kd/sum;
+  
+  double K = 1 - sqrt(1-4*Z/(1-X));
+  
+  double temp = (1/(1 - 2*X/K )) * log( ((X-1)/(Y)) * ((2*X/K)*(1-Y/(1-X))-1));
+  
+  if (!(std::isnan(temp)||std::isinf(temp))) { 
+    if (temp<=0) {
+      duplicationProbability = 0.0001;//SMALLPROBA;
+    }
+    else {  
+      duplicationProbability = temp;
+    }
+  }
+  temp = 2*X*temp/K;
+  
+  if (!(std::isnan(temp)||std::isinf(temp))) {
+    if (temp<=0) {
+      lossProbability = 0.0001;//SMALLPROBA;
+    }
+    else {
+      lossProbability = temp;
+          }
+  }  
  
+  if (lossProbability <0.0001) {
+    lossProbability = 0.0001;//1e-6;
+  }
+  if (duplicationProbability <0.0001) {
+    duplicationProbability = 0.0001;//1e-6;
+  }
+  
+    
+ /* 
+  std::cout<<"0: "<<i<<" 1: "<<j<<" 2: "<<k<<std::endl;
+std::cout<<"X: "<<X<<" Y: "<<Y<<" Z: "<<Z<<std::endl;
+  std::cout<<" lossProbability: "<<lossProbability <<" duplicationProbability: "<<duplicationProbability<<std::endl;
+  */
  // std::cout <<"in computeDuplicationAndLossProbabilities 2"<<std::endl;
 
   return;
@@ -1556,7 +1592,7 @@ double makeReconciliationAtGivenRoot (TreeTemplate<Node> * tree,
   }
   if (MLindex != geneTree->getRootNode()->getId()){
     geneTree->newOutGroup(MLindex);
-    resetLossesAndDuplications(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities);
+    resetLossesAndDuplications(*tree, /*lossNumbers, */lossProbabilities, /*duplicationNumbers, */duplicationProbabilities);
     resetVector(branchNumbers); 
   //  std::cout << "reconcile 1!!"<<std::endl;
     reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations); 
@@ -1631,7 +1667,7 @@ double findMLReconciliation (TreeTemplate<Node> * spTree,
 	resetSpeciesIdsAndLiks (*geneTree);
  std::map <int, int > NodeIdToSpId; //correspondence between ids in the gene tree and ids in the species tree
 
-	resetLossesAndDuplications(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities);
+	resetLossesAndDuplications(*tree, /*lossNumbers, */lossProbabilities, /*duplicationNumbers, */duplicationProbabilities);
 	resetVector(branchNumbers);
 	resetVector(num0lineages);
 	resetVector(num1lineages);
@@ -1730,7 +1766,7 @@ double findMLReconciliation (TreeTemplate<Node> * spTree,
 			if (heuristicsLevel == 3) {
 				// Total reset :
 				resetSpeciesIdsAndLiks (*geneTree);
-				resetLossesAndDuplications(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities);
+				resetLossesAndDuplications(*tree, /*lossNumbers, */lossProbabilities, /*duplicationNumbers, */duplicationProbabilities);
 				resetVector(branchNumbers);
 				resetVector(num0lineages);
 				resetVector(num1lineages);
@@ -2980,9 +3016,7 @@ if ((avg0d<=0)||(avg1d<=0)||(avg2d<=0)||toPrint) {
   int avg0 = (int)avg0d;
   int avg1 = (int)avg1d;
   int avg2 = (int)avg2d;
-  
- // std::cout <<"avg0 "<<avg0<<" avg1 "<<avg1<<" avg2 "<<avg2<<std::endl;
-  
+    
   if (average) {
     for (int i =0; i<num0lineages.size(); i++) {
       num0lineages[i]=avg0;
@@ -2991,13 +3025,18 @@ if ((avg0d<=0)||(avg1d<=0)||(avg2d<=0)||toPrint) {
     }
   }
   else {
-    //At branch 0, by definition, we never count cases where there has been a loss, so we set it to an average value.
+    //At branch 0 and branches surrounding the root, by definition, we never count cases where there has been a loss, so we set it to an average value.
     //In fact, we put all num0, num1, and num2 values at the average values computed above
-    num0lineages[0]=avg0;
-    num1lineages[0]=avg1;
-    num2lineages[0]=avg2;
+    for (int i =0; i<num0lineages.size(); i++) {
+      if (num0lineages[i] == 0) {
+        num0lineages[i]=avg0;
+        num1lineages[i]=avg1;
+        num2lineages[i]=avg2;
+      }
+    }
   }
     
+  
   //  Now we apply corrections for poorly sequenced genomes
   for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
     int id = tree.getLeafId(it->first);
@@ -3022,6 +3061,8 @@ if ((avg0d<=0)||(avg1d<=0)||(avg2d<=0)||toPrint) {
       num0lineages[id] = (int)(totLoss * ((double)num1lineages[id]+(double)num2lineages[id]) / (1.0-totLoss));
     }
   }
+  
+  
 }
 
 
@@ -3142,13 +3183,13 @@ std::map <std::string, int> computeSpeciesNamesToIdsMap (TreeTemplate<Node> & tr
 
 
 void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOptimization, std::vector <int> & num0Lineages, std::vector <int> & num1Lineages, std::vector <int> & num2Lineages, std::vector<double> & lossProbabilities, std::vector<double> & duplicationProbabilities, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
-  std::cout <<"Updating Rates"<<std::endl; 
   if (branchProbaOptimization=="average") {
     alterLineageCountsWithCoverages(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree, true);
   }
   else {
     alterLineageCountsWithCoverages(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree, false);
   }
+  
   computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities);
 
 }

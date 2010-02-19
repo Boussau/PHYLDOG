@@ -68,9 +68,10 @@ class ReconciliationTreeLikelihood:
     std::map <std::string, int> _spId;
     std::vector <int> _duplicationNumbers;
     std::vector <int> _lossNumbers;
+    std::vector <int>  _branchNumbers;
+
     std::vector <double> _duplicationProbabilities;
     std::vector <double> _lossProbabilities; 
-    std::vector <int>  _branchNumbers;
     std::vector <int> _num0Lineages;
     std::vector <int> _num1Lineages;
     std::vector <int> _num2Lineages;
@@ -129,11 +130,11 @@ class ReconciliationTreeLikelihood:
                                  TreeTemplate<Node> & rootedTree, 
                                  const std::map <std::string, std::string> seqSp,
                                  std::map <std::string,int> spId,
-                                 std::vector <int> & lossNumbers, 
+                                 //std::vector <int> & lossNumbers, 
                                  std::vector <double> & lossProbabilities, 
-                                 std::vector <int> & duplicationNumbers, 
+                                 //std::vector <int> & duplicationNumbers, 
                                  std::vector <double> & duplicationProbabilities, 
-                                 std::vector <int> & branchNumbers,
+                                 //std::vector <int> & branchNumbers,
                                  std::vector <int> & num0Lineages,
                                  std::vector <int> & num1Lineages,
                                  std::vector <int> & num2Lineages, 
@@ -181,11 +182,11 @@ class ReconciliationTreeLikelihood:
                                  TreeTemplate<Node> & rootedTree,  
                                  const std::map <std::string, std::string> seqSp,
                                  std::map <std::string,int> spId,
-                                 std::vector <int> & lossNumbers, 
+                                 //std::vector <int> & lossNumbers, 
                                  std::vector <double> & lossProbabilities, 
-                                 std::vector <int> & duplicationNumbers, 
+                                 //std::vector <int> & duplicationNumbers, 
                                  std::vector <double> & duplicationProbabilities, 
-                                 std::vector <int> & branchNumbers, 
+                                 //std::vector <int> & branchNumbers, 
                                  std::vector <int> & num0Lineages,
                                  std::vector <int> & num1Lineages,
                                  std::vector <int> & num2Lineages,  

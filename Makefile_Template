@@ -23,12 +23,15 @@ LL =  -L/usr/local/lib -lboost_serialization-gcc40-mt-1_39 -lboost_mpi-gcc40-mt-
 
 #LB = -L$(BOOST_LIBRARIES) -L$(BIOPP_LIBRARIES)  
 
-ReconcileDuplications : ReconcileDuplications.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o
-	$(CC) -o ReconcileDuplications ReconcileDuplications.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o -lbpp-phyl -lbpp-seq -lbpp-numcalc -lbpp-utils $(LL)
+ReconcileDuplications : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o
+	$(CC) -o ReconcileDuplications ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o -lbpp-phyl -lbpp-seq -lbpp-numcalc -lbpp-utils $(LL)
 #	$(CC)  --static  -o ReconcileDuplications ReconcileDuplications.o ReconciliationTreeLikelihood.o ReconciliationTools.o -lbpp-phyl -lbpp-seq -lbpp-numcalc -lbpp-utils
 
-ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp ReconciliationTools.o SpeciesTreeExploration.o
+ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp SpeciesTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o
 	$(CC) -c $(SRC)ReconcileDuplications.cpp $(SRC)ReconciliationTools.h 
+  
+SpeciesTreeLikelihood.o : $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h
+	$(CC) -c $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h
 
 ReconciliationTreeLikelihood.o : $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h ReconciliationTools.o
 	$(CC) -c $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h $(SRC)ReconciliationTools.h 
