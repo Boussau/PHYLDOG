@@ -1081,6 +1081,7 @@ int main(int args, char ** argv)
 					}
 					else {
 						std::cout <<"\tDuplication and loss rate optimization: Number of iterations without improvement : "<<numIterationsWithoutImprovement<<std::endl;
+            /*
             //ATTEMPT 18 02 2010
             //OPTIMIZE RATES
             SpeciesTreeLikelihood *slk = new SpeciesTreeLikelihood (world, server, tree, index, bestIndex, stop, logL, bestlogL, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, numIterationsWithoutImprovement, branchProbaOptimization, genomeMissing);
@@ -1109,8 +1110,8 @@ int main(int args, char ** argv)
             
             delete optimizer;
             delete slk;
-            
-          //optimizeOnlyDuplicationAndLossRates(world, currentTree, bestTree, index, bestIndex, stop, logL, bestlogL, /*lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, nodeForNNI, nodeForRooting, branchProbaOptimization, genomeMissing);
+            */
+          optimizeOnlyDuplicationAndLossRates(world, currentTree, bestTree, index, bestIndex, stop, logL, bestlogL, /*lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, nodeForNNI, nodeForRooting, branchProbaOptimization, genomeMissing);
            /* std::cout<< "STOP VALUE: ";
             if (stop) {
               std::cout <<"STOP ==TRUE!"<<std::endl; 

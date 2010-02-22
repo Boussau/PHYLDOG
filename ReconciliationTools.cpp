@@ -877,6 +877,8 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   if (kd==0) {
     kd=0.01;
   }
+  
+  
   while((id < 1.0)||(jd < 1.0)||(kd < 1.0 )) {
     id = id*100;
     jd = jd*100;
@@ -884,7 +886,67 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   }
   
   
+  if (id==kd) {
+    kd=kd-0.00001;
+  }
+  
+  
+  //Linear Birth-Death process, from Bartholomay 1958
+  double sum = id +jd +kd;
+  double X = id/sum;
+  double Y = jd/sum;
+  double Z = kd/sum;
+  
+  double Y2Z = pow(Y, 2)/Z;
+  double XYZ = X*Y/Z;
+  double oneXYZ = 1/XYZ;
+  
+  //expected number of losses over a branch of length 1.
+  double mu = (log(XYZ - X + Y2Z) - log(1 - X + Y2Z) ) / (1- oneXYZ);
+  
+  //expected number of duplications over a branch of lenth 1.
+  double lambda = oneXYZ * mu;
+  
+  if (!(std::isnan(lambda)||std::isinf(lambda))) { 
+    if (lambda<=0) {
+      duplicationProbability = 0.000001;//SMALLPROBA;
+    }
+    else {  
+      duplicationProbability = lambda;
+    }
+  }
+  
+  
+  
+  if (!(std::isnan(mu)||std::isinf(mu))) {
+    if (mu<=0) {
+      lossProbability = 0.000001;//SMALLPROBA;
+    }
+    else {
+      lossProbability = mu;
+    }
+  }  
+  
+  if (lossProbability <0.000001) {
+    lossProbability = 0.000001;//1e-6;
+  }
+  if (duplicationProbability <0.000001) {
+    duplicationProbability = 0.000001;//1e-6;
+  }
+  
+  
+  
+  
+  
   /*Old Formulas as of 18 02 2010
+
+  while((id < 1.0)||(jd < 1.0)||(kd < 1.0 )) {
+    id = id*100;
+    jd = jd*100;
+    kd = kd*100;
+  }
+  
+  
   if (id==kd) {
     kd=kd-0.00001;
   }
@@ -924,7 +986,7 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
     duplicationProbability = 0.0001;//1e-6;
   }
   */
-  
+/*  
   //New formulas as of 18 02 2010
   double sum = id +jd +kd;
   double X = id/sum;
@@ -960,8 +1022,10 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   if (duplicationProbability <0.0001) {
     duplicationProbability = 0.0001;//1e-6;
   }
-  
+  */
     
+  
+  
  /* 
   std::cout<<"0: "<<i<<" 1: "<<j<<" 2: "<<k<<std::endl;
 std::cout<<"X: "<<X<<" Y: "<<Y<<" Z: "<<Z<<std::endl;
@@ -1026,6 +1090,32 @@ void computeAverageDuplicationAndLossProbabilitiesForAllBranches (std::vector <i
  * Computes the probability of a given number of lineages numberOfLineages at the end of a branch given that there was only one at the beginning of the branch. 
  **************************************************************************/
 double computeBranchProbability (double duplicationProbability, double lossProbability, int numberOfLineages) {
+  //Using a linear birth-death process (Bartholomay, 1958)
+  int min ;
+  if (numberOfLineages == 0) {
+    min = 0; 
+  }
+  else {
+    min = 1;
+  }
+  
+  double elm = exp(duplicationProbability - lossProbability);
+  double A = elm -1;
+  double B = duplicationProbability * elm - lossProbability;
+  double C = lossProbability * elm - duplicationProbability;
+  
+  double res =0;
+  
+  if (numberOfLineages == 0) {
+    res = lossProbability * A / B;
+  }
+  else {
+    res = pow(duplicationProbability, numberOfLineages) * lossProbability * pow(A,1+numberOfLineages) * pow(B, -(1+numberOfLineages)) - pow(duplicationProbability, numberOfLineages - 1) *  pow(A,numberOfLineages - 1) *  pow(B, -numberOfLineages) * C ;
+  }
+  return(res);
+
+  
+ /* Old computations as of 21 02 2010
   if (duplicationProbability==lossProbability) {
     lossProbability+=0.0000001;
   }
@@ -1047,6 +1137,7 @@ double computeBranchProbability (double duplicationProbability, double lossProba
     }
     return(temp);
   }
+  */
 }
 
 
@@ -3026,7 +3117,7 @@ if ((avg0d<=0)||(avg1d<=0)||(avg2d<=0)||toPrint) {
   }
   else {
     //At branch 0 and branches surrounding the root, by definition, we never count cases where there has been a loss, so we set it to an average value.
-    //In fact, we put all num0, num1, and num2 values at the average values computed above
+    //We also put all num0, num1, and num2 values at the average values computed above.
     for (int i =0; i<num0lineages.size(); i++) {
       if (num0lineages[i] == 0) {
         num0lineages[i]=avg0;
