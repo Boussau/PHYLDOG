@@ -35,6 +35,8 @@ const std::string DUPLICATIONS="DUPLICATIONS";
 const std::string EVENTSPROBA="EVENTSPROBA";
 const std::string LOWLIK="LOWLIK";
 const std::string NUMGENES="NUMGENES";
+const std::string NUMLINEAGES="NUMLINEAGES";
+
 const double UNLIKELY=-100000000000000000000.0;
 const double SMALLPROBA=0.0000000001;
 const double BIGPROBA=0.9999999999;
@@ -70,6 +72,10 @@ std::string treeToParenthesisWithDoubleNodeValues(const Tree & tree, bool bootst
 void setLossesAndDuplications(TreeTemplate<Node> & tree, 
                               std::vector <int> &lossNumbers, 
                               std::vector <int> &duplicationNumbers);
+void assignNumLineagesOnSpeciesTree(TreeTemplate<Node> & tree, 
+                                    std::vector <int> &num0Lineages, 
+                                    std::vector <int> &num1Lineages, 
+                                    std::vector <int> &num2Lineages);
 double makeReconciliationAtGivenRoot (TreeTemplate<Node> * tree, 
                                       TreeTemplate<Node> * geneTree, 
                                       std::map<std::string, std::string > seqSp, 

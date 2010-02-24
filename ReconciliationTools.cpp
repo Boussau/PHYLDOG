@@ -1641,6 +1641,32 @@ void setLossesAndDuplications(TreeTemplate<Node> & tree,
   }
 }
 
+/**************************************************************************
+ * This function sets the NUM0LINEAGES, NUM1LINEAGES and NUM2LINEAGES values on the species tree, given std::vectors
+ **************************************************************************/
+void assignNumLineagesOnSpeciesTree(TreeTemplate<Node> & tree, 
+                              std::vector <int> &num0Lineages, 
+                              std::vector <int> &num1Lineages, 
+                              std::vector <int> &num2Lineages) {
+  std::vector< int > nodesIds = tree.getNodesId ();
+  std::string nums = "";
+  for (int i=0; i<nodesIds.size(); i++) {
+    if(tree.hasBranchProperty(nodesIds[i], NUMLINEAGES)) {
+      tree.getNode(nodesIds[i])->deleteBranchProperty(NUMLINEAGES);
+    }
+    if(tree.hasNodeProperty(nodesIds[i], NUMLINEAGES)) {
+      tree.getNode(nodesIds[i])->deleteNodeProperty(NUMLINEAGES);
+    }
+    nums = TextTools::toString(num0Lineages[nodesIds[i]])+"_"+TextTools::toString(num1Lineages[nodesIds[i]])+"_"+TextTools::toString(num2Lineages[nodesIds[i]]);
+    tree.getNode(nodesIds[i])->setBranchProperty(NUMLINEAGES, BppString(nums));
+    if (tree.getNode(nodesIds[i])->isLeaf() ) {
+      tree.getNode(nodesIds[i])->setName( tree.getNode(nodesIds[i])->getName() + "_"+nums) ;
+    }
+  }
+}
+
+
+
 
 /**************************************************************************
  * This function computes a reconciliation for a given root node

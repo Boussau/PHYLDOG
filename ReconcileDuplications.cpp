@@ -1160,6 +1160,7 @@ int main(int args, char ** argv)
        out << treeToParenthesisWithIntNodeValues (*bestTree, false, LOSSES)<<std::endl;
        out.close();
        */
+      
       //Here we output the species tree with rates of duplication and loss
       //For duplication rates
       for (int i =0; i<num0Lineages.size() ; i++ ) {
@@ -1190,6 +1191,22 @@ int main(int args, char ** argv)
 			out.open (numTree.c_str(), std::ios::out);
 			out << TreeTools::treeToParenthesis (*bestTree, true)<<std::endl;
 			out.close();
+      
+      //Here we output the species tree with numbers of times 
+      //a given number of lineages has been found per branch.
+      
+      assignNumLineagesOnSpeciesTree(*bestTree, 
+                                     num0Lineages, 
+                                     num1Lineages, 
+                                     num2Lineages);
+      std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params, "lineageNumbers.tree", "", false, false); 
+      out.open (lineagesTree.c_str(), std::ios::out);
+			out << TreeTools::treeToParenthesis(*bestTree, false, NUMLINEAGES)<<std::endl;
+			out.close();
+      
+          
+      
+      
 			std::cout <<"Number of species trees tried : "<<index<<std::endl;
 
 			PhylogeneticsApplicationTools::writeTree(*bestTree, params);
