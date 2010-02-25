@@ -896,7 +896,18 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   double X = id/sum;
   double Y = jd/sum;
   double Z = kd/sum;
+  //num2Lineages (Z) corresponds to the sum of cases where there were 2 or 
+  //more than 2 lineages at the end of a branch.
+  double ZoverYPlusZ = Z/(Y+Z);
+  double ZoverXTimesYPlusZ = ZoverYPlusZ * 1/X;
   
+  //expected number of losses over a branch of length 1.
+  double mu = log( (X-1)/(ZoverYPlusZ-1) ) / (ZoverXTimesYPlusZ -1);
+  
+  //expected number of duplications over a branch of lenth 1.
+  double lambda = ZoverXTimesYPlusZ * mu;
+  
+/* If we truncate 
   double Y2Z = pow(Y, 2)/Z;
   double XYZ = X*Y/Z;
   double oneXYZ = 1/XYZ;
@@ -906,7 +917,7 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   
   //expected number of duplications over a branch of lenth 1.
   double lambda = oneXYZ * mu;
-  
+  */
   if (!(std::isnan(lambda)||std::isinf(lambda))) { 
     if (lambda<=0) {
       duplicationProbability = 0.000001;//SMALLPROBA;
@@ -2603,13 +2614,13 @@ void computeNumbersOfLineagesInASubtree(TreeTemplate<Node> & tree,
         if (son0DupData==1) {
           num1lineages[a0]=num1lineages[a0]-1;
         }
-        else if (son0DupData==2) {
+        else if (son0DupData>=2) {//All branches with 2 or more lineages
           num2lineages[a0]=num2lineages[a0]-1;
         }
         if (son1DupData==1) {
           num1lineages[b0]=num1lineages[b0]-1;
         }
-        else if (son1DupData==2) {
+        else if (son1DupData>=2) {//All branches with 2 or more lineages
           num2lineages[b0]=num2lineages[b0]-1;
         }
         
@@ -2620,7 +2631,7 @@ void computeNumbersOfLineagesInASubtree(TreeTemplate<Node> & tree,
         if (son1DupData==1) {
           num1lineages[b0]=num1lineages[b0]-1;
         }
-        else if (son1DupData==2) {
+        else if (son1DupData>=2) {//All branches with 2 or more lineages
           num2lineages[b0]=num2lineages[b0]-1;
         }
         recoverLossesAndLineagesWithDuplication(temp0, a, olda, tree, num0lineages);
@@ -2635,7 +2646,7 @@ void computeNumbersOfLineagesInASubtree(TreeTemplate<Node> & tree,
         if (son0DupData==1) {
           num1lineages[a0]=num1lineages[a0]-1;
         }
-        else if (son0DupData==2) {
+        else if (son0DupData>=2) {//All branches with 2 or more lineages
           num2lineages[a0]=num2lineages[a0]-1;
         }
         recoverLossesAndLineagesWithDuplication(temp1, b, oldb, tree, num0lineages);
@@ -2667,7 +2678,7 @@ void computeNumbersOfLineagesInASubtree(TreeTemplate<Node> & tree,
       if (rootDupData==1) {
         num1lineages[rootSpId]+=1;
       }
-      else if (rootDupData==2){
+      else if (rootDupData>=2){//All branches with 2 or more lineages
         num2lineages[rootSpId]+=1;
       }
       //  }
