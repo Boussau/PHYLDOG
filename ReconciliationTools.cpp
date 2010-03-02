@@ -868,29 +868,7 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   double id=double(i);
   double jd=double(j);
   double kd=double(k);
-  if (id==0) {
-    id=0.01;
-  }
-  if (jd==0) {
-    jd=0.01;
-  }
-  if (kd==0) {
-    kd=0.01;
-  }
-  
-  
-  while((id < 1.0)||(jd < 1.0)||(kd < 1.0 )) {
-    id = id*100;
-    jd = jd*100;
-    kd = kd*100;
-  }
-  
-  
-  if (id==kd) {
-    kd=kd-0.00001;
-  }
-  
-  
+
   //Linear Birth-Death process, from Bartholomay 1958
   double sum = id +jd +kd;
   double X = id/sum;
@@ -919,30 +897,30 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
   double lambda = oneXYZ * mu;
   */
   if (!(std::isnan(lambda)||std::isinf(lambda))) { 
-    if (lambda<=0) {
+    if (lambda<=0.000001) {
       duplicationProbability = 0.000001;//SMALLPROBA;
     }
     else {  
       duplicationProbability = lambda;
     }
+  } 
+  else if (std::isnan(lambda)) {
+    duplicationProbability = 0.000001;
   }
   
   
   
   if (!(std::isnan(mu)||std::isinf(mu))) {
-    if (mu<=0) {
-      lossProbability = 0.000001;//SMALLPROBA;
+    if (mu<=0.0000011) {
+      lossProbability = 0.0000011;//SMALLPROBA;
     }
     else {
       lossProbability = mu;
     }
   }  
-  
-  if (lossProbability <0.000001) {
-    lossProbability = 0.000001;//1e-6;
-  }
-  if (duplicationProbability <0.000001) {
-    duplicationProbability = 0.000001;//1e-6;
+  else if (std::isnan(mu)) {
+    std::cerr<<"A branch loss probability could not be properly estimated. Set to 0.000001 by default. X:"<<X<<" Y:"<<Y<<" Z:"<<Z<<std::endl;
+    lossProbability = 0.0000011;
   }
   
   
@@ -3102,7 +3080,7 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
     avg1d = 723;
     avg2d = 10;
   }
-  
+/*  
   while((avg0d < 10.0)||(avg1d < 10.0)||(avg2d < 10.0 )) {
     avg0d = avg0d*100;
     avg1d = avg1d*100;
@@ -3117,6 +3095,7 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
       avg2d =1;
     }
   }
+ */
 /*
   bool toPrint = false;
   for (int i =0 ; i<num0lineages.size(); i++) {
