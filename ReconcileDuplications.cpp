@@ -63,6 +63,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Phyl/RASTools.h>
 #include <Phyl/Newick.h>
 #include <Phyl/TreeTools.h>
+#include <Phyl/BioNJ.h>
+#include <Phyl/OptimizationTools.h>
+
 
 // From NumCalc:
 #include <NumCalc/DiscreteDistribution.h>
@@ -1391,6 +1394,29 @@ int main(int args, char ** argv)
 				}
 			 std::map <std::string, std::string> spSelSeq;
      
+        
+        /****************************************************************************
+				 //Then we need to get the substitution model.
+				 *****************************************************************************/
+        
+        
+        SubstitutionModel*    model    = 0;
+        SubstitutionModelSet* modelSet = 0;
+        DiscreteDistribution* rDist    = 0;
+        
+        model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params); 
+        if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
+        if (model->getNumberOfStates() > model->getAlphabet()->getSize())
+          {
+            // Markov-modulated Markov model!
+            rDist = new ConstantDistribution(1.);
+          }
+        else
+          {
+            rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
+          }
+        
+        
 				/****************************************************************************
 				 //Then we need to get the file containing the gene tree.
 				 *****************************************************************************/
@@ -1424,7 +1450,56 @@ int main(int args, char ** argv)
 					std::cout << "\n\nCurrently this option is not available.\n"<<std::endl;
 					exit(-1);
 				}
-				else throw Exception("Unknown init tree method.");
+        else if (initTree == "bionj") //building a BioNJ starting tree
+          {
+
+            DistanceEstimation distEstimation(model, rDist, sites, 1, false);
+            BioNJ * bionj = new BioNJ();      
+            bionj->outputPositiveLengths(true);   
+            std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
+            if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
+            else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
+            else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
+            else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
+
+            // Should I ignore some parameters?
+            ParameterList allParameters = model->getParameters();
+            allParameters.addParameters(rDist->getParameters());
+            ParameterList parametersToIgnore;
+            std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
+            bool ignoreBrLen = false;
+            StringTokenizer st(paramListDesc, ",");
+
+            while(st.hasMoreToken())
+              {
+                try
+                {
+                  std::string param = st.nextToken();
+                  if(param == "BrLen")
+                    ignoreBrLen = true;
+                  else
+                    {
+                      if (allParameters.hasParameter(param))
+                        {
+                          Parameter* p = &allParameters.getParameter(param);
+                          parametersToIgnore.addParameter(*p);
+                        }
+                      else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
+                    }
+                } 
+                catch(ParameterNotFoundException pnfe)
+                {
+                  ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
+                }
+              }
+            double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
+            unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
+
+            geneTree = unrootedGeneTree;
+            geneTree->newOutGroup(0);
+
+          }
+				else throw Exception("Unknown init gene tree method.");
      
         /****************************************************************************
 				 //Then we need to prune the gene tree and the alignment so that they contain
@@ -1553,28 +1628,14 @@ int main(int args, char ** argv)
           ApplicationTools::displayResult("Clock", optimizeClock);
           bool optimizeTopo = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
           
-          SubstitutionModel*    model    = 0;
-          SubstitutionModelSet* modelSet = 0;
-          DiscreteDistribution* rDist    = 0;
-          
+           
           if(optimizeClock == "global")
             {
-              std::cout<<"Sorry, clocklike trees have not been impemented yet."<<std::endl;
+              std::cout<<"Sorry, clocklike trees have not been implemented yet."<<std::endl;
               exit(0);
             }// This has not been implemented!
           else if(optimizeClock == "no")
             {
-              model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params); 
-              if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
-              if (model->getNumberOfStates() >= 2 * model->getAlphabet()->getSize())
-                {
-                  // Markov-modulated Markov model!
-                  rDist = new ConstantDistribution(1.);
-                }
-              else
-                {
-                  rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
-                }
               
              // tl2 = new NNIHomogeneousTreeLikelihood(*geneTree, *sites, model, rDist, true, true);
 
