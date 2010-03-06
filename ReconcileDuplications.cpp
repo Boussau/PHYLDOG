@@ -1549,8 +1549,6 @@ int main(int args, char ** argv)
 	  std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
           newick.write(*geneTree, startingGeneTreeFile, true);
           
-	
-
           /****************************************************************************
            //Then we initialize the losses and duplication numbers on this tree.
            *****************************************************************************/
@@ -1633,7 +1631,6 @@ int main(int args, char ** argv)
           
           std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params, "no", "", true, false);
           ApplicationTools::displayResult("Clock", optimizeClock);
-          bool optimizeTopo = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
           
            
           if(optimizeClock == "global")
@@ -1719,12 +1716,15 @@ int main(int args, char ** argv)
 				reconciledTrees.push_back(t);
 				duplicationTrees.push_back(t);
 				lossTrees.push_back(t);
-        //This is to avoid optimizing gene tree parameters in the first steps of the program
-				if (ApplicationTools::getBooleanParameter("optimization.topology", allParams[i], false, "", true, false)){
-					allParams[i][ std::string("optimization.topology")] = "false";
-				}
-        allParams[i][ std::string("optimization")] = "false"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
-        treeLikelihoods[i]->OptimizeSequenceLikelihood(false);
+        //This is to avoid optimizing gene tree parameters in the first steps of the program, 
+        //if we optimize the species tree topology.
+        if (optimizeSpeciesTreeTopology) { 
+          if (ApplicationTools::getBooleanParameter("optimization.topology", allParams[i], false, "", true, false)){
+            allParams[i][ std::string("optimization.topology")] = "false";
+          }
+          allParams[i][ std::string("optimization")] = "false"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
+          treeLikelihoods[i]->OptimizeSequenceLikelihood(false);
+        }
 			}
 
 			bool recordGeneTrees = false; //At the beginning, we do not record the gene trees.
@@ -1747,17 +1747,12 @@ int main(int args, char ** argv)
 				resetVector(num1Lineages);
 				resetVector(num2Lineages);
 				for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) {
-         // std::cout<< "Here 0 "<<std::endl;
-
           if (firstTimeImprovingGeneTrees) {
             treeLikelihoods[i]->OptimizeSequenceLikelihood(true);
             backupTreeLikelihoods[i]->OptimizeSequenceLikelihood(true);
-            PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
           }
-          else {
-            PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
-          }
-         // std::cout<< "Here 1 "<<std::endl;
+         
+          PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
 
 
 					/********************************************LIKELIHOOD OPTIMIZED********************************************/
