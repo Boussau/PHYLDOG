@@ -485,8 +485,10 @@ void ReconciliationTreeLikelihood::computeTreeLikelihood()
  * This function tries a given NNI. It takes the rooted tree, makes an NNI on it, and computes the likelihood of the best scenario for this new topology. If this likelihood is better than the current scenario likelihood, the sequence likelihood is computed on the unrooted tree.
 
 */
-double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
+double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const throw (NodeException)
 {
+  int nodeId = son->getId();
+
   if (_nodesToTryInNNISearch.count(nodeId)==1) {
     TreeTemplate<Node> * treeForNNI = tree_->clone();
     
@@ -501,8 +503,9 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
     
     //We first estimate the likelihood of the scenario: if not better than the current scenario, no need to estimate the branch length !
     //We use the same procedure as in doNNI !
-    const Node * son    = tree_->getNode(nodeId);
-    
+    //    const Node * son    = tree_->getNode(nodeId);
+
+
     if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::testNNI(). Node 'son' must not be the root node.", son);
     const Node * parent = son->getFather();
     

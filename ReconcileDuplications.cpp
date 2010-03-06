@@ -1500,7 +1500,8 @@ int main(int args, char ** argv)
 
           }
 				else throw Exception("Unknown init gene tree method.");
-     
+
+
         /****************************************************************************
 				 //Then we need to prune the gene tree and the alignment so that they contain
          //only sequences from the species under study.
@@ -1543,7 +1544,13 @@ int main(int args, char ** argv)
           std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
           newick.write(*treeWithSpNames, geneTreeFile+"SPNames", true);
           delete treeWithSpNames;
+
+	  //Outputting the starting tree
+	  std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
+          newick.write(*geneTree, startingGeneTreeFile, true);
           
+	
+
           /****************************************************************************
            //Then we initialize the losses and duplication numbers on this tree.
            *****************************************************************************/
@@ -1636,15 +1643,28 @@ int main(int args, char ** argv)
             }// This has not been implemented!
           else if(optimizeClock == "no")
             {
-              
-             // tl2 = new NNIHomogeneousTreeLikelihood(*geneTree, *sites, model, rDist, true, true);
+	      model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params);
+	      if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
+	      if (model->getNumberOfStates() > model->getAlphabet()->getSize())
+		{
+		  // Markov-modulated Markov model!
+		  rDist = new ConstantDistribution(1.);
+		}
+	      else
+		{
+		  rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
+		}
 
+             // tl2 = new NNIHomogeneousTreeLikelihood(*geneTree, *sites, model, rDist, true, true);
+	    
               tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities, /*allBranchNumbers[i-numDeletedFamilies], */allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization);
+	    
 
             }
           else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
          // tl2->initialize();
         //  std::cout<<"Value tl2: "<<tl2->getValue()<<std::endl;
+
 
           tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
           allLogLs.push_back(tl->getValue());
@@ -1675,7 +1695,8 @@ int main(int args, char ** argv)
               ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularly if datasets are big (>~500 sequences).");
               exit(-1);
             }
-          
+
+
           treeLikelihoods.push_back(dynamic_cast<ReconciliationTreeLikelihood*>(tl));
           allParams.push_back(params); 
           allAlphabets.push_back(alphabet);
@@ -1687,7 +1708,7 @@ int main(int args, char ** argv)
         }
 			}//End for each file
 
-			
+
 			std::vector <std::vector <std::string> > reconciledTrees;
 			std::vector <std::vector <std::string> > duplicationTrees;
 			std::vector <std::vector <std::string> > lossTrees;
@@ -1709,6 +1730,7 @@ int main(int args, char ** argv)
 			bool recordGeneTrees = false; //At the beginning, we do not record the gene trees.
 			int startRecordingTreesFrom = 0; //This int is incremented until the gene trees start to be backed-up, when we start the second phase of the algorithm.
       bool firstTimeImprovingGeneTrees = false; //When for the first time we optimize gene trees, we set it at true
+
 
       //We make a backup of the gene tree likelihoods.
       for (int i =0 ; i<treeLikelihoods.size() ; i++) {
@@ -1737,6 +1759,7 @@ int main(int args, char ** argv)
           }
          // std::cout<< "Here 1 "<<std::endl;
 
+
 					/********************************************LIKELIHOOD OPTIMIZED********************************************/
 					geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
 					resetLossesAndDuplications(*tree, /*allLossNumbers[i], */lossProbabilities, /*allDuplicationNumbers[i], */duplicationProbabilities);
@@ -1756,7 +1779,7 @@ int main(int args, char ** argv)
 					num1Lineages = num1Lineages + allNum1Lineages[i];
 					num2Lineages = num2Lineages + allNum2Lineages[i];
           //setLossesAndDuplications(*tree, allLossNumbers[i], allDuplicationNumbers[i]);
-				
+
 					if (recordGeneTrees) {
 						reconciledTrees[i].push_back(TreeTools::treeToParenthesis (*geneTree, false, EVENT));
 						duplicationTrees[i].push_back(treeToParenthesisWithIntNodeValues (*tree, false, DUPLICATIONS));
