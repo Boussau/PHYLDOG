@@ -483,7 +483,7 @@ void ReconciliationTreeLikelihood::computeTreeLikelihood()
 /******************************************************************************/
 /*
  * This function tries a given NNI. It takes the rooted tree, makes an NNI on it, and computes the likelihood of the best scenario for this new topology. If this likelihood is better than the current scenario likelihood, the sequence likelihood is computed on the unrooted tree.
-
+ * Maybe this function should be slightly modified when using the phyml algorithm, so that the _tentativeMLindex returned would be always -1. We leave it as is for the moment.
 */
 double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const throw (NodeException)
 {
@@ -700,7 +700,9 @@ double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const th
 void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
 	  //Perform the topological move, the likelihood array will have to be recomputed...
+
   Node * son    = tree_->getNode(nodeId);
+
 	if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", son);
   Node * parent = son->getFather();
 	if(!parent->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'parent' must not be the root node.", parent);
@@ -729,7 +731,6 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 	break;
       }
 
-   
   if(brLenNNIValues_.find(nodeId) != brLenNNIValues_.end())
   {
     double length = brLenNNIValues_[nodeId];
@@ -752,16 +753,32 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   //(It should be also possible to update the pointer in the copy constructor,
   //but we do not need the constraint info here...).
   brLenNNIParams_[brLenNNIParams_.size()-1].removeConstraint();
+  if (_tentativeMLindex== -1){
+    TreeTemplate<Node> * treeForNNI = tree_->clone();
+    //Now we root the tree sent to findMLReconciliation as in _rootedTree
+    int id = treeForNNI->getRootNode()->getId();
+    if(TreeTemplateTools::hasNodeWithId(*(_rootedTree.getRootNode()->getSon(0)),id)) {
+      treeForNNI->newOutGroup(_rootedTree.getRootNode()->getSon(1)->getId());
+    }
+    else {
+      treeForNNI->newOutGroup(_rootedTree.getRootNode()->getSon(0)->getId());
+    }
+    
+    _tentativeScenarioLikelihood = findMLReconciliationDR (&_spTree, treeForNNI, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _tentativeMLindex, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch); 
+    
+    
+  }
+  
   _MLindex = _tentativeMLindex;
   _duplicationNumbers = _tentativeDuplicationNumbers;
   _lossNumbers = _tentativeLossNumbers;
   _branchNumbers = _tentativeBranchNumbers;
-
+  
   _nodesToTryInNNISearch = _tentativeNodesToTryInNNISearch;
   
-
+  
   _scenarioLikelihood = _tentativeScenarioLikelihood;// + _brLikFunction->getValue();
-
+  
   //Now we need to update _rootedTree
   TreeTemplate<Node> * tree = tree_->clone();
   //First we root this temporary tree as in _rootedTree (same lines as in testNNI)
@@ -772,12 +789,17 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   else {
     tree->newOutGroup(_rootedTree.getRootNode()->getSon(0)->getId());
   }
+
   //Then we root this tree according to MLindex
-  tree->newOutGroup(_MLindex);
+    tree->newOutGroup(_MLindex);
+  //we set _tentativeMLindex back to -1 in case we want to do another "doNNI" 
+  //(e.g. in the PhyML algorithm)
+  _tentativeMLindex = -1;
   //We update _rootedTree
   _rootedTree = *(tree->clone());
   //we need to update the sequence likelihood
   OptimizeSequenceLikelihood(true);
+
 
 }
 
