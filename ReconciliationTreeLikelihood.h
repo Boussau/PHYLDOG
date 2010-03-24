@@ -95,6 +95,9 @@ class ReconciliationTreeLikelihood:
     int _speciesIdLimitForRootPosition;
     int _heuristicsLevel;
     mutable bool _optimizeSequenceLikelihood;
+    mutable bool _optimizeReconciliationLikelihood;
+    std::string _nniMethod;
+    
   public:
     /**
      * @brief Build a new ReconciliationTreeLikelihood object.
@@ -143,7 +146,8 @@ class ReconciliationTreeLikelihood:
                                  int & MLindex, 
                                  bool checkRooted = true,
                                  bool verbose = false,
-                                 bool rootOptimization = false)
+                                 bool rootOptimization = false, 
+                                 std::string nniMethod = "fast")
     throw (Exception);
     
     /**
@@ -195,7 +199,8 @@ class ReconciliationTreeLikelihood:
                                  int & MLindex, 
                                  bool checkRooted = true,
                                  bool verbose = false, 
-                                 bool rootOptimization = false)
+                                 bool rootOptimization = false, 
+                                 std::string nniMethod = "fast")
     throw (Exception);
     
     /**
@@ -229,13 +234,16 @@ class ReconciliationTreeLikelihood:
      * @{
      */
     
-    double getLikelihood() const;
+    //double getLikelihood() const;
     
     double getLogLikelihood() const;
     
     void computeSequenceLikelihood();
     
+    void computeReconciliationLikelihood();
+    
     void computeTreeLikelihood();
+
     
     double getValue() const throw (Exception);
 
@@ -272,6 +280,10 @@ class ReconciliationTreeLikelihood:
     
     void OptimizeSequenceLikelihood(bool yesOrNo) const  {
       _optimizeSequenceLikelihood = yesOrNo;
+    }
+    
+    void OptimizeReconciliationLikelihood(bool yesOrNo) const  {
+      _optimizeReconciliationLikelihood = yesOrNo;
     }
     
   };

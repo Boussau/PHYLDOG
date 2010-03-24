@@ -1340,6 +1340,8 @@ int main(int args, char ** argv)
 				else {
 					rootOptimization=false;
 				}
+        std::string nniMethod = ApplicationTools::getStringParameter("optimization.topology.algorithm_nni.method", params, "phyml", "", true, false);
+
 
 				/****************************************************************************
 				 //Then we need to get the file containing links between sequences and species.
@@ -1654,7 +1656,7 @@ int main(int args, char ** argv)
 
              // tl2 = new NNIHomogeneousTreeLikelihood(*geneTree, *sites, model, rDist, true, true);
 	    
-              tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities, /*allBranchNumbers[i-numDeletedFamilies], */allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization);
+              tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities, /*allBranchNumbers[i-numDeletedFamilies], */allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization, nniMethod);
 	    
 
             }
@@ -1841,7 +1843,7 @@ int main(int args, char ** argv)
             treeLikelihoods[i]->setSpTree(*tree);
             treeLikelihoods[i]->setSpId(spId);
             treeLikelihoods[i]->setProbabilities(duplicationProbabilities, lossProbabilities);
-            treeLikelihoods[i]->computeTreeLikelihood();
+            treeLikelihoods[i]->computeReconciliationLikelihood();
           }
           //std::cout<< "Here 8"<<std::endl;
 

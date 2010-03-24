@@ -73,7 +73,8 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(
                                                            int & MLindex, 
                                                            bool checkRooted,
                                                            bool verbose, 
-                                                           bool rootOptimization)
+                                                           bool rootOptimization, 
+                                                           std::string nniMethod)
 throw (Exception):
   NNIHomogeneousTreeLikelihood(tree, model, rDist, checkRooted, verbose), _spTree(spTree),_rootedTree(rootedTree),_seqSp(seqSp), _spId(spId)
 {
@@ -101,6 +102,9 @@ throw (Exception):
   _speciesIdLimitForRootPosition = speciesIdLimitForRootPosition;
   _heuristicsLevel = heuristicsLevel;
   _optimizeSequenceLikelihood = true;
+  _optimizeReconciliationLikelihood = true;
+  _nniMethod = nniMethod;
+
   // _listOfPreviousRoots = new std::vector <int> ();
 }
 
@@ -128,7 +132,8 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(
                                                            int & MLindex, 
                                                            bool checkRooted,
                                                            bool verbose,
-                                                           bool rootOptimization)
+                                                           bool rootOptimization, 
+                                                           std::string nniMethod)
 throw (Exception):
 NNIHomogeneousTreeLikelihood(tree, data, model, rDist, checkRooted, verbose), 
 _spTree(spTree), _rootedTree(rootedTree), _seqSp (seqSp), _spId(spId)
@@ -157,6 +162,8 @@ _spTree(spTree), _rootedTree(rootedTree), _seqSp (seqSp), _spId(spId)
   _speciesIdLimitForRootPosition = speciesIdLimitForRootPosition;
   _heuristicsLevel = heuristicsLevel;
   _optimizeSequenceLikelihood = true;
+  _optimizeReconciliationLikelihood = true;
+  _nniMethod = nniMethod;
   // _listOfPreviousRoots = new std::vector <int> ();
 }
 
@@ -192,6 +199,7 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(const ReconciliationT
   _nodesToTryInNNISearch = lik._nodesToTryInNNISearch;
   _tentativeNodesToTryInNNISearch = lik._tentativeNodesToTryInNNISearch;
   _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
+  _nniMethod = lik._nniMethod;
 
 }
 
@@ -232,6 +240,8 @@ ReconciliationTreeLikelihood & ReconciliationTreeLikelihood::operator=(const Rec
   _nodesToTryInNNISearch = lik._nodesToTryInNNISearch;
   _tentativeNodesToTryInNNISearch = lik._tentativeNodesToTryInNNISearch;
   _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
+  _nniMethod = lik._nniMethod;
+
   return *this;
 }
 
@@ -283,34 +293,14 @@ void ReconciliationTreeLikelihood::resetMLindex() {
 
 /******************************************************************************/
 
-
+/*
 double ReconciliationTreeLikelihood::getLikelihood() const
 {
-//  std::cout <<"IN getLikelihood"<<std::endl;
   double l = 1.;
- // if (_sequenceLikelihood ==UNLIKELY) {
-  //TEST
-/*
-  Vdouble * lik = & likelihoodData_->getRootRateSiteLikelihoodArray();
-    const std::vector<unsigned int> * w = & likelihoodData_->getWeights();
-    for(unsigned int i = 0; i < nbDistinctSites_; i++)
-      {
-        l *= std::pow((*lik)[i], (int)(* w)[i]);
-      }
-      _sequenceLikelihood = log(l);
- */
-  //END TEST
-  //  std::cout <<"_sequenceLikelihood "<< _sequenceLikelihood<<std::endl;
-  // }
- /* else {
-    std::cout <<"NOT RECOMPUTING IN GETLIKELIHOOD"<<std::endl; 
-  }*/
-//  l = exp( getValue());
-  
   l*=exp(_scenarioLikelihood);
   return l;
 }
-
+*/
 /******************************************************************************/
 /* We need to introduce in the likelihood computation the scenario likelihood */
 double ReconciliationTreeLikelihood::getLogLikelihood() const
@@ -417,11 +407,13 @@ void ReconciliationTreeLikelihood::fireParameterChanged(const ParameterList & pa
       //std::cout << i << "\t" << (* w)[i] << "\t" << log((* lik)[i]) << std::endl;
     }
   _sequenceLikelihood = ll;
-  //TEST 16 02 2010
- // minusLogLik_ = -_sequenceLikelihood;
+
   setMinuslogLikelihood_(- _sequenceLikelihood);
- // std::cout.precision(10); 
- // std::cout << "!!!!!!!!!!!!!!!!!!!!!!IN FIRE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< minusLogLik_<<std::endl;
+  
+  //If we need to update the reconciliation likelihood
+  if (_optimizeReconciliationLikelihood) {
+    computeReconciliationLikelihood();
+  }
   
 }
 
@@ -436,47 +428,33 @@ void ReconciliationTreeLikelihood::computeSequenceLikelihood()
     computeSubtreeLikelihoodPrefix(tree_->getRootNode());
     computeRootLikelihood();
     
-    //The following line is to update _sequenceLikelihood
-    /* resetSequenceLikelihood();
-     getLogLikelihood();*/
-    // std::cout <<"IN computeTreeLikelihood : "<<_sequenceLikelihood<<std::endl;
   }
-  // std::cout <<"After computeRootLikelihood : "<<getValue()<<std::endl;
   
 }
-  
-
-
-
 /******************************************************************************/
-
-
-void ReconciliationTreeLikelihood::computeTreeLikelihood()
+void ReconciliationTreeLikelihood::computeReconciliationLikelihood()
 {
-  //  std::cout <<"IN computeTreeLikelihood : "<<_sequenceLikelihood<<std::endl;
-  if ((_sequenceLikelihood == UNLIKELY)||(_optimizeSequenceLikelihood==true)) {
-    computeSubtreeLikelihoodPostfix(tree_->getRootNode());
-    computeSubtreeLikelihoodPrefix(tree_->getRootNode());
-    computeRootLikelihood();
-    
-    //The following line is to update _sequenceLikelihood
-/* resetSequenceLikelihood();
-    getLogLikelihood();*/
-  
-  }
-  // std::cout <<"After computeRootLikelihood : "<<getValue()<<std::endl;
- 
   
   resetLossesAndDuplications(_spTree, /*_lossNumbers, */_lossProbabilities, /*_duplicationNumbers, */_duplicationProbabilities);
   if (_heuristicsLevel>0) {
     std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
     exit(-1);
-//    _scenarioLikelihood = findMLReconciliation (&_spTree, &_rootedTree, _seqSp, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, _MLindex, _branchNumbers, _speciesIdLimitForRootPosition, _heuristicsLevel, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
+    //    _scenarioLikelihood = findMLReconciliation (&_spTree, &_rootedTree, _seqSp, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, _MLindex, _branchNumbers, _speciesIdLimitForRootPosition, _heuristicsLevel, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
   }
   else {
-       _scenarioLikelihood = findMLReconciliationDR (&_spTree, &_rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _MLindex, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
+    _scenarioLikelihood = findMLReconciliationDR (&_spTree, &_rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _MLindex, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
   }
   
+
+}
+/******************************************************************************/
+
+
+void ReconciliationTreeLikelihood::computeTreeLikelihood()
+{
+
+  computeSequenceLikelihood();
+  computeReconciliationLikelihood();  
   
 }
 
@@ -488,6 +466,7 @@ void ReconciliationTreeLikelihood::computeTreeLikelihood()
 double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const throw (NodeException)
 {
   int nodeId = son->getId();
+ // std::cout<<"In test NNI"<<std::endl;
 
   if (_nodesToTryInNNISearch.count(nodeId)==1) {
     TreeTemplate<Node> * treeForNNI = tree_->clone();
@@ -680,6 +659,8 @@ double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const th
       double tot = brLikFunction_->getValue() - ScenarioMLValue + temp; //positive + positive + negative; if <0, worth doing 
       if (tot<0) {
         _tentativeScenarioLikelihood=ScenarioMLValue;
+       // std::cout<<"NNI worth doing"<<std::endl;
+
       }
       return tot;
     }
@@ -700,7 +681,8 @@ double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const th
 void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
 	  //Perform the topological move, the likelihood array will have to be recomputed...
-
+ // std::cout<<"In Do NNI"<<std::endl;
+  
   Node * son    = tree_->getNode(nodeId);
 
 	if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", son);
@@ -753,7 +735,9 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   //(It should be also possible to update the pointer in the copy constructor,
   //but we do not need the constraint info here...).
   brLenNNIParams_[brLenNNIParams_.size()-1].removeConstraint();
-  if (_tentativeMLindex== -1){
+  //if we use another method for NNI exploration, because we might be doing several changes at the same time, 
+  //we need to find the best root.
+ /* if (_nniMethod!= "fast"){
     TreeTemplate<Node> * treeForNNI = tree_->clone();
     //Now we root the tree sent to findMLReconciliation as in _rootedTree
     int id = treeForNNI->getRootNode()->getId();
@@ -767,8 +751,10 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     _tentativeScenarioLikelihood = findMLReconciliationDR (&_spTree, treeForNNI, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _tentativeMLindex, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch); 
     
     
-  }
+  }*/
   
+  
+  /* TEST 24 03 2009
   _MLindex = _tentativeMLindex;
   _duplicationNumbers = _tentativeDuplicationNumbers;
   _lossNumbers = _tentativeLossNumbers;
@@ -778,11 +764,15 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   
   
   _scenarioLikelihood = _tentativeScenarioLikelihood;// + _brLikFunction->getValue();
+  */
   
+  
+   
+   
   //Now we need to update _rootedTree
   TreeTemplate<Node> * tree = tree_->clone();
-  //First we root this temporary tree as in _rootedTree (same lines as in testNNI)
   int id = tree->getRootNode()->getId();
+  //First we root this temporary tree as in _rootedTree (same lines as in testNNI)
   if(TreeTemplateTools::hasNodeWithId(*(_rootedTree.getRootNode()->getSon(0)),id)) {
     tree->newOutGroup(_rootedTree.getRootNode()->getSon(1)->getId());
   }
@@ -792,13 +782,12 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 
   //Then we root this tree according to MLindex
     tree->newOutGroup(_MLindex);
-  //we set _tentativeMLindex back to -1 in case we want to do another "doNNI" 
-  //(e.g. in the PhyML algorithm)
-  _tentativeMLindex = -1;
   //We update _rootedTree
   _rootedTree = *(tree->clone());
-  //we need to update the sequence likelihood
+  //we need to update the sequence likelihood, and the reconciliation likelihood.
   OptimizeSequenceLikelihood(true);
+  OptimizeReconciliationLikelihood(true);
+  
 
 
 }
