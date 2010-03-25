@@ -826,7 +826,7 @@ int main(int args, char ** argv)
       logL = 0.0;
 		 std::vector<double> logLs;
 			gather(world, logL, logLs, server);
-			logL = - VectorTools::sum(logLs);
+			logL = VectorTools::sum(logLs);
 			//resetVector(duplicationNumbers);
 			//resetVector(lossNumbers);
 			//resetVector(branchNumbers);
@@ -1740,7 +1740,6 @@ int main(int args, char ** argv)
       }      
 
       while (!stop) {      //MAIN LOOP STARTS HERE
-
 				logL=0.0;
 				/*resetVector(duplicationNumbers);
 				resetVector(lossNumbers);

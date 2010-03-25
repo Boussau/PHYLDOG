@@ -341,7 +341,7 @@ double ReconciliationTreeLikelihood::getLogLikelihood() const
   return ll;
 }
 /******************************************************************************/
-
+//returns -loglikelihood
 double ReconciliationTreeLikelihood::getValue() const  
 throw (Exception)
 {
@@ -350,7 +350,7 @@ throw (Exception)
    // return (-getLogLikelihood());
      //TEST 16 02 2010
     // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " _scenarioLikelihood: "<<_scenarioLikelihood<<std::endl;
-     return (_sequenceLikelihood + _scenarioLikelihood);
+     return (- _sequenceLikelihood - _scenarioLikelihood);
      //return (minusLogLik_ - _scenarioLikelihood);
      //return (-minusLogLik_);
   }
@@ -414,7 +414,7 @@ void ReconciliationTreeLikelihood::fireParameterChanged(const ParameterList & pa
   if (_optimizeReconciliationLikelihood) {
     computeReconciliationLikelihood();
   }
-  
+  //std::cout << "After Fire: "<<getValue()<<std::endl;
 }
 
 
@@ -477,7 +477,7 @@ double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const th
     _tentativeBranchNumbers = _branchNumbers;*/
     _tentativeNum0Lineages = _num0Lineages;
     _tentativeNum1Lineages = _num1Lineages;
-    _tentativeNum2Lineages =_num2Lineages;
+    _tentativeNum2Lineages = _num2Lineages;
     _tentativeNodesToTryInNNISearch.clear();
     
     //We first estimate the likelihood of the scenario: if not better than the current scenario, no need to estimate the branch length !
@@ -656,10 +656,10 @@ double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const th
       
       //std::cout<<"temp "<< temp<< "; brLikFunction_->getValue()"<< brLikFunction_->getValue()<<std::endl;
       
-      double tot = brLikFunction_->getValue() - ScenarioMLValue + temp; //positive + positive + negative; if <0, worth doing 
+      double tot = brLikFunction_->getValue() - ScenarioMLValue - temp; //positive + positive + negative; if <0, worth doing 
       if (tot<0) {
         _tentativeScenarioLikelihood=ScenarioMLValue;
-       // std::cout<<"NNI worth doing"<<std::endl;
+      // std::cout<<"NNI worth doing"<<std::endl;
 
       }
       return tot;
@@ -681,8 +681,8 @@ double ReconciliationTreeLikelihood::testNNI(Node * son /*int nodeId*/) const th
 void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
 	  //Perform the topological move, the likelihood array will have to be recomputed...
- // std::cout<<"In Do NNI"<<std::endl;
-  
+ // std::cout<<"In Do NNI getValue "<< getValue()<<std::endl;
+
   Node * son    = tree_->getNode(nodeId);
 
 	if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", son);
@@ -701,24 +701,30 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 	grandFather->addSon(son);
 	//The two following functions produce the same error : _seqSp becomes empty !
 	
-	double temp = getValue() ;
+//	double temp = getValue() ;
+  
+  unsigned int pos = 0;
+  while(pos < nodes_.size() && nodes_[pos]->getId() != parent->getId()) pos++;
+  if(pos == nodes_.size()) throw Exception("NNIHomogeneousTreeLikelihood::doNNI. Invalid node id.");
 	
 //Julien Proposition :
   
-  std::string name = "BrLen";
-  for(unsigned int i = 0; i < nodes_.size(); i++)
+  std::string name = "BrLen"+ TextTools::toString(pos);
+/*  for(unsigned int i = 0; i < nodes_.size(); i++)
     if(nodes_[i]->getId() == parent->getId())
       {
 	name += TextTools::toString(i);
 	break;
       }
-
+*/
   if(brLenNNIValues_.find(nodeId) != brLenNNIValues_.end())
   {
     double length = brLenNNIValues_[nodeId];
     brLenParameters_.setParameterValue(name, length);
-    Parameter p = getParameter(name);
+   /* Parameter p = getParameter(name);
     p.setValue(length);
+    parent->setDistanceToFather(length);*/
+    getParameter_(name).setValue(length);
     parent->setDistanceToFather(length);
   }
   else std::cerr << "ERROR, branch not found: " << nodeId << std::endl;
@@ -734,7 +740,11 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   //In case of copy of this object, we must remove the constraint associated to this stored parameter:
   //(It should be also possible to update the pointer in the copy constructor,
   //but we do not need the constraint info here...).
+  
   brLenNNIParams_[brLenNNIParams_.size()-1].removeConstraint();
+  
+  
+  
   //if we use another method for NNI exploration, because we might be doing several changes at the same time, 
   //we need to find the best root.
  /* if (_nniMethod!= "fast"){
@@ -753,7 +763,6 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     
   }*/
   
-  
   /* TEST 24 03 2009
   _MLindex = _tentativeMLindex;
   _duplicationNumbers = _tentativeDuplicationNumbers;
@@ -765,10 +774,6 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   
   _scenarioLikelihood = _tentativeScenarioLikelihood;// + _brLikFunction->getValue();
   */
-  
-  
-   
-   
   //Now we need to update _rootedTree
   TreeTemplate<Node> * tree = tree_->clone();
   int id = tree->getRootNode()->getId();
@@ -788,7 +793,7 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   OptimizeSequenceLikelihood(true);
   OptimizeReconciliationLikelihood(true);
   
-
+//  std::cout<<"End of Do NNI getValue "<< getValue()<<std::endl;
 
 }
 

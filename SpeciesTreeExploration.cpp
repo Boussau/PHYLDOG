@@ -689,7 +689,7 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
     resetVector(num1Lineages);
     resetVector(num2Lineages);
     gather(world, logL, logLs, server);
-    logL = - VectorTools::sum(logLs);
+    logL = VectorTools::sum(logLs);
     /*gather(world, duplicationNumbers, AllDuplications, server); 
     gather(world, lossNumbers, AllLosses, server);
     gather(world, branchNumbers, AllBranches, server);*/
@@ -748,7 +748,7 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
       resetVector(num1Lineages);
       resetVector(num2Lineages);
       gather(world, logL, logLs, server);
-      logL = - VectorTools::sum(logLs);
+      logL = VectorTools::sum(logLs);
       /*gather(world, duplicationNumbers, AllDuplications, server); 
       gather(world, lossNumbers, AllLosses, server);
       gather(world, branchNumbers, AllBranches, server);*/
@@ -873,7 +873,7 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
     resetVector(num1Lineages);
     resetVector(num2Lineages);
     gather(world, logL, logLs, server);
-    logL = - VectorTools::sum(logLs);
+    logL = VectorTools::sum(logLs);
     /*gather(world, duplicationNumbers, AllDuplications, server); 
     gather(world, lossNumbers, AllLosses, server);
     gather(world, branchNumbers, AllBranches, server);*/
@@ -985,7 +985,7 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
       resetVector(num1Lineages);
       resetVector(num2Lineages);
       gather(world, logL, logLs, server);
-      logL = - VectorTools::sum(logLs);
+      logL = VectorTools::sum(logLs);
       /*gather(world, duplicationNumbers, AllDuplications, server); 
       gather(world, lossNumbers, AllLosses, server);
       gather(world, branchNumbers, AllBranches, server);*/
@@ -1107,7 +1107,7 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
   resetVector(num2Lineages);
   gather(world, logL, logLs, server);
 
-  logL = - VectorTools::sum(logLs);
+  logL = VectorTools::sum(logLs);
   std::cout<<"New minus logLk value in computeSpeciesTreeLikelihood: "<<logL<<std::endl;
   /*gather(world, duplicationNumbers, AllDuplications, server);  
   gather(world, lossNumbers, AllLosses, server);
@@ -1161,7 +1161,7 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
     resetVector(num2Lineages);
 
     gather(world, logL, logLs, server);
-    logL = -VectorTools::sum(logLs);
+    logL = VectorTools::sum(logLs);
    std::cout<<std::setprecision(15);
    std::cout <<"LogL "<<logL<< std::endl;
     /*gather(world, duplicationNumbers, AllDuplications, server); 
