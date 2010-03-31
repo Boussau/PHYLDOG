@@ -257,7 +257,7 @@ class ReconciliationTreeLikelihood:
     
     void setSpId(std::map <std::string, int> & spId) {_spId = spId;}
     
-    double testNNI(Node * son /*int nodeId*/) const throw (NodeException);
+    double testNNI(int nodeId) const throw (NodeException);
     
     void doNNI(int nodeId) throw (NodeException);
     
