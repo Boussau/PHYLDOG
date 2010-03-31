@@ -1724,7 +1724,7 @@ int main(int args, char ** argv)
           if (ApplicationTools::getBooleanParameter("optimization.topology", allParams[i], false, "", true, false)){
             allParams[i][ std::string("optimization.topology")] = "false";
           }
-          allParams[i][ std::string("optimization")] = "false"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
+          allParams[i][ std::string("optimization")] = "None"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
           treeLikelihoods[i]->OptimizeSequenceLikelihood(false);
         }
 			}
