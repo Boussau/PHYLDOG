@@ -708,13 +708,7 @@ int main(int args, char ** argv)
         }
     }
       
-      /*std::cout <<"HEHEH"<<std::endl;
-      VectorTools::print(listOfOptionsPerClient[1]);
-      std::cout <<"HEHEH2"<<std::endl;
-      VectorTools::print(numbersOfGenesPerClient);
-      std::cout <<"HEHEH3"<<std::endl;
-       */
-			/***********************************************************
+      /***********************************************************
 			 * First we set the numbers of duplications and losses at 0.
 			 ***********************************************************/
 
