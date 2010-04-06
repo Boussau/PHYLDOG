@@ -1742,6 +1742,7 @@ int main(int args, char ** argv)
 				resetVector(num1Lineages);
 				resetVector(num2Lineages);
 				for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) {
+          std::cout <<"Studying gene family "<<i<<" "<<affectedFilenames[i]<<std::endl;
           if (firstTimeImprovingGeneTrees) {
             treeLikelihoods[i]->OptimizeSequenceLikelihood(true);
             backupTreeLikelihoods[i]->OptimizeSequenceLikelihood(true);
