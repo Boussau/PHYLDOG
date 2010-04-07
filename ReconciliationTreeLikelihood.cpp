@@ -721,6 +721,13 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   
   _scenarioLikelihood = _tentativeScenarioLikelihood;// + _brLikFunction->getValue();
   */
+  //The tree_ might have become rooted by this NNI:
+  if (tree_->isRooted() )
+    {
+    tree_->unroot();
+    }
+  
+  
   //Now we need to update _rootedTree
   TreeTemplate<Node> * tree = tree_->clone();
   int id = tree->getRootNode()->getId();
