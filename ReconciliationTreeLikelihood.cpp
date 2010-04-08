@@ -386,10 +386,13 @@ void ReconciliationTreeLikelihood::fireParameterChanged(const ParameterList & pa
     {
       computeTreeDLikelihoods();  
     }
+  std::cout << "After computeTreeDLikelihoods: "<<id<<std::endl;
   if(computeSecondOrderDerivatives_)
     {
       computeTreeD2Likelihoods();
     }
+  std::cout << "After computeTreeD2Likelihoods: "<<id<<std::endl;
+
   double ll =0.0;
   //minusLogLik_ = - getLogLikelihood();
   Vdouble * lik = & getLikelihoodData()->getRootRateSiteLikelihoodArray();
