@@ -405,11 +405,14 @@ void ReconciliationTreeLikelihood::fireParameterChanged(const ParameterList & pa
   _sequenceLikelihood = ll;
 
   setMinuslogLikelihood_(- _sequenceLikelihood);
-  
+  std::cout << "After ... "<<id<<std::endl;
+
   //If we need to update the reconciliation likelihood
   if (_optimizeReconciliationLikelihood) {
     computeReconciliationLikelihood();
   }
+  std::cout << "End fire "<<id<<std::endl;
+
 }
 
 
@@ -437,7 +440,14 @@ void ReconciliationTreeLikelihood::computeReconciliationLikelihood()
     //    _scenarioLikelihood = findMLReconciliation (&_spTree, &_rootedTree, _seqSp, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, _MLindex, _branchNumbers, _speciesIdLimitForRootPosition, _heuristicsLevel, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
   }
   else {
-    _scenarioLikelihood = findMLReconciliationDR (&_spTree, &_rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _MLindex, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
+    //    _scenarioLikelihood = findMLReconciliationDR (&_spTree, &_rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _MLindex, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
+    _scenarioLikelihood = findMLReconciliationDR (&_spTree, &_rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _tentativeMLindex, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch); 
+    _MLindex = _tentativeMLindex;
+    _num0Lineages = _tentativeNum0Lineages;
+    _num1Lineages = _tentativeNum1Lineages;
+    _num2Lineages = _tentativeNum2Lineages;
+    _nodesToTryInNNISearch = _tentativeNodesToTryInNNISearch;
+
   }
   
 

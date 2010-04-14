@@ -1749,27 +1749,49 @@ int main(int args, char ** argv)
           }
          
           PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
+	  std::cout <<"Gene family "<<i<<" done "<<affectedFilenames[i]<<std::endl;
 
 
 					/********************************************LIKELIHOOD OPTIMIZED********************************************/
-					geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
+				
+					std::cout <<"Gene family "<<i<<" done 1.1"<<affectedFilenames[i]<<std::endl;
+
 					resetLossesAndDuplications(*tree, /*allLossNumbers[i], */lossProbabilities, /*allDuplicationNumbers[i], */duplicationProbabilities);
+					std::cout <<"Gene family "<<i<<" done 1.2 "<<affectedFilenames[i]<<std::endl;
+
 					/*allDuplicationNumbers[i] = treeLikelihoods[i]->getDuplicationNumbers();
 					allLossNumbers[i] = treeLikelihoods[i]->getLossNumbers();	
 					allBranchNumbers[i] = treeLikelihoods[i]->getBranchNumbers();*/
-					allNum0Lineages[i] = treeLikelihoods[i]->get0LineagesNumbers();
-					allNum1Lineages[i] = treeLikelihoods[i]->get1LineagesNumbers();
-					allNum2Lineages[i] = treeLikelihoods[i]->get2LineagesNumbers();
+					std::cout <<"Gene family "<<i<<" done 1.3 "<<affectedFilenames[i]<<std::endl;
+
+
+					std::cout <<"Gene family "<<i<<" done 1.4 "<<affectedFilenames[i]<<std::endl;
+
 					MLindex = treeLikelihoods[i]->getRootNodeindex();
-          allLogLs[i] = treeLikelihoods[i]->getValue();  
-					/*duplicationNumbers = duplicationNumbers + allDuplicationNumbers[i];
-					lossNumbers = lossNumbers + allLossNumbers[i];
-					branchNumbers = branchNumbers + allBranchNumbers[i];*/
+					std::cout <<"Gene family "<<i<<" done 2 "<<affectedFilenames[i]<<std::endl;
+
+					allLogLs[i] = treeLikelihoods[i]->getValue();  
+
+					std::cout <<"Gene family "<<i<<" done 3 "<<affectedFilenames[i]<<std::endl;
+
 					logL = logL + allLogLs[i];
+
+					std::cout <<"Gene family "<<i<<" done 3.1 "<<affectedFilenames[i]<<std::endl;
+
+					allNum0Lineages[i] = treeLikelihoods[i]->get0LineagesNumbers();
+                                        allNum1Lineages[i] = treeLikelihoods[i]->get1LineagesNumbers();
+                                        allNum2Lineages[i] = treeLikelihoods[i]->get2LineagesNumbers();
+
+					std::cout <<"Gene family "<<i<<" done 3.2 "<<affectedFilenames[i]<<std::endl;
+
 					num0Lineages = num0Lineages + allNum0Lineages[i];
 					num1Lineages = num1Lineages + allNum1Lineages[i];
 					num2Lineages = num2Lineages + allNum2Lineages[i];
-          //setLossesAndDuplications(*tree, allLossNumbers[i], allDuplicationNumbers[i]);
+
+					std::cout <<"Gene family "<<i<<" done 3.3 "<<affectedFilenames[i]<<std::endl;
+
+					geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
+                                        std::cout <<"Gene family "<<i<<" done 3.4 "<<affectedFilenames[i]<<std::endl;
 
 					if (recordGeneTrees) {
 						reconciledTrees[i].push_back(TreeTools::treeToParenthesis (*geneTree, false, EVENT));
@@ -1788,7 +1810,7 @@ int main(int args, char ** argv)
 				if (!recordGeneTrees) {
 					startRecordingTreesFrom++;
 				}
-       // std::cout<< "Here 2"<<std::endl;
+        std::cout<< "Here 2"<<std::endl;
         //Clients send back stuff to the server.
 				gather(world, logL, server);
 				/*gather(world, duplicationNumbers, server);
@@ -1797,14 +1819,14 @@ int main(int args, char ** argv)
 				gather(world, num0Lineages, allNum0Lineages, server);
 				gather(world, num1Lineages, allNum1Lineages, server);
 				gather(world, num2Lineages, allNum2Lineages, server);	
-       // std::cout<< "Here 3"<<std::endl;
+        std::cout<< "Here 3"<<std::endl;
 
         //Should the computations stop? The server tells us.
 				broadcast(world, stop, server);
-       // std::cout<< "Here 4"<<std::endl;
+        std::cout<< "Here 4"<<std::endl;
 
 				if (!stop) {	// we continue the loop
-         // std::cout<< "Here 5"<<std::endl;
+          std::cout<< "Here 5"<<std::endl;
 
           //Reset the gene trees by resetting treeLikelihoods
           //We always start from ML trees according to sequences only
@@ -1822,7 +1844,7 @@ int main(int args, char ** argv)
               firstTimeImprovingGeneTrees = true;
 							recordGeneTrees=true;
 							bestIndex=startRecordingTreesFrom;
-             // std::cout <<"We start recording gene trees : "<<startRecordingTreesFrom<<" and bestIndex :" <<bestIndex<<" and index "<< index <<std::endl;
+              std::cout <<"We start recording gene trees : "<<startRecordingTreesFrom<<" and bestIndex :" <<bestIndex<<" and index "<< index <<std::endl;
 						}
 						broadcast(world, rearrange, server);
 					}	
@@ -1831,7 +1853,7 @@ int main(int args, char ** argv)
 					broadcast(world, currentSpeciesTree, server);
           tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
           spId = computeSpeciesNamesToIdsMap(*tree);
-         // std::cout<< "Here 7"<<std::endl;
+          std::cout<< "Here 7"<<std::endl;
 
           for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) {
             treeLikelihoods[i]->setSpTree(*tree);
@@ -1839,11 +1861,11 @@ int main(int args, char ** argv)
             treeLikelihoods[i]->setProbabilities(duplicationProbabilities, lossProbabilities);
             treeLikelihoods[i]->computeReconciliationLikelihood();
           }
-          //std::cout<< "Here 8"<<std::endl;
+         std::cout<< "Here 8"<<std::endl;
 
 				}
 				else { //The end, outputting the results
-         // std::cout<< "Here 6"<<std::endl;
+          std::cout<< "Here 6"<<std::endl;
 
 					broadcast(world, bestIndex, server);
 					for (int i = 0 ; i< affectedFilenames.size() ; i++) {
