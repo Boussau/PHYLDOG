@@ -620,7 +620,8 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
       tree = bestTree->clone();
       duplicationProbabilities = bestDupProba;
       lossProbabilities = bestLossProba;
-      if (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) {
+   //TEMP140410      if (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) {
+      if (numIterationsWithoutImprovement>5) {
         stop = true;
         broadcast(world, stop, server); 
         broadcast(world, bestIndex, server);

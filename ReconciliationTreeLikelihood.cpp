@@ -440,6 +440,7 @@ void ReconciliationTreeLikelihood::computeReconciliationLikelihood()
     //    _scenarioLikelihood = findMLReconciliation (&_spTree, &_rootedTree, _seqSp, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, _MLindex, _branchNumbers, _speciesIdLimitForRootPosition, _heuristicsLevel, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
   }
   else {
+
     //    _scenarioLikelihood = findMLReconciliationDR (&_spTree, &_rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _MLindex, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
     _scenarioLikelihood = findMLReconciliationDR (&_spTree, &_rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _tentativeMLindex, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch); 
     _MLindex = _tentativeMLindex;
@@ -447,6 +448,7 @@ void ReconciliationTreeLikelihood::computeReconciliationLikelihood()
     _num1Lineages = _tentativeNum1Lineages;
     _num2Lineages = _tentativeNum2Lineages;
     _nodesToTryInNNISearch = _tentativeNodesToTryInNNISearch;
+
 
   }
   
@@ -734,17 +736,13 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   
   _scenarioLikelihood = _tentativeScenarioLikelihood;// + _brLikFunction->getValue();
   */
-  //The tree_ might have become rooted by this NNI:
-  if (tree_->isRooted() )
-    {
-    tree_->unroot();
-    }
+  
   
   
   //Now we need to update _rootedTree
   TreeTemplate<Node> * tree = tree_->clone();
   int id = tree->getRootNode()->getId();
-  //First we root this temporary tree as in _rootedTree (same lines as in testNNI)
+  //First we root this tree as in _rootedTree (same lines as in testNNI)
   if(TreeTemplateTools::hasNodeWithId(*(_rootedTree.getRootNode()->getSon(0)),id)) {
     tree->newOutGroup(_rootedTree.getRootNode()->getSon(1)->getId());
   }
@@ -756,6 +754,13 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     tree->newOutGroup(_MLindex);
   //We update _rootedTree
   _rootedTree = *(tree->clone());
+  
+  //The tree_ might have become rooted by this NNI:
+  if (tree_->isRooted() )
+    {
+    tree_->unroot();
+    }
+  delete tree;
   //we need to update the sequence likelihood, and the reconciliation likelihood.
   OptimizeSequenceLikelihood(true);
   OptimizeReconciliationLikelihood(true);
