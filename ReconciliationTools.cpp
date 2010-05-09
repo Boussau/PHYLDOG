@@ -1101,7 +1101,7 @@ double computeBranchProbability (double duplicationProbability, double lossProba
   else {
     res = pow(duplicationProbability, numberOfLineages) * lossProbability * pow(A,1+numberOfLineages) * pow(B, -(1+numberOfLineages)) - pow(duplicationProbability, numberOfLineages - 1) *  pow(A,numberOfLineages - 1) *  pow(B, -numberOfLineages) * C ;
   }
-  if (res == 0)
+  if ( (res == 0) || std::isnan(res) )
     {
      res = NumConstants::VERY_TINY ; 
     }
