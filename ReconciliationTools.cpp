@@ -2588,7 +2588,22 @@ void computeNumbersOfLineagesInASubtree(TreeTemplate<Node> & tree,
   rootSpId = a;
   if ((a==a0) || (b==b0)) //There has been a duplication !
     {
+   // std::cout <<"INSERTING"<<std::endl;
       branchesWithDuplications.insert(sons[0]->getFather()->getId());
+      branchesWithDuplications.insert(sons[0]->getId()); //We also include the two son nodes themselves
+      branchesWithDuplications.insert(sons[1]->getId());
+      branchesWithDuplications.insert(sons[0]->getId()); 
+      if (sons[1]->getNumberOfSons () > 0 ) //and the grandsons, if present.
+        {
+        branchesWithDuplications.insert(sons[1]->getSon(0)->getId() );
+        branchesWithDuplications.insert(sons[1]->getSon(1)->getId() );
+        }
+      if (sons[0]->getNumberOfSons () > 0 )
+        {
+        branchesWithDuplications.insert(sons[0]->getSon(0)->getId() );
+        branchesWithDuplications.insert(sons[0]->getSon(1)->getId() );
+        }
+    
       if ((a==a0) && (b==b0)) {
         rootDupData += son0DupData+son1DupData;
         /* rootLikelihood-=(computeLogBranchProbability(duplicationRates[a0], lossRates[a0], son0DupData) + 
@@ -2862,7 +2877,8 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   resetVector(num2lineages);
   
   
-// std::cout <<"HERE_rooted_tree "<<TreeTools::treeToParenthesis (*tree, true)<<std::endl;
+//  std::cout <<"HERE_rooted_tree "<<TreeTools::treeToParenthesis (*tree, true)<<std::endl;
+//  std::cout <<"HERE_SP_tree "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
   computeNumbersOfLineagesFromRoot(spTree, tree, tree->getRootNode(), seqSp, spID, num0lineages, num1lineages, num2lineages, speciesIDs, dupData, nodesToTryInNNISearch);
 /*
   std::cout <<"num0Lineages :"<<std::endl;

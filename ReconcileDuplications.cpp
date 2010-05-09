@@ -3,7 +3,6 @@
 // Created by: Bastien Boussau
 // Created on: Aug 04 23:36 2007
 //
-//NOTHING
 /*
 Copyright or © or Copr. CNRS
 
@@ -939,22 +938,18 @@ int main(int args, char ** argv)
             rearrange = true; //Now we rearrange gene trees
 
             numIterationsWithoutImprovement = 0;
+            computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *currentTree, bestlogL);
+            
+            /*
             //We compute a new likelihood with rearrangement and possibly branch specific probabilities of duplications and losses.
-            //Communications from the server to clients
             currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
-           /*broadcast(world, stop, server);
-            broadcast(world, rearrange, server); 
-            broadcast(world, lossProbabilities, server); 
-            broadcast(world, duplicationProbabilities, server); 
-            broadcast(world, currentSpeciesTree, server);*/
+            
+            
             broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
 
             //Computation in clients
             index++;  
             std::cout <<"\tNumber of species trees tried : "<<index<<std::endl;
-            /*resetVector(duplicationNumbers);
-            resetVector(lossNumbers);
-            resetVector(branchNumbers);*/  
             resetVector(num0Lineages);
             resetVector(num1Lineages);
             resetVector(num2Lineages);
@@ -963,17 +958,11 @@ int main(int args, char ** argv)
             gather(world, logL, logLs, server); 
             logL = VectorTools::sum(logLs);
             //Communications from the clients to the server
-            /*gather(world, duplicationNumbers, AllDuplications, server); 
-            gather(world, lossNumbers, AllLosses, server);
-            gather(world, branchNumbers, AllBranches, server);*/
             gather(world, num0Lineages, allNum0Lineages, server);
             gather(world, num1Lineages, allNum1Lineages, server);
             gather(world, num2Lineages, allNum2Lineages, server);
             int temp = allNum0Lineages.size();
             for (int i =0; i<temp ; i++ ) {
-              /*duplicationNumbers= duplicationNumbers+AllDuplications[i];
-              lossNumbers= lossNumbers+AllLosses[i];
-              branchNumbers= branchNumbers+AllBranches[i];*/
               num0Lineages = num0Lineages+allNum0Lineages[i];
               num1Lineages = num1Lineages+allNum1Lineages[i];
               num2Lineages = num2Lineages+allNum2Lineages[i];              
@@ -981,9 +970,6 @@ int main(int args, char ** argv)
                        
             bestlogL =logL;
             bestIndex = index;
-            /*bestLossNumbers = lossNumbers;
-            bestDuplicationNumbers = duplicationNumbers;
-            bestBranchNumbers = branchNumbers;*/
             bestNum0Lineages = num0Lineages;
             bestNum1Lineages = num1Lineages;
             bestNum2Lineages = num2Lineages;
@@ -997,19 +983,11 @@ int main(int args, char ** argv)
               std::cout <<"branch Number#"<< i<<" du Rate: "<< duplicationProbabilities[i]<<" loss Rate: "<< lossProbabilities[i]<<std::endl;
             }
             currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
-            /*broadcast(world, stop, server);
-            broadcast(world, rearrange, server); 
-            broadcast(world, lossProbabilities, server); 
-            broadcast(world, duplicationProbabilities, server); 
-            broadcast(world, currentSpeciesTree, server);*/
             broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
 
             //Computation in clients
             index++;  
             std::cout <<"\tNumber of species trees tried : "<<index<<std::endl;
-            /*resetVector(duplicationNumbers);
-            resetVector(lossNumbers);
-            resetVector(branchNumbers);*/  
             resetVector(num0Lineages);
             resetVector(num1Lineages);
             resetVector(num2Lineages);
@@ -1017,30 +995,21 @@ int main(int args, char ** argv)
             resetVector(logLs);
             gather(world, logL, logLs, server); 
             logL = VectorTools::sum(logLs);
-            /*gather(world, duplicationNumbers, AllDuplications, server); 
-            gather(world, lossNumbers, AllLosses, server);
-            gather(world, branchNumbers, AllBranches, server);*/
             gather(world, num0Lineages, allNum0Lineages, server);
             gather(world, num1Lineages, allNum1Lineages, server);
             gather(world, num2Lineages, allNum2Lineages, server);
             temp = allNum0Lineages.size();
             for (int i =0; i<temp ; i++ ) {
-              /*duplicationNumbers= duplicationNumbers+AllDuplications[i];
-              lossNumbers= lossNumbers+AllLosses[i];
-              branchNumbers= branchNumbers+AllBranches[i];*/
               num0Lineages = num0Lineages+allNum0Lineages[i];
               num1Lineages = num1Lineages+allNum1Lineages[i];
               num2Lineages = num2Lineages+allNum2Lineages[i];              
             }
-              
+              */
             std::cout << "\t\tServer : Likelihood value with gene tree optimization and new branch probabilities: "<<logL<<" compared to the former log-likelihood : "<<bestlogL<<std::endl;
             numIterationsWithoutImprovement = 0;
             
             bestlogL =logL;
             bestIndex = index;
-            /*bestLossNumbers = lossNumbers;
-            bestDuplicationNumbers = duplicationNumbers;
-            bestBranchNumbers = branchNumbers;*/
             bestNum0Lineages = num0Lineages;
             bestNum1Lineages = num1Lineages;
             bestNum2Lineages = num2Lineages;
@@ -1285,7 +1254,7 @@ int main(int args, char ** argv)
       int numDeletedFamilies=0;
       bool avoidFamily;
       
-     /* 
+      /*
      // This bit of code is useful to use GDB on clients:
       //launch the application, which will output the client pid
       //then launch gdb, attach to the given pid ("attach pid" or "gdb ReconcileDuplications pid"), 
@@ -1302,8 +1271,8 @@ int main(int args, char ** argv)
        std::cout <<z<<std::endl;
        sleep(5);
        }
-       */
        
+       */
       
       
       
@@ -1751,12 +1720,17 @@ int main(int args, char ** argv)
             treeLikelihoods[i]->OptimizeSequenceLikelihood(true);
             backupTreeLikelihoods[i]->OptimizeSequenceLikelihood(true);
           }
-         
+          
+         // std::cout << TreeTools::treeToParenthesis (treeLikelihoods[i]->getTree(), true)<<std::endl;
+          
           PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
+          
 
 
 					/********************************************LIKELIHOOD OPTIMIZED********************************************/
 					geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
+         // std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+          
 					resetLossesAndDuplications(*tree, /*allLossNumbers[i], */lossProbabilities, /*allDuplicationNumbers[i], */duplicationProbabilities);
 					/*allDuplicationNumbers[i] = treeLikelihoods[i]->getDuplicationNumbers();
 					allLossNumbers[i] = treeLikelihoods[i]->getLossNumbers();	
@@ -1813,9 +1787,12 @@ int main(int args, char ** argv)
           //Reset the gene trees by resetting treeLikelihoods
           //We always start from ML trees according to sequences only
           for (int i=0 ; i<treeLikelihoods.size() ; i++) {
+           // std::cout << "BACKUP ROOTED TREE"<<TreeTools::treeToParenthesis (backupTreeLikelihoods[i]->getRootedTree()) <<std::endl;
+           // std::cout << "Present ROOTED TREE"<<TreeTools::treeToParenthesis (treeLikelihoods[i]->getRootedTree()) <<std::endl;
             ReconciliationTreeLikelihood * tempL= treeLikelihoods[i];
             treeLikelihoods[i] = backupTreeLikelihoods[i]->clone();
             delete tempL;
+           // std::cout << "NEW ROOTED TREE"<<TreeTools::treeToParenthesis (treeLikelihoods[i]->getRootedTree()) <<std::endl;
           }          
 					if (!rearrange) {
 						broadcast(world, rearrange, server);

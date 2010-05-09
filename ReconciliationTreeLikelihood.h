@@ -62,8 +62,8 @@ class ReconciliationTreeLikelihood:
   {
     
     //  TreeTemplate<Node> * _tree;
-    TreeTemplate<Node> & _spTree;
-    TreeTemplate<Node> & _rootedTree;
+    TreeTemplate<Node> * _spTree;
+    TreeTemplate<Node> * _rootedTree;
     const std::map <std::string, std::string> _seqSp;
     std::map <std::string, int> _spId;
     std::vector <int> _duplicationNumbers;
@@ -250,7 +250,7 @@ class ReconciliationTreeLikelihood:
     
     double getScenarioLikelihood() const throw (Exception) { return _scenarioLikelihood; }
     
-    void setSpTree(TreeTemplate<Node> & spTree) { _spTree = spTree; }
+    void setSpTree(TreeTemplate<Node> & spTree) { _spTree = spTree.clone(); }
     
     void setSpId(std::map <std::string, int> & spId) {_spId = spId;}
     
@@ -265,7 +265,9 @@ class ReconciliationTreeLikelihood:
     std::vector <int> get1LineagesNumbers();
     std::vector <int> get2LineagesNumbers();
     
-    TreeTemplate<Node> & getSpTree() {return _spTree;}
+    TreeTemplate<Node> & getSpTree() {return *_spTree;}
+    
+    TreeTemplate<Node> & getRootedTree() {return *_rootedTree;}
     
     void setProbabilities(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
     
