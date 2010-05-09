@@ -620,8 +620,7 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
       tree = bestTree->clone();
       duplicationProbabilities = bestDupProba;
       lossProbabilities = bestLossProba;
-         if (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) {
-    //  if (numIterationsWithoutImprovement>5) {
+      if (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) {
         stop = true;
         broadcast(world, stop, server); 
         broadcast(world, bestIndex, server);
@@ -690,7 +689,7 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
     resetVector(num1Lineages);
     resetVector(num2Lineages);
     gather(world, logL, logLs, server);
-    logL = VectorTools::sum(logLs);
+    logL =  VectorTools::sum(logLs);
     /*gather(world, duplicationNumbers, AllDuplications, server); 
     gather(world, lossNumbers, AllLosses, server);
     gather(world, branchNumbers, AllBranches, server);*/
@@ -749,7 +748,7 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
       resetVector(num1Lineages);
       resetVector(num2Lineages);
       gather(world, logL, logLs, server);
-      logL = VectorTools::sum(logLs);
+      logL =  VectorTools::sum(logLs);
       /*gather(world, duplicationNumbers, AllDuplications, server); 
       gather(world, lossNumbers, AllLosses, server);
       gather(world, branchNumbers, AllBranches, server);*/
@@ -874,7 +873,7 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
     resetVector(num1Lineages);
     resetVector(num2Lineages);
     gather(world, logL, logLs, server);
-    logL = VectorTools::sum(logLs);
+    logL =  VectorTools::sum(logLs);
     /*gather(world, duplicationNumbers, AllDuplications, server); 
     gather(world, lossNumbers, AllLosses, server);
     gather(world, branchNumbers, AllBranches, server);*/
@@ -986,7 +985,7 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
       resetVector(num1Lineages);
       resetVector(num2Lineages);
       gather(world, logL, logLs, server);
-      logL = VectorTools::sum(logLs);
+      logL =  VectorTools::sum(logLs);
       /*gather(world, duplicationNumbers, AllDuplications, server); 
       gather(world, lossNumbers, AllLosses, server);
       gather(world, branchNumbers, AllBranches, server);*/
@@ -1108,7 +1107,7 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
   resetVector(num2Lineages);
   gather(world, logL, logLs, server);
 
-  logL = VectorTools::sum(logLs);
+  logL =  VectorTools::sum(logLs);
   std::cout<<"New minus logLk value in computeSpeciesTreeLikelihood: "<<logL<<std::endl;
   /*gather(world, duplicationNumbers, AllDuplications, server);  
   gather(world, lossNumbers, AllLosses, server);
@@ -1139,8 +1138,15 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
   //TEST: what if we diminish the expected numbers to 0.1 their estimated values?
  // lossProbabilities = 0.1 * lossProbabilities;
  // duplicationProbabilities = 0.1 * duplicationProbabilities;
+  //TEST1804: what if we diminish the expected numbers to 0.1 their estimated values?
+  for (int i = 0 ; i < lossProbabilities.size() ; i++ ) {
+    lossProbabilities[i] = 0.0001;
+    duplicationProbabilities[i] = 0.0001;
+  }
+
   std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index, stop, logL, /*lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, tree);
   double currentlogL = -UNLIKELY;
+  std::cout <<"1st comp; Tot Num0Lineages: "<<VectorTools::sum(num0Lineages)<<" tot Num1Lineages: "<<VectorTools::sum(num1Lineages)<< " tot Num2Lineages: "<<VectorTools::sum(num2Lineages)<<std::endl; 
   int i=1;
   //Then we update duplication and loss rates based on the results of this first 
   //computation, until the likelihood stabilizes (roughly)
@@ -1181,7 +1187,8 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
       num1Lineages= num1Lineages+allNum1Lineages[k];
       num2Lineages= num2Lineages+allNum2Lineages[k];
     }  
-    
+    std::cout <<"2nd comp; Tot Num0Lineages: "<<VectorTools::sum(num0Lineages)<<"tot Num1Lineages: "<<VectorTools::sum(num1Lineages)<< "tot Num2Lineages: "<<VectorTools::sum(num2Lineages)<<std::endl;
+
   }
  std::cout << i<< " iterations of likelihood computation for optimizing duplication and loss rates have been done."<< std::endl;
 }

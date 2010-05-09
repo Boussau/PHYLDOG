@@ -96,8 +96,7 @@ class ReconciliationTreeLikelihood:
     int _heuristicsLevel;
     mutable bool _optimizeSequenceLikelihood;
     mutable bool _optimizeReconciliationLikelihood;
-    std::string _nniMethod;
-    
+
   public:
     /**
      * @brief Build a new ReconciliationTreeLikelihood object.
@@ -146,8 +145,7 @@ class ReconciliationTreeLikelihood:
                                  int & MLindex, 
                                  bool checkRooted = true,
                                  bool verbose = false,
-                                 bool rootOptimization = false, 
-                                 std::string nniMethod = "fast")
+                                 bool rootOptimization = false)
     throw (Exception);
     
     /**
@@ -199,8 +197,7 @@ class ReconciliationTreeLikelihood:
                                  int & MLindex, 
                                  bool checkRooted = true,
                                  bool verbose = false, 
-                                 bool rootOptimization = false, 
-                                 std::string nniMethod = "fast")
+                                 bool rootOptimization = false)
     throw (Exception);
     
     /**
@@ -241,7 +238,7 @@ class ReconciliationTreeLikelihood:
     void computeSequenceLikelihood();
     
     void computeReconciliationLikelihood();
-    
+
     void computeTreeLikelihood();
 
     
@@ -281,10 +278,11 @@ class ReconciliationTreeLikelihood:
     void OptimizeSequenceLikelihood(bool yesOrNo) const  {
       _optimizeSequenceLikelihood = yesOrNo;
     }
-    
-    void OptimizeReconciliationLikelihood(bool yesOrNo) const  {
+
+    void OptimizeReconciliationLikelihood(bool yesOrNo) const {
       _optimizeReconciliationLikelihood = yesOrNo;
     }
+
     
   };
 } //end of namespace bpp.
