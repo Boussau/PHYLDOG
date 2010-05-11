@@ -360,7 +360,7 @@ int main(int args, char ** argv)
 	int MAXFILENAMESIZE = 500;
 	int MAXSPECIESTREESIZE = 10000; //size of the species tree, in number of CHARs, as it is written in Newick format
 
-	TreeTemplate<Node> * tree = NULL;
+	TreeTemplate<Node> * tree = 0;
 	std::vector <double> lossProbabilities;
   std::vector <double> duplicationProbabilities;
   std::vector <double> backupLossProbabilities;
@@ -1786,14 +1786,17 @@ int main(int args, char ** argv)
 
           //Reset the gene trees by resetting treeLikelihoods
           //We always start from ML trees according to sequences only
-          for (int i=0 ; i<treeLikelihoods.size() ; i++) {
-           // std::cout << "BACKUP ROOTED TREE"<<TreeTools::treeToParenthesis (backupTreeLikelihoods[i]->getRootedTree()) <<std::endl;
-           // std::cout << "Present ROOTED TREE"<<TreeTools::treeToParenthesis (treeLikelihoods[i]->getRootedTree()) <<std::endl;
-            ReconciliationTreeLikelihood * tempL= treeLikelihoods[i];
+          for (int i =0 ; i<treeLikelihoods.size() ; i++) 
+            delete treeLikelihoods[i];
+          treeLikelihoods.clear();
+         for (int i=0 ; i<backupTreeLikelihoods.size() ; i++) {
+          //for (int i=0 ; i<treeLikelihoods.size() ; i++) {
+         /*  ReconciliationTreeLikelihood * tempL = treeLikelihoods[i];
             treeLikelihoods[i] = backupTreeLikelihoods[i]->clone();
             delete tempL;
-           // std::cout << "NEW ROOTED TREE"<<TreeTools::treeToParenthesis (treeLikelihoods[i]->getRootedTree()) <<std::endl;
-          }          
+            */
+           treeLikelihoods.push_back(backupTreeLikelihoods[i]->clone());
+         }          
 					if (!rearrange) {
 						broadcast(world, rearrange, server);
 					} 
@@ -1810,7 +1813,7 @@ int main(int args, char ** argv)
 					broadcast(world, lossProbabilities, server); 
 					broadcast(world, duplicationProbabilities, server); 
 					broadcast(world, currentSpeciesTree, server);
-          tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
+          TreeTemplate<Node> * tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
           spId = computeSpeciesNamesToIdsMap(*tree);
          // std::cout<< "Here 7"<<std::endl;
 
@@ -1820,6 +1823,7 @@ int main(int args, char ** argv)
             treeLikelihoods[i]->setProbabilities(duplicationProbabilities, lossProbabilities);
             treeLikelihoods[i]->computeTreeLikelihood();
           }
+          if (tree) delete tree;
           //std::cout<< "Here 8"<<std::endl;
 
 				}
@@ -1856,11 +1860,6 @@ int main(int args, char ** argv)
 			}
 
     }//end if a client node
-		if (tree) {
-			//TEST (2)
-			//deleteTreeProperties(*tree);
-			//delete tree;
-		}
 	}
 	catch(std::exception & e)
 	{

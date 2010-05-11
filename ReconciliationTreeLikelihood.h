@@ -208,6 +208,7 @@ class ReconciliationTreeLikelihood:
     ReconciliationTreeLikelihood & operator=(const ReconciliationTreeLikelihood & lik);
     
     virtual ~ReconciliationTreeLikelihood();
+
     
       
 #ifndef NO_VIRTUAL_COV
@@ -250,7 +251,7 @@ class ReconciliationTreeLikelihood:
     
     double getScenarioLikelihood() const throw (Exception) { return _scenarioLikelihood; }
     
-    void setSpTree(TreeTemplate<Node> & spTree) { _spTree = spTree.clone(); }
+  void setSpTree(TreeTemplate<Node> & spTree) { if (_spTree) delete _spTree; _spTree = spTree.clone(); }
     
     void setSpId(std::map <std::string, int> & spId) {_spId = spId;}
     

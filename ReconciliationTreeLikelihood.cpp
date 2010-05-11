@@ -174,8 +174,8 @@ _spTree(0), _rootedTree(0), _seqSp (seqSp), _spId(spId)
 ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(const ReconciliationTreeLikelihood & lik):
   NNIHomogeneousTreeLikelihood(lik) , _spTree(0), _rootedTree(0), _seqSp (lik._seqSp), _spId(lik._spId)/*_spTree(*(lik._spTree.clone() )), _rootedTree(*(lik._rootedTree.clone() )), _seqSp (*(lik._seqSp.clone() )), _spId(*(lik._spId.clone() ))// _spTree(lik._spTree), _rootedTree(lik._rootedTree), _seqSp (lik._seqSp), _spId(lik._spId)*/
 {
-  _spTree = lik._spTree->clone() ;
-  _rootedTree = lik._rootedTree->clone() ;
+  _spTree = dynamic_cast<TreeTemplate<Node> *> (lik._spTree->clone()) ;
+  _rootedTree = dynamic_cast<TreeTemplate<Node> *> (lik._rootedTree->clone()) ;
  // _seqSp = *(lik._seqSp.clone() );
  // _spId = *(lik._spId.clone() );
   
@@ -216,9 +216,9 @@ ReconciliationTreeLikelihood & ReconciliationTreeLikelihood::operator=(const Rec
 {
   NNIHomogeneousTreeLikelihood::operator=(lik);
   if (_spTree) delete _spTree;
-  _spTree = lik._spTree->clone();
+  _spTree = dynamic_cast<TreeTemplate<Node> *> (lik._spTree->clone());
   if (_rootedTree) delete _rootedTree;
-  _rootedTree=lik._rootedTree->clone();
+  _rootedTree= dynamic_cast<TreeTemplate<Node> *> (lik._rootedTree->clone());
   //_seqSp = lik._seqSp; No need for that a priori
   _spId = lik._spId;
   /*_lossNumbers = lik._lossNumbers;
@@ -261,7 +261,8 @@ ReconciliationTreeLikelihood & ReconciliationTreeLikelihood::operator=(const Rec
 
 ReconciliationTreeLikelihood::~ReconciliationTreeLikelihood()
 {
-
+    if (_spTree) delete _spTree;
+    if (_rootedTree) delete _rootedTree; 
 }
 
 /******************************************************************************/
@@ -784,7 +785,9 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   //Then we root this tree according to MLindex
   tree->newOutGroup(_MLindex);
   //We update _rootedTree
+  if (_rootedTree) delete _rootedTree;
   _rootedTree = tree->clone();
+  delete tree;
   //we need to update the sequence likelihood
   OptimizeSequenceLikelihood(true);
   OptimizeReconciliationLikelihood(true);

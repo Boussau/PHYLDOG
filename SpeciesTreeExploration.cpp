@@ -1178,11 +1178,8 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
  ************************************************************************/
 void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, /*std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, */std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, bool rearrange, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL) {
   //First we compute the likelihood with old duplication and loss rates
-  computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, tree);
-  //TEST: what if we diminish the expected numbers to 0.1 their estimated values?
- // lossProbabilities = 0.1 * lossProbabilities;
- // duplicationProbabilities = 0.1 * duplicationProbabilities;
-  //TEST1804: what if we diminish the expected numbers to 0.1 their estimated values?
+ // computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, tree);
+  //TEST1804: what if we diminish the expected numbers to 0.001 uniformly: we start afresh for each noew species tree topology.
   for (int i = 0 ; i < lossProbabilities.size() ; i++ ) {
     lossProbabilities[i] = 0.001;
     duplicationProbabilities[i] = 0.001;
