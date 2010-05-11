@@ -215,8 +215,10 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(const ReconciliationT
 ReconciliationTreeLikelihood & ReconciliationTreeLikelihood::operator=(const ReconciliationTreeLikelihood & lik)
 {
   NNIHomogeneousTreeLikelihood::operator=(lik);
-  _spTree = lik._spTree;
-  _rootedTree=lik._rootedTree;
+  if (_spTree) delete _spTree;
+  _spTree = lik._spTree->clone();
+  if (_rootedTree) delete _rootedTree;
+  _rootedTree=lik._rootedTree->clone();
   //_seqSp = lik._seqSp; No need for that a priori
   _spId = lik._spId;
   /*_lossNumbers = lik._lossNumbers;
