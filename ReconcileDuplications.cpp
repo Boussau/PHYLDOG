@@ -592,10 +592,22 @@ int main(int args, char ** argv)
 					}
 				}
 			}
-			/*for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
-				std::cout <<it->first<<" : "<<it->second<<std::endl;
-			}*/
 
+      /****************************************************************************
+			 // Then, we get the maximum time allowed, in hours. 1h before the limit, 
+       // the program will nicely stop and save the current species tree and 
+       // the step we are at in a new option file, so that next time the program
+       // run, we approximately start from the same place.
+			 *****************************************************************************/
+      
+      int timeLimit = ApplicationTools::getIntParameter("time.limit",params,0);
+      //we convert hours in seconds. 
+      //1h before the end, we will launch the stop signal.
+      timeLimit = (timeLimit-1) * 3600 ; 
+      //Current step: information to give when the run is stopped for timing reasons, 
+      //or to get if given.
+      int currentStep = ApplicationTools::getIntParameter("current.step",params,0);
+      
 			/****************************************************************************
 			 // Then, we handle all gene families.
 			 *****************************************************************************/
@@ -707,12 +719,6 @@ int main(int args, char ** argv)
         }
     }
       
-      /*std::cout <<"HEHEH"<<std::endl;
-      VectorTools::print(listOfOptionsPerClient[1]);
-      std::cout <<"HEHEH2"<<std::endl;
-      VectorTools::print(numbersOfGenesPerClient);
-      std::cout <<"HEHEH3"<<std::endl;
-       */
 			/***********************************************************
 			 * First we set the numbers of duplications and losses at 0.
 			 ***********************************************************/
@@ -723,9 +729,6 @@ int main(int args, char ** argv)
 				//We use values for rates of duplications and losses obtained from a dataset containing 150 genes.
 				lossProbabilities.push_back(0.313);
         duplicationProbabilities.push_back(0.0159);
-        /*lossNumbers.push_back(0);
-				duplicationNumbers.push_back(0);
-				branchNumbers.push_back(0);*/
 				num0Lineages.push_back(0);
 				num1Lineages.push_back(0);
 				num2Lineages.push_back(0);
@@ -743,16 +746,6 @@ int main(int args, char ** argv)
                                                                genomeMissing, 
                                                                *tree);
 
-    /*  for (int i =0; i<num0Lineages.size() ; i++ ) {
-        std::cout <<"branch Number#"<< i<<"  du Rate: "<< duplicationProbabilities[i]<<"  loss Rate: "<< lossProbabilities[i]<<std::endl;
-      }
-      duplicationProbabilities = duplicationProbabilities * 0.1;
-      lossProbabilities = lossProbabilities * 0.1;
-      std::cout << "After correction:"<<std::endl;
-      for (int i =0; i<num0Lineages.size() ; i++ ) {
-        std::cout <<"branch Number#"<< i<<"  du Rate: "<< duplicationProbabilities[i]<<"  loss Rate: "<< lossProbabilities[i]<<std::endl;
-      }
-      */
       
       //We also need to send the species tree to all clients
 			currentSpeciesTree = TreeTools::treeToParenthesis(*tree, true);
@@ -766,11 +759,8 @@ int main(int args, char ** argv)
       //Now the server sends to all clients the same information.
 			broadcast(world, optimizeSpeciesTreeTopology, server);
 			broadcast(world, SpeciesNodeNumber, server);
-      //broadcast(world, lossNumbers, server);
 			broadcast(world, lossProbabilities, server); 
-			//broadcast(world, duplicationNumbers, server);
 			broadcast(world, duplicationProbabilities, server); 
-			//broadcast(world, branchNumbers, server);
 			broadcast(world, num0Lineages, server);
 			broadcast(world, num1Lineages, server);
 			broadcast(world, num2Lineages, server);
@@ -810,9 +800,6 @@ int main(int args, char ** argv)
 			int endlimit = limit+1;
 			TreeTemplate<Node> * bestTree = tree->clone();
 			TreeTemplate<Node> * currentTree = tree->clone();
-		/*	std::vector <int> bestLossNumbers;
-			std::vector <int> bestDuplicationNumbers;
-			std::vector <int> bestBranchNumbers;*/
 			std::vector <int> bestNum0Lineages;
 			std::vector <int> bestNum1Lineages;
 			std::vector <int> bestNum2Lineages;
@@ -826,44 +813,22 @@ int main(int args, char ** argv)
 		 std::vector<double> logLs;
 			gather(world, logL, logLs, server);
 			logL = VectorTools::sum(logLs);
-			//resetVector(duplicationNumbers);
-			//resetVector(lossNumbers);
-			//resetVector(branchNumbers);
 			resetVector(num0Lineages);
 			resetVector(num1Lineages);
 			resetVector(num2Lineages);
-			//gather(world, duplicationNumbers, AllDuplications, server); 
-			//gather(world, lossNumbers, AllLosses, server);
-			//gather(world, branchNumbers, AllBranches, server);
 			gather(world, num0Lineages, allNum0Lineages, server);
 			gather(world, num1Lineages, allNum1Lineages, server);
 			gather(world, num2Lineages, allNum2Lineages, server);
 			int temp = allNum0Lineages.size();
 			for (int i =0; i<temp ; i++ ) {
-				//duplicationNumbers= duplicationNumbers+AllDuplications[i];
-        //lossNumbers= lossNumbers+AllLosses[i];
-        //branchNumbers= branchNumbers+AllBranches[i];
         num0Lineages = num0Lineages+allNum0Lineages[i];
 				num1Lineages = num1Lineages+allNum1Lineages[i];
 				num2Lineages = num2Lineages+allNum2Lineages[i];        
 			} 
-      /*bestLossNumbers = lossNumbers;
-      bestDuplicationNumbers = duplicationNumbers;
-      bestBranchNumbers = branchNumbers;*/
       bestNum0Lineages = num0Lineages;
       bestNum1Lineages = num1Lineages;
       bestNum2Lineages = num2Lineages;
       
-      //TEST 16 02 2010
-      /*
-      if(branchProbaOptimization=="average_then_branchwise") {
-        std::string temp = "average";
-        computeDuplicationAndLossRatesForTheSpeciesTree (temp, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, *tree);
-      }
-      else {
-        computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, *tree);
-      }
-      */
 			std::cout << "\t\tServer: total initial Likelihood value "<<logL<<std::endl;
 			bestlogL = logL;
       
@@ -880,317 +845,276 @@ int main(int args, char ** argv)
 			while (!stop) {
 				//Using deterministic SPRs first, and then NNIs
 				//Making SPRs, from leaves to deeper nodes (approximately), plus root changes
+        if (currentStep >= 4)
+          {
+          noMoreSPR = true;
+          }
 				if (!noMoreSPR) {
           //This first function does not optimize duplication and loss rates, 
           //as proved by the last "false" argument.
-				  fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, index, bestIndex, stop, logL, bestlogL, /*lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, branchProbaOptimization, genomeMissing, sprLimit, false);
-					std::cout <<"Before updating rates; current Likelihood "<<bestlogL  <<" and logL: "<<logL<<std::endl;
           
-          backupLossProbabilities = lossProbabilities;
-          backupDuplicationProbabilities = duplicationProbabilities;
+          if (currentStep == 0) 
+            {
+            fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, 
+                                                index, bestIndex, stop, timeLimit, 
+                                                logL, bestlogL, 
+                                                num0Lineages, num1Lineages, num2Lineages, 
+                                                bestNum0Lineages, bestNum1Lineages, 
+                                                bestNum2Lineages, 
+                                                allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                                lossProbabilities, duplicationProbabilities, 
+                                                averageDuplicationProbability, averageLossProbability, 
+                                                rearrange, numIterationsWithoutImprovement, 
+                                                server, branchProbaOptimization, 
+                                                genomeMissing, sprLimit, false);
+            std::cout <<"Before updating rates; current Likelihood "<<bestlogL  <<" and logL: "<<logL<<std::endl;
+            
+            backupLossProbabilities = lossProbabilities;
+            backupDuplicationProbabilities = duplicationProbabilities;
+            if (ApplicationTools::getTime() < timeLimit) 
+              currentStep = 1;
+            }
           
-          //Now we update the rates before starting a new round of tree exploration
-          computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, /*lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches,*/ num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *currentTree, bestlogL);
-          std::cout <<"After updating rates; current Likelihood "<<logL<<std::endl;
-          
-          if (logL+0.01<bestlogL) {
-            bestlogL =logL;
-            /*bestLossNumbers = lossNumbers;
-            bestDuplicationNumbers = duplicationNumbers;
-            bestBranchNumbers = branchNumbers;*/
-            bestNum0Lineages = num0Lineages;
-            bestNum1Lineages = num1Lineages;
-            bestNum2Lineages = num2Lineages;
-            bestIndex = index;
-            std::cout << "Updating duplication and loss rates yields a better candidate tree likelihood : "<<bestlogL<<std::endl;
-            std::cout << TreeTools::treeToParenthesis(*currentTree, true)<<std::endl;
-          } 
-          else {
-            std::cout << "No improvement: we keep former rates. "<<bestlogL<<std::endl;
-            lossProbabilities = backupLossProbabilities;
-            duplicationProbabilities = backupDuplicationProbabilities;
-          }
-          
-          
-          
-          for (int i =0; i<num0Lineages.size() ; i++ ) {
-            std::cout <<"branch Number#"<< i<<" dup Rate: "<< duplicationProbabilities[i]<<" loss Rate: "<< lossProbabilities[i]<<std::endl;
-          }
-          
+          if ((currentStep == 1) && (ApplicationTools::getTime() < timeLimit) )
+            {
+            //Now we update the rates before starting a new round of tree exploration
+            computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, 
+                                                                               stop, logL, 
+                                                                               num0Lineages, num1Lineages,num2Lineages, 
+                                                                               allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                                                               lossProbabilities, duplicationProbabilities, 
+                                                                               rearrange, server, 
+                                                                               branchProbaOptimization, genomeMissing, 
+                                                                               *currentTree, bestlogL);
+            std::cout <<"After updating rates; current Likelihood "<<logL<<std::endl;
+            
+            if (logL+0.01<bestlogL) 
+              {
+              bestlogL =logL;
+              bestNum0Lineages = num0Lineages;
+              bestNum1Lineages = num1Lineages;
+              bestNum2Lineages = num2Lineages;
+              bestIndex = index;
+              std::cout << "Updating duplication and loss rates yields a better candidate tree likelihood : "<<bestlogL<<std::endl;
+              std::cout << TreeTools::treeToParenthesis(*currentTree, true)<<std::endl;
+              } 
+            else 
+              {
+              std::cout << "No improvement: we keep former rates. "<<bestlogL<<std::endl;
+              lossProbabilities = backupLossProbabilities;
+              duplicationProbabilities = backupDuplicationProbabilities;
+              }
+            for (int i =0; i<num0Lineages.size() ; i++ ) 
+              {
+              std::cout <<"branch Number#"<< i<<" dup Rate: "<< duplicationProbabilities[i]<<" loss Rate: "<< lossProbabilities[i]<<std::endl;
+              }
+            if (ApplicationTools::getTime() < timeLimit) 
+              currentStep = 2;
+            }
 
           //Now for each species tree tried, we optimize the duplication and loss rates.
           //Therefore, for each species tree, the likelihood is computed twice, 
           //once before, and once after parameter tuning.
-          fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, index, bestIndex, stop, logL, bestlogL, /*lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, branchProbaOptimization, genomeMissing, sprLimit, true);
-          
-          noMoreSPR=true;
-          
-         // numericalOptimizationOfDuplicationAndLossRates(world, index, stop, logL, lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *currentTree, bestlogL);
-          
-          
-          std::cout << "\n\n\t\t\tNow entering the final optimization steps, without SPRs\n\n"<<std::endl;
-          std::cout << TreeTools::treeToParenthesis(*currentTree, true)<<std::endl;
+          if ( (currentStep == 3) && (ApplicationTools::getTime() < timeLimit) )
+            {
+            fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, 
+                                                index, bestIndex, stop, timeLimit, 
+                                                logL, bestlogL, 
+                                                num0Lineages, num1Lineages, num2Lineages, 
+                                                bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
+                                                allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                                lossProbabilities, duplicationProbabilities, 
+                                                averageDuplicationProbability, averageLossProbability, 
+                                                rearrange, numIterationsWithoutImprovement, 
+                                                server, branchProbaOptimization, 
+                                                genomeMissing, sprLimit, true);
+            
+            noMoreSPR=true;
+            
+            std::cout << "\n\n\t\t\tNow entering the final optimization steps, without SPRs\n\n"<<std::endl;
+            std::cout << TreeTools::treeToParenthesis(*currentTree, true)<<std::endl;
+            if (ApplicationTools::getTime() < timeLimit) 
+              currentStep = 4;
+            }
 				}
 
-				else { //noMoreSPR==true, we thus only make NNIs and root changes
-					if (((!rearrange)&&(numIterationsWithoutImprovement>=2*tree->getNumberOfNodes()))||((!rearrange)&&(!optimizeSpeciesTreeTopology))) {
+				else 
+          { //noMoreSPR==true, we thus only make NNIs and root changes
+            if ((((!rearrange)&&(numIterationsWithoutImprovement>=2*tree->getNumberOfNodes()))||((!rearrange)&&(!optimizeSpeciesTreeTopology))) && (ApplicationTools::getTime() < timeLimit) )
+              {
+              
+              rearrange = true; //Now we rearrange gene trees
+              
+              numIterationsWithoutImprovement = 0;
+              computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, 
+                                                                                 stop, logL, 
+                                                                                 num0Lineages, num1Lineages, num2Lineages, 
+                                                                                 allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                                                                 lossProbabilities, duplicationProbabilities, 
+                                                                                 rearrange, server, 
+                                                                                 branchProbaOptimization, genomeMissing, 
+                                                                                 *currentTree, bestlogL);
+              
+              std::cout << "\t\tServer : Likelihood value with gene tree optimization and new branch probabilities: "<<logL<<" compared to the former log-likelihood : "<<bestlogL<<std::endl;
+              numIterationsWithoutImprovement = 0;
+              
+              bestlogL =logL;
+              bestIndex = index;
+              bestNum0Lineages = num0Lineages;
+              bestNum1Lineages = num1Lineages;
+              bestNum2Lineages = num2Lineages;
+              }
             
-            rearrange = true; //Now we rearrange gene trees
-
-            numIterationsWithoutImprovement = 0;
-            computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *currentTree, bestlogL);
-            
-            /*
-            //We compute a new likelihood with rearrangement and possibly branch specific probabilities of duplications and losses.
-            currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
-            
-            
-            broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
-
-            //Computation in clients
-            index++;  
-            std::cout <<"\tNumber of species trees tried : "<<index<<std::endl;
-            resetVector(num0Lineages);
-            resetVector(num1Lineages);
-            resetVector(num2Lineages);
-            logL = 0.0;
-            resetVector(logLs);
-            gather(world, logL, logLs, server); 
-            logL = VectorTools::sum(logLs);
-            //Communications from the clients to the server
-            gather(world, num0Lineages, allNum0Lineages, server);
-            gather(world, num1Lineages, allNum1Lineages, server);
-            gather(world, num2Lineages, allNum2Lineages, server);
-            int temp = allNum0Lineages.size();
-            for (int i =0; i<temp ; i++ ) {
-              num0Lineages = num0Lineages+allNum0Lineages[i];
-              num1Lineages = num1Lineages+allNum1Lineages[i];
-              num2Lineages = num2Lineages+allNum2Lineages[i];              
-            }
-                       
-            bestlogL =logL;
-            bestIndex = index;
-            bestNum0Lineages = num0Lineages;
-            bestNum1Lineages = num1Lineages;
-            bestNum2Lineages = num2Lineages;
-            
-            //The first computation with gene tree rearrangement is done, 
-            //now we can optimize duplication and loss rates.
-            
-            computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, *currentTree);
-    
-            for (int i =0; i<num0Lineages.size() ; i++ ) {
-              std::cout <<"branch Number#"<< i<<" du Rate: "<< duplicationProbabilities[i]<<" loss Rate: "<< lossProbabilities[i]<<std::endl;
-            }
-            currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
-            broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
-
-            //Computation in clients
-            index++;  
-            std::cout <<"\tNumber of species trees tried : "<<index<<std::endl;
-            resetVector(num0Lineages);
-            resetVector(num1Lineages);
-            resetVector(num2Lineages);
-            logL = 0.0;
-            resetVector(logLs);
-            gather(world, logL, logLs, server); 
-            logL = VectorTools::sum(logLs);
-            gather(world, num0Lineages, allNum0Lineages, server);
-            gather(world, num1Lineages, allNum1Lineages, server);
-            gather(world, num2Lineages, allNum2Lineages, server);
-            temp = allNum0Lineages.size();
-            for (int i =0; i<temp ; i++ ) {
-              num0Lineages = num0Lineages+allNum0Lineages[i];
-              num1Lineages = num1Lineages+allNum1Lineages[i];
-              num2Lineages = num2Lineages+allNum2Lineages[i];              
-            }
-              */
-            std::cout << "\t\tServer : Likelihood value with gene tree optimization and new branch probabilities: "<<logL<<" compared to the former log-likelihood : "<<bestlogL<<std::endl;
-            numIterationsWithoutImprovement = 0;
-            
-            bestlogL =logL;
-            bestIndex = index;
-            bestNum0Lineages = num0Lineages;
-            bestNum1Lineages = num1Lineages;
-            bestNum2Lineages = num2Lineages;
+            //Final steps in the optimization of the species tree topology
+            if ( (currentStep == 4) && (ApplicationTools::getTime() < timeLimit) )
+              {
+              if (optimizeSpeciesTreeTopology) 
+                {
+                std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement<<std::endl;
+                localOptimizationWithNNIsAndReRootings(world, currentTree, bestTree, 
+                                                       index, bestIndex, 
+                                                       stop, timeLimit, 
+                                                       logL, bestlogL, 
+                                                       num0Lineages, num1Lineages, num2Lineages, 
+                                                       bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
+                                                       allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                                       lossProbabilities, duplicationProbabilities, 
+                                                       averageDuplicationProbability, averageLossProbability, 
+                                                       rearrange, numIterationsWithoutImprovement, 
+                                                       server, nodeForNNI, nodeForRooting, 
+                                                       branchProbaOptimization, genomeMissing, NNILks);
+                }
+              else 
+                {
+                std::cout <<"\tDuplication and loss rate optimization: Number of iterations without improvement : "<<numIterationsWithoutImprovement<<std::endl;
+                optimizeOnlyDuplicationAndLossRates(world, currentTree, bestTree, 
+                                                    index, bestIndex, 
+                                                    stop, timeLimit, 
+                                                    logL, bestlogL, 
+                                                    num0Lineages, num1Lineages, num2Lineages, 
+                                                    bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
+                                                    allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                                    lossProbabilities, duplicationProbabilities, 
+                                                    averageDuplicationProbability, averageLossProbability, 
+                                                    rearrange, numIterationsWithoutImprovement, 
+                                                    server, nodeForNNI, nodeForRooting, 
+                                                    branchProbaOptimization, genomeMissing);
+                }
+              if (ApplicationTools::getTime() < timeLimit) 
+                currentStep = 5;
+              }
           }
-          
-          //Final steps in the optimization of the species tree topology
-					if (optimizeSpeciesTreeTopology) {
-						std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement<<std::endl;
-						localOptimizationWithNNIsAndReRootings(world, currentTree, bestTree, index, bestIndex, stop, logL, bestlogL, /*lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, nodeForNNI, nodeForRooting, branchProbaOptimization, genomeMissing, NNILks);
-            //ATTEMPT 18 02 2010
-            //OPTIMIZE RATES
-          /*  SpeciesTreeLikelihood *slk = new SpeciesTreeLikelihood (world, server, tree, index, bestIndex, stop, logL, bestlogL, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, numIterationsWithoutImprovement, branchProbaOptimization, genomeMissing);
-            
-            slk->getParameters().printParameters (std::cout);
-            
-            
-            //Optimization of rates:
-            PowellMultiDimensions * optimizer = new PowellMultiDimensions(slk);
-            optimizer->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
-            optimizer->setProfiler(NULL);
-            optimizer->setMessageHandler(NULL);
-            optimizer->setVerbose(0);
-            
-            optimizer->getStopCondition()->setTolerance(0.1);
-            //optimizer_->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
-            optimizer->init(slk->getParameters()); 
-            optimizer->optimize(); 
-            
-            std::cout <<"optimization Done: "<<logL<<std::endl;
-            
-            lossProbabilities = lossProbabilities * optimizer->getParameters().getParameter("coefLoss").getValue();
-            duplicationProbabilities = duplicationProbabilities * optimizer->getParameters().getParameter("coefDup").getValue();
-            
-            std::cout <<"Dup coef: "<<optimizer->getParameters().getParameter("coefDup").getValue() <<" Loss coef: "<<optimizer->getParameters().getParameter("coefLoss").getValue()<<std::endl;
-            
-            
-            delete optimizer;
-            delete slk; */
-            
-            
-					}
-					else {
-						std::cout <<"\tDuplication and loss rate optimization: Number of iterations without improvement : "<<numIterationsWithoutImprovement<<std::endl;
-            /*
-            //ATTEMPT 18 02 2010
-            //OPTIMIZE RATES
-            SpeciesTreeLikelihood *slk = new SpeciesTreeLikelihood (world, server, tree, index, bestIndex, stop, logL, bestlogL, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, numIterationsWithoutImprovement, branchProbaOptimization, genomeMissing);
-            
-           slk->getParameters().printParameters (std::cout);
-            
-            //Optimization:
-            PowellMultiDimensions * optimizer = new PowellMultiDimensions(slk);
-            optimizer->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
-            optimizer->setProfiler(NULL);
-            optimizer->setMessageHandler(NULL);
-            optimizer->setVerbose(0);
-            
-            optimizer->getStopCondition()->setTolerance(0.1);
-            //optimizer_->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
-            optimizer->init(slk->getParameters()); 
-            optimizer->optimize(); 
-            
-            std::cout <<"optimization Done: "<<logL<<std::endl;
-            
-            lossProbabilities = lossProbabilities * optimizer->getParameters().getParameter("coefLoss").getValue();
-            duplicationProbabilities = duplicationProbabilities * optimizer->getParameters().getParameter("coefDup").getValue();
-            
-            std::cout <<"Dup coef: "<<optimizer->getParameters().getParameter("coefDup").getValue() <<" Loss coef: "<<optimizer->getParameters().getParameter("coefLoss").getValue()<<std::endl;
-                        
-            
-            delete optimizer;
-            delete slk;
-            */
-          optimizeOnlyDuplicationAndLossRates(world, currentTree, bestTree, index, bestIndex, stop, logL, bestlogL, /*lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, nodeForNNI, nodeForRooting, branchProbaOptimization, genomeMissing);
-           /* std::cout<< "STOP VALUE: ";
-            if (stop) {
-              std::cout <<"STOP ==TRUE!"<<std::endl; 
-            }
-            else {
-              std::cout <<"STOP ==FALSE!"<<std::endl;
-            }
-            numericalOptimizationOfDuplicationAndLossRates(world, index, stop, logL, lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *currentTree, bestlogL);*/
-					}
-				}
 			}
-
-      //In Anisimova and Gascuel, the relevant distribution is a mixture of chi^2_1 and chi^2_0.
-      //Here, I am not sure one can do the same. We stick with the classical chi^2_1 distribution, more conservative.
-      for (int i = 0; i<num0Lineages.size() ; i++ ) {
-        if ((! bestTree->getNode(i)->isLeaf()) && (bestTree->getNode(i)->hasFather())) {
-         // double proba=(1/2)*(RandomTools::pChisq(2*(NNILks[i] - bestlogL), 1)+1); //If one wants to use the mixture.
-          double proba=RandomTools::pChisq(2*(NNILks[i] - bestlogL), 1);
-          //Bonferroni correction
-          proba = 1-3*(1-proba);
-          if (proba<0) {
-            std::cout <<"Negative aLRT!"<<std::endl;
-            proba ==0;
+      
+      
+      //If we have to stop the program before the end, we need to:
+      //- saves the species tree to a given file to start from the good species tree
+      //- it would be nice to make client option files for the next run to not recompute starting gene trees. Not for now, though.
+      if (ApplicationTools::getTime() >= timeLimit) 
+        {
+        std::cout <<"Saving the current species tree for the next run."<<std::endl;
+        std::string tempSpTree = "CurrentSpeciesTree.tree"; 
+        std::ofstream out (tempSpTree.c_str(), std::ios::out);
+        out << TreeTools::treeToParenthesis(*bestTree, false)<<std::endl;
+        out.close();  
+        std::cout<<"\n\nAdd:\ninit.species.tree=user\nspecies.tree.file=CurrentSpeciesTree.tree\ncurrent.step="<<currentStep<<"\nto your options.\n"<<std::endl;
+        }
+      else 
+        {
+        //COMPUTING ALRTs
+        //In Anisimova and Gascuel, the relevant distribution is a mixture of chi^2_1 and chi^2_0.
+        //Here, I am not sure one can do the same. We stick with the classical chi^2_1 distribution, more conservative.
+        for (int i = 0; i<num0Lineages.size() ; i++ ) 
+          {
+          if ((! bestTree->getNode(i)->isLeaf()) && (bestTree->getNode(i)->hasFather())) 
+            {
+            // double proba=(1/2)*(RandomTools::pChisq(2*(NNILks[i] - bestlogL), 1)+1); //If one wants to use the mixture.
+            double proba=RandomTools::pChisq(2*(NNILks[i] - bestlogL), 1);
+            //Bonferroni correction
+            proba = 1-3*(1-proba);
+            if (proba<0) 
+              {
+              std::cout <<"Negative aLRT!"<<std::endl;
+              proba ==0;
+              }
+            std::cout <<"Branch "<<i<<" second best Lk: "<< NNILks[i]<< ";Lk difference: "<< NNILks[i] - bestlogL <<"; aLRT: "<<proba<<std::endl;
+            bestTree->getNode(i)->setBranchProperty("ALRT", Number<double>(proba));
+            }
+          else 
+            {
+            bestTree->getNode(i)->setBranchProperty("ALRT", Number<double>(1));
+            }
           }
-          std::cout <<"Branch "<<i<<" second best Lk: "<< NNILks[i]<< "; aLRT: "<<proba<<std::endl;
-          bestTree->getNode(i)->setBranchProperty("ALRT", Number<double>(proba));
+        
+        std::cout <<"\n\n\t\tBest Species Tree found, with node Ids: "<<std::endl;
+        std::cout << TreeTools::treeToParenthesis (*bestTree, true)<<std::endl;
+        std::cout <<"\n\n\t\tBest Species Tree found, with aLRTs: "<<std::endl;
+        std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "ALRT")<<std::endl;
+        //Here we output the species tree with rates of duplication and loss
+        //For duplication rates
+        for (int i =0; i<num0Lineages.size() ; i++ ) 
+          {
+          bestTree->getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationProbabilities[i]));
+          if (bestTree->getNode(i)->hasFather()) 
+            {
+            bestTree->getNode(i)->setDistanceToFather(duplicationProbabilities[i]);
+            }
+          }
+        
+        //Outputting the results of the algorithm, server side.
+        std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false); 
+        std::ofstream out (dupTree.c_str(), std::ios::out);
+        out << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "DUPLICATIONS")<<std::endl;
+        out.close();
+        //For loss rates
+        for (int i =0; i<num0Lineages.size() ; i++ ) 
+          {
+          bestTree->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossProbabilities[i]));
+          if (bestTree->getNode(i)->hasFather()) 
+            {
+            bestTree->getNode(i)->setDistanceToFather(lossProbabilities[i]);
+            }
+          }
+        std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
+        out.open (lossTree.c_str(), std::ios::out);
+        out << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "LOSSES")<<std::endl;
+        out.close();
+        
+        std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params, "ServerNumbered.tree", "", false, false);
+        out.open (numTree.c_str(), std::ios::out);
+        out << TreeTools::treeToParenthesis (*bestTree, true)<<std::endl;
+        out.close();
+        
+        //Here we output the species tree with numbers of times 
+        //a given number of lineages has been found per branch.
+        
+        assignNumLineagesOnSpeciesTree(*bestTree, 
+                                       num0Lineages, 
+                                       num1Lineages, 
+                                       num2Lineages);
+        std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params, "lineageNumbers.tree", "", false, false); 
+        out.open (lineagesTree.c_str(), std::ios::out);
+        out << TreeTools::treeToParenthesis(*bestTree, false, NUMLINEAGES)<<std::endl;
+        out.close();
+        
+        
+        
+        
+        std::cout <<"Number of species trees tried : "<<index<<std::endl;
+        
+        PhylogeneticsApplicationTools::writeTree(*bestTree, params);
+        
+        std::cout << "\t\tServer : best found logLikelihood value : "<<bestlogL<<std::endl;
         }
-        else {
-          bestTree->getNode(i)->setBranchProperty("ALRT", Number<double>(1));
-        }
-      }
-      
-      std::cout <<"\n\n\t\tBest Species Tree found, with node Ids: "<<std::endl;
-			std::cout << TreeTools::treeToParenthesis (*bestTree, true)<<std::endl;
-      std::cout <<"\n\n\t\tBest Species Tree found, with aLRTs: "<<std::endl;
-      std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "ALRT")<<std::endl;
-      /*This code permits outputting trees with numbers of duplication or loss events at branches
-       //set total numbers of loss and duplications on branches
-       setLossesAndDuplications(*bestTree, bestLossNumbers, bestDuplicationNumbers);
-       std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false); 
-       std::ofstream out (dupTree.c_str(), std::ios::out);
-       out << treeToParenthesisWithIntNodeValues (*bestTree, false, DUPLICATIONS)<<std::endl;
-       out.close();
-       std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
-       out.open (lossTree.c_str(), std::ios::out);
-       out << treeToParenthesisWithIntNodeValues (*bestTree, false, LOSSES)<<std::endl;
-       out.close();
-       */
-      
-      //Here we output the species tree with rates of duplication and loss
-      //For duplication rates
-      for (int i =0; i<num0Lineages.size() ; i++ ) {
-        bestTree->getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationProbabilities[i]));
-        if (bestTree->getNode(i)->hasFather()) {
-          bestTree->getNode(i)->setDistanceToFather(duplicationProbabilities[i]);
-        }
-      }
-      
-      //Outputting the results of the algorithm, server side.
-      std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false); 
-      std::ofstream out (dupTree.c_str(), std::ios::out);
-			out << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "DUPLICATIONS")<<std::endl;
-			out.close();
-      //For loss rates
-      for (int i =0; i<num0Lineages.size() ; i++ ) {
-        bestTree->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossProbabilities[i]));
-        if (bestTree->getNode(i)->hasFather()) {
-          bestTree->getNode(i)->setDistanceToFather(lossProbabilities[i]);
-        }
-      }
-      std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
-			out.open (lossTree.c_str(), std::ios::out);
-			out << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "LOSSES")<<std::endl;
-			out.close();
-      
-      std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params, "ServerNumbered.tree", "", false, false);
-			out.open (numTree.c_str(), std::ios::out);
-			out << TreeTools::treeToParenthesis (*bestTree, true)<<std::endl;
-			out.close();
-      
-      //Here we output the species tree with numbers of times 
-      //a given number of lineages has been found per branch.
-      
-      assignNumLineagesOnSpeciesTree(*bestTree, 
-                                     num0Lineages, 
-                                     num1Lineages, 
-                                     num2Lineages);
-      std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params, "lineageNumbers.tree", "", false, false); 
-      out.open (lineagesTree.c_str(), std::ios::out);
-			out << TreeTools::treeToParenthesis(*bestTree, false, NUMLINEAGES)<<std::endl;
-			out.close();
-      
-          
-      
-      
-			std::cout <<"Number of species trees tried : "<<index<<std::endl;
-
-			PhylogeneticsApplicationTools::writeTree(*bestTree, params);
-
-			std::cout << "\t\tServer : best found logLikelihood value : "<<bestlogL<<std::endl;
-
 			deleteTreeProperties(*currentTree);
 			deleteTreeProperties(*bestTree);
 			delete currentTree;
 			delete bestTree;
 			std::cout << "ReconcileDuplication's done. Bye." << std::endl;
 			ApplicationTools::displayTime("Total execution time:");
+      
+      
+      
 		}//End if at the server node
     
 		//##################################################################################################################
@@ -1209,11 +1133,8 @@ int main(int args, char ** argv)
 			broadcast(world, optimizeSpeciesTreeTopology, server);
 			broadcast(world, SpeciesNodeNumber, server);
 			//Here we need to send the std::vectors of losses and duplications and branch numbers to all clients.
-			//broadcast(world, lossNumbers, server);
 			broadcast(world, lossProbabilities, server); 
-			//broadcast(world, duplicationNumbers, server);
 			broadcast(world, duplicationProbabilities, server); 
-			//broadcast(world, branchNumbers, server);
 			broadcast(world, num0Lineages, server);
 			broadcast(world, num1Lineages, server);
 			broadcast(world, num2Lineages, server);
@@ -1229,9 +1150,6 @@ int main(int args, char ** argv)
       //To make the correspondance between species name and id:
       std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*tree);
       //These std::vectors contain all relevant numbers for all gene families the client is in charge of.
-			/*std::vector <std::vector <int> > allDuplicationNumbers;
-			std::vector <std::vector <int> > allLossNumbers;
-			std::vector <std::vector <int> > allBranchNumbers;*/
 			std::vector <std::vector <int> > allNum0Lineages;
 			std::vector <std::vector <int> > allNum1Lineages;
 			std::vector <std::vector <int> > allNum2Lineages;
@@ -1273,11 +1191,6 @@ int main(int args, char ** argv)
        }
        
        */
-      
-      
-      
-      
-      
       
       //Here we are going to get all necessary information regarding all gene families the client is in charge of.
 			for (int i = 0 ; i< affectedFilenames.size() ; i++) { //For each file
@@ -1394,31 +1307,34 @@ int main(int args, char ** argv)
 				initTree = ApplicationTools::getStringParameter("init.gene.tree", params, "user", "", false, false);
 				ApplicationTools::displayResult("Input gene tree", initTree);
 				if(initTree == "user")
-				{
-				 std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
-					if (geneTreeFile=="none" ){
+          {
+          std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
+					if (geneTreeFile=="none" )
+            {
 						std::cout << "\n\nNo Gene tree was provided. The option init.gene.tree is set to user (by default), which means that the option gene.tree.file must be filled with the path of a valid tree file. \nIf you do not have a gene tree file, the program can start from a random tree, if you set init.gene.tree at random\n\n" << std::endl;
 						exit(-1);
-					}
+            }
 					Newick newick(true);
 					geneTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTreeFile));
-					if (!geneTree->isRooted()) {
+					if (!geneTree->isRooted()) 
+            {
 						unrootedGeneTree = geneTree->clone();
 						std::cout << "The gene tree is not rooted ; the root will be searched."<<std::endl;
 						geneTree->newOutGroup(0);
-					}
-					else {
+            }
+					else 
+            {
 						unrootedGeneTree = geneTree->clone();
 						unrootedGeneTree->unroot();
-					}
+            }
 					ApplicationTools::displayResult("Gene Tree file", geneTreeFile);
 					ApplicationTools::displayResult("Number of leaves", TextTools::toString(geneTree->getNumberOfLeaves()));
-				}
+          }
 				else if(initTree == "random")
-				{
+          {
 					std::cout << "\n\nCurrently this option is not available.\n"<<std::endl;
 					exit(-1);
-				}
+          }
         else if (initTree == "bionj") //building a BioNJ starting tree
           {
 
@@ -1514,29 +1430,25 @@ int main(int args, char ** argv)
           newick.write(*treeWithSpNames, geneTreeFile+"SPNames", true);
           delete treeWithSpNames;
 
-	  //Outputting the starting tree
-	  std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
+          //Outputting the starting tree
+          std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
           newick.write(*geneTree, startingGeneTreeFile, true);
           
           /****************************************************************************
            //Then we initialize the losses and duplication numbers on this tree.
            *****************************************************************************/
           std::vector<int> numbers = num0Lineages;
-          /*std::vector<int> numbers = lossNumbers;
-          allDuplicationNumbers.push_back(numbers);
-          allLossNumbers.push_back(numbers);
-          allBranchNumbers.push_back(numbers);*/
           allNum0Lineages.push_back(numbers);
           allNum1Lineages.push_back(numbers);
           allNum2Lineages.push_back(numbers);
-          resetLossesAndDuplications(*tree, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities);
-          //resetVector(allBranchNumbers[i-numDeletedFamilies]);
+          resetLossesAndDuplications(*tree, lossProbabilities, duplicationProbabilities);
           resetVector(allNum0Lineages[i-numDeletedFamilies]);
           resetVector(allNum1Lineages[i-numDeletedFamilies]);
           resetVector(allNum2Lineages[i-numDeletedFamilies]);
           
+          /************************************************************************************************************/
           /********************************************COMPUTING LIKELIHOOD********************************************/
-     
+          /************************************************************************************************************/
           bool computeLikelihood = ApplicationTools::getBooleanParameter("compute.likelihood", params, true, "", false, false);
           if(!computeLikelihood)
             {
@@ -1592,10 +1504,8 @@ int main(int args, char ** argv)
           else throw Exception("Method '" + initBrLenMethod + "' unknown for computing branch lengths.");
           ApplicationTools::displayResult("Branch lengths", cmdName);
 
-          //     ReconciliationTreeLikelihood *tl;
-          //   NNIHomogeneousTreeLikelihood *tl2;
           DiscreteRatesAcrossSitesTreeLikelihood* tl;
-        //  DiscreteRatesAcrossSitesTreeLikelihood* tl2;
+
           
           
           std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params, "no", "", true, false);
@@ -1620,8 +1530,6 @@ int main(int args, char ** argv)
 		{
 		  rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
 		}
-
-             // tl2 = new NNIHomogeneousTreeLikelihood(*geneTree, *sites, model, rDist, true, true);
 	    
               tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities, /*allBranchNumbers[i-numDeletedFamilies], */allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization);
 	    
@@ -1871,6 +1779,107 @@ int main(int args, char ** argv)
 
 
 
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////RUBBISH////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+//ATTEMPT 18 02 2010
+//OPTIMIZE RATES
+/*  SpeciesTreeLikelihood *slk = new SpeciesTreeLikelihood (world, server, tree, index, bestIndex, stop, logL, bestlogL, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, numIterationsWithoutImprovement, branchProbaOptimization, genomeMissing);
+ 
+ slk->getParameters().printParameters (std::cout);
+ 
+ 
+ //Optimization of rates:
+ PowellMultiDimensions * optimizer = new PowellMultiDimensions(slk);
+ optimizer->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
+ optimizer->setProfiler(NULL);
+ optimizer->setMessageHandler(NULL);
+ optimizer->setVerbose(0);
+ 
+ optimizer->getStopCondition()->setTolerance(0.1);
+ //optimizer_->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
+ optimizer->init(slk->getParameters()); 
+ optimizer->optimize(); 
+ 
+ std::cout <<"optimization Done: "<<logL<<std::endl;
+ 
+ lossProbabilities = lossProbabilities * optimizer->getParameters().getParameter("coefLoss").getValue();
+ duplicationProbabilities = duplicationProbabilities * optimizer->getParameters().getParameter("coefDup").getValue();
+ 
+ std::cout <<"Dup coef: "<<optimizer->getParameters().getParameter("coefDup").getValue() <<" Loss coef: "<<optimizer->getParameters().getParameter("coefLoss").getValue()<<std::endl;
+ 
+ 
+ delete optimizer;
+ delete slk; */
+
+
+/*
+ //ATTEMPT 18 02 2010
+ //OPTIMIZE RATES
+ SpeciesTreeLikelihood *slk = new SpeciesTreeLikelihood (world, server, tree, index, bestIndex, stop, logL, bestlogL, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, numIterationsWithoutImprovement, branchProbaOptimization, genomeMissing);
+ 
+ slk->getParameters().printParameters (std::cout);
+ 
+ //Optimization:
+ PowellMultiDimensions * optimizer = new PowellMultiDimensions(slk);
+ optimizer->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
+ optimizer->setProfiler(NULL);
+ optimizer->setMessageHandler(NULL);
+ optimizer->setVerbose(0);
+ 
+ optimizer->getStopCondition()->setTolerance(0.1);
+ //optimizer_->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
+ optimizer->init(slk->getParameters()); 
+ optimizer->optimize(); 
+ 
+ std::cout <<"optimization Done: "<<logL<<std::endl;
+ 
+ lossProbabilities = lossProbabilities * optimizer->getParameters().getParameter("coefLoss").getValue();
+ duplicationProbabilities = duplicationProbabilities * optimizer->getParameters().getParameter("coefDup").getValue();
+ 
+ std::cout <<"Dup coef: "<<optimizer->getParameters().getParameter("coefDup").getValue() <<" Loss coef: "<<optimizer->getParameters().getParameter("coefLoss").getValue()<<std::endl;
+ 
+ 
+ delete optimizer;
+ delete slk;
+ */
+
+
+
+/*This code permits outputting trees with numbers of duplication or loss events at branches
+ //set total numbers of loss and duplications on branches
+ setLossesAndDuplications(*bestTree, bestLossNumbers, bestDuplicationNumbers);
+ std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false); 
+ std::ofstream out (dupTree.c_str(), std::ios::out);
+ out << treeToParenthesisWithIntNodeValues (*bestTree, false, DUPLICATIONS)<<std::endl;
+ out.close();
+ std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
+ out.open (lossTree.c_str(), std::ios::out);
+ out << treeToParenthesisWithIntNodeValues (*bestTree, false, LOSSES)<<std::endl;
+ out.close();
+ */
 
 
 

@@ -543,17 +543,9 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             int &index, 
                                             int &bestIndex,  
                                             bool &stop, 
+                                            int timeLimit,
                                             double &logL, 
                                             double &bestlogL, 
-                                            /*std::vector<int> &lossNumbers, 
-                                            std::vector<int> &duplicationNumbers, 
-                                            std::vector<int> &branchNumbers, 
-                                            std::vector<int> &bestLossNumbers, 
-                                            std::vector<int> &bestDuplicationNumbers, 
-                                            std::vector<int> &bestBranchNumbers,
-                                            std::vector< std::vector<int> > AllLosses, 
-                                            std::vector< std::vector<int> > AllDuplications, 
-                                            std::vector< std::vector<int> > AllBranches,*/
                                             std::vector<int> &num0Lineages, 
                                             std::vector<int> &num1Lineages,
                                             std::vector<int> &num2Lineages, 
@@ -602,9 +594,6 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
       bestDupProba=duplicationProbabilities;
       bestLossProba=lossProbabilities;
       bestIndex = index;
-      /*bestLossNumbers = lossNumbers;
-      bestDuplicationNumbers = duplicationNumbers;	 
-      bestBranchNumbers = branchNumbers;*/
       bestNum0Lineages = num0Lineages;
       bestNum1Lineages = num1Lineages;
       bestNum2Lineages = num2Lineages;
@@ -612,6 +601,13 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
       for (int i = 0 ; i< NNILks.size() ; i++ ) {
         NNILks[i]=NumConstants::VERY_BIG;
       }
+      if (ApplicationTools::getTime() >= timeLimit)
+        {
+        stop = true;
+        broadcast(world, stop, server); 
+        broadcast(world, bestIndex, server);
+        }
+
     }
     else {
       numIterationsWithoutImprovement++;
@@ -620,7 +616,7 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
       tree = bestTree->clone();
       duplicationProbabilities = bestDupProba;
       lossProbabilities = bestLossProba;
-      if (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) {
+      if ( (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) || (ApplicationTools::getTime() >= timeLimit) ) {
         stop = true;
         broadcast(world, stop, server); 
         broadcast(world, bestIndex, server);
@@ -644,9 +640,9 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
                                          int &index, 
                                          int &bestIndex,  
                                          bool &stop,
+                                         int timeLimit,
                                          double &logL, 
                                          double &bestlogL, 
-                                         /*std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, */
                                          std::vector<int> &num0Lineages, 
                                          std::vector<int> &num1Lineages, 
                                          std::vector<int> &num2Lineages, 
@@ -671,36 +667,21 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
   std::string currentSpeciesTree = TreeTools::treeToParenthesis(*tree, true);
   while (!stop) {
     std::vector<double> logLs;
-
-/*    broadcast(world, stop, server);
-    broadcast(world, rearrange, server); 
-    broadcast(world, lossProbabilities, server); 
-    broadcast(world, duplicationProbabilities, server); 
-    broadcast(world, currentSpeciesTree, server);*/
     broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
     //Computation in clients
     index++;  
    std::cout <<"\tNumber of species trees tried : "<<index<< std::endl;
     logL = 0.0;
-    /*resetVector(duplicationNumbers);
-    resetVector(lossNumbers);
-    resetVector(branchNumbers);*/
     resetVector(num0Lineages);
     resetVector(num1Lineages);
     resetVector(num2Lineages);
     gather(world, logL, logLs, server);
     logL =  VectorTools::sum(logLs);
-    /*gather(world, duplicationNumbers, AllDuplications, server); 
-    gather(world, lossNumbers, AllLosses, server);
-    gather(world, branchNumbers, AllBranches, server);*/
     gather(world, num0Lineages, allNum0Lineages, server);
     gather(world, num1Lineages, allNum1Lineages, server);
     gather(world, num2Lineages, allNum2Lineages, server);
     int temp = allNum0Lineages.size();
     for (int k =0; k<temp ; k++ ) {
-      /*duplicationNumbers= duplicationNumbers+AllDuplications[k];
-      lossNumbers= lossNumbers+AllLosses[k];
-      branchNumbers= branchNumbers+AllBranches[k];*/
       num0Lineages= num0Lineages+allNum0Lineages[k];
       num1Lineages= num1Lineages+allNum1Lineages[k];
       num2Lineages= num2Lineages+allNum2Lineages[k];
@@ -718,9 +699,6 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
         }
       bestTree = tree->clone();
       bestIndex = index;
-      /*bestLossNumbers = lossNumbers;
-      bestDuplicationNumbers = duplicationNumbers;	 
-      bestBranchNumbers = branchNumbers;*/
       bestNum0Lineages = num0Lineages;
       bestNum1Lineages = num1Lineages;
       bestNum2Lineages = num2Lineages;
@@ -728,11 +706,6 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
       computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, *tree);
       breadthFirstreNumber (*tree, duplicationProbabilities, lossProbabilities);
 
-     /* broadcast(world, stop, server);
-      broadcast(world, rearrange, server); 
-      broadcast(world, lossProbabilities, server); 
-      broadcast(world, duplicationProbabilities, server); 
-      broadcast(world, currentSpeciesTree, server);*/
       broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
 
       //COMPUTATION IN CLIENTS
@@ -741,17 +714,11 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
      std::cout <<"\t\tNumber of species trees tried : "<<index<< std::endl;
       logL = 0.0;
       std::vector<double> logLs;
-      /*resetVector(duplicationNumbers);
-      resetVector(lossNumbers);
-      resetVector(branchNumbers);*/
       resetVector(num0Lineages);
       resetVector(num1Lineages);
       resetVector(num2Lineages);
       gather(world, logL, logLs, server);
       logL =  VectorTools::sum(logLs);
-      /*gather(world, duplicationNumbers, AllDuplications, server); 
-      gather(world, lossNumbers, AllLosses, server);
-      gather(world, branchNumbers, AllBranches, server);*/
       gather(world, num0Lineages, allNum0Lineages, server);
       gather(world, num1Lineages, allNum1Lineages, server);
       gather(world, num2Lineages, allNum2Lineages, server);
@@ -760,6 +727,11 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
         num0Lineages= num0Lineages+allNum0Lineages[i];
         num1Lineages= num1Lineages+allNum1Lineages[i];
         num2Lineages= num2Lineages+allNum2Lineages[i];
+      }
+      if ( (ApplicationTools::getTime() > timeLimit) ) {
+        stop = true;
+        broadcast(world, stop, server); 
+        broadcast(world, bestIndex, server);
       }
     }
     else {
@@ -780,7 +752,27 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
 /************************************************************************
  * Tries all reRootings of the species tree, and executes the one with the highest likelihood. Here we do not use branchwise rates of duplications and losses, and we do not optimise these rates often. However, there are lots of useless identical std::vector copies...
  ************************************************************************/
-void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, TreeTemplate<Node> *currentTree, TreeTemplate<Node> *bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, /*std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, */std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, double averageDuplicationProbability, double averageLossProbability, bool rearrange, int &numIterationsWithoutImprovement, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, bool optimizeRates) {  
+void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
+                                                TreeTemplate<Node> *currentTree, 
+                                                TreeTemplate<Node> *bestTree, 
+                                                int &index, int &bestIndex,  
+                                                bool stop, int timeLimit,
+                                                double &logL, double &bestlogL, 
+                                                std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, 
+                                                std::vector<int> &num2Lineages, 
+                                                std::vector<int> &bestNum0Lineages, 
+                                                std::vector<int> &bestNum1Lineages, 
+                                                std::vector<int> &bestNum2Lineages, 
+                                                std::vector< std::vector<int> > &allNum0Lineages, 
+                                                std::vector< std::vector<int> > &allNum1Lineages, 
+                                                std::vector< std::vector<int> > &allNum2Lineages, 
+                                                std::vector<double> &lossProbabilities, 
+                                                std::vector<double> &duplicationProbabilities, 
+                                                double averageDuplicationProbability, double averageLossProbability, 
+                                                bool rearrange, int &numIterationsWithoutImprovement, 
+                                                int server, std::string &branchProbaOptimization, 
+                                                std::map < std::string, int> genomeMissing, 
+                                                bool optimizeRates) {  
   breadthFirstreNumber (*currentTree, duplicationProbabilities, lossProbabilities);
   std::vector <double> backupDupProba=duplicationProbabilities;
   std::vector<double> backupLossProba=lossProbabilities;
@@ -791,7 +783,7 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
   bool betterTree = false;
   std::vector <int> nodeIds = tree->getNodesId();
   for (int i =0 ; i<nodeIds.size() ; i++) {
-    if ((nodeIds[i]!=0)&&(nodeIds[i]!=1)&&(nodeIds[i]!=2)) { //We do not want to try the root we're alredy at
+    if ((nodeIds[i]!=0)&&(nodeIds[i]!=1)&&(nodeIds[i]!=2)) { //We do not want to try the root we're already at
       if (i!=0) {
         deleteTreeProperties(*tree);
         delete tree;
@@ -816,9 +808,6 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
         bestTree = tree->clone();   
         bestDupProba=duplicationProbabilities;
         bestLossProba=lossProbabilities;
-        /*bestLossNumbers = lossNumbers;
-        bestDuplicationNumbers = duplicationNumbers;
-        bestBranchNumbers = branchNumbers; */
         bestNum0Lineages = num0Lineages;
         bestNum1Lineages = num1Lineages;
         bestNum2Lineages = num2Lineages;
@@ -829,21 +818,22 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
       }
       else {
         numIterationsWithoutImprovement++;
-       std::cout <<"ReRooting: Number of iterations without improvement : "<<numIterationsWithoutImprovement<< " logLk: "<<logL<< std::endl;
+        std::cout <<"ReRooting: Number of iterations without improvement : "<<numIterationsWithoutImprovement<< " logLk: "<<logL<< std::endl;
       }
     }
+    if (ApplicationTools::getTime() >= timeLimit)
+      {
+      stop = true;
+      broadcast(world, stop, server); 
+      broadcast(world, bestIndex, server);      
+      break;
+      }
   }
-  
-   
-  
   
   if (betterTree) {
     logL = bestlogL;  
     duplicationProbabilities = bestDupProba;
     lossProbabilities = bestLossProba;
-    /*lossNumbers = bestLossNumbers;
-    duplicationNumbers = bestDuplicationNumbers;
-    branchNumbers = bestBranchNumbers;*/
     num0Lineages = bestNum0Lineages;
     num1Lineages = bestNum1Lineages;
     num2Lineages = bestNum2Lineages;
@@ -853,59 +843,56 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
    std::cout << TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
     std::string currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
     breadthFirstreNumber (*currentTree, duplicationProbabilities, lossProbabilities);
-    /*broadcast(world, stop, server);
-    broadcast(world, rearrange, server); 
-    broadcast(world, lossProbabilities, server); 
-    broadcast(world, duplicationProbabilities, server); 
-    broadcast(world, currentSpeciesTree, server);*/
-    broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
-
-    //COMPUTATION IN CLIENTS
-    index++;  
-    bestIndex = index;
-   std::cout <<"\t\tNumber of species trees tried : "<<index<< std::endl;    
-    logL = 0.0;
-    std::vector<double> logLs;
-   /* resetVector(duplicationNumbers);
-    resetVector(lossNumbers);
-    resetVector(branchNumbers);*/
-    resetVector(num0Lineages);
-    resetVector(num1Lineages);
-    resetVector(num2Lineages);
-    gather(world, logL, logLs, server);
-    logL =  VectorTools::sum(logLs);
-    /*gather(world, duplicationNumbers, AllDuplications, server); 
-    gather(world, lossNumbers, AllLosses, server);
-    gather(world, branchNumbers, AllBranches, server);*/
-    gather(world, num0Lineages, allNum0Lineages, server);
-    gather(world, num1Lineages, allNum1Lineages, server);
-    gather(world, num2Lineages, allNum2Lineages, server);
-        
+    if (ApplicationTools::getTime() < timeLimit)
+      {
+      broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
+      //COMPUTATION IN CLIENTS
+      index++;  
+      bestIndex = index;
+      std::cout <<"\t\tNumber of species trees tried : "<<index<< std::endl;    
+      logL = 0.0;
+      std::vector<double> logLs;
+      resetVector(num0Lineages);
+      resetVector(num1Lineages);
+      resetVector(num2Lineages);
+      gather(world, logL, logLs, server);
+      logL =  VectorTools::sum(logLs);
+      gather(world, num0Lineages, allNum0Lineages, server);
+      gather(world, num1Lineages, allNum1Lineages, server);
+      gather(world, num2Lineages, allNum2Lineages, server);
+      }
   }
   else {
    std::cout<< "No improvement in fastTryAllPossibleReRootingsAndMakeBestOne"<< std::endl;
     logL = bestlogL;  
     duplicationProbabilities = bestDupProba;
     lossProbabilities = bestLossProba;
-    /*lossNumbers = bestLossNumbers;
-    duplicationNumbers = bestDuplicationNumbers;
-    branchNumbers = bestBranchNumbers;*/
     num0Lineages = bestNum0Lineages;
     num1Lineages = bestNum1Lineages;
     num2Lineages = bestNum2Lineages;
     delete currentTree;
     currentTree = bestTree->clone(); 
   }
-  
   deleteTreeProperties(*tree);
-  delete tree;  
+  delete tree;
 }
 
 
 /************************************************************************
  * Tries all SPRs at a distance dist for all possible subtrees of the subtree starting in node nodeForSPR, and executes the ones with the highest likelihood. Uses only average rates of duplication and loss, not branchwise rates.
  ************************************************************************/
-void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *currentTree, TreeTemplate<Node> *bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, /*std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, */std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, double averageDuplicationProbability, double averageLossProbability, bool rearrange, int &numIterationsWithoutImprovement, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, int sprLimit, bool optimizeRates) {
+void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *currentTree, 
+                            TreeTemplate<Node> *bestTree, int &index, int &bestIndex,  
+                            bool stop, int timeLimit, double &logL, double &bestlogL, 
+                            std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, 
+                            std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, 
+                            std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, 
+                            std::vector< std::vector<int> > &allNum2Lineages, 
+                            std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, 
+                            double averageDuplicationProbability, double averageLossProbability, 
+                            bool rearrange, int &numIterationsWithoutImprovement, int server, 
+                            std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, 
+                            int sprLimit, bool optimizeRates) {
  std::cout <<"in fastTryAllPossibleSPRs : currentTree : "<< std::endl;
  std::cout<< TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
   breadthFirstreNumber (*currentTree, duplicationProbabilities, lossProbabilities);
@@ -939,9 +926,6 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
         bestTree = tree->clone();  
         bestDupProba=duplicationProbabilities;
         bestLossProba=lossProbabilities;
-        /*bestLossNumbers = lossNumbers;
-        bestDuplicationNumbers = duplicationNumbers;
-        bestBranchNumbers = branchNumbers;*/
         bestNum0Lineages = num0Lineages;
         bestNum1Lineages = num1Lineages;
         bestNum2Lineages = num2Lineages;
@@ -949,15 +933,19 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
        std::cout << "SPRs: Better candidate tree likelihood : "<<bestlogL<< std::endl;
        std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;
       }
+      if (ApplicationTools::getTime() >= timeLimit)
+        {
+        stop = true;
+        broadcast(world, stop, server); 
+        broadcast(world, bestIndex, server);      
+        break;
+        }
     }
     if (betterTree) {
       logL = bestlogL; 
       duplicationProbabilities = bestDupProba;
       lossProbabilities = bestLossProba;
       numIterationsWithoutImprovement = 0;
-      /*lossNumbers = bestLossNumbers;
-      duplicationNumbers = bestDuplicationNumbers;
-      branchNumbers = bestBranchNumbers;*/
       num0Lineages = bestNum0Lineages;
       num1Lineages = bestNum1Lineages;
       num2Lineages = bestNum2Lineages;
@@ -968,38 +956,31 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
      std::cout <<"SPRs: Improvement! : "<<numIterationsWithoutImprovement<< std::endl;
      std::cout << "\t\tServer: SPRs: new total Likelihood value "<<logL<< std::endl;
     
-      //Send the new std::vectors to compute the new likelihood of the best tree
-       std::string currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
-      broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
-
-      //COMPUTATION IN CLIENTS
-      index++;  
-      bestIndex = index;
-     std::cout <<"\t\tNumber of species trees tried : "<<index<< std::endl;
-      logL = 0.0;
-      std::vector<double> logLs;
-      /*resetVector(duplicationNumbers);
-      resetVector(lossNumbers);
-      resetVector(branchNumbers);*/
-      resetVector(num0Lineages);
-      resetVector(num1Lineages);
-      resetVector(num2Lineages);
-      gather(world, logL, logLs, server);
-      logL =  VectorTools::sum(logLs);
-      /*gather(world, duplicationNumbers, AllDuplications, server); 
-      gather(world, lossNumbers, AllLosses, server);
-      gather(world, branchNumbers, AllBranches, server);*/
-      gather(world, num0Lineages, allNum0Lineages, server);
-      gather(world, num1Lineages, allNum1Lineages, server);
-      gather(world, num2Lineages, allNum2Lineages, server);
+      if (ApplicationTools::getTime() < timeLimit)
+        {
+        //Send the new std::vectors to compute the new likelihood of the best tree
+        std::string currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
+        broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
+        //COMPUTATION IN CLIENTS
+        index++;  
+        bestIndex = index;
+        std::cout <<"\t\tNumber of species trees tried : "<<index<< std::endl;
+        logL = 0.0;
+        std::vector<double> logLs;
+        resetVector(num0Lineages);
+        resetVector(num1Lineages);
+        resetVector(num2Lineages);
+        gather(world, logL, logLs, server);
+        logL =  VectorTools::sum(logLs);
+        gather(world, num0Lineages, allNum0Lineages, server);
+        gather(world, num1Lineages, allNum1Lineages, server);
+        gather(world, num2Lineages, allNum2Lineages, server);
+        }
     }
     else {
       logL = bestlogL;  
       duplicationProbabilities = bestDupProba;
       lossProbabilities = bestLossProba;
-      /*lossNumbers = bestLossNumbers;
-      duplicationNumbers = bestDuplicationNumbers;
-      branchNumbers = bestBranchNumbers;*/
       num0Lineages = bestNum0Lineages;
       num1Lineages = bestNum1Lineages;
       num2Lineages = bestNum2Lineages;
@@ -1010,6 +991,13 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
     }
     deleteTreeProperties(*tree);
     delete tree;
+    if (ApplicationTools::getTime() >= timeLimit)
+      {
+      stop = true;
+      broadcast(world, stop, server); 
+      broadcast(world, bestIndex, server);      
+      break;      
+      }
   }
 }
  
@@ -1019,7 +1007,34 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
  * Tries all SPRs and all rerootings with average rates of duplication and loss, 
  * not branchwise rates. Only does SPRs at a given distance. 
  ************************************************************************/
-void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world, TreeTemplate<Node> *currentTree, TreeTemplate<Node> *bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, /*std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, */std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, double averageDuplicationProbability, double averageLossProbability, bool rearrange, int &numIterationsWithoutImprovement, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, int sprLimit, bool optimizeRates) {
+void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world, 
+                                         TreeTemplate<Node> *currentTree, 
+                                         TreeTemplate<Node> *bestTree, 
+                                         int &index, int &bestIndex,  
+                                         bool stop, 
+                                         int timeLimit,
+                                         double &logL, 
+                                         double &bestlogL, 
+                                         std::vector<int> &num0Lineages, 
+                                         std::vector<int> &num1Lineages, 
+                                         std::vector<int> &num2Lineages, 
+                                         std::vector<int> &bestNum0Lineages, 
+                                         std::vector<int> &bestNum1Lineages, 
+                                         std::vector<int> &bestNum2Lineages, 
+                                         std::vector< std::vector<int> > &allNum0Lineages, 
+                                         std::vector< std::vector<int> > &allNum1Lineages, 
+                                         std::vector< std::vector<int> > &allNum2Lineages, 
+                                         std::vector<double> &lossProbabilities, 
+                                         std::vector<double> &duplicationProbabilities, 
+                                         double averageDuplicationProbability, 
+                                         double averageLossProbability, 
+                                         bool rearrange, 
+                                         int &numIterationsWithoutImprovement, 
+                                         int server, 
+                                         std::string &branchProbaOptimization, 
+                                         std::map < std::string, int> genomeMissing, 
+                                         int sprLimit, 
+                                         bool optimizeRates) {
   if (optimizeRates)
     {
      std::cout <<"Making SPRs and NNIs and optimizing duplication and loss rates."<< std::endl;
@@ -1035,21 +1050,55 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world, TreeTem
    std::cout <<"Loss Rates: ";
     VectorTools::print(lossProbabilities);
   
-    fastTryAllPossibleSPRs(world, currentTree, bestTree, index, bestIndex,  stop, logL, bestlogL, /*lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, branchProbaOptimization, genomeMissing, sprLimit, optimizeRates);
+    fastTryAllPossibleSPRs(world, currentTree, bestTree, 
+                           index, bestIndex,  
+                           stop, timeLimit, 
+                           logL, bestlogL, 
+                           num0Lineages, num1Lineages, num2Lineages, 
+                           bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
+                           allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                           lossProbabilities, duplicationProbabilities, 
+                           averageDuplicationProbability, averageLossProbability, 
+                           rearrange, numIterationsWithoutImprovement, 
+                           server, branchProbaOptimization, genomeMissing, 
+                           sprLimit, optimizeRates);
    std::cout <<"Duplication Rates: ";
     VectorTools::print(duplicationProbabilities);
    std::cout <<"Loss Rates: ";
     VectorTools::print(lossProbabilities);
-       if (numIterationsWithoutImprovement>2*currentTree->getNumberOfNodes()) {	
-      break;
-    }
+    if (ApplicationTools::getTime() >= timeLimit) 
+      {	
+        stop = true;
+        broadcast(world, stop, server); 
+        broadcast(world, bestIndex, server);      
+        break;      
+      }    
+    if  (numIterationsWithoutImprovement>2*currentTree->getNumberOfNodes()) 
+      {	
+        break;
+      }
     
-    
-    
-    fastTryAllPossibleReRootingsAndMakeBestOne(world, currentTree, bestTree, index, bestIndex,  stop, logL, bestlogL, /*lossNumbers, duplicationNumbers, branchNumbers, bestLossNumbers, bestDuplicationNumbers, bestBranchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, averageDuplicationProbability, averageLossProbability, rearrange, numIterationsWithoutImprovement, server, branchProbaOptimization, genomeMissing, optimizeRates);
+    fastTryAllPossibleReRootingsAndMakeBestOne(world, currentTree, bestTree, 
+                                               index, bestIndex,  
+                                               stop, timeLimit, 
+                                               logL, bestlogL, 
+                                               num0Lineages, num1Lineages, num2Lineages, 
+                                               bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
+                                               allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                               lossProbabilities, duplicationProbabilities, 
+                                               averageDuplicationProbability, averageLossProbability, 
+                                               rearrange, numIterationsWithoutImprovement, 
+                                               server, branchProbaOptimization, 
+                                               genomeMissing, optimizeRates);
    std::cout << "after fastTryAllPossibleReRootingsAndMakeBestOne :currentTree: "<< std::endl;
 	 std::cout << TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
-    
+    if (ApplicationTools::getTime() >= timeLimit) 
+      {	
+        stop = true;
+        broadcast(world, stop, server); 
+        broadcast(world, bestIndex, server);      
+        break;      
+      }    
     
  }
  std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings over.\n\n"<< std::endl;
@@ -1179,7 +1228,7 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
 void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, /*std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, */std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, bool rearrange, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL) {
   //First we compute the likelihood with old duplication and loss rates
  // computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, tree);
-  //TEST1804: what if we diminish the expected numbers to 0.001 uniformly: we start afresh for each noew species tree topology.
+  //TEST1804: what if we diminish the expected numbers to 0.001 uniformly: we start afresh for each new species tree topology.
   for (int i = 0 ; i < lossProbabilities.size() ; i++ ) {
     lossProbabilities[i] = 0.001;
     duplicationProbabilities[i] = 0.001;
@@ -1187,7 +1236,6 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
 
   std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index, stop, logL, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, tree);
   double currentlogL = -UNLIKELY;
- // std::cout <<"1st comp; Tot Num0Lineages: "<<VectorTools::sum(num0Lineages)<<" tot Num1Lineages: "<<VectorTools::sum(num1Lineages)<< " tot Num2Lineages: "<<VectorTools::sum(num2Lineages)<<std::endl; 
   int i=1;
   //Then we update duplication and loss rates based on the results of this first 
   //computation, until the likelihood stabilizes (roughly)
@@ -1197,34 +1245,6 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
     computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, tree);
  
     computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, stop, logL, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, tree, currentSpeciesTree);
-
-    /*
-    broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
-    //COMPUTATION IN CLIENTS
-    index++;  
-   std::cout <<"\t\tNumber of species trees tried : "<<index<< std::endl;
-    logL = 0.0;
-    std::vector<double> logLs;
-    resetVector(num0Lineages);
-    resetVector(num1Lineages);
-    resetVector(num2Lineages);
-
-    gather(world, logL, logLs, server);
-    logL = VectorTools::sum(logLs);
-   std::cout<<std::setprecision(15);
-   std::cout <<"LogL "<<logL<< std::endl;
-    gather(world, num0Lineages, allNum0Lineages, server);
-    gather(world, num1Lineages, allNum1Lineages, server);
-    gather(world, num2Lineages, allNum2Lineages, server);
-    //SHOULD WE USE ACCUMULATE ?
-    int temp = allNum0Lineages.size();
-    for (int k =0; k<temp ; k++ ) {
-     num0Lineages= num0Lineages+allNum0Lineages[k];
-      num1Lineages= num1Lineages+allNum1Lineages[k];
-      num2Lineages= num2Lineages+allNum2Lineages[k];
-    } 
-    */
-  //  std::cout <<"2nd comp; Tot Num0Lineages: "<<VectorTools::sum(num0Lineages)<<"tot Num1Lineages: "<<VectorTools::sum(num1Lineages)<< "tot Num2Lineages: "<<VectorTools::sum(num2Lineages)<<std::endl;
 
   }
  std::cout << i<< " iterations of likelihood computation for optimizing duplication and loss rates have been done."<< std::endl;

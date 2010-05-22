@@ -419,7 +419,8 @@ void ReconciliationTreeLikelihood::fireParameterChanged(const ParameterList & pa
     }
   _sequenceLikelihood = ll;
 
-  setMinuslogLikelihood_(- _sequenceLikelihood);
+  minusLogLik_ = - _sequenceLikelihood ;   
+  //setMinuslogLikelihood_(- _sequenceLikelihood);
   //If we need to update the reconciliation likelihood
   if (_optimizeReconciliationLikelihood) {
     computeReconciliationLikelihood();
