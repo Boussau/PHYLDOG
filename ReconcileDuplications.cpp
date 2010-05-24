@@ -831,13 +831,8 @@ int main(int args, char ** argv)
       
 			std::cout << "\t\tServer: total initial Likelihood value "<<logL<<std::endl;
 			bestlogL = logL;
-      
-      VectorTools::print(num0Lineages);
-      VectorTools::print(num1Lineages);
-      VectorTools::print( num2Lineages);
-      
-      
-      
+      ApplicationTools::displayTime("Execution time so far:");
+    
       for (int i =0; i<num0Lineages.size() ; i++ ) {
         std::cout <<"branch Number#"<< i<<" du Rate: "<< duplicationProbabilities[i]<<" loss Rate: "<< lossProbabilities[i]<<std::endl;
       }
@@ -867,13 +862,32 @@ int main(int args, char ** argv)
                                                 rearrange, numIterationsWithoutImprovement, 
                                                 server, branchProbaOptimization, 
                                                 genomeMissing, sprLimit, false);
+            
+            if (ApplicationTools::getTime() < timeLimit) 
+              {
+              std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings over.\n\n"<< std::endl;
+              ApplicationTools::displayTime("Execution time so far:");
+              currentStep = 1;
+              }  
+            else 
+              {
+              std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+              ApplicationTools::displayTime("Execution time so far:");
+              if (stop==false)
+                {
+                stop = true;
+                broadcast(world, stop, server); 
+                broadcast(world, bestIndex, server);                      
+                }              
+              }
+            
+            }
+            
             std::cout <<"Before updating rates; current Likelihood "<<bestlogL  <<" and logL: "<<logL<<std::endl;
             
             backupLossProbabilities = lossProbabilities;
             backupDuplicationProbabilities = duplicationProbabilities;
-            if (ApplicationTools::getTime() < timeLimit) 
-              currentStep = 1;
-            }
+            
           
           if ((currentStep == 1) && (ApplicationTools::getTime() < timeLimit) )
             {
@@ -915,7 +929,7 @@ int main(int args, char ** argv)
           //Now for each species tree tried, we optimize the duplication and loss rates.
           //Therefore, for each species tree, the likelihood is computed twice, 
           //once before, and once after parameter tuning.
-          if ( (currentStep == 3) && (ApplicationTools::getTime() < timeLimit) )
+          if ( (currentStep == 2) && (ApplicationTools::getTime() < timeLimit) )
             {
             fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, 
                                                 index, bestIndex, stop, timeLimit, 
@@ -928,13 +942,28 @@ int main(int args, char ** argv)
                                                 rearrange, numIterationsWithoutImprovement, 
                                                 server, branchProbaOptimization, 
                                                 genomeMissing, sprLimit, true);
+            if (ApplicationTools::getTime() < timeLimit) 
+              {
+              std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters over.\n\n"<< std::endl;
+              ApplicationTools::displayTime("Execution time so far:");
+              currentStep = 3;
+              }
+            else 
+              {
+              std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+              ApplicationTools::displayTime("Execution time so far:");
+              if (stop==false)
+                {
+                stop = true;
+                broadcast(world, stop, server); 
+                broadcast(world, bestIndex, server);                      
+                }
+              }
             
             noMoreSPR=true;
             
             std::cout << "\n\n\t\t\tNow entering the final optimization steps, without SPRs\n\n"<<std::endl;
             std::cout << TreeTools::treeToParenthesis(*currentTree, true)<<std::endl;
-            if (ApplicationTools::getTime() < timeLimit) 
-              currentStep = 4;
             }
 				}
 
@@ -966,7 +995,7 @@ int main(int args, char ** argv)
               }
             
             //Final steps in the optimization of the species tree topology
-            if ( (currentStep == 4) && (ApplicationTools::getTime() < timeLimit) )
+            if ( (currentStep == 3) && (ApplicationTools::getTime() < timeLimit) )
               {
               if (optimizeSpeciesTreeTopology) 
                 {
@@ -1000,8 +1029,24 @@ int main(int args, char ** argv)
                                                     server, nodeForNNI, nodeForRooting, 
                                                     branchProbaOptimization, genomeMissing);
                 }
+              
               if (ApplicationTools::getTime() < timeLimit) 
-                currentStep = 5;
+                {
+                std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
+                ApplicationTools::displayTime("Execution time so far:");
+                currentStep = 4;
+                }
+              else 
+                {
+                std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+                ApplicationTools::displayTime("Execution time so far:");
+                if (stop==false)
+                  {
+                  stop = true;
+                  broadcast(world, stop, server); 
+                  broadcast(world, bestIndex, server);                      
+                  }
+                }
               }
           }
 			}
@@ -1012,12 +1057,14 @@ int main(int args, char ** argv)
       //- it would be nice to make client option files for the next run to not recompute starting gene trees. Not for now, though.
       if (ApplicationTools::getTime() >= timeLimit) 
         {
-        std::cout <<"Saving the current species tree for the next run."<<std::endl;
-        std::string tempSpTree = "CurrentSpeciesTree.tree"; 
+        std::cout <<"\n\n\t\t\tNo time to finish the run. "<<std::endl;
+
+        std::cout <<"\t\tSaving the current species tree for the next run."<<std::endl;
+        std::string tempSpTree = ApplicationTools::getStringParameter("output.temporary.tree.file", params, "CurrentSpeciesTree.tree", "", false, false); 
         std::ofstream out (tempSpTree.c_str(), std::ios::out);
         out << TreeTools::treeToParenthesis(*bestTree, false)<<std::endl;
         out.close();  
-        std::cout<<"\n\nAdd:\ninit.species.tree=user\nspecies.tree.file=CurrentSpeciesTree.tree\ncurrent.step="<<currentStep<<"\nto your options.\n"<<std::endl;
+        std::cout<<"\n\n\t\t\tAdd:\ninit.species.tree=user\nspecies.tree.file="<<tempSpTree<<"\ncurrent.step="<<currentStep<<"\nto your options.\n"<<std::endl;
         }
       else 
         {

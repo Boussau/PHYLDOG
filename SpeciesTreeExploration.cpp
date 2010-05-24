@@ -750,7 +750,10 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
 
 
 /************************************************************************
- * Tries all reRootings of the species tree, and executes the one with the highest likelihood. Here we do not use branchwise rates of duplications and losses, and we do not optimise these rates often. However, there are lots of useless identical std::vector copies...
+ * Tries all reRootings of the species tree, and executes the one with the highest likelihood. 
+ Here we do not use branchwise rates of duplications and losses, 
+ and we do not optimise these rates often. 
+ However, there are lots of useless identical std::vector copies...
  ************************************************************************/
 void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
                                                 TreeTemplate<Node> *currentTree, 
@@ -879,7 +882,9 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
 
 
 /************************************************************************
- * Tries all SPRs at a distance dist for all possible subtrees of the subtree starting in node nodeForSPR, and executes the ones with the highest likelihood. Uses only average rates of duplication and loss, not branchwise rates.
+ * Tries all SPRs at a distance dist for all possible subtrees of the subtree starting in node nodeForSPR, 
+ and executes the ones with the highest likelihood. 
+ Uses only average rates of duplication and loss, not branchwise rates.
  ************************************************************************/
 void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *currentTree, 
                             TreeTemplate<Node> *bestTree, int &index, int &bestIndex,  
@@ -976,6 +981,13 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
         gather(world, num1Lineages, allNum1Lineages, server);
         gather(world, num2Lineages, allNum2Lineages, server);
         }
+      else 
+        {
+        stop = true;
+        broadcast(world, stop, server); 
+        broadcast(world, bestIndex, server);      
+        break;              
+        }
     }
     else {
       logL = bestlogL;  
@@ -1037,19 +1049,15 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                          bool optimizeRates) {
   if (optimizeRates)
     {
-     std::cout <<"Making SPRs and NNIs and optimizing duplication and loss rates."<< std::endl;
+    std::cout <<"Making SPRs and NNIs and optimizing duplication and loss rates."<< std::endl;
     }
   else 
     {
-     std::cout <<"Making SPRs and NNIs but NOT optimizing duplication and loss rates."<< std::endl;
+    std::cout <<"Making SPRs and NNIs but NOT optimizing duplication and loss rates."<< std::endl;
     }
   numIterationsWithoutImprovement=0;
-  while (numIterationsWithoutImprovement<2*currentTree->getNumberOfNodes()) {
-   std::cout <<"Duplication Rates: ";
-    VectorTools::print(duplicationProbabilities);
-   std::cout <<"Loss Rates: ";
-    VectorTools::print(lossProbabilities);
   
+  while (numIterationsWithoutImprovement<2*currentTree->getNumberOfNodes()) {
     fastTryAllPossibleSPRs(world, currentTree, bestTree, 
                            index, bestIndex,  
                            stop, timeLimit, 
@@ -1062,10 +1070,7 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                            rearrange, numIterationsWithoutImprovement, 
                            server, branchProbaOptimization, genomeMissing, 
                            sprLimit, optimizeRates);
-   std::cout <<"Duplication Rates: ";
-    VectorTools::print(duplicationProbabilities);
-   std::cout <<"Loss Rates: ";
-    VectorTools::print(lossProbabilities);
+
     if (ApplicationTools::getTime() >= timeLimit) 
       {	
         stop = true;
@@ -1090,8 +1095,8 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                                rearrange, numIterationsWithoutImprovement, 
                                                server, branchProbaOptimization, 
                                                genomeMissing, optimizeRates);
-   std::cout << "after fastTryAllPossibleReRootingsAndMakeBestOne :currentTree: "<< std::endl;
-	 std::cout << TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
+    std::cout << "after fastTryAllPossibleReRootingsAndMakeBestOne :currentTree: "<< std::endl;
+    std::cout << TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
     if (ApplicationTools::getTime() >= timeLimit) 
       {	
         stop = true;
@@ -1100,8 +1105,7 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
         break;      
       }    
     
- }
- std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings over.\n\n"<< std::endl;
+  }
   
 }
 
