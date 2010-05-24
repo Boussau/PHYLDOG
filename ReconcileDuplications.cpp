@@ -810,7 +810,7 @@ int main(int args, char ** argv)
 			double averageDuplicationProbability;
 			double averageLossProbability;
       logL = 0.0;
-		 std::vector<double> logLs;
+      std::vector<double> logLs;
 			gather(world, logL, logLs, server);
 			logL = VectorTools::sum(logLs);
 			resetVector(num0Lineages);
@@ -1057,6 +1057,9 @@ int main(int args, char ** argv)
       //- it would be nice to make client option files for the next run to not recompute starting gene trees. Not for now, though.
       if (ApplicationTools::getTime() >= timeLimit) 
         {
+        if (rearrange)
+          broadcast(world, rearrange, server); 
+        
         std::cout <<"\n\n\t\t\tNo time to finish the run. "<<std::endl;
 
         std::cout <<"\t\tSaving the current species tree for the next run."<<std::endl;
@@ -1779,27 +1782,28 @@ int main(int args, char ** argv)
             treeLikelihoods[i]->computeTreeLikelihood();
           }
           if (tree) delete tree;
-          //std::cout<< "Here 8"<<std::endl;
 
 				}
 				else { //The end, outputting the results
-         // std::cout<< "Here 6"<<std::endl;
-
-					broadcast(world, bestIndex, server);
-					for (int i = 0 ; i< affectedFilenames.size() ; i++) {
-					 std::string reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
-					 std::ofstream out (reconcTree.c_str(), std::ios::out);
-						out << reconciledTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
-						out.close();
-					 std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
-						out.open (dupTree.c_str(), std::ios::out);
-						out << duplicationTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
-						out.close();
-					 std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", allParams[i], "losses.tree", "", false, false);
-						out.open (lossTree.c_str(), std::ios::out);
-						out << lossTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
-						out.close();
-					}
+          if (recordGeneTrees) 
+            {
+            broadcast(world, bestIndex, server);
+            for (int i = 0 ; i< affectedFilenames.size() ; i++) 
+              {
+              std::string reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
+              std::ofstream out (reconcTree.c_str(), std::ios::out);
+              out << reconciledTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
+              out.close();
+              std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
+              out.open (dupTree.c_str(), std::ios::out);
+              out << duplicationTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
+              out.close();
+              std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", allParams[i], "losses.tree", "", false, false);
+              out.open (lossTree.c_str(), std::ios::out);
+              out << lossTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
+              out.close();
+              }
+            }
 					break;
 				}
 			}//End while, END OF MAIN LOOP
