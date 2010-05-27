@@ -517,10 +517,10 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
         const Node * son    = tree_->getNode(nodeId);
 
 
-    if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::testNNI(). Node 'son' must not be the root node.", son);
+    if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::testNNI(). Node 'son' must not be the root node.", nodeId);
     const Node * parent = son->getFather();
     
-    if(!parent->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::testNNI(). Node 'parent' must not be the root node.", parent);
+    if(!parent->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::testNNI(). Node 'parent' must not be the root node.", parent->getId());
     const Node * grandFather = parent->getFather();
     //From here: Bifurcation assumed.
     //In case of multifurcation, an arbitrary uncle is chosen.
@@ -708,9 +708,9 @@ void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 
   //Perform the topological move, the likelihood array will have to be recomputed...
   Node * son    = tree_->getNode(nodeId);
-  if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", son);
+  if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", nodeId);
   Node * parent = son->getFather();
-  if(!parent->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'parent' must not be the root node.", parent);
+  if(!parent->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'parent' must not be the root node.", parent->getId());
   Node * grandFather = parent->getFather();
   //From here: Bifurcation assumed.
   //In case of multifurcation, an arbitrary uncle is chosen.

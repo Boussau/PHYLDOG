@@ -600,10 +600,16 @@ int main(int args, char ** argv)
        // run, we approximately start from the same place.
 			 *****************************************************************************/
       
-      int timeLimit = ApplicationTools::getIntParameter("time.limit",params,0);
+      int timeLimit = ApplicationTools::getIntParameter("time.limit",params,1000);
       //we convert hours in seconds. 
       //1h before the end, we will launch the stop signal.
+      if (timeLimit == 1)
+        {
+        timeLimit = 2;
+        std::cout<<"Setting time.limit to 2, otherwise the program will exit after 0 (=(1-1) * 3600) second !."<<std::endl;
+        }
       timeLimit = (timeLimit-1) * 3600 ; 
+      std::cout<<"The program will exit after "<<timeLimit<<" seconds."<<std::endl;
       //Current step: information to give when the run is stopped for timing reasons, 
       //or to get if given.
       int currentStep = ApplicationTools::getIntParameter("current.step",params,0);

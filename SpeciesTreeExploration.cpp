@@ -167,10 +167,10 @@ void makeNNI(TreeTemplate<Node> &tree, int nodeId) {
   double dist = 0.1;  
   Node * son    = tree.getNode(nodeId);
  
-  if(!son->hasFather()) throw NodeException("makeNNI(). Node 'son' must not be the root node.", son);
+  if(!son->hasFather()) throw NodeException("makeNNI(). Node 'son' must not be the root node.", nodeId);
   Node * parent = son->getFather();
 
-  if(!parent->hasFather()) throw NodeException("makeNNI(). Node 'parent' must not be the root node.", parent);
+  if(!parent->hasFather()) throw NodeException("makeNNI(). Node 'parent' must not be the root node.", parent->getId());
   Node * grandFather = parent->getFather();
   //From here: Bifurcation assumed.
   //In case of multifurcation, an arbitrary uncle is chosen.
