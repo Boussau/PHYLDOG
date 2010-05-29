@@ -1386,59 +1386,62 @@ int main(int args, char ** argv)
 					ApplicationTools::displayResult("Gene Tree file", geneTreeFile);
 					ApplicationTools::displayResult("Number of leaves", TextTools::toString(geneTree->getNumberOfLeaves()));
           }
-				else if(initTree == "random")
+        else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
           {
-					std::cout << "\n\nCurrently this option is not available.\n"<<std::endl;
-					exit(-1);
-          }
-        else if (initTree == "bionj") //building a BioNJ starting tree
-          {
-
-            DistanceEstimation distEstimation(model, rDist, sites, 1, false);
-            BioNJ * bionj = new BioNJ();      
-            bionj->outputPositiveLengths(true);   
-            std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
-            if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
-            else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
-            else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
-            else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
-
-            // Should I ignore some parameters?
-            ParameterList allParameters = model->getParameters();
-            allParameters.addParameters(rDist->getParameters());
-            ParameterList parametersToIgnore;
-            std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
-            bool ignoreBrLen = false;
-            StringTokenizer st(paramListDesc, ",");
-
-            while(st.hasMoreToken())
+          DistanceEstimation distEstimation(model, rDist, sites, 1, false);
+          BioNJ * bionj = new BioNJ();      
+          bionj->outputPositiveLengths(true);   
+          std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
+          if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
+          else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
+          else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
+          else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
+          // Should I ignore some parameters?
+          ParameterList allParameters = model->getParameters();
+          allParameters.addParameters(rDist->getParameters());
+          ParameterList parametersToIgnore;
+          std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
+          bool ignoreBrLen = false;
+          StringTokenizer st(paramListDesc, ",");
+          while(st.hasMoreToken())
+            {
+            try
               {
-                try
+              std::string param = st.nextToken();
+              if(param == "BrLen")
+                ignoreBrLen = true;
+              else
                 {
-                  std::string param = st.nextToken();
-                  if(param == "BrLen")
-                    ignoreBrLen = true;
-                  else
-                    {
-                      if (allParameters.hasParameter(param))
-                        {
-                          Parameter* p = &allParameters.getParameter(param);
-                          parametersToIgnore.addParameter(*p);
-                        }
-                      else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
-                    }
-                } 
-                catch(ParameterNotFoundException pnfe)
-                {
-                  ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
+                if (allParameters.hasParameter(param))
+                  {
+                  Parameter* p = &allParameters.getParameter(param);
+                  parametersToIgnore.addParameter(*p);
+                  }
+                else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
                 }
+              } 
+            catch(ParameterNotFoundException pnfe)
+              {
+              ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
               }
-            double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
-            unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
-
-            geneTree = unrootedGeneTree;
-            geneTree->newOutGroup(0);
-
+            }
+          double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
+          unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
+          if (initTree == "phyml")//refine the tree using PhyML algorithm
+            { 
+              std::string backupParamOptTopo = params[ std::string("optimization.topology.algorithm_nni.method")];
+              params[ std::string("optimization.topology.algorithm_nni.method")] = "phyml";
+              NNIHomogeneousTreeLikelihood * tl = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true);
+              tl->initialize();//Only initializes the parameter list, and computes the likelihood
+              PhylogeneticsApplicationTools::optimizeParameters(tl, allParameters, params, "", true, false);
+              params[ std::string("optimization.topology.algorithm_nni.method")] = backupParamOptTopo ;
+              delete unrootedGeneTree;
+              unrootedGeneTree = new TreeTemplate<Node> ( (tl->getTree()) );
+              delete tl;
+            }
+          geneTree = unrootedGeneTree;
+          geneTree->newOutGroup(0);
+          delete bionj;
           }
 				else throw Exception("Unknown init gene tree method.");
 
@@ -1514,51 +1517,6 @@ int main(int args, char ** argv)
               std::cout << "ReconcileDuplication's done. Bye." << std::endl;
               return(0);
             }
-          
-          // Setting branch lengths?
-          std::string initBrLenMethod = ApplicationTools::getStringParameter("init.brlen.method", params, "Input", "", true, false);
-          std::string cmdName;
-          std::map<std::string, std::string> cmdArgs;
-          KeyvalTools::parseProcedure(initBrLenMethod, cmdName, cmdArgs);
-          if (cmdName == "Input")
-            {
-              // Do nothing!
-            }
-          else if (cmdName == "Equal")
-            {
-              double value = ApplicationTools::getDoubleParameter("value", cmdArgs, 0.1, "", true, false);
-              if (value <= 0)
-                throw Exception("Value for branch length must be superior to 0");
-              ApplicationTools::displayResult("Branch lengths set to", value);
-              tree->setBranchLengths(value);
-            }
-          else if (cmdName == "Clock")
-            {
-              TreeTools::convertToClockTree(*tree, tree->getRootId(), true);
-            }
-          else if (cmdName == "Grafen")
-            {
-              std::string grafenHeight = ApplicationTools::getStringParameter("height", cmdArgs, "Input", "", true, false);
-              double h;
-              if (grafenHeight == "input")
-                {
-                  h = TreeTools::getHeight(*tree, tree->getRootId());
-                }
-              else
-                {
-                  h = TextTools::toDouble(grafenHeight);
-                  if (h <= 0) throw Exception("Height must be positive in Grafen's method.");
-                }
-              ApplicationTools::displayResult("Total height", TextTools::toString(h));
-              
-              double rho = ApplicationTools::getDoubleParameter("rho", cmdArgs, 1., "", true, false);
-              ApplicationTools::displayResult("Grafen's rho", rho);
-              TreeTools::computeBranchLengthsGrafen(*tree, rho);
-              double nh = TreeTools::getHeight(*tree, tree->getRootId());
-              tree->scaleTree(h / nh);
-            }
-          else throw Exception("Method '" + initBrLenMethod + "' unknown for computing branch lengths.");
-          ApplicationTools::displayResult("Branch lengths", cmdName);
 
           DiscreteRatesAcrossSitesTreeLikelihood* tl;
 
@@ -1575,27 +1533,10 @@ int main(int args, char ** argv)
             }// This has not been implemented!
           else if(optimizeClock == "no")
             {
-	      model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params);
-	      if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
-	      if (model->getNumberOfStates() > model->getAlphabet()->getSize())
-		{
-		  // Markov-modulated Markov model!
-		  rDist = new ConstantDistribution(1.);
-		}
-	      else
-		{
-		  rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
-		}
-	    
-              tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities, /*allBranchNumbers[i-numDeletedFamilies], */allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization);
-	    
-
+            tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities, /*allBranchNumbers[i-numDeletedFamilies], */allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization);
             }
           else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
-         // tl2->initialize();
-        //  std::cout<<"Value tl2: "<<tl2->getValue()<<std::endl;
-
-
+ 
           tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
           allLogLs.push_back(tl->getValue());
           if(std::isinf(allLogLs[i-numDeletedFamilies]))
@@ -1625,8 +1566,6 @@ int main(int args, char ** argv)
               ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularly if datasets are big (>~500 sequences).");
               exit(-1);
             }
-
-
           treeLikelihoods.push_back(dynamic_cast<ReconciliationTreeLikelihood*>(tl));
           allParams.push_back(params); 
           allAlphabets.push_back(alphabet);
