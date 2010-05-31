@@ -139,13 +139,8 @@ _spTree(0), _rootedTree(0), _seqSp (seqSp), _spId(spId)
 {
   _spTree = spTree.clone();
   _rootedTree = rootedTree.clone();
-
-  
-  //_lossNumbers = lossNumbers;
   _lossProbabilities = lossProbabilities;
-  //_duplicationNumbers = duplicationNumbers;
   _duplicationProbabilities = duplicationProbabilities; 
-  //_branchNumbers = branchNumbers;
   _num0Lineages=num0Lineages;
   _num1Lineages=num1Lineages;
   _num2Lineages=num2Lineages;
@@ -153,9 +148,6 @@ _spTree(0), _rootedTree(0), _seqSp (seqSp), _spId(spId)
   _sequenceLikelihood = UNLIKELY;
   _MLindex = MLindex;
   _rootOptimization = rootOptimization; 
-  /*_tentativeDuplicationNumbers = duplicationNumbers;
-  _tentativeLossNumbers = lossNumbers; 
-  _tentativeBranchNumbers = branchNumbers; */
   _tentativeNum0Lineages =num0Lineages;
   _tentativeNum1Lineages =num1Lineages; 
   _tentativeNum2Lineages =num2Lineages;
@@ -166,24 +158,17 @@ _spTree(0), _rootedTree(0), _seqSp (seqSp), _spId(spId)
   _heuristicsLevel = heuristicsLevel;
   _optimizeSequenceLikelihood = true;
   _optimizeReconciliationLikelihood = true;
-  // _listOfPreviousRoots = new std::vector <int> ();
 }
 
 /******************************************************************************/
 
 ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(const ReconciliationTreeLikelihood & lik):
-  NNIHomogeneousTreeLikelihood(lik) , _spTree(0), _rootedTree(0), _seqSp (lik._seqSp), _spId(lik._spId)/*_spTree(*(lik._spTree.clone() )), _rootedTree(*(lik._rootedTree.clone() )), _seqSp (*(lik._seqSp.clone() )), _spId(*(lik._spId.clone() ))// _spTree(lik._spTree), _rootedTree(lik._rootedTree), _seqSp (lik._seqSp), _spId(lik._spId)*/
+  NNIHomogeneousTreeLikelihood(lik) , _spTree(0), _rootedTree(0), _seqSp (lik._seqSp), _spId(lik._spId)
 {
   _spTree = dynamic_cast<TreeTemplate<Node> *> (lik._spTree->clone()) ;
   _rootedTree = dynamic_cast<TreeTemplate<Node> *> (lik._rootedTree->clone()) ;
- // _seqSp = *(lik._seqSp.clone() );
- // _spId = *(lik._spId.clone() );
-  
-  /*_lossNumbers = lik._lossNumbers;
-  _duplicationNumbers = lik._duplicationNumbers;*/
   _lossProbabilities = lik._lossProbabilities;
   _duplicationProbabilities = lik._duplicationProbabilities; 
-  //_branchNumbers = lik._branchNumbers;
   _num0Lineages=lik._num0Lineages;
   _num1Lineages=lik._num1Lineages;
   _num2Lineages=lik._num2Lineages;
@@ -191,16 +176,12 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(const ReconciliationT
   _sequenceLikelihood = lik._sequenceLikelihood;
   _MLindex = lik._MLindex;
   _rootOptimization = lik._rootOptimization; 
-  /*_tentativeDuplicationNumbers = lik._duplicationNumbers;
-  _tentativeLossNumbers = lik._lossNumbers; 
-  _tentativeBranchNumbers = lik._branchNumbers;*/
   _tentativeNum0Lineages =lik._tentativeNum0Lineages;
   _tentativeNum1Lineages =lik._tentativeNum1Lineages;
   _tentativeNum2Lineages =lik._tentativeNum2Lineages;
   _tentativeMLindex = lik._MLindex;
   _totalIterations = lik._totalIterations;
   _counter = lik._counter;
- // _listOfPreviousRoots = lik._listOfPreviousRoots;
   _speciesIdLimitForRootPosition = lik._speciesIdLimitForRootPosition;
   _heuristicsLevel = lik._heuristicsLevel;
   _nodesToTryInNNISearch = lik._nodesToTryInNNISearch;
@@ -219,12 +200,7 @@ ReconciliationTreeLikelihood & ReconciliationTreeLikelihood::operator=(const Rec
   _spTree = dynamic_cast<TreeTemplate<Node> *> (lik._spTree->clone());
   if (_rootedTree) delete _rootedTree;
   _rootedTree= dynamic_cast<TreeTemplate<Node> *> (lik._rootedTree->clone());
-  //_seqSp = lik._seqSp; No need for that a priori
   _spId = lik._spId;
-  /*_lossNumbers = lik._lossNumbers;
-  _duplicationNumbers = lik._duplicationNumbers;
-   _branchNumbers = lik._branchNumbers;  
-*/
   _lossProbabilities = lik._lossProbabilities;
   _duplicationProbabilities = lik._duplicationProbabilities;
   _num0Lineages=lik._num0Lineages;
@@ -234,16 +210,12 @@ ReconciliationTreeLikelihood & ReconciliationTreeLikelihood::operator=(const Rec
   _sequenceLikelihood = lik._sequenceLikelihood;
   _MLindex = lik._MLindex;
   _rootOptimization = lik._rootOptimization;
-  /*_tentativeDuplicationNumbers = lik._duplicationNumbers;
-  _tentativeLossNumbers = lik._lossNumbers; 
-  _tentativeBranchNumbers = lik._branchNumbers; */
   _tentativeNum0Lineages =lik._tentativeNum0Lineages;
   _tentativeNum1Lineages =lik._tentativeNum1Lineages;
   _tentativeNum2Lineages =lik._tentativeNum2Lineages;
   _tentativeMLindex = lik._MLindex;
   _totalIterations = lik._totalIterations;
   _counter = lik._counter;
-//  _listOfPreviousRoots = lik._listOfPreviousRoots;
   _speciesIdLimitForRootPosition = lik._speciesIdLimitForRootPosition;
   _heuristicsLevel = lik._heuristicsLevel;
   _nodesToTryInNNISearch = lik._nodesToTryInNNISearch;
@@ -816,23 +788,21 @@ return _branchNumbers;
 
 /*******************************************************************************/
 
-std::vector <int> ReconciliationTreeLikelihood::get0LineagesNumbers(){
+std::vector <int> ReconciliationTreeLikelihood::get0LineagesNumbers() const {
   return _num0Lineages;
 }
 
 /*******************************************************************************/
 
-std::vector <int> ReconciliationTreeLikelihood::get1LineagesNumbers(){
+std::vector <int> ReconciliationTreeLikelihood::get1LineagesNumbers() const {
   return _num1Lineages;
 }
 
 /*******************************************************************************/
 
-std::vector <int> ReconciliationTreeLikelihood::get2LineagesNumbers(){
+std::vector <int> ReconciliationTreeLikelihood::get2LineagesNumbers() const {
   return _num2Lineages;
 }
-
-
 
 /*******************************************************************************/
 
@@ -859,4 +829,31 @@ void ReconciliationTreeLikelihood::resetSequenceLikelihood(){
 double ReconciliationTreeLikelihood::getSequenceLikelihood() {
   return _sequenceLikelihood; 
 }
+
+/*******************************************************************************/
+void ReconciliationTreeLikelihood::print () const {
+  std::cout << "Species tree:"<<std::endl;
+  std::cout << TreeTools::treeToParenthesis (getSpTree(), true)<<std::endl;
+  std::cout << "Gene family rooted tree:"<<std::endl;
+  std::cout << TreeTools::treeToParenthesis (getRootedTree(), true)<<std::endl;
+  std::cout << "Gene family tree:"<<std::endl;
+  std::cout << TreeTools::treeToParenthesis (getTree(), true)<<std::endl;
+  std::cout << "0 lineage numbers"<<std::endl;
+  VectorTools::print(get0LineagesNumbers());
+  std::cout << "1 lineage numbers"<<std::endl;
+  VectorTools::print(get1LineagesNumbers());
+  std::cout << "2 lineages numbers"<<std::endl;
+  VectorTools::print(get2LineagesNumbers());
+  std::cout << "Expected numbers of losses"<<std::endl;
+  VectorTools::print(_lossProbabilities);
+  std::cout << "Expected numbers of duplications"<<std::endl;
+  VectorTools::print(_duplicationProbabilities);
+  std::cout << "Root index"<<std::endl;
+  std::cout << _MLindex <<std::endl;
+
+
+}
+
+
+
 
