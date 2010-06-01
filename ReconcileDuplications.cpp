@@ -979,8 +979,18 @@ int main(int args, char ** argv)
               {
               
               rearrange = true; //Now we rearrange gene trees
-              
               numIterationsWithoutImprovement = 0;
+              //This first computation is done without rearranging gene trees
+              computeSpeciesTreeLikelihood(world, index, 
+                                           stop, logL, 
+                                           num0Lineages, num1Lineages, num2Lineages, 
+                                           allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                           lossProbabilities, duplicationProbabilities, 
+                                           rearrange, server, 
+                                           branchProbaOptimization, genomeMissing, 
+                                           *currentTree);
+              
+              //Now gene trees are really rearranged.
               computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, 
                                                                                  stop, logL, 
                                                                                  num0Lineages, num1Lineages, num2Lineages, 
@@ -1427,7 +1437,7 @@ int main(int args, char ** argv)
             }
           double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
           unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
-          if (initTree == "phyml")//refine the tree using PhyML algorithm
+          if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
             { 
               std::string backupParamOptTopo = params[ std::string("optimization.topology.algorithm_nni.method")];
               params[ std::string("optimization.topology.algorithm_nni.method")] = "phyml";
@@ -1443,7 +1453,7 @@ int main(int args, char ** argv)
           geneTree->newOutGroup(0);
           delete bionj;
           }
-				else throw Exception("Unknown init gene tree method.");
+				else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
 
 
         /****************************************************************************
@@ -1459,15 +1469,29 @@ int main(int args, char ** argv)
         }
         
         if (!avoidFamily) { //This family is phylogenetically informative
-          for (int j =0 ; j<seqsToRemove.size(); j++) {
-            removeLeaf(*geneTree, seqsToRemove[j]);
-            unrootedGeneTree = geneTree->clone();
-            if (!geneTree->isRooted()) {
-              std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
+          for (int j =0 ; j<seqsToRemove.size(); j++) 
+            {
+            std::vector <std::string> seqNames = sites->getSequencesNames();
+            if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
+              {
+              sites->deleteSequence(seqsToRemove[j]);
+              }
+            else 
+              std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
+            std::vector <std::string> leafNames = geneTree->getLeavesNames();
+            if ( VectorTools::contains(leafNames, seqsToRemove[j]) )
+              {
+              removeLeaf(*geneTree, seqsToRemove[j]);
+              unrootedGeneTree = geneTree->clone();
+              if (!geneTree->isRooted()) {
+                std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
+              }
+              unrootedGeneTree->unroot();
+              }
+            else 
+              std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene tree."<<std::endl;
+            
             }
-            unrootedGeneTree->unroot();
-            sites->deleteSequence(seqsToRemove[j]);
-          }
           //printing the gene trees with the species names instead of the sequence names
           //This is useful to build an input for duptree for instance
           TreeTemplate<Node> * treeWithSpNames = unrootedGeneTree->clone();
@@ -1616,7 +1640,7 @@ int main(int args, char ** argv)
             }*/
 
       
-      while (!stop)            //MAIN LOOP STARTS HERE
+      while (!stop)            ////////////MAIN LOOP STARTS HERE
         {      
           logL=0.0;
           resetVector(num0Lineages);
@@ -1633,7 +1657,7 @@ int main(int args, char ** argv)
             // std::cout << TreeTools::treeToParenthesis (treeLikelihoods[i]->getTree(), true)<<std::endl;
             PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
             
-            /********************************************LIKELIHOOD OPTIMIZED********************************************/
+            ///LIKELIHOOD OPTIMIZED
             geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
             // std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
             
