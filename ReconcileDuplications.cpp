@@ -846,9 +846,10 @@ int main(int args, char ** argv)
 			while (!stop) {
 				//Using deterministic SPRs first, and then NNIs
 				//Making SPRs, from leaves to deeper nodes (approximately), plus root changes
-        if (currentStep >= 4)
+			  if (currentStep >= 3)
           {
           noMoreSPR = true;
+	  
           }
 				if (!noMoreSPR) {
           //This first function does not optimize duplication and loss rates, 
