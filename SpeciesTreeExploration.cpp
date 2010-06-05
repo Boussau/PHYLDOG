@@ -1206,7 +1206,8 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
                                          std::string &branchProbaOptimization, 
                                          std::map < std::string, int> genomeMissing, 
                                          TreeTemplate<Node> &tree, 
-                                         std::string currentSpeciesTree) {
+                                         std::string currentSpeciesTree) 
+{
   broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
   //COMPUTATION IN CLIENTS
   index++;  
@@ -1245,6 +1246,7 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
     }
   
   std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index, stop, logL, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, tree);
+  std::cout << "logLikelihood after the first round: "<<logL<<std::endl;
   double currentlogL = -UNLIKELY;
   int i=1;
   //Then we update duplication and loss rates based on the results of this first 

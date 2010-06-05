@@ -620,11 +620,12 @@ int main(int args, char ** argv)
 
 			//We get the file containing the list of all gene family files
 		 std::string listGeneFile = ApplicationTools::getStringParameter("genelist.file",params,"none");
-			if (listGeneFile=="none" ){
+			if (listGeneFile=="none" )
+        {
 				std::cout << "\n\nNo list of genes was provided. Cannot compute a reconciliation between a species tree and gene trees if you do not tell me where the gene trees are ! Use the option genelist.file, which should be a file containing a list of gene option files.\n" << std::endl;
 				std::cout << "ReconcileDuplications species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
 				exit(-1);
-			}
+        }
 			//Getting the list of gene alignments, trees, correspondance files and options.
 			//In this file, the format is expected to be as follows :
 			/*
@@ -849,7 +850,7 @@ int main(int args, char ** argv)
 			  if (currentStep >= 3)
           {
           noMoreSPR = true;
-	  
+          numIterationsWithoutImprovement=2*tree->getNumberOfNodes();
           }
 				if (!noMoreSPR) {
           //This first function does not optimize duplication and loss rates, 
@@ -936,7 +937,7 @@ int main(int args, char ** argv)
           //Now for each species tree tried, we optimize the duplication and loss rates.
           //Therefore, for each species tree, the likelihood is computed twice, 
           //once before, and once after parameter tuning.
-          if ( (currentStep == 2) && (ApplicationTools::getTime() < timeLimit) )
+         /*TEMP02062010 if ( (currentStep == 2) && (ApplicationTools::getTime() < timeLimit) )
             {
             fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, 
                                                 index, bestIndex, stop, timeLimit, 
@@ -971,12 +972,14 @@ int main(int args, char ** argv)
             
             std::cout << "\n\n\t\t\tNow entering the final optimization steps, without SPRs\n\n"<<std::endl;
             std::cout << TreeTools::treeToParenthesis(*currentTree, true)<<std::endl;
-            }
+            }*/
+          noMoreSPR=true;
+
 				}
 
 				else 
           { //noMoreSPR==true, we thus only make NNIs and root changes
-            if ((((!rearrange)&&(numIterationsWithoutImprovement>=2*tree->getNumberOfNodes()))||((!rearrange)&&(!optimizeSpeciesTreeTopology))) && (ApplicationTools::getTime() < timeLimit) )
+            if ( ( ((!rearrange)&&(numIterationsWithoutImprovement>=2*tree->getNumberOfNodes())) || ((!rearrange)&&(!optimizeSpeciesTreeTopology)) ) && (ApplicationTools::getTime() < timeLimit) )
               {
               
               rearrange = true; //Now we rearrange gene trees
@@ -990,7 +993,9 @@ int main(int args, char ** argv)
                                            rearrange, server, 
                                            branchProbaOptimization, genomeMissing, 
                                            *currentTree);
+              std::cout<<"Lk without rearrangement: "<<logL<<std::endl;
               
+                          
               //Now gene trees are really rearranged.
               computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, 
                                                                                  stop, logL, 
@@ -1190,7 +1195,8 @@ int main(int args, char ** argv)
     //##################################################################################################################
     //##################################################################################################################
 	
-    if (rank >server){
+    if (rank >server)
+      {
 			//The server sends the number of genes affected to each client
 			scatter(world , numbersOfGenesPerClient, affectedNumberOfGenes, server);
 
@@ -1654,10 +1660,9 @@ int main(int args, char ** argv)
               treeLikelihoods[i]->OptimizeSequenceLikelihood(true);
               backupTreeLikelihoods[i]->OptimizeSequenceLikelihood(true);
               }
-            
             // std::cout << TreeTools::treeToParenthesis (treeLikelihoods[i]->getTree(), true)<<std::endl;
             PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
-            
+
             ///LIKELIHOOD OPTIMIZED
             geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
             // std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
@@ -1672,13 +1677,14 @@ int main(int args, char ** argv)
             num0Lineages = num0Lineages + allNum0Lineages[i];
             num1Lineages = num1Lineages + allNum1Lineages[i];
             num2Lineages = num2Lineages + allNum2Lineages[i];
+
             if (recordGeneTrees) 
               {
               reconciledTrees[i].push_back(TreeTools::treeToParenthesis (*geneTree, false, EVENT));
               duplicationTrees[i].push_back(treeToParenthesisWithIntNodeValues (*tree, false, DUPLICATIONS));
               lossTrees[i].push_back(treeToParenthesisWithIntNodeValues (*tree, false, LOSSES));
               }
-            
+
             if (geneTree) 
               {
               delete geneTree;
@@ -1692,13 +1698,16 @@ int main(int args, char ** argv)
             {
             startRecordingTreesFrom++;
             }
+
           //Clients send back stuff to the server.
           gather(world, logL, server);
           gather(world, num0Lineages, allNum0Lineages, server);
           gather(world, num1Lineages, allNum1Lineages, server);
           gather(world, num2Lineages, allNum2Lineages, server);	
+
           //Should the computations stop? The server tells us.
           broadcast(world, stop, server);
+
           if (!stop) 
             {	// we continue the loop
               //Reset the gene trees by resetting treeLikelihoods:
@@ -1725,11 +1734,13 @@ int main(int args, char ** argv)
                   }
                 broadcast(world, rearrange, server);
                 }	
+
               broadcast(world, lossProbabilities, server); 
               broadcast(world, duplicationProbabilities, server); 
               broadcast(world, currentSpeciesTree, server);
               TreeTemplate<Node> * tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
               spId = computeSpeciesNamesToIdsMap(*tree);
+
               for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) 
                 {
                 treeLikelihoods[i]->setSpTree(*tree);
@@ -1737,6 +1748,7 @@ int main(int args, char ** argv)
                 treeLikelihoods[i]->setProbabilities(duplicationProbabilities, lossProbabilities);
                 treeLikelihoods[i]->computeTreeLikelihood();
                 }
+
               if (tree) delete tree;
             }
           else 
