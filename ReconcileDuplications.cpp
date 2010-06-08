@@ -1444,6 +1444,11 @@ int main(int args, char ** argv)
             }
           double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
           unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
+          std::vector<Node*> nodes = unrootedGeneTree->getNodes();
+          for(unsigned int k = 0; k < nodes.size(); k++)
+            {
+            if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
+            }
           if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
             { 
               std::string backupParamOptTopo = params[ std::string("optimization.topology.algorithm_nni.method")];
