@@ -1266,354 +1266,382 @@ int main(int args, char ** argv)
        */
       
       //Here we are going to get all necessary information regarding all gene families the client is in charge of.
-			for (int i = 0 ; i< affectedFilenames.size() ; i++) { //For each file
-        avoidFamily = false;
-			 std::string file =affectedFilenames[i];
-				// std::cout << "affectedfilename # " <<i <<" : "<<file<<std::endl;
-
-				if(!FileTools::fileExists(file))
-				{
-				 std::cerr << "Parameter file not found." << std::endl;
-					exit(-1);
-				}
-				else
-				{
-					params = AttributesTools::getAttributesMapFromFile(file, "=");
-					AttributesTools::resolveVariables(params);
-				}
-
-        //Sequences and model of evolution
-				Alphabet * alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
-        VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params);       
-        VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
-				delete allSites;             
-				//method to optimize the gene tree root; only useful if heuristics.level!=0.
-        bool rootOptimization;
-				if (ApplicationTools::getStringParameter("root.optimization",params,"normal")=="intensive") {
-					rootOptimization=true;
-				}
-				else {
-					rootOptimization=false;
-				}
-
-				/****************************************************************************
-				 //Then we need to get the file containing links between sequences and species.
-				 *****************************************************************************/
-			 std::string taxaseqFile = ApplicationTools::getStringParameter("taxaseq.file",params,"none");
-				if (taxaseqFile=="none" ){
-					std::cout << "\n\nNo taxaseqfile was provided. Cannot compute a reconciliation between a species tree and a gene tree using sequences if the relation between the sequences and the species is not explicit !\n" << std::endl;
-					std::cout << "ReconcileDuplications species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
-					exit(-1);
-				}
-				//Getting the relations between species and sequence names
-				//In this file, the format is expected to be as follows :
-				/*
-				 SpeciesA:sequence1;sequence2
-				 SpeciesB:sequence5
-				 SpeciesC:sequence3;sequence4;sequence6
-				 ...
-				 */
-				//We use a std::map to record the links between species names and sequence names
-				//For one species name, we can have several sequence names
-			 std::map<std::string, std::deque<std::string> > spSeq;
-				//We use another std::map to store the link between sequence and species.
-			 std::map<std::string, std::string> seqSp;
-
-			 std::ifstream inSpSeq (taxaseqFile.c_str());
-			 std::string line;
-				while(getline(inSpSeq,line)) {
-					//We divide the line in 2 : first, the species name, second the sequence names
-					StringTokenizer st1 = StringTokenizer::StringTokenizer (line, ":", true);
-					//Then we divide the sequence names
-          if (st1.numberOfRemainingTokens ()>1) {
-            StringTokenizer st2 = StringTokenizer::StringTokenizer (st1.getToken(1), ";", true);
-            spSeq.insert( make_pair(st1.getToken(0),st2.getTokens()));
-          }
-				}
-				//Printing the contents and building seqSp 
-        //At the same time, we gather sequences we will have to remove from the 
-        //alignment and from the gene tree
-        std::vector <std::string> spNamesToTake = tree->getLeavesNames(); 
-        std::vector <std::string> seqsToRemove;
-				for(std::map<std::string, std::deque<std::string> >::iterator it = spSeq.begin(); it != spSeq.end(); it++){
-					spNames.push_back(it->first);
-					for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
-						seqSp.insert(make_pair(*it2, it->first));
-					}
-          if (!VectorTools::contains(spNamesToTake,it->first)) {
-            for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
-              seqsToRemove.push_back(*it2);
-            }
-          }
-					std::cout <<std::endl;
-				}
-			 std::map <std::string, std::string> spSelSeq;
-     
-        
-        /****************************************************************************
-				 //Then we need to get the substitution model.
-				 *****************************************************************************/
-        
-        
-        SubstitutionModel*    model    = 0;
-        SubstitutionModelSet* modelSet = 0;
-        DiscreteDistribution* rDist    = 0;
-        
-        model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params); 
-        if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
-        if (model->getNumberOfStates() > model->getAlphabet()->getSize())
-          {
-            // Markov-modulated Markov model!
-            rDist = new ConstantDistribution(1.);
-          }
-        else
-          {
-            rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
-          }
-        
-        
-				/****************************************************************************
-				 //Then we need to get the file containing the gene tree.
-				 *****************************************************************************/
-				// Get the initial gene tree
-				TreeTemplate<Node> * unrootedGeneTree = NULL;
-				initTree = ApplicationTools::getStringParameter("init.gene.tree", params, "user", "", false, false);
-				ApplicationTools::displayResult("Input gene tree", initTree);
-				if(initTree == "user")
-          {
-          std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
-					if (geneTreeFile=="none" )
+			for (int i = 0 ; i< affectedFilenames.size() ; i++) 
+        { //For each file
+          avoidFamily = false;
+          std::string file =affectedFilenames[i];
+          TreeTemplate<Node> * unrootedGeneTree = NULL;
+          SubstitutionModel*    model    = 0;
+          SubstitutionModelSet* modelSet = 0;
+          DiscreteDistribution* rDist    = 0;
+          
+          
+          if(!FileTools::fileExists(file))
             {
-						std::cout << "\n\nNo Gene tree was provided. The option init.gene.tree is set to user (by default), which means that the option gene.tree.file must be filled with the path of a valid tree file. \nIf you do not have a gene tree file, the program can start from a random tree, if you set init.gene.tree at random\n\n" << std::endl;
-						exit(-1);
+            std::cerr << "Parameter file not found." << std::endl;
+            exit(-1);
             }
-					Newick newick(true);
-					geneTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTreeFile));
-					if (!geneTree->isRooted()) 
+          else
             {
-						unrootedGeneTree = geneTree->clone();
-						std::cout << "The gene tree is not rooted ; the root will be searched."<<std::endl;
-						geneTree->newOutGroup(0);
+            params = AttributesTools::getAttributesMapFromFile(file, "=");
+            AttributesTools::resolveVariables(params);
             }
-					else 
+          
+          //Sequences and model of evolution
+          Alphabet * alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
+          VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params);       
+          VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
+          delete allSites;             
+          //method to optimize the gene tree root; only useful if heuristics.level!=0.
+          bool rootOptimization;
+          if (ApplicationTools::getStringParameter("root.optimization",params,"normal")=="intensive") 
             {
-						unrootedGeneTree = geneTree->clone();
-						unrootedGeneTree->unroot();
+            rootOptimization=true;
             }
-					ApplicationTools::displayResult("Gene Tree file", geneTreeFile);
-					ApplicationTools::displayResult("Number of leaves", TextTools::toString(geneTree->getNumberOfLeaves()));
-          }
-        else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
-          {
-          DistanceEstimation distEstimation(model, rDist, sites, 1, false);
-          BioNJ * bionj = new BioNJ();      
-          bionj->outputPositiveLengths(true);   
-          std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
-          if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
-          else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
-          else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
-          else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
-          // Should I ignore some parameters?
-          ParameterList allParameters = model->getParameters();
-          allParameters.addParameters(rDist->getParameters());
-          ParameterList parametersToIgnore;
-          std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
-          bool ignoreBrLen = false;
-          StringTokenizer st(paramListDesc, ",");
-          while(st.hasMoreToken())
+          else 
             {
-            try
-              {
-              std::string param = st.nextToken();
-              if(param == "BrLen")
-                ignoreBrLen = true;
-              else
-                {
-                if (allParameters.hasParameter(param))
-                  {
-                  Parameter* p = &allParameters.getParameter(param);
-                  parametersToIgnore.addParameter(*p);
-                  }
-                else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
-                }
-              } 
-            catch(ParameterNotFoundException pnfe)
-              {
-              ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
-              }
+            rootOptimization=false;
             }
-          double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
-          unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
-          std::vector<Node*> nodes = unrootedGeneTree->getNodes();
-          for(unsigned int k = 0; k < nodes.size(); k++)
-            {
-            if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
-            }
-          if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
-            { 
-              std::string backupParamOptTopo = params[ std::string("optimization.topology.algorithm_nni.method")];
-              params[ std::string("optimization.topology.algorithm_nni.method")] = "phyml";
-              NNIHomogeneousTreeLikelihood * tl = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true);
-              tl->initialize();//Only initializes the parameter list, and computes the likelihood
-              PhylogeneticsApplicationTools::optimizeParameters(tl, allParameters, params, "", true, false);
-              params[ std::string("optimization.topology.algorithm_nni.method")] = backupParamOptTopo ;
-              delete unrootedGeneTree;
-              unrootedGeneTree = new TreeTemplate<Node> ( (tl->getTree()) );
-              delete tl;
-            }
-          geneTree = unrootedGeneTree;
-          geneTree->newOutGroup(0);
-          delete bionj;
-          }
-				else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
-
-
-        /****************************************************************************
-				 //Then we need to prune the gene tree and the alignment so that they contain
-         //only sequences from the species under study.
-				 *****************************************************************************/
-        //If we need to remove all sequences or all sequences except one, 
-        //better remove the gene family
-        if (seqsToRemove.size()>=sites->getNumberOfSequences()-1) {
-          numDeletedFamilies = numDeletedFamilies+1;
-          avoidFamily=true;
-          std::cout <<"Avoiding family "<<affectedFilenames[i-numDeletedFamilies+1]<<std::endl;
-        }
-        
-        if (!avoidFamily) { //This family is phylogenetically informative
-          for (int j =0 ; j<seqsToRemove.size(); j++) 
-            {
-            std::vector <std::string> seqNames = sites->getSequencesNames();
-            if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
-              {
-              sites->deleteSequence(seqsToRemove[j]);
-              }
-            else 
-              std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
-            std::vector <std::string> leafNames = geneTree->getLeavesNames();
-            if ( VectorTools::contains(leafNames, seqsToRemove[j]) )
-              {
-              removeLeaf(*geneTree, seqsToRemove[j]);
-              unrootedGeneTree = geneTree->clone();
-              if (!geneTree->isRooted()) {
-                std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
-              }
-              unrootedGeneTree->unroot();
-              }
-            else 
-              std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene tree."<<std::endl;
-            
-            }
-          //printing the gene trees with the species names instead of the sequence names
-          //This is useful to build an input for duptree for instance
-          TreeTemplate<Node> * treeWithSpNames = unrootedGeneTree->clone();
-          std::vector <Node *> leaves = treeWithSpNames->getLeaves();
-          for (int j =0; j<leaves.size() ; j++) {
-            leaves[j]->setName(seqSp[leaves[j]->getName()]);
-          }
-          std::vector <Node *> nodes =  treeWithSpNames->getNodes();
-          for (int j =0; j<nodes.size() ; j++) {
-            if (nodes[j]->hasFather()) {
-              nodes[j]->deleteDistanceToFather(); 
-            }
-            if (nodes[j]->hasBootstrapValue()) {
-              nodes[j]->removeBranchProperty(TreeTools::BOOTSTRAP); 
-            }
-          }
-          Newick newick(true);
-          std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
-          newick.write(*treeWithSpNames, geneTreeFile+"SPNames", true);
-          delete treeWithSpNames;
-
-          //Outputting the starting tree
-          std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
-          newick.write(*geneTree, startingGeneTreeFile, true);
           
           /****************************************************************************
-           //Then we initialize the losses and duplication numbers on this tree.
+           //Then we need to get the file containing links between sequences and species.
            *****************************************************************************/
-          std::vector<int> numbers = num0Lineages;
-          allNum0Lineages.push_back(numbers);
-          allNum1Lineages.push_back(numbers);
-          allNum2Lineages.push_back(numbers);
-          resetLossesAndDuplications(*tree, lossProbabilities, duplicationProbabilities);
-          resetVector(allNum0Lineages[i-numDeletedFamilies]);
-          resetVector(allNum1Lineages[i-numDeletedFamilies]);
-          resetVector(allNum2Lineages[i-numDeletedFamilies]);
+          std::string taxaseqFile = ApplicationTools::getStringParameter("taxaseq.file",params,"none");
+          if (taxaseqFile=="none" ){
+            std::cout << "\n\nNo taxaseqfile was provided. Cannot compute a reconciliation between a species tree and a gene tree using sequences if the relation between the sequences and the species is not explicit !\n" << std::endl;
+            std::cout << "ReconcileDuplications species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
+            exit(-1);
+          }
+          //Getting the relations between species and sequence names
+          //In this file, the format is expected to be as follows :
+          /*
+           SpeciesA:sequence1;sequence2
+           SpeciesB:sequence5
+           SpeciesC:sequence3;sequence4;sequence6
+           ...
+           */
+          //We use a std::map to record the links between species names and sequence names
+          //For one species name, we can have several sequence names
+          std::map<std::string, std::deque<std::string> > spSeq;
+          //We use another std::map to store the link between sequence and species.
+          std::map<std::string, std::string> seqSp;
           
-          /************************************************************************************************************/
-          /********************************************COMPUTING LIKELIHOOD********************************************/
-          /************************************************************************************************************/
-          bool computeLikelihood = ApplicationTools::getBooleanParameter("compute.likelihood", params, true, "", false, false);
-          if(!computeLikelihood)
-            {
-              delete alphabet;
-              delete sites;
-              delete tree;
-              std::cout << "ReconcileDuplication's done. Bye." << std::endl;
-              return(0);
+          std::ifstream inSpSeq (taxaseqFile.c_str());
+          std::string line;
+          while(getline(inSpSeq,line)) {
+            //We divide the line in 2 : first, the species name, second the sequence names
+            StringTokenizer st1 = StringTokenizer::StringTokenizer (line, ":", true);
+            //Then we divide the sequence names
+            if (st1.numberOfRemainingTokens ()>1) {
+              StringTokenizer st2 = StringTokenizer::StringTokenizer (st1.getToken(1), ";", true);
+              spSeq.insert( make_pair(st1.getToken(0),st2.getTokens()));
             }
-
-          DiscreteRatesAcrossSitesTreeLikelihood* tl;
-
-          
-          
-          std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params, "no", "", true, false);
-          ApplicationTools::displayResult("Clock", optimizeClock);
-          
-           
-          if(optimizeClock == "global")
-            {
-              std::cout<<"Sorry, clocklike trees have not been implemented yet."<<std::endl;
-              exit(0);
-            }// This has not been implemented!
-          else if(optimizeClock == "no")
-            {
-            tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities, /*allBranchNumbers[i-numDeletedFamilies], */allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization);
+          }
+          //Printing the contents and building seqSp 
+          //At the same time, we gather sequences we will have to remove from the 
+          //alignment and from the gene tree
+          std::vector <std::string> spNamesToTake = tree->getLeavesNames(); 
+          std::vector <std::string> seqsToRemove;
+          for(std::map<std::string, std::deque<std::string> >::iterator it = spSeq.begin(); it != spSeq.end(); it++){
+            spNames.push_back(it->first);
+            for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
+              seqSp.insert(make_pair(*it2, it->first));
             }
-          else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
- 
-          tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
-          allLogLs.push_back(tl->getValue());
-          if(std::isinf(allLogLs[i-numDeletedFamilies]))
+            if (!VectorTools::contains(spNamesToTake,it->first)) {
+              for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
+                seqsToRemove.push_back(*it2);
+              }
+            }
+            std::cout <<std::endl;
+          }
+          std::map <std::string, std::string> spSelSeq;
+          
+          //If we need to remove all sequences or all sequences except one, 
+          //better remove the gene family
+          if (seqsToRemove.size()>=sites->getNumberOfSequences()-1) {
+            numDeletedFamilies = numDeletedFamilies+1;
+            avoidFamily=true;
+            std::cout <<"Avoiding family "<<affectedFilenames[i-numDeletedFamilies+1]<<std::endl;
+          }
+          
+          if (!avoidFamily) {
+            //We need to prune the alignment so that they contain
+            //only sequences from the species under study.
+            for (int j =0 ; j<seqsToRemove.size(); j++) 
+              {
+              std::vector <std::string> seqNames = sites->getSequencesNames();
+              if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
+                {
+                sites->deleteSequence(seqsToRemove[j]);
+                }
+              else 
+                std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
+              }
+            
+            /****************************************************************************
+             //Then we need to get the substitution model.
+             *****************************************************************************/
+            
+            model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params); 
+            if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
+            if (model->getNumberOfStates() > model->getAlphabet()->getSize())
+              {
+              // Markov-modulated Markov model!
+              rDist = new ConstantDistribution(1.);
+              }
+            else
+              {
+              rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
+              }
+            
+            /****************************************************************************
+             //Then we need to get the file containing the gene tree.
+             *****************************************************************************/
+            // Get the initial gene tree
+            initTree = ApplicationTools::getStringParameter("init.gene.tree", params, "user", "", false, false);
+            ApplicationTools::displayResult("Input gene tree", initTree);
+            try 
             {
-              // This may be due to null branch lengths, leading to null likelihood!
-              ApplicationTools::displayWarning("!!! Warning!!! Initial likelihood is zero.");
-              ApplicationTools::displayWarning("!!! This may be due to branch length == 0.");
-              ApplicationTools::displayWarning("!!! All null branch lengths will be set to 0.000001.");
-              std::vector<Node*> nodes = tree->getNodes();
+            if(initTree == "user")
+              {
+              std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
+              if (geneTreeFile=="none" )
+                {
+                std::cout << "\n\nNo Gene tree was provided. The option init.gene.tree is set to user (by default), which means that the option gene.tree.file must be filled with the path of a valid tree file. \nIf you do not have a gene tree file, the program can start from a random tree, if you set init.gene.tree at random\n\n" << std::endl;
+                exit(-1);
+                }
+              Newick newick(true);
+              geneTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTreeFile));
+              if (!geneTree->isRooted()) 
+                {
+                unrootedGeneTree = geneTree->clone();
+                std::cout << "The gene tree is not rooted ; the root will be searched."<<std::endl;
+                geneTree->newOutGroup(0);
+                }
+              else 
+                {
+                unrootedGeneTree = geneTree->clone();
+                unrootedGeneTree->unroot();
+                }
+              ApplicationTools::displayResult("Gene Tree file", geneTreeFile);
+              ApplicationTools::displayResult("Number of leaves", TextTools::toString(geneTree->getNumberOfLeaves()));
+              }
+            else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
+              {
+              DistanceEstimation distEstimation(model, rDist, sites, 1, false);
+              BioNJ * bionj = new BioNJ();      
+              bionj->outputPositiveLengths(true);   
+              std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
+              if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
+              else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
+              else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
+              else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
+              // Should I ignore some parameters?
+              ParameterList allParameters = model->getParameters();
+              allParameters.addParameters(rDist->getParameters());
+              ParameterList parametersToIgnore;
+              std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
+              bool ignoreBrLen = false;
+              StringTokenizer st(paramListDesc, ",");
+              while(st.hasMoreToken())
+                {
+                try
+                  {
+                  std::string param = st.nextToken();
+                  if(param == "BrLen")
+                    ignoreBrLen = true;
+                  else
+                    {
+                    if (allParameters.hasParameter(param))
+                      {
+                      Parameter* p = &allParameters.getParameter(param);
+                      parametersToIgnore.addParameter(*p);
+                      }
+                    else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
+                    }
+                  } 
+                catch(ParameterNotFoundException pnfe)
+                  {
+                  ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
+                  }
+                }
+              double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
+              unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
+              std::vector<Node*> nodes = unrootedGeneTree->getNodes();
               for(unsigned int k = 0; k < nodes.size(); k++)
                 {
-                  if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
+                if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
+                if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() >= 5) throw Exception("Found a very large branch length in a gene tree; will avoid this family.");
                 }
-              dynamic_cast<ReconciliationTreeLikelihood*>(tl)->initParameters();
-              
-              allLogLs[i-numDeletedFamilies]= tl->f(tl->getParameters());
+              if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
+                { 
+                  std::string backupParamOptTopo = params[ std::string("optimization.topology.algorithm_nni.method")];
+                  params[ std::string("optimization.topology.algorithm_nni.method")] = "phyml";
+                  NNIHomogeneousTreeLikelihood * tl = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true);
+                  tl->initialize();//Only initializes the parameter list, and computes the likelihood
+                  PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
+                  params[ std::string("optimization.topology.algorithm_nni.method")] = backupParamOptTopo ;
+                  delete unrootedGeneTree;
+                  unrootedGeneTree = new TreeTemplate<Node> ( (tl->getTree()) );
+                  delete tl;
+                }
+              geneTree = unrootedGeneTree;
+              geneTree->newOutGroup(0);
+              delete bionj;
+              }
+            else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
             }
-          ApplicationTools::displayResult("Initial likelihood", TextTools::toString(allLogLs[i-numDeletedFamilies], 15));
-          if(std::isinf(allLogLs[i-numDeletedFamilies]))
+            catch (std::exception& e)
             {
-              ApplicationTools::displayError("!!! Unexpected initial likelihood == 0.");
-              ApplicationTools::displayError("!!! Looking at each site:");
-              for(unsigned int k = 0; k < sites->getNumberOfSites(); k++)
-                {
-                  (*ApplicationTools::error << "Site " << sites->getSite(k).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(k)).endLine();
-                }
-              ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularly if datasets are big (>~500 sequences).");
-              exit(-1);
+            std::cout << e.what() <<"; Unable to get a proper gene tree for family "<<file<<"; avoiding this family."<<std::endl;
+            numDeletedFamilies = numDeletedFamilies+1;
+            avoidFamily=true;
             }
-          treeLikelihoods.push_back(dynamic_cast<ReconciliationTreeLikelihood*>(tl));
-          allParams.push_back(params); 
-          allAlphabets.push_back(alphabet);
-          allDatasets.push_back(sites);
-          allModels.push_back(model);
-          allDistributions.push_back(rDist);
-          allGeneTrees.push_back(geneTree);
-          allUnrootedGeneTrees.push_back(unrootedGeneTree);
+          }
+          
+          if (!avoidFamily) 
+            { //This family is phylogenetically informative
+              //Pruning sequences from the gene tree
+              for (int j =0 ; j<seqsToRemove.size(); j++) 
+                {
+                std::vector <std::string> leafNames = geneTree->getLeavesNames();
+                if ( VectorTools::contains(leafNames, seqsToRemove[j]) )
+                  {
+                  removeLeaf(*geneTree, seqsToRemove[j]);
+                  unrootedGeneTree = geneTree->clone();
+                  if (!geneTree->isRooted()) {
+                    std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
+                  }
+                  unrootedGeneTree->unroot();
+                  }
+                else 
+                  std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene tree."<<std::endl;
+                }
+              
+              //printing the gene trees with the species names instead of the sequence names
+              //This is useful to build an input for duptree for instance
+              TreeTemplate<Node> * treeWithSpNames = unrootedGeneTree->clone();
+              std::vector <Node *> leaves = treeWithSpNames->getLeaves();
+              for (int j =0; j<leaves.size() ; j++) 
+                {
+                leaves[j]->setName(seqSp[leaves[j]->getName()]);
+                }
+              std::vector <Node *> nodes =  treeWithSpNames->getNodes();
+              for (int j =0; j<nodes.size() ; j++) 
+                {
+                if (nodes[j]->hasFather()) 
+                  {
+                  nodes[j]->deleteDistanceToFather(); 
+                  }
+                if (nodes[j]->hasBootstrapValue()) 
+                  {
+                  nodes[j]->removeBranchProperty(TreeTools::BOOTSTRAP); 
+                  }
+                }
+              Newick newick(true);
+              std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
+              newick.write(*treeWithSpNames, geneTreeFile+"SPNames", true);
+              delete treeWithSpNames;
+              
+              //Outputting the starting tree
+              std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
+              newick.write(*geneTree, startingGeneTreeFile, true);
+              
+              /****************************************************************************
+               //Then we initialize the losses and duplication numbers on this tree.
+               *****************************************************************************/
+              std::vector<int> numbers = num0Lineages;
+              allNum0Lineages.push_back(numbers);
+              allNum1Lineages.push_back(numbers);
+              allNum2Lineages.push_back(numbers);
+              resetLossesAndDuplications(*tree, lossProbabilities, duplicationProbabilities);
+              resetVector(allNum0Lineages[i-numDeletedFamilies]);
+              resetVector(allNum1Lineages[i-numDeletedFamilies]);
+              resetVector(allNum2Lineages[i-numDeletedFamilies]);
+              
+              /************************************************************************************************************/
+              /********************************************COMPUTING LIKELIHOOD********************************************/
+              /************************************************************************************************************/
+              bool computeLikelihood = ApplicationTools::getBooleanParameter("compute.likelihood", params, true, "", false, false);
+              if(!computeLikelihood)
+                {
+                delete alphabet;
+                delete sites;
+                delete tree;
+                std::cout << "ReconcileDuplication's done. Bye." << std::endl;
+                return(0);
+                }
+              
+              DiscreteRatesAcrossSitesTreeLikelihood* tl;
+              
+              
+              
+              std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params, "no", "", true, false);
+              ApplicationTools::displayResult("Clock", optimizeClock);
+              
+              
+              if(optimizeClock == "global")
+                {
+                std::cout<<"Sorry, clocklike trees have not been implemented yet."<<std::endl;
+                exit(0);
+                }// This has not been implemented!
+              else if(optimizeClock == "no")
+                {
+                tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, *tree, *geneTree, seqSp, spId, /*allLossNumbers[i-numDeletedFamilies], */lossProbabilities, /*allDuplicationNumbers[i-numDeletedFamilies], */duplicationProbabilities, /*allBranchNumbers[i-numDeletedFamilies], */allNum0Lineages[i-numDeletedFamilies], allNum1Lineages[i-numDeletedFamilies], allNum2Lineages[i-numDeletedFamilies], speciesIdLimitForRootPosition, heuristicsLevel, MLindex, true, true, rootOptimization);
+                }
+              else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
+              
+              tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+              allLogLs.push_back(tl->getValue());
+              if(std::isinf(allLogLs[i-numDeletedFamilies]))
+                {
+                // This may be due to null branch lengths, leading to null likelihood!
+                ApplicationTools::displayWarning("!!! Warning!!! Initial likelihood is zero.");
+                ApplicationTools::displayWarning("!!! This may be due to branch length == 0.");
+                ApplicationTools::displayWarning("!!! All null branch lengths will be set to 0.000001.");
+                std::vector<Node*> nodes = tree->getNodes();
+                for(unsigned int k = 0; k < nodes.size(); k++)
+                  {
+                  if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
+                  }
+                dynamic_cast<ReconciliationTreeLikelihood*>(tl)->initParameters();
+                
+                allLogLs[i-numDeletedFamilies]= tl->f(tl->getParameters());
+                }
+              ApplicationTools::displayResult("Initial likelihood", TextTools::toString(allLogLs[i-numDeletedFamilies], 15));
+              if(std::isinf(allLogLs[i-numDeletedFamilies]))
+                {
+                ApplicationTools::displayError("!!! Unexpected initial likelihood == 0.");
+                ApplicationTools::displayError("!!! Looking at each site:");
+                for(unsigned int k = 0; k < sites->getNumberOfSites(); k++)
+                  {
+                  (*ApplicationTools::error << "Site " << sites->getSite(k).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(k)).endLine();
+                  }
+                ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularly if datasets are big (>~500 sequences).");
+                exit(-1);
+                }
+              treeLikelihoods.push_back(dynamic_cast<ReconciliationTreeLikelihood*>(tl));
+              allParams.push_back(params); 
+              allAlphabets.push_back(alphabet);
+              allDatasets.push_back(sites);
+              allModels.push_back(model);
+              allDistributions.push_back(rDist);
+              allGeneTrees.push_back(geneTree);
+              allUnrootedGeneTrees.push_back(unrootedGeneTree);
+            }
+          else 
+            {
+            delete sites;
+            delete alphabet;
+            }
+        }//End for each file
+      
+      if (numDeletedFamilies == affectedFilenames.size()) 
+        {
+        std::cout<<"A client is in charge of 0 gene family after gene family filtering!"<<std::endl; 
         }
-			}//End for each file
-
-
+      
+      
 			std::vector <std::vector <std::string> > reconciledTrees;
 			std::vector <std::vector <std::string> > duplicationTrees;
 			std::vector <std::vector <std::string> > lossTrees;
@@ -1628,9 +1656,10 @@ int main(int args, char ** argv)
         //if we optimize the species tree topology.
         if (optimizeSpeciesTreeTopology) 
           { 
-            if (ApplicationTools::getBooleanParameter("optimization.topology", allParams[i], false, "", true, false)){
+            if (ApplicationTools::getBooleanParameter("optimization.topology", allParams[i], false, "", true, false))
+              {
               allParams[i][ std::string("optimization.topology")] = "false";
-            }
+              }
             allParams[i][ std::string("optimization")] = "None"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
             treeLikelihoods[i]->OptimizeSequenceLikelihood(false);
           }
@@ -1761,7 +1790,7 @@ int main(int args, char ** argv)
               if (recordGeneTrees) 
                 {
                 broadcast(world, bestIndex, server);
-                for (int i = 0 ; i< affectedFilenames.size() ; i++) 
+                for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) 
                   {
                  /* std::cout <<"After Main Loop:"<<std::endl;
                   backupTreeLikelihoods[i]->print();*/
