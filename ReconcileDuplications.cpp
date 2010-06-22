@@ -1680,7 +1680,6 @@ int main(int args, char ** argv)
               backupTreeLikelihoods[i]->print();
             }*/
 
-      
       while (!stop)            ////////////MAIN LOOP STARTS HERE
         {      
           logL=0.0;
@@ -1689,14 +1688,13 @@ int main(int args, char ** argv)
           resetVector(num2Lineages);
           for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) 
             {
+            std::cout<<"Gene Family START: " <<allParams[i][ std::string("taxaseq.file")] <<std::endl;
             if (firstTimeImprovingGeneTrees) 
               {
               treeLikelihoods[i]->OptimizeSequenceLikelihood(true);
               backupTreeLikelihoods[i]->OptimizeSequenceLikelihood(true);
               }
-            // std::cout << TreeTools::treeToParenthesis (treeLikelihoods[i]->getTree(), true)<<std::endl;
             PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
-
             ///LIKELIHOOD OPTIMIZED
             geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
             // std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
@@ -1723,6 +1721,8 @@ int main(int args, char ** argv)
               {
               delete geneTree;
               }
+            std::cout<<"Gene Family END: " <<allParams[i][ std::string("taxaseq.file")] <<std::endl;
+
             }//end for each filename
           if (firstTimeImprovingGeneTrees) 
             {
