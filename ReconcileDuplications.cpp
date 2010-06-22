@@ -937,7 +937,7 @@ int main(int args, char ** argv)
           //Now for each species tree tried, we optimize the duplication and loss rates.
           //Therefore, for each species tree, the likelihood is computed twice, 
           //once before, and once after parameter tuning.
-         /*TEMP02062010 if ( (currentStep == 2) && (ApplicationTools::getTime() < timeLimit) )
+         if ( (currentStep == 2) && (ApplicationTools::getTime() < timeLimit) )
             {
             fastTryAllPossibleSPRsAndReRootings(world, currentTree, bestTree, 
                                                 index, bestIndex, stop, timeLimit, 
@@ -972,8 +972,7 @@ int main(int args, char ** argv)
             
             std::cout << "\n\n\t\t\tNow entering the final optimization steps, without SPRs\n\n"<<std::endl;
             std::cout << TreeTools::treeToParenthesis(*currentTree, true)<<std::endl;
-            }*/
-          noMoreSPR=true;
+            }
 
 				}
 
@@ -1688,7 +1687,7 @@ int main(int args, char ** argv)
           resetVector(num2Lineages);
           for (int i = 0 ; i< affectedFilenames.size()-numDeletedFamilies ; i++) 
             {
-            std::cout<<"Gene Family START: " <<allParams[i][ std::string("taxaseq.file")] <<std::endl;
+            //std::cout<<"Gene Family START: " <<allParams[i][ std::string("taxaseq.file")] <<std::endl;
             if (firstTimeImprovingGeneTrees) 
               {
               treeLikelihoods[i]->OptimizeSequenceLikelihood(true);
@@ -1721,7 +1720,7 @@ int main(int args, char ** argv)
               {
               delete geneTree;
               }
-            std::cout<<"Gene Family END: " <<allParams[i][ std::string("taxaseq.file")] <<std::endl;
+            //std::cout<<"Gene Family END: " <<allParams[i][ std::string("taxaseq.file")] <<std::endl;
 
             }//end for each filename
           if (firstTimeImprovingGeneTrees) 
