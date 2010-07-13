@@ -1267,6 +1267,7 @@ int main(int args, char ** argv)
       //Here we are going to get all necessary information regarding all gene families the client is in charge of.
 			for (int i = 0 ; i< affectedFilenames.size() ; i++) 
         { //For each file
+          std::cout <<"Examining family "<<affectedFilenames[i]<<std::endl;
           avoidFamily = false;
           std::string file =affectedFilenames[i];
           TreeTemplate<Node> * unrootedGeneTree = NULL;
@@ -1633,6 +1634,7 @@ int main(int args, char ** argv)
             delete sites;
             delete alphabet;
             }
+          std::cout <<"Examined family "<<affectedFilenames[i]<<std::endl;
         }//End for each file
       
       if (numDeletedFamilies == affectedFilenames.size()) 
@@ -1662,6 +1664,7 @@ int main(int args, char ** argv)
             allParams[i][ std::string("optimization")] = "None"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
             treeLikelihoods[i]->OptimizeSequenceLikelihood(false);
           }
+          std::cout <<"Continued family "<<affectedFilenames.size()-numDeletedFamilies<<std::endl;
         }
       
 			bool recordGeneTrees = false; //At the beginning, we do not record the gene trees.
