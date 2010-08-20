@@ -423,6 +423,9 @@ int main(int args, char ** argv)
     //##################################################################################################################
     //##################################################################################################################
     
+    params = AttributesTools::parseOptions(args, argv);
+
+    
 		if (rank == server) { 
       
       std::cout << "******************************************************************" << std::endl;
@@ -433,7 +436,6 @@ int main(int args, char ** argv)
       
       
       
-		 std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
 			/****************************************************************************
 			 //First, we need to get the species tree.
 			 *****************************************************************************/
@@ -1072,6 +1074,7 @@ int main(int args, char ** argv)
           }
 			}
       
+      std::string prefix = ApplicationTools::getStringParameter("output.file.prefix", params, "", "", false, false);
       
       //If we have to stop the program before the end, we need to:
       //- saves the species tree to a given file to start from the good species tree
@@ -1084,7 +1087,8 @@ int main(int args, char ** argv)
         std::cout <<"\n\n\t\t\tNo time to finish the run. "<<std::endl;
 
         std::cout <<"\t\tSaving the current species tree for the next run."<<std::endl;
-        std::string tempSpTree = ApplicationTools::getStringParameter("output.temporary.tree.file", params, "CurrentSpeciesTree.tree", "", false, false); 
+        std::string tempSpTree = ApplicationTools::getStringParameter("output.temporary.tree.file", params, "CurrentSpeciesTree.tree", "", false, false);
+        tempSpTree = prefix + tempSpTree;
         std::ofstream out (tempSpTree.c_str(), std::ios::out);
         out << TreeTools::treeToParenthesis(*bestTree, false)<<std::endl;
         out.close();  
@@ -1134,6 +1138,7 @@ int main(int args, char ** argv)
         
         //Outputting the results of the algorithm, server side.
         std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false); 
+        dupTree = prefix + dupTree;
         std::ofstream out (dupTree.c_str(), std::ios::out);
         out << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "DUPLICATIONS")<<std::endl;
         out.close();
@@ -1147,11 +1152,13 @@ int main(int args, char ** argv)
             }
           }
         std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
+        lossTree = prefix + lossTree;
         out.open (lossTree.c_str(), std::ios::out);
         out << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "LOSSES")<<std::endl;
         out.close();
         
         std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params, "ServerNumbered.tree", "", false, false);
+        numTree = prefix + numTree;
         out.open (numTree.c_str(), std::ios::out);
         out << TreeTools::treeToParenthesis (*bestTree, true)<<std::endl;
         out.close();
@@ -1164,6 +1171,7 @@ int main(int args, char ** argv)
                                        num1Lineages, 
                                        num2Lineages);
         std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params, "lineageNumbers.tree", "", false, false); 
+        lineagesTree = prefix + lineagesTree;
         out.open (lineagesTree.c_str(), std::ios::out);
         out << TreeTools::treeToParenthesis(*bestTree, false, NUMLINEAGES)<<std::endl;
         out.close();
@@ -1229,6 +1237,7 @@ int main(int args, char ** argv)
 			std::vector <std::map<std::string, std::string> > allParams;
 			TreeTemplate<Node> * geneTree = NULL;
 			int MLindex = 0;
+      std::map<std::string, std::string> famSpecificParams;
 
 			std::vector <ReconciliationTreeLikelihood *> treeLikelihoods;
 			std::vector <ReconciliationTreeLikelihood *> backupTreeLikelihoods;
@@ -1283,9 +1292,11 @@ int main(int args, char ** argv)
             }
           else
             {
-            params = AttributesTools::getAttributesMapFromFile(file, "=");
-            AttributesTools::resolveVariables(params);
+            famSpecificParams = AttributesTools::getAttributesMapFromFile(file, "=");
+            AttributesTools::resolveVariables(famSpecificParams);
             }
+          
+          AttributesTools::actualizeAttributesMap(params, famSpecificParams);
           
           //Sequences and model of evolution
           Alphabet * alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
@@ -1302,6 +1313,16 @@ int main(int args, char ** argv)
             {
             rootOptimization=false;
             }
+          
+          /****************************************************************************
+           //Then we need to know whether we will output family likelihoods in the course of the optimization.
+           *****************************************************************************/
+          /*
+          std::string likelihoodFile = ApplicationTools::getStringParameter("likelihoods.file",params,"none");
+          if (likelihoodFile == "none")
+            likelihoodFile = file + ".likelihoods";
+          */
+          
           
           /****************************************************************************
            //Then we need to get the file containing links between sequences and species.
@@ -1628,6 +1649,7 @@ int main(int args, char ** argv)
               allDistributions.push_back(rDist);
               allGeneTrees.push_back(geneTree);
               allUnrootedGeneTrees.push_back(unrootedGeneTree);
+             // allLikelihoodFiles.push_back(likelihoodFile);
             }
           else 
             {
@@ -1711,7 +1733,9 @@ int main(int args, char ** argv)
             num0Lineages = num0Lineages + allNum0Lineages[i];
             num1Lineages = num1Lineages + allNum1Lineages[i];
             num2Lineages = num2Lineages + allNum2Lineages[i];
-
+            
+            std::cout<<"Gene Family: " <<allParams[i][ std::string("taxaseq.file")] << " logLk: "<< allLogLs[i]<< " scenario lk: "<< treeLikelihoods[i]->getScenarioLikelihood() <<std::endl;
+        
             if (recordGeneTrees) 
               {
               reconciledTrees[i].push_back(TreeTools::treeToParenthesis (*geneTree, false, EVENT));
@@ -1796,15 +1820,19 @@ int main(int args, char ** argv)
                   {
                  /* std::cout <<"After Main Loop:"<<std::endl;
                   backupTreeLikelihoods[i]->print();*/
+                  std::string prefix = ApplicationTools::getStringParameter("output.file.prefix", allParams[i], "", "", false, false);
                   std::string reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
+                  reconcTree = prefix+reconcTree;
                   std::ofstream out (reconcTree.c_str(), std::ios::out);
                   out << reconciledTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
                   out.close();
                   std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
+                  dupTree = prefix + dupTree;
                   out.open (dupTree.c_str(), std::ios::out);
                   out << duplicationTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
                   out.close();
                   std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", allParams[i], "losses.tree", "", false, false);
+                  lossTree = prefix+lossTree;
                   out.open (lossTree.c_str(), std::ios::out);
                   out << lossTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
                   out.close();
