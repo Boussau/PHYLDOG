@@ -1074,7 +1074,7 @@ int main(int args, char ** argv)
           }
 			}
       
-      std::string prefix = ApplicationTools::getStringParameter("output.file.prefix", params, "", "", false, false);
+      std::string suffix = ApplicationTools::getStringParameter("output.file.suffix", params, "", "", false, false);
       
       //If we have to stop the program before the end, we need to:
       //- saves the species tree to a given file to start from the good species tree
@@ -1088,7 +1088,7 @@ int main(int args, char ** argv)
 
         std::cout <<"\t\tSaving the current species tree for the next run."<<std::endl;
         std::string tempSpTree = ApplicationTools::getStringParameter("output.temporary.tree.file", params, "CurrentSpeciesTree.tree", "", false, false);
-        tempSpTree = prefix + tempSpTree;
+        tempSpTree = tempSpTree + suffix;
         std::ofstream out (tempSpTree.c_str(), std::ios::out);
         out << TreeTools::treeToParenthesis(*bestTree, false)<<std::endl;
         out.close();  
@@ -1138,7 +1138,7 @@ int main(int args, char ** argv)
         
         //Outputting the results of the algorithm, server side.
         std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false); 
-        dupTree = prefix + dupTree;
+        dupTree = dupTree + suffix;
         std::ofstream out (dupTree.c_str(), std::ios::out);
         out << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "DUPLICATIONS")<<std::endl;
         out.close();
@@ -1152,13 +1152,13 @@ int main(int args, char ** argv)
             }
           }
         std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
-        lossTree = prefix + lossTree;
+        lossTree = lossTree + suffix;
         out.open (lossTree.c_str(), std::ios::out);
         out << treeToParenthesisWithDoubleNodeValues(*bestTree, false, "LOSSES")<<std::endl;
         out.close();
         
         std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params, "ServerNumbered.tree", "", false, false);
-        numTree = prefix + numTree;
+        numTree = numTree + suffix;
         out.open (numTree.c_str(), std::ios::out);
         out << TreeTools::treeToParenthesis (*bestTree, true)<<std::endl;
         out.close();
@@ -1171,7 +1171,7 @@ int main(int args, char ** argv)
                                        num1Lineages, 
                                        num2Lineages);
         std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params, "lineageNumbers.tree", "", false, false); 
-        lineagesTree = prefix + lineagesTree;
+        lineagesTree = lineagesTree + suffix;
         out.open (lineagesTree.c_str(), std::ios::out);
         out << TreeTools::treeToParenthesis(*bestTree, false, NUMLINEAGES)<<std::endl;
         out.close();
@@ -1820,19 +1820,19 @@ int main(int args, char ** argv)
                   {
                  /* std::cout <<"After Main Loop:"<<std::endl;
                   backupTreeLikelihoods[i]->print();*/
-                  std::string prefix = ApplicationTools::getStringParameter("output.file.prefix", allParams[i], "", "", false, false);
+                  std::string suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
                   std::string reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
-                  reconcTree = prefix+reconcTree;
+                  reconcTree = reconcTree + suffix;
                   std::ofstream out (reconcTree.c_str(), std::ios::out);
                   out << reconciledTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
                   out.close();
                   std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
-                  dupTree = prefix + dupTree;
+                  dupTree = dupTree + suffix;
                   out.open (dupTree.c_str(), std::ios::out);
                   out << duplicationTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
                   out.close();
                   std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", allParams[i], "losses.tree", "", false, false);
-                  lossTree = prefix+lossTree;
+                  lossTree = lossTree + suffix;
                   out.open (lossTree.c_str(), std::ios::out);
                   out << lossTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
                   out.close();
