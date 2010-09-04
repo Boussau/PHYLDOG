@@ -925,11 +925,25 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
       makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i]);
       if (optimizeRates) 
         {
-          computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, /*lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *tree, bestlogL);
+          computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, 
+                                                                             stop, logL, 
+        /*lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, */
+                                                                             num0Lineages, num1Lineages,num2Lineages, 
+                                                                             allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                                                             lossProbabilities, duplicationProbabilities, 
+                                                                             rearrange, server, branchProbaOptimization, 
+                                                                             genomeMissing, *tree, bestlogL);
         }
       else 
         {
-          computeSpeciesTreeLikelihood(world, index, stop, logL, /*lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, */num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *tree);
+          computeSpeciesTreeLikelihood(world, index, 
+                                       stop, logL, 
+        /*lossNumbers, duplicationNumbers, branchNumbers, AllLosses, AllDuplications, AllBranches, */
+                                       num0Lineages, num1Lineages,num2Lineages, 
+                                       allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+                                       lossProbabilities, duplicationProbabilities, 
+                                       rearrange, server, branchProbaOptimization, 
+                                       genomeMissing, *tree);
         }
       if (logL+0.01<bestlogL) {
         betterTree = true;
@@ -1154,7 +1168,15 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
                                          TreeTemplate<Node> &tree) {
   breadthFirstreNumber (tree, duplicationProbabilities, lossProbabilities);
   std::string currentSpeciesTree = TreeTools::treeToParenthesis(tree, true);
-  computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, stop, logL, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, tree, currentSpeciesTree);
+  computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, 
+                                                         stop, logL, 
+                                                         num0Lineages, num1Lineages, 
+                                                         num2Lineages, allNum0Lineages, 
+                                                         allNum1Lineages, allNum2Lineages, 
+                                                         lossProbabilities, duplicationProbabilities, 
+                                                         rearrange, server, 
+                                                         branchProbaOptimization, genomeMissing, 
+                                                         tree, currentSpeciesTree, false);
 /*  
   broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
   //COMPUTATION IN CLIENTS
@@ -1206,18 +1228,21 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
                                          std::string &branchProbaOptimization, 
                                          std::map < std::string, int> genomeMissing, 
                                          TreeTemplate<Node> &tree, 
-                                         std::string currentSpeciesTree) 
+                                         std::string currentSpeciesTree,
+                                         bool firstTime) 
 {
-  broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
+  if (!firstTime) 
+    {
+    broadcastsAllInformation(world, server, stop, rearrange, lossProbabilities, duplicationProbabilities, currentSpeciesTree);
+    index++;  
+    }
   //COMPUTATION IN CLIENTS
-  index++;  
   logL = 0.0;
   std::vector<double> logLs;
   resetVector(num0Lineages);
   resetVector(num1Lineages);
   resetVector(num2Lineages);
   gather(world, logL, logLs, server);
-
   logL =  VectorTools::sum(logLs);
   gather(world, num0Lineages, allNum0Lineages, server);
   gather(world, num1Lineages, allNum1Lineages, server);
@@ -1256,7 +1281,7 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
       currentlogL = logL;
       i++;
       computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities, genomeMissing, tree);
-      computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, stop, logL, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, tree, currentSpeciesTree);      
+      computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, stop, logL, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, tree, currentSpeciesTree, false);      
     }
   std::cout <<"\t\tNumber of species trees tried: "<<index<< std::endl;
   std::cout<<"\t\tMinus logLk value for this species tree: "<<logL<<std::endl;
