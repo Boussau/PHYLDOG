@@ -3399,8 +3399,207 @@ void removeLeaf(TreeTemplate<Node> & tree, std::string toRemove){
 
 /**************************************************************************/
 
+/******************************************************************************/
+//This function cleans a vector of options read from a file.
+/******************************************************************************/
 
 
+void cleanVectorOfOptions (std::vector<std::string> & listOptions, bool sizeConstraint)
+{
+  int maxStrSize=0;
+  std::vector <int> toRemove;
+  int i=0;
+  for(std::vector<std::string >::iterator it = listOptions.begin(); it != listOptions.end(); it++)
+    {
+    std::string arg = removeComments(*it, std::string("#"), std::string("\n"));//remove shell comments.
+    arg = removeComments(arg, std::string("//"), std::string("\n"));//remove C simple comments.
+    arg = removeComments(arg, std::string("/*"), std::string("*/"));//remove C multiple comments.
+    arg = TextTools::removeWhiteSpaces(arg);
+    *it = arg;
+    int temp=it->length();
+    if (temp==0) {
+      toRemove.push_back(i);
+    }
+    else {
+      if (temp>maxStrSize){maxStrSize=temp;};
+    }
+    i++;
+    }
+  for(std::vector<int>::reverse_iterator it = toRemove.rbegin(); it != toRemove.rend(); it++)
+    {
+    listOptions.erase(listOptions.begin()+*it);
+    }
+  if (sizeConstraint) 
+    {
+    if(maxStrSize>MAXFILENAMESIZE) 
+      {
+      std::cout << "\nNames are too long, please abbreviate ! File names (including the path) need to be < "<< MAXFILENAMESIZE <<" letters long.\n"<<std::endl;
+      exit(-1);
+      }
+    }
+  return;
+}
+
+/**************************************************************************/
+
+
+/**************************************************************************
+ * This function distributes gene families so as to homogenize computational load between clients.
+ **************************************************************************/
+
+bool sortMaxFunction (std::pair <std::string, double> i, std::pair <std::string, double> j) 
+{ 
+  if (i.second > j.second ) 
+    {
+    return (true);
+    }
+  else 
+    {
+    return (false);
+    }
+}
+
+bool sortMinFunction (std::pair <std::vector<std::string>, double> i, std::pair <std::vector<std::string>, double> j) 
+{ 
+  if (i.second < j.second ) 
+    {
+    return (true);
+    }
+  else 
+    {
+    return (false);
+    }
+}
+
+
+
+
+void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int size, std::vector <std::vector<std::string> > &listOfOptionsPerClient, std::vector <int> &numbersOfGenesPerClient) 
+{
+  //Here, two alternatives: either we do have information regarding the gene family sizes, or we don't.
+  //Is there size information?==Is there a ":" in the first line?
+  if (TextTools::hasSubstring(listOptions[0],":")) 
+    {
+    std::vector <std::pair <std::string, double> > elements;
+    for (int i = 0; i<listOptions.size() ; i++) {
+      StringTokenizer st1 = StringTokenizer::StringTokenizer (listOptions[i], ":", true);
+      elements.push_back(std::pair <std::string, double>(st1.getToken(0), TextTools::toDouble(st1.getToken(1))) );
+    }
+    
+    //Now sort the gene families by their size, in descending order
+    sort(elements.begin(), elements.end(), sortMaxFunction);
+    //Now we assign gene families to nodes.
+    //We start with big families, and then go in decreasing order.
+    //First we assign the first families
+    std::vector <std::pair <std::vector<std::string>, double> > listOfOptionsAndTotSizePerClient;
+    
+    std::vector<std::string> temp2;
+    std::pair <std::vector<std::string>, double> temp3;
+    int j = 0;
+    
+    for (int i = 0; i<size-1 ; i++) {
+      listOfOptionsAndTotSizePerClient.push_back(temp3);
+      listOfOptionsAndTotSizePerClient[i].first.push_back(elements[j].first);
+      listOfOptionsAndTotSizePerClient[i].second = elements[j].second;  
+      j = j+1;
+    }
+    
+    while (j<listOptions.size()) {
+      //We sort listOfOptionsAndTotSizePerClient in increasing function
+      sort(listOfOptionsAndTotSizePerClient.begin(), listOfOptionsAndTotSizePerClient.end(), sortMinFunction);
+      listOfOptionsAndTotSizePerClient[0].first.push_back(elements[j].first);
+      listOfOptionsAndTotSizePerClient[0].second = listOfOptionsAndTotSizePerClient[0].second + elements[j].second;
+      j= j+1;
+    }
+    
+    //Now all gene families must have been assigned to nodes.
+    // std::vector <std::vector<std::string> > listOfOptionsPerClient;
+    listOfOptionsPerClient.push_back(temp2);
+    listOfOptionsPerClient[0].push_back(std::string("####"));//For the root node
+    numbersOfGenesPerClient.push_back(0);
+    
+    //We print the result of the assignment and fill listOfOptionsPerClient:
+    for (int i = 0; i<size-1 ; i++) {
+      std::cout <<"Client "<<i<<" is in charge of "<< listOfOptionsAndTotSizePerClient[i].first.size()<<" gene families; Total Weight : "<<listOfOptionsAndTotSizePerClient[i].second<<std::endl;
+      listOfOptionsPerClient.push_back(listOfOptionsAndTotSizePerClient[i].first);
+      numbersOfGenesPerClient.push_back(listOfOptionsAndTotSizePerClient[i].first.size());
+    }
+    return ;
+    //generateListOfOptionsPerClient(listOptions, size, listOfOptionsPerClient, numbersOfGenesPerClient);
+    }
+  else 
+    {
+    int numberOfGenesPerClient = (int)(listOptions.size()) / (size -1); 
+    int reste = (listOptions.size()) % (size -1);
+    std::cout <<"Number of genes per client : "<<numberOfGenesPerClient<< " and extra "<<reste<<std::endl;
+    for (int i = 0 ; i< size-1 ; i++ ) 
+      {
+      if (i<reste) 
+        {
+        numbersOfGenesPerClient.push_back(numberOfGenesPerClient+1);
+        }
+      else 
+        {
+        numbersOfGenesPerClient.push_back(numberOfGenesPerClient);
+        }
+      } 
+    std::vector<int>::iterator it2 = numbersOfGenesPerClient.begin();
+    numbersOfGenesPerClient.insert( it2, int(0) ); //For the server, we insert a "dumb" option file at the beginning of the std::vector, so only clients compute the reconciliation
+    int currentFile = 0;
+    std::vector<std::string> temp2;
+    for (int i = 0 ; i< size ; i++ ) 
+      {
+      listOfOptionsPerClient.push_back(temp2);
+      if (i == 0) 
+        {
+        listOfOptionsPerClient[i].push_back(std::string("####"));
+        }
+      else 
+        {
+        for (int j = 0 ; j < numbersOfGenesPerClient[i] ; j++) 
+          {
+          listOfOptionsPerClient[i].push_back(listOptions[currentFile]);
+          currentFile++;
+          }
+        }
+      }
+    return;
+    }
+  
+}
+
+
+
+
+
+/**************************************************************************
+ * Utilitary fonction
+ *************************************************************************/
+
+std::string removeComments(
+                           const std::string & s,
+                           const std::string & begin,
+                           const std::string & end)
+{
+  std::string r = s;
+  std::string::size_type last = 0;
+	do
+    {
+    std::string::size_type first = r.find(begin, last);
+		if(first == std::string::npos) return r; //No shell comment.
+		//else:  
+		last = r.find(end, first);
+		if(last == std::string::npos)
+      {
+			r.erase(r.begin() + first, r.end());
+      }
+		else
+      {
+			r.erase(r.begin() + first, r.begin() + last);
+      }
+    } while(last != std::string::npos);
+	return r;
+}
 
 
 

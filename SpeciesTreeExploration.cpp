@@ -557,8 +557,8 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             std::vector< std::vector<int> > &allNum2Lineages, 
                                             std::vector<double> &lossProbabilities, 
                                             std::vector<double> &duplicationProbabilities, 
-                                            double averageDuplicationProbability, 
-                                            double averageLossProbability, 
+                                            /*double averageDuplicationProbability, 
+                                            double averageLossProbability,*/ 
                                             bool rearrange, 
                                             int &numIterationsWithoutImprovement, 
                                             int server, 
@@ -662,8 +662,8 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
                                          std::vector< std::vector<int> > &allNum2Lineages, 
                                          std::vector<double> &lossProbabilities, 
                                          std::vector<double> &duplicationProbabilities, 
-                                         double averageDuplicationProbability, 
-                                         double averageLossProbability, 
+                                         /*double averageDuplicationProbability, 
+                                         double averageLossProbability,*/ 
                                          bool rearrange, 
                                          int &numIterationsWithoutImprovement, 
                                          int server, 
@@ -779,7 +779,7 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
                                                 std::vector< std::vector<int> > &allNum2Lineages, 
                                                 std::vector<double> &lossProbabilities, 
                                                 std::vector<double> &duplicationProbabilities, 
-                                                double averageDuplicationProbability, double averageLossProbability, 
+                                                /*double averageDuplicationProbability, double averageLossProbability,*/ 
                                                 bool rearrange, int &numIterationsWithoutImprovement, 
                                                 int server, std::string &branchProbaOptimization, 
                                                 std::map < std::string, int> genomeMissing, 
@@ -902,7 +902,7 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                             std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, 
                             std::vector< std::vector<int> > &allNum2Lineages, 
                             std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, 
-                            double averageDuplicationProbability, double averageLossProbability, 
+                            /*double averageDuplicationProbability, double averageLossProbability,*/ 
                             bool rearrange, int &numIterationsWithoutImprovement, int server, 
                             std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, 
                             int sprLimit, bool optimizeRates) {
@@ -1060,8 +1060,8 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                          std::vector< std::vector<int> > &allNum2Lineages, 
                                          std::vector<double> &lossProbabilities, 
                                          std::vector<double> &duplicationProbabilities, 
-                                         double averageDuplicationProbability, 
-                                         double averageLossProbability, 
+                                         /*double averageDuplicationProbability, 
+                                         double averageLossProbability,*/ 
                                          bool rearrange, 
                                          int &numIterationsWithoutImprovement, 
                                          int server, 
@@ -1088,7 +1088,7 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                            bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
                            allNum0Lineages, allNum1Lineages, allNum2Lineages, 
                            lossProbabilities, duplicationProbabilities, 
-                           averageDuplicationProbability, averageLossProbability, 
+                           /*averageDuplicationProbability, averageLossProbability,*/ 
                            rearrange, numIterationsWithoutImprovement, 
                            server, branchProbaOptimization, genomeMissing, 
                            sprLimit, optimizeRates);
@@ -1113,7 +1113,7 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                                bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
                                                allNum0Lineages, allNum1Lineages, allNum2Lineages, 
                                                lossProbabilities, duplicationProbabilities, 
-                                               averageDuplicationProbability, averageLossProbability, 
+                                               /*averageDuplicationProbability, averageLossProbability,*/ 
                                                rearrange, numIterationsWithoutImprovement, 
                                                server, branchProbaOptimization, 
                                                genomeMissing, optimizeRates);
@@ -1152,7 +1152,6 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
                                          int &index, 
                                          bool stop, 
                                          double &logL, 
-/*std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, */
                                          std::vector<int> &num0Lineages, 
                                          std::vector<int> &num1Lineages, 
                                          std::vector<int> &num2Lineages, 
@@ -1291,6 +1290,27 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
 
 
 
+
+/******************************************************************************/
+// This function runs the first communications between the server and the clients.
+/******************************************************************************/
+void firstCommunicationsServerClient (const mpi::communicator & world, int & server, std::vector <int>  & numbersOfGenesPerClient, int & assignedNumberOfGenes, std::vector<std::string> & assignedFilenames, std::vector <std::vector<std::string> > & listOfOptionsPerClient, bool & optimizeSpeciesTreeTopology, int & SpeciesNodeNumber, std::vector <double> & lossExpectedNumbers, std::vector <double> & duplicationExpectedNumbers, std::vector <int> & num0Lineages, std::vector <int> & num1Lineages, std::vector <int> & num2Lineages, std::string & currentSpeciesTree)
+{
+  //The server sends the number of genes assigned to each client
+  scatter(world , numbersOfGenesPerClient, assignedNumberOfGenes, server);
+  //Then the server sends each client the std::vector of filenames it is in charge of
+  scatter(world , listOfOptionsPerClient, assignedFilenames, server);
+  //Now the server sends to all clients the same information.
+  broadcast(world, optimizeSpeciesTreeTopology, server);
+  broadcast(world, SpeciesNodeNumber, server);
+  broadcast(world, lossExpectedNumbers, server); 
+  broadcast(world, duplicationExpectedNumbers, server); 
+  broadcast(world, num0Lineages, server);
+  broadcast(world, num1Lineages, server);
+  broadcast(world, num2Lineages, server);
+  broadcast(world, currentSpeciesTree, server);
+  return;  
+}
 
 
 

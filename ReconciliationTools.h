@@ -24,6 +24,7 @@
 #include <Utils/Clonable.h>
 #include <Utils/Number.h>
 #include <Utils/BppString.h>
+#include <Utils/KeyvalTools.h>
 
 #include "mpi.h" 
 using namespace bpp;
@@ -40,6 +41,8 @@ const std::string NUMLINEAGES="NUMLINEAGES";
 const double UNLIKELY=-100000000000000000000.0;
 const double SMALLPROBA=0.0000000001;
 const double BIGPROBA=0.9999999999;
+const int MAXFILENAMESIZE = 500;
+const int MAXSPECIESTREESIZE = 10000; //size of the species tree, in number of CHARs, as it is written in Newick format
 
 void assignArbitraryBranchLengths(TreeTemplate<Node> & tree);
 void reNumber (TreeTemplate<Node> & tree, Node * noeud, int & index);
@@ -257,6 +260,17 @@ void computeDuplicationAndLossRatesForTheSpeciesTreeInitially (std::string &bran
                                                                std::map <std::string, int> & genomeMissing, 
                                                                TreeTemplate<Node> & tree);
 void removeLeaf(TreeTemplate<Node> & tree, std::string toRemove);
+void cleanVectorOfOptions (std::vector<std::string> & listOptions, bool sizeConstraint);
+bool sortMaxFunction (std::pair <std::string, double> i, std::pair <std::string, double> j);
+bool sortMinFunction (std::pair <std::vector<std::string>, double> i, std::pair <std::vector<std::string>, double> j);
+void generateListOfOptionsPerClient(std::vector <std::string> listOptions, 
+                                    int size, 
+                                    std::vector <std::vector<std::string> > &listOfOptionsPerClient, 
+                                    std::vector <int> &numbersOfGenesPerClient);
+std::string removeComments(
+                           const std::string & s,
+                           const std::string & begin,
+                           const std::string & end);
 
 #endif  //_RECONCILIATIONTOOLS_H_
 
