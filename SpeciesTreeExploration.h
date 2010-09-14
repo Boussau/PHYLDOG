@@ -109,7 +109,8 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             int & nodeForRooting, 
                                             std::string & branchProbaOptimization, 
                                             std::map <std::string, int> genomeMissing, 
-                                            std::vector < double > & NNILks);
+                                            std::vector < double > & NNILks, 
+                                            std::vector<double> &rootLks);
 void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world, 
                                          TreeTemplate<Node> *tree, 
                                          TreeTemplate<Node> *bestTree, 

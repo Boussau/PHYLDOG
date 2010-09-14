@@ -22,8 +22,9 @@ bool cmp( int a, int b ) {
  * Change the root of the tree by changing the outgroup.
 ************************************************************************/
 
-void changeRoot(TreeTemplate<Node> &tree, int newOutGroup) {
- std::cout <<"Changing the outgroup to node :"<<newOutGroup<< std::endl;
+void changeRoot(TreeTemplate<Node> &tree, int newOutGroup) 
+{
+  std::cout <<"Changing the outgroup to node :"<<newOutGroup<< std::endl;
   tree.newOutGroup(newOutGroup); 
 }
 
@@ -530,10 +531,57 @@ void makeTotallyDeterministicModifications(TreeTemplate<Node> &tree, int & nodeF
 }
 
 
+/************************************************************************
+ * Procedure that makes sure that an NNI or rerooting one is about to make has
+ * not been computed already.
+ * If all NNIs or rerootings have been made, return true.
+ ************************************************************************/
+
+bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, int & nodeForNNI, 
+                               int & nodeForRooting, std::vector < double >  &NNILks, 
+                               std::vector < double >  &rootLks)
+{
+  if (nodeForNNI < tree.getNumberOfNodes()) 
+    {//Make a NNI or rerooting move
+      if (nodeForNNI <3) 
+        {
+        if (nodeForRooting<tree.getNumberOfNodes()) 
+          {//Make a rerooting move
+            while ((rootLks[nodeForRooting] != NumConstants::VERY_BIG) && (nodeForRooting < tree.getNumberOfNodes()))
+              nodeForRooting++;
+          }
+        if (nodeForRooting >= tree.getNumberOfNodes()) 
+          { //Make a NNI move
+            nodeForNNI=3;
+            while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] != NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+              nodeForNNI++;
+          }
+        }
+      else 
+        {
+        while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] != NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+          nodeForNNI++;
+        }
+    }
+  else 
+    {//we reset the loop rooting-NNIs
+      while ((rootLks[nodeForRooting] != NumConstants::VERY_BIG) && (nodeForRooting < tree.getNumberOfNodes()))
+        nodeForRooting++;
+    }
+  if (nodeForRooting == tree.getNumberOfNodes() && nodeForNNI == tree.getNumberOfNodes())
+    {
+    return true;
+    }
+  else {
+    return false;
+  }
+}
+
+
+
 
 /************************************************************************
  * Procedure that makes NNIs and ReRootings by calling makeDeterministicNNIsAndRootChangesOnly.
-
 ************************************************************************/
 
 
@@ -566,7 +614,8 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             int & nodeForRooting, 
                                             std::string & branchProbaOptimization, 
                                             std::map < std::string, int> genomeMissing,
-                                            std::vector < double >  &NNILks) 
+                                            std::vector < double >  &NNILks, 
+                                            std::vector<double> &rootLks) 
 {
   
   std::vector <double> bestDupProba=duplicationProbabilities;
@@ -575,21 +624,42 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
   
   while (!stop) 
     {
-    makeDeterministicNNIsAndRootChangesOnly(*tree, nodeForNNI, nodeForRooting);
-    computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, logL, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossProbabilities, duplicationProbabilities, rearrange, server, branchProbaOptimization, genomeMissing, *tree, bestlogL);
-    if ((nodeForNNI >=3) && (nodeForRooting == 4)) 
+    //If we have already computed the value for the NNI or the rerooting 
+    //we are about to make, we don't make it!
+    stop = checkChangeHasNotBeenDone(*tree, bestTree, nodeForNNI, nodeForRooting, NNILks, rootLks);
+    if (!stop)
       {
-      int branchId = bestTree->getNode(nodeForNNI-1)->getFather()->getId();
-      if (logL < NNILks[branchId]) 
-        {
-        NNILks[branchId] = logL;
-        }
+      makeDeterministicNNIsAndRootChangesOnly(*tree, nodeForNNI, nodeForRooting);      
       }
+    computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, 
+                                                                       logL, num0Lineages, 
+                                                                       num1Lineages,num2Lineages, 
+                                                                       allNum0Lineages, allNum1Lineages, 
+                                                                       allNum2Lineages, lossProbabilities, 
+                                                                       duplicationProbabilities, rearrange, 
+                                                                       server, branchProbaOptimization, 
+                                                                       genomeMissing, *tree, bestlogL);
+    if (!stop) {
+      if ((nodeForNNI >=3) && (nodeForRooting == 4)) //A NNI has been done
+        {
+        int branchId = bestTree->getNode(nodeForNNI-1)->getFather()->getId();
+        if (logL < NNILks[branchId]) 
+          {
+          NNILks[branchId] = logL;
+          }
+        }
+      else //A rerooting has been done 
+        {
+        if (logL < rootLks[nodeForRooting]) 
+          {
+          rootLks[nodeForRooting] = logL;
+          }
+        }
+  
     if (logL+0.01<bestlogL) 
       {
       std::cout << "\t\tNNIs or Root changes: Improvement: new total Likelihood value "<<logL<<" compared to the best log Likelihood : "<<bestlogL<< std::endl;
       std::cout << "Improved species tree: "<<TreeTools::treeToParenthesis(*tree, true)<< std::endl;
-      
       numIterationsWithoutImprovement = 0;
       bestlogL =logL;
       if (bestTree)
@@ -606,6 +676,7 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
       for (int i = 0 ; i< NNILks.size() ; i++ ) 
         {
         NNILks[i]=NumConstants::VERY_BIG;
+        rootLks[i]=NumConstants::VERY_BIG;
         }
       if (ApplicationTools::getTime() >= timeLimit)
         {
@@ -613,7 +684,6 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
         broadcast(world, stop, server); 
         broadcast(world, bestIndex, server);
         }
-      
       }
     else 
       {
@@ -630,7 +700,14 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
         broadcast(world, bestIndex, server);
         }
       }
-    }
+      }
+    else 
+      {
+      broadcast(world, stop, server); 
+      broadcast(world, bestIndex, server);
+      }
+    
+     }
 }
 
 

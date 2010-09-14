@@ -98,8 +98,9 @@ namespace bpp
   std::map <std::string, int> genomeMissing_;
   //Node number in the species tree
   int speciesTreeNodeNumber_;
-  //vector to keep NNI likelihoods, for making aLRTs.
-  std::vector <double > NNILks_; 
+  //vectors to keep NNI and root likelihoods, for making aLRTs.
+  std::vector <double > NNILks_;
+  std::vector <double > rootLks_;
   //Time limit: the program has to stop before this limit (in hours)
   int timeLimit_;
   //When the program stops, it knows at what step of the algorithm it is
@@ -195,7 +196,9 @@ namespace bpp
   numIterationsWithoutImprovement_(stl.numIterationsWithoutImprovement_), 
   branchExpectedNumbersOptimization_(stl.branchExpectedNumbersOptimization_), 
   genomeMissing_(stl.genomeMissing_), 
-  speciesTreeNodeNumber_(stl.speciesTreeNodeNumber_)
+  speciesTreeNodeNumber_(stl.speciesTreeNodeNumber_), NNILks_(stl.NNILks_),
+  rootLks_(stl.rootLks_), timeLimit_(stl.timeLimit_), currentStep_(stl.currentStep_),
+  suffix_(stl.suffix_)
   {}
   
   
@@ -226,6 +229,11 @@ namespace bpp
   branchExpectedNumbersOptimization_ = stl.branchExpectedNumbersOptimization_;
   genomeMissing_ = stl.genomeMissing_;
   speciesTreeNodeNumber_ = stl.speciesTreeNodeNumber_;
+  NNILks_ = stl.NNILks_;
+  rootLks_ = stl.rootLks_;
+  timeLimit_ = stl.timeLimit_;
+  currentStep_ = stl.timeLimit_;
+  suffix_ = stl.suffix_;
   return *this;
   }
   

@@ -61,7 +61,11 @@ void SpeciesTreeLikelihood::initialize()
   bestIndex_ = 0;
   index_ = 0; 
   //vector to keep NNIs likelihoods, for making aLRTs.
-  //std::vector <double > NNILks_(2*tree->getNumberOfLeaves()-2, NumConstants::VERY_BIG); 
+  for (int i = 0 ; i <tree_->getNumberOfLeaves() ; i ++)
+       {
+       NNILks_.push_back(NumConstants::VERY_BIG);
+       rootLks_.push_back(NumConstants::VERY_BIG);
+       }
 
   /****************************************************************************
    * First communications between the server and the clients.
@@ -512,6 +516,9 @@ void SpeciesTreeLikelihood::MLsearch()
           {
           if (optimizeSpeciesTreeTopology_) 
             {
+            ///////////////////////////////////////////
+            //Need to fill in NNILks_ and rootLks_ HERE
+            ///////////////////////////////////////////
             std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
             localOptimizationWithNNIsAndReRootings(world_, currentTree_, bestTree_, 
                                                    index_, bestIndex_, 
@@ -523,7 +530,7 @@ void SpeciesTreeLikelihood::MLsearch()
                                                    lossExpectedNumbers_, duplicationExpectedNumbers_, 
                                                    rearrange_, numIterationsWithoutImprovement_, 
                                                    server_, nodeForNNI, nodeForRooting, 
-                                                   branchExpectedNumbersOptimization_, genomeMissing_, NNILks_);
+                                                   branchExpectedNumbersOptimization_, genomeMissing_, NNILks_, rootLks_);
             }
           else 
             {
