@@ -123,7 +123,6 @@ namespace bpp
   addParameter_(p);
   Parameter p2("coefLoss", 1, &Parameter::R_PLUS_STAR);
   addParameter_(p2);
-  parseOptions();
   }
   
   

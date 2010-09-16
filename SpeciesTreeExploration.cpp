@@ -627,19 +627,18 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
     //If we have already computed the value for the NNI or the rerooting 
     //we are about to make, we don't make it!
     stop = checkChangeHasNotBeenDone(*tree, bestTree, nodeForNNI, nodeForRooting, NNILks, rootLks);
-    if (!stop)
+    if (!stop) 
       {
       makeDeterministicNNIsAndRootChangesOnly(*tree, nodeForNNI, nodeForRooting);      
-      }
-    computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, 
-                                                                       logL, num0Lineages, 
-                                                                       num1Lineages,num2Lineages, 
-                                                                       allNum0Lineages, allNum1Lineages, 
-                                                                       allNum2Lineages, lossProbabilities, 
-                                                                       duplicationProbabilities, rearrange, 
-                                                                       server, branchProbaOptimization, 
-                                                                       genomeMissing, *tree, bestlogL);
-    if (!stop) {
+      computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, 
+                                                                         logL, num0Lineages, 
+                                                                         num1Lineages,num2Lineages, 
+                                                                         allNum0Lineages, allNum1Lineages, 
+                                                                         allNum2Lineages, lossProbabilities, 
+                                                                         duplicationProbabilities, rearrange, 
+                                                                         server, branchProbaOptimization, 
+                                                                         genomeMissing, *tree, bestlogL);
+      
       if ((nodeForNNI >=3) && (nodeForRooting == 4)) //A NNI has been done
         {
         int branchId = bestTree->getNode(nodeForNNI-1)->getFather()->getId();
@@ -655,59 +654,66 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
           rootLks[nodeForRooting] = logL;
           }
         }
-  
-    if (logL+0.01<bestlogL) 
-      {
-      std::cout << "\t\tNNIs or Root changes: Improvement: new total Likelihood value "<<logL<<" compared to the best log Likelihood : "<<bestlogL<< std::endl;
-      std::cout << "Improved species tree: "<<TreeTools::treeToParenthesis(*tree, true)<< std::endl;
-      numIterationsWithoutImprovement = 0;
-      bestlogL =logL;
-      if (bestTree)
+      
+      if (logL+0.01<bestlogL) 
         {
-        delete bestTree;
+        std::cout << "\t\tNNIs or Root changes: Improvement: new total Likelihood value "<<logL<<" compared to the best log Likelihood : "<<bestlogL<< std::endl;
+        std::cout << "Improved species tree: "<<TreeTools::treeToParenthesis(*tree, true)<< std::endl;
+        numIterationsWithoutImprovement = 0;
+        bestlogL =logL;
+        if (bestTree)
+          {
+          delete bestTree;
+          }
+        bestTree = tree->clone();  
+        bestDupProba=duplicationProbabilities;
+        bestLossProba=lossProbabilities;
+        bestNum0Lineages = num0Lineages;
+        bestNum1Lineages = num1Lineages;
+        bestNum2Lineages = num2Lineages;
+        bestIndex = index;
+        for (int i = 0 ; i< NNILks.size() ; i++ ) 
+          {
+          NNILks[i]=NumConstants::VERY_BIG;
+          rootLks[i]=NumConstants::VERY_BIG;
+          }
+        if (ApplicationTools::getTime() >= timeLimit)
+          {
+          stop = true;
+          broadcast(world, stop, server); 
+          broadcast(world, bestIndex, server);
+          }
         }
-      bestTree = tree->clone();  
-      bestDupProba=duplicationProbabilities;
-      bestLossProba=lossProbabilities;
-      bestNum0Lineages = num0Lineages;
-      bestNum1Lineages = num1Lineages;
-      bestNum2Lineages = num2Lineages;
-      bestIndex = index;
-      for (int i = 0 ; i< NNILks.size() ; i++ ) 
+      else 
         {
-        NNILks[i]=NumConstants::VERY_BIG;
-        rootLks[i]=NumConstants::VERY_BIG;
-        }
-      if (ApplicationTools::getTime() >= timeLimit)
-        {
-        stop = true;
-        broadcast(world, stop, server); 
-        broadcast(world, bestIndex, server);
+        numIterationsWithoutImprovement++;
+        std::cout <<"\t\tNNIs or Root changes: Number of iterations without improvement: "<<numIterationsWithoutImprovement<< std::endl;
+        delete tree;
+        tree = bestTree->clone();
+        duplicationProbabilities = bestDupProba;
+        lossProbabilities = bestLossProba;
+        if ( (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) || (ApplicationTools::getTime() >= timeLimit) ) 
+          {
+          stop = true;
+          broadcast(world, stop, server); 
+          broadcast(world, bestIndex, server);
+          }
         }
       }
-    else 
+    else //stop is true
       {
-      numIterationsWithoutImprovement++;
-      std::cout <<"\t\tNNIs or Root changes: Number of iterations without improvement: "<<numIterationsWithoutImprovement<< std::endl;
-      delete tree;
-      tree = bestTree->clone();
-      duplicationProbabilities = bestDupProba;
-      lossProbabilities = bestLossProba;
-      if ( (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) || (ApplicationTools::getTime() >= timeLimit) ) 
-        {
-        stop = true;
-        broadcast(world, stop, server); 
-        broadcast(world, bestIndex, server);
-        }
-      }
-      }
-    else 
-      {
+      computeSpeciesTreeLikelihood(world, index, stop, 
+                                   logL, num0Lineages, 
+                                   num1Lineages,num2Lineages, 
+                                   allNum0Lineages, allNum1Lineages, 
+                                   allNum2Lineages, lossProbabilities, 
+                                   duplicationProbabilities, rearrange, 
+                                   server, branchProbaOptimization, 
+                                   genomeMissing, *tree);
       broadcast(world, stop, server); 
       broadcast(world, bestIndex, server);
       }
-    
-     }
+    }
 }
 
 
@@ -1388,6 +1394,50 @@ void firstCommunicationsServerClient (const mpi::communicator & world, int & ser
   broadcast(world, currentSpeciesTree, server);
   return;  
 }
+
+
+
+
+/******************************************************************************/
+// These functions input and output alternate topolohies likelihoods.
+/******************************************************************************/
+
+void inputNNIAndRootLks(std::vector <double> & NNILks, std::vector <double> & rootLks, std::map<std::string, std::string> & params, std::string & suffix)
+{
+  std::string file = ApplicationTools::getAFilePath("alternate.topology.likelihoods", params, false, false, suffix, true);
+  std::ifstream in (file.c_str(), std::ios::in);
+  std::string line;
+  if (in.is_open())
+    {
+    int i=0;
+    while (! in.eof() )
+      {
+      getline (in,line);
+      StringTokenizer st = StringTokenizer::StringTokenizer (line, "\t", true, true);
+      if (st.getToken(0) != "NNI Likelihoods")
+        {
+        NNILks[i] = TextTools::toDouble(st.getToken(0));
+        rootLks[i] = TextTools::toDouble(st.getToken(1));
+        i = i+1;
+        }
+      }
+    in.close();
+    }
+}
+
+
+void outputNNIAndRootLks(std::vector <double> & NNILks, std::vector <double> & rootLks, std::map<std::string, std::string> & params, std::string & suffix)
+{
+  std::string file = ApplicationTools::getAFilePath("alternate.topology.likelihoods", params, false, false, suffix, true);
+  std::ofstream out (file.c_str(), std::ios::out);
+  out << "NNI Likelihoods"<<"\t"<<"Root likelihoods"<<std::endl;
+  for (int i = 0 ; i < NNILks.size() ; i++)
+    {
+    out<<NNILks[i]<<"\t"<<rootLks[i]<<std::endl;
+    }
+  out.close();  
+}
+
 
 
 

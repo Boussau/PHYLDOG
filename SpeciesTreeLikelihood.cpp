@@ -516,9 +516,8 @@ void SpeciesTreeLikelihood::MLsearch()
           {
           if (optimizeSpeciesTreeTopology_) 
             {
-            ///////////////////////////////////////////
-            //Need to fill in NNILks_ and rootLks_ HERE
-            ///////////////////////////////////////////
+            inputNNIAndRootLks(NNILks_, rootLks_, params_, suffix_);
+            
             std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
             localOptimizationWithNNIsAndReRootings(world_, currentTree_, bestTree_, 
                                                    index_, bestIndex_, 
@@ -579,6 +578,9 @@ void SpeciesTreeLikelihood::MLsearch()
    * - it would be nice to make client option files for the next run to not recompute starting gene trees. Not for now, though.
    ****************************************************************************
    *****************************************************************************/
+  outputNNIAndRootLks(NNILks_, rootLks_, params_, suffix_);
+
+  
   if (ApplicationTools::getTime() >= timeLimit_) 
     {
     

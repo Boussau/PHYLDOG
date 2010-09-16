@@ -296,5 +296,14 @@ void firstCommunicationsServerClient (const mpi::communicator & world,
                                       std::vector <int> & num1Lineages, 
                                       std::vector <int> & num2Lineages, 
                                       std::string & currentSpeciesTree);
+void inputNNIAndRootLks(std::vector <double> & NNILks, 
+                        std::vector <double> & rootLks, 
+                        std::map<std::string, std::string> & params, 
+                        std::string & suffix);
+void outputNNIAndRootLks(std::vector <double> & NNILks, 
+                         std::vector <double> & rootLks, 
+                         std::map<std::string, std::string> & params, 
+                         std::string & suffix);
+
 /*void numericalOptimizationOfDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossProbabilities, std::vector<double> &duplicationProbabilities, bool rearrange, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL);*/
 #endif 
