@@ -662,23 +662,25 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
   std::ofstream out;
   std::string dupTree;
   std::string lossTree;
+  int rightIndex = bestIndex-startRecordingTreesFrom;
   for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
     {
+    std::cout <<"reconciledTrees[i].size(): "<<reconciledTrees[i].size()<<std::endl;
     suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
     reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
     reconcTree = reconcTree + suffix;
     out.open (reconcTree.c_str(), std::ios::out);
-    out << reconciledTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
+    out << reconciledTrees[i][rightIndex]<<std::endl;
     out.close();
     dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
     dupTree = dupTree + suffix;
     out.open (dupTree.c_str(), std::ios::out);
-    out << duplicationTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
+    out << duplicationTrees[i][rightIndex]<<std::endl;
     out.close();
     lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", allParams[i], "losses.tree", "", false, false);
     lossTree = lossTree + suffix;
     out.open (lossTree.c_str(), std::ios::out);
-    out << lossTrees[i][bestIndex-startRecordingTreesFrom]<<std::endl;
+    out << lossTrees[i][rightIndex]<<std::endl;
     out.close();
     }
   return;
@@ -906,6 +908,7 @@ int main(int args, char ** argv)
        * Main loop: iterative likelihood computations
        ****************************************************************************
        *****************************************************************************/
+      
       while (!stop)            
         {      
           logL=0.0;
@@ -919,9 +922,12 @@ int main(int args, char ** argv)
               treeLikelihoods[i]->OptimizeSequenceLikelihood(true);
               backupTreeLikelihoods[i]->OptimizeSequenceLikelihood(true);
               }
+           // std::cout <<  TreeTools::treeToParenthesis(*geneTree, true)<<std::endl;
             PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
+            geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
+
             ///LIKELIHOOD OPTIMIZED
-            geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());            
+                        
             resetLossesAndDuplications(*tree, lossExpectedNumbers, duplicationExpectedNumbers);
             allNum0Lineages[i] = treeLikelihoods[i]->get0LineagesNumbers();
             allNum1Lineages[i] = treeLikelihoods[i]->get1LineagesNumbers();
@@ -958,10 +964,10 @@ int main(int args, char ** argv)
             startRecordingTreesFrom++;
             }
           //Clients send back stuff to the server.
-          gather(world, logL, server);
-          gather(world, num0Lineages, allNum0Lineages, server);
-          gather(world, num1Lineages, allNum1Lineages, server);
-          gather(world, num2Lineages, allNum2Lineages, server);	
+          gather(world, logL, server); 
+          gather(world, num0Lineages, allNum0Lineages, server); 
+          gather(world, num1Lineages, allNum1Lineages, server);   
+          gather(world, num2Lineages, allNum2Lineages, server);	 
           //Should the computations stop? The server tells us.
           broadcast(world, stop, server);
           if (!stop) 
@@ -993,6 +999,7 @@ int main(int args, char ** argv)
               broadcast(world, lossExpectedNumbers, server); 
               broadcast(world, duplicationExpectedNumbers, server); 
               broadcast(world, currentSpeciesTree, server);
+
               TreeTemplate<Node> * tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
               spId = computeSpeciesNamesToIdsMap(*tree);
               for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
@@ -1012,20 +1019,22 @@ int main(int args, char ** argv)
               if (recordGeneTrees) 
                 {
                 broadcast(world, bestIndex, server);
+                std::cout << "bestIndex: "<<bestIndex<<" startRecordingTreesFrom: "<<startRecordingTreesFrom<<std::endl;
                 outputGeneTrees(assignedFilenames, allParams, numDeletedFamilies, 
                                 reconciledTrees, duplicationTrees, lossTrees, 
                                 bestIndex, startRecordingTreesFrom);
+                std::cout<<"CLIENT : trees output"<<std::endl;
                 }
               break;
             }
         }//End while, END OF MAIN LOOP
-			for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
+	/*		for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
         {  
           delete allAlphabets[i];
           delete allDatasets[i];
           delete allModels[i];
           delete allDistributions[i];
-        }
+        }*/
     }//end if a client node
 	}
 	catch(std::exception & e)

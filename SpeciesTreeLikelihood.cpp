@@ -61,7 +61,7 @@ void SpeciesTreeLikelihood::initialize()
   bestIndex_ = 0;
   index_ = 0; 
   //vector to keep NNIs likelihoods, for making aLRTs.
-  for (int i = 0 ; i <tree_->getNumberOfLeaves() ; i ++)
+  for (int i = 0 ; i <tree_->getNumberOfNodes() ; i ++)
        {
        NNILks_.push_back(NumConstants::VERY_BIG);
        rootLks_.push_back(NumConstants::VERY_BIG);
@@ -80,8 +80,13 @@ void SpeciesTreeLikelihood::initialize()
    * First species tree likelihood computation.
    *****************************************************************************/
   breadthFirstreNumber (*tree_, duplicationExpectedNumbers_, lossExpectedNumbers_);
-  TreeTemplate<Node> * bestTree_ = tree_->clone();
-  TreeTemplate<Node> * currentTree_ = tree_->clone();
+  bestTree_ = tree_->clone();
+  currentTree_ = tree_->clone();
+  std::cout<<"SERVER IN initialize 0"<<std::endl;
+
+  std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
+  std::cout<<"SERVER IN initialize 0b"<<std::endl;
+
   
   computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world_, 
                                                          index_, 
@@ -264,10 +269,10 @@ void SpeciesTreeLikelihood::parseOptions()
    // the step we are at in a new option file, so that next time the program
    // runs, we approximately start from the same place.
    *****************************************************************************/
-  int timeLimit_ = ApplicationTools::getIntParameter("time.limit",params_,1000);
+  timeLimit_ = ApplicationTools::getIntParameter("time.limit",params_,1000);
   //we convert hours in seconds. 
   //1h before the end, we will launch the stop signal.
-  if (timeLimit_ == 1)
+  if (timeLimit_ <= 1 )
     {
     timeLimit_ = 2;
     std::cout<<"Setting time.limit to 2, otherwise the program will exit after 0 (=(1-1) * 3600) second !."<<std::endl;
@@ -276,7 +281,7 @@ void SpeciesTreeLikelihood::parseOptions()
   std::cout<<"The program will exit after "<<timeLimit_<<" seconds."<<std::endl;
   //Current step: information to give when the run is stopped for timing reasons, 
   //or to get if given.
-  int currentStep_ = ApplicationTools::getIntParameter("current.step",params_,0);
+  currentStep_ = ApplicationTools::getIntParameter("current.step",params_,0);
   
   /****************************************************************************
    // Then, we handle all gene families.
@@ -345,6 +350,7 @@ void SpeciesTreeLikelihood::MLsearch()
     {
     noMoreSPR=true;
     }  
+  
   /****************************************************************************
    ****************************************************************************
    * Species tree likelihood optimization: main loop.
@@ -475,7 +481,7 @@ void SpeciesTreeLikelihood::MLsearch()
       }        
     else 
       { 
-        
+
         /****************************************************************************
          * noMoreSPR==true, we thus only make NNIs and root changes, 
          * and we rearrange gene trees.
@@ -493,6 +499,7 @@ void SpeciesTreeLikelihood::MLsearch()
                                        rearrange_, server_, 
                                        branchExpectedNumbersOptimization_, genomeMissing_, 
                                        *currentTree_);
+
           std::cout<<"Species tree likelihood without gene tree rearrangement: "<<logL_<<std::endl;
           //Now gene trees are really rearranged.
           computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
@@ -503,7 +510,7 @@ void SpeciesTreeLikelihood::MLsearch()
                                                                              rearrange_, server_, 
                                                                              branchExpectedNumbersOptimization_, genomeMissing_, 
                                                                              *currentTree_, bestlogL_);
-          
+
           std::cout << "\t\tSpecies tree likelihood with gene tree optimization and new branch probabilities: "<<logL_<<" compared to the former log-likelihood : "<<bestlogL_<<std::endl;
           numIterationsWithoutImprovement_ = 0;
           bestlogL_ =logL_;
@@ -512,6 +519,7 @@ void SpeciesTreeLikelihood::MLsearch()
           bestNum1Lineages_ = num1Lineages_;
           bestNum2Lineages_ = num2Lineages_;
           }
+       
         if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) )
           {
           if (optimizeSpeciesTreeTopology_) 
@@ -607,7 +615,8 @@ void SpeciesTreeLikelihood::MLsearch()
     //COMPUTING ALRTs
     //In Anisimova and Gascuel, the relevant distribution is a mixture of chi^2_1 and chi^2_0.
     //Here, I am not sure one can do the same. We stick with the classical chi^2_1 distribution, more conservative.
-    for (int i = 0; i<num0Lineages_.size() ; i++ ) 
+    
+    for (int i = 0; i<bestTree_->getNumberOfNodes() ; i++ ) 
       {
       if ((! bestTree_->getNode(i)->isLeaf()) && (bestTree_->getNode(i)->hasFather())) 
         {
@@ -618,7 +627,7 @@ void SpeciesTreeLikelihood::MLsearch()
         if (proba<0) 
           {
           std::cout <<"Negative aLRT!"<<std::endl;
-          proba ==0;
+          proba == 0;
           }
         std::cout <<"Branch "<<i<<" second best Lk: "<< NNILks_[i]<< ";Lk difference: "<< NNILks_[i] - bestlogL_ <<"; aLRT: "<<proba<<std::endl;
         bestTree_->getNode(i)->setBranchProperty("ALRT", Number<double>(proba));

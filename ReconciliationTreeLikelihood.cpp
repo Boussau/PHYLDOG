@@ -468,8 +468,9 @@ void ReconciliationTreeLikelihood::computeTreeLikelihood()
 */
 double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 {
-  // int nodeId = son->getId();
- // std::cout<<"IN TESTNNI, nodeId "<< nodeId << "_nodesToTryInNNISearch.size() "<< _nodesToTryInNNISearch.size()<<std::endl;
+  //int nodeId = son->getId();
+//  std::cout<<"IN TESTNNI, nodeId "<< nodeId << "_nodesToTryInNNISearch.size() "<< _nodesToTryInNNISearch.size()<<std::endl;
+ // std::cout << "before "<<TreeTools::treeToParenthesis (*tree_, true)<<std::endl;
   if (_nodesToTryInNNISearch.count(nodeId)==1) {
    // std::cout << "before "<<TreeTools::treeToParenthesis (tree_, true)<<std::endl;
    // std::cout<<"Node To Try"<<std::endl;
@@ -491,15 +492,16 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
 
     if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::testNNI(). Node 'son' must not be the root node.", nodeId);
     const Node * parent = son->getFather();
-    
+
     if(!parent->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::testNNI(). Node 'parent' must not be the root node.", parent->getId());
     const Node * grandFather = parent->getFather();
+
     //From here: Bifurcation assumed.
     //In case of multifurcation, an arbitrary uncle is chosen.
     //If we are at root node with a trifurcation, this does not matter, since 2 NNI are possible (see doc of the NNISearchable interface).
     unsigned int parentPosition = grandFather->getSonPosition(parent);
     const Node * uncle = grandFather->getSon(parentPosition > 1 ? 0 : 1 - parentPosition);
-    
+
     Node * sonForNNI    = treeForNNI->getNode(nodeId);
     Node * parentForNNI = sonForNNI->getFather();
     Node * grandFatherForNNI = parentForNNI->getFather();
@@ -508,7 +510,7 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
     grandFatherForNNI->removeSon(uncleForNNI);
     parentForNNI->addSon(uncleForNNI);
     grandFatherForNNI->addSon(sonForNNI);
-    
+
     //Now we root the tree sent to findMLReconciliation as in _rootedTree
     int id = treeForNNI->getRootNode()->getId();
     if(TreeTemplateTools::hasNodeWithId(*(_rootedTree->getRootNode()->getSon(0)),id)) {
@@ -519,7 +521,7 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
     }
     double ScenarioMLValue = 0;
     _totalIterations = _totalIterations+1;
-  
+
     /* //If we want to optimize the root or if we are at the first try
     if (_rootOptimization){
       if (_heuristicsLevel>0) {
@@ -530,10 +532,6 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
       else {
         ScenarioMLValue =  findMLReconciliationDR (&_spTree, treeForNNI, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _tentativeMLindex, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch); 
       }
-      
-      
-      
-      
     }
     else {
       if (_heuristicsLevel>0) {

@@ -231,7 +231,7 @@ namespace bpp
   NNILks_ = stl.NNILks_;
   rootLks_ = stl.rootLks_;
   timeLimit_ = stl.timeLimit_;
-  currentStep_ = stl.timeLimit_;
+  currentStep_ = stl.currentStep_;
   suffix_ = stl.suffix_;
   return *this;
   }
