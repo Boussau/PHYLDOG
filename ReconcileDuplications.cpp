@@ -981,11 +981,7 @@ int main(int args, char ** argv)
                 {
                 treeLikelihoods.push_back(backupTreeLikelihoods[i]->clone());
                 }          
-              if (!rearrange) 
-                {
-                broadcast(world, rearrange, server);
-                } 
-              else 
+              if (rearrange) 
                 {
                 allParams = allParamsBackup;
                 if (recordGeneTrees==false) 
@@ -994,11 +990,11 @@ int main(int args, char ** argv)
                   recordGeneTrees=true;
                   bestIndex=startRecordingTreesFrom;
                   }
-                broadcast(world, rearrange, server);
                 }	
-              broadcast(world, lossExpectedNumbers, server); 
-              broadcast(world, duplicationExpectedNumbers, server); 
-              broadcast(world, currentSpeciesTree, server);
+              broadcastsAllInformationButStop(world, server, rearrange, 
+                                              lossExpectedNumbers, 
+                                              duplicationExpectedNumbers, 
+                                              currentSpeciesTree);
 
               TreeTemplate<Node> * tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
               spId = computeSpeciesNamesToIdsMap(*tree);

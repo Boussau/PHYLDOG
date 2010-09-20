@@ -486,8 +486,10 @@ void SpeciesTreeLikelihood::MLsearch()
          * noMoreSPR==true, we thus only make NNIs and root changes, 
          * and we rearrange gene trees.
          *****************************************************************************/            
-        if ( ( ((!rearrange_)&&(numIterationsWithoutImprovement_>=2*speciesTreeNodeNumber_)) || ((!rearrange_)&&(!optimizeSpeciesTreeTopology_)) ) && (ApplicationTools::getTime() < timeLimit_) )
+        if ( ( ((!rearrange_)&&(numIterationsWithoutImprovement_>=2*speciesTreeNodeNumber_)) || ((!rearrange_)&&(!optimizeSpeciesTreeTopology_)) || (currentStep_ == 3) ) && (ApplicationTools::getTime() < timeLimit_)  )
           {
+          std::cout<<"before computeSpeciesTreeLikelihood"<<std::endl;
+
           rearrange_ = true; //Now we rearrange gene trees
           numIterationsWithoutImprovement_ = 0;
           //This first computation is done without rearranging gene trees
@@ -524,8 +526,9 @@ void SpeciesTreeLikelihood::MLsearch()
           {
           if (optimizeSpeciesTreeTopology_) 
             {
+            std::cout<<"Reading previous topology likelihoods"<<std::endl;
             inputNNIAndRootLks(NNILks_, rootLks_, params_, suffix_);
-            
+
             std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
             localOptimizationWithNNIsAndReRootings(world_, currentTree_, bestTree_, 
                                                    index_, bestIndex_, 

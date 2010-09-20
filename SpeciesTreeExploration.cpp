@@ -553,14 +553,20 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
         if (nodeForRooting >= tree.getNumberOfNodes()) 
           { //Make a NNI move
             nodeForNNI=3;
-            while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] != NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+            while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+              {
+              //std::cout<<NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()]<<std::endl;
               nodeForNNI++;
+              }
           }
         }
       else 
         {
-        while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] != NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+        while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+          {
+          //std::cout<<NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()]<<std::endl;
           nodeForNNI++;
+          }
         }
     }
   else 
@@ -1157,6 +1163,9 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
  ************************************************************************/
 void broadcastsAllInformation(const mpi::communicator& world, int server, bool stop, bool rearrange, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, std::string & currentSpeciesTree) {
   broadcast(world, stop, server);
+  broadcastsAllInformationButStop(world,server, rearrange, lossExpectedNumbers, duplicationExpectedNumbers, currentSpeciesTree);
+}
+void broadcastsAllInformationButStop(const mpi::communicator& world, int server, bool rearrange, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, std::string & currentSpeciesTree) {
   broadcast(world, rearrange, server); 
   broadcast(world, lossExpectedNumbers, server);
   broadcast(world, duplicationExpectedNumbers, server); 
@@ -1318,17 +1327,23 @@ void firstCommunicationsServerClient (const mpi::communicator & world, int & ser
 void inputNNIAndRootLks(std::vector <double> & NNILks, std::vector <double> & rootLks, std::map<std::string, std::string> & params, std::string & suffix)
 {
   std::string file = ApplicationTools::getAFilePath("alternate.topology.likelihoods", params, false, false, suffix, true);
+
   std::ifstream in (file.c_str(), std::ios::in);
+
   std::string line;
+
   if (in.is_open())
     {
+
     int i=0;
-    while (! in.eof() )
+    while ((! in.eof() )  && (i<NNILks.size() ) )
       {
+
       getline (in,line);
       StringTokenizer st = StringTokenizer::StringTokenizer (line, "\t", true, true);
       if (st.getToken(0) != "NNI Likelihoods")
         {
+        std::cout <<"Inputing values for node "<<i<<std::endl;
         NNILks[i] = TextTools::toDouble(st.getToken(0));
         rootLks[i] = TextTools::toDouble(st.getToken(1));
         i = i+1;

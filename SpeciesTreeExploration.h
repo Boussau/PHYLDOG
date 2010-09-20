@@ -232,7 +232,16 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                          std::map <std::string, int> genomeMissing, 
                                          int sprLimit, 
                                          bool optimizeRates);
-void broadcastsAllInformation(const mpi::communicator& world, int server, bool stop, bool rearrange, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, std::string & currentSpeciesTree);
+void broadcastsAllInformation(const mpi::communicator& world, 
+                              int server, bool stop, bool rearrange, 
+                              std::vector<double> &lossExpectedNumbers, 
+                              std::vector<double> &duplicationExpectedNumbers, 
+                              std::string & currentSpeciesTree);
+void broadcastsAllInformationButStop(const mpi::communicator& world, 
+                                     int server, bool rearrange, 
+                                     std::vector<double> &lossExpectedNumbers, 
+                                     std::vector<double> &duplicationExpectedNumbers, 
+                                     std::string & currentSpeciesTree);
 std::string computeSpeciesTreeLikelihood(const mpi::communicator& world, 
                                          int &index, 
                                          bool stop, 
