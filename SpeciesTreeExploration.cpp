@@ -1265,7 +1265,20 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
  * rates, and updates the likelihood of the species tree. This way the likelihood
  * of this species tree is computed with adequate rates. 
  ************************************************************************/
-void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, bool rearrange, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL) 
+void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mpi::communicator& world, 
+                                                                        int &index, bool stop, double &logL, 
+                                                                        std::vector<int> &num0Lineages, 
+                                                                        std::vector<int> &num1Lineages, 
+                                                                        std::vector<int> &num2Lineages, 
+                                                                        std::vector< std::vector<int> > &allNum0Lineages, 
+                                                                        std::vector< std::vector<int> > &allNum1Lineages, 
+                                                                        std::vector< std::vector<int> > &allNum2Lineages, 
+                                                                        std::vector<double> &lossExpectedNumbers, 
+                                                                        std::vector<double> &duplicationExpectedNumbers, 
+                                                                        bool rearrange, int server, 
+                                                                        std::string &branchProbaOptimization, 
+                                                                        std::map < std::string, int> genomeMissing, 
+                                                                        TreeTemplate<Node> &tree, double & bestlogL) 
 {
   //we set the expected numbers to 0.001 uniformly: we start afresh for each new species tree topology.
   for (int i = 0 ; i < lossExpectedNumbers.size() ; i++ ) 

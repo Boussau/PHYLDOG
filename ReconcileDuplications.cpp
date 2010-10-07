@@ -243,7 +243,7 @@ std::vector <double> operator + (std::vector <double> x, std::vector <double> y)
 /******************************************************************************/
 
 
-void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std::map<std::string, std::string> & params, int numDeletedFamilies, TreeTemplate<Node> * geneTree, TreeTemplate<Node> * tree, std::vector <int> & num0Lineages, std::vector <std::vector<int> > & allNum0Lineages, std::vector <std::vector<int> > & allNum1Lineages, std::vector <std::vector<int> > & allNum2Lineages, std::vector <double> & lossExpectedNumbers, std::vector <double> & duplicationExpectedNumbers, std::map <std::string, int> & spId, int speciesIdLimitForRootPosition, int heuristicsLevel, int MLindex, std::vector <double> & allLogLs, std::vector <ReconciliationTreeLikelihood *> & treeLikelihoods, std::vector <ReconciliationTreeLikelihood *> & backupTreeLikelihoods, std::vector <std::map<std::string, std::string> > & allParams, std::vector <Alphabet *> allAlphabets, std::vector <VectorSiteContainer *> & allDatasets, std::vector <SubstitutionModel *> & allModels, std::vector <DiscreteDistribution *> & allDistributions, std::vector <TreeTemplate<Node> *> & allGeneTrees, std::vector <TreeTemplate<Node> *> & allUnrootedGeneTrees) 
+void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std::map<std::string, std::string> & params, int & numDeletedFamilies, TreeTemplate<Node> * geneTree, TreeTemplate<Node> * tree, std::vector <int> & num0Lineages, std::vector <std::vector<int> > & allNum0Lineages, std::vector <std::vector<int> > & allNum1Lineages, std::vector <std::vector<int> > & allNum2Lineages, std::vector <double> & lossExpectedNumbers, std::vector <double> & duplicationExpectedNumbers, std::map <std::string, int> & spId, int speciesIdLimitForRootPosition, int heuristicsLevel, int MLindex, std::vector <double> & allLogLs, std::vector <ReconciliationTreeLikelihood *> & treeLikelihoods, std::vector <ReconciliationTreeLikelihood *> & backupTreeLikelihoods, std::vector <std::map<std::string, std::string> > & allParams, std::vector <Alphabet *> allAlphabets, std::vector <VectorSiteContainer *> & allDatasets, std::vector <SubstitutionModel *> & allModels, std::vector <DiscreteDistribution *> & allDistributions, std::vector <TreeTemplate<Node> *> & allGeneTrees, std::vector <TreeTemplate<Node> *> & allUnrootedGeneTrees) 
 {
   bool avoidFamily;
   std::string initTree;
@@ -348,7 +348,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
       if (seqsToRemove.size()>=sites->getNumberOfSequences()-1) {
         numDeletedFamilies = numDeletedFamilies+1;
         avoidFamily=true;
-        std::cout <<"Avoiding family "<<assignedFilenames[i-numDeletedFamilies+1]<<std::endl;
+        std::cout <<"All or almost all sequences have been removed: avoiding family "<<assignedFilenames[i-numDeletedFamilies+1]<<std::endl;
       }
       
       if (!avoidFamily) {

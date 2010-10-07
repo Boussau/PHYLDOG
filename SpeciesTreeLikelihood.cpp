@@ -341,6 +341,7 @@ void SpeciesTreeLikelihood::MLsearch()
   int nodeForNNI = 0;
   int nodeForRooting = 4;
   bool noMoreSPR;
+  stop_ = false;
   if(optimizeSpeciesTreeTopology_) 
     {
     std::cout <<"Optimizing the species tree topology"<<std::endl;
@@ -358,6 +359,7 @@ void SpeciesTreeLikelihood::MLsearch()
    *****************************************************************************/
   while (!stop_) 
     {
+    std::cout <<"IN LOOP "<< currentStep_<<" "<<numIterationsWithoutImprovement_<< " "<<noMoreSPR<<std::endl;
     //Using deterministic SPRs first, and then NNIs
     //Making SPRs, from leaves to deeper nodes (approximately), plus root changes
     if (currentStep_ >= 3)
