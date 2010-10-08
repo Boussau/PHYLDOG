@@ -513,13 +513,10 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
                 }
                            tl = dynamic_cast<NNIHomogeneousTreeLikelihood*>(
                                                                            PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params));
-              std::cout <<"AFTER optimize"<<std::endl;
               //PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
               params[ std::string("optimization.topology.algorithm_nni.method")] = backupParamOptTopo ;
               delete unrootedGeneTree;
               unrootedGeneTree = new TreeTemplate<Node> ( tl->getTree() );
-              std::cout <<"AFTER getTree"<<std::endl;
-
               delete tl;
             }
           geneTree = unrootedGeneTree;
