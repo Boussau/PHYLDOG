@@ -466,10 +466,60 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
               params[ std::string("optimization.topology.algorithm_nni.method")] = "phyml";
               NNIHomogeneousTreeLikelihood * tl = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true);
               tl->initialize();//Only initializes the parameter list, and computes the likelihood
-              PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
+              double logL = tl->getValue();
+              if (std::isinf(logL))
+                {
+                // This may be due to null branch lengths, leading to null likelihood!
+                ApplicationTools::displayWarning("!!! Warning!!! Initial likelihood is zero.");
+                ApplicationTools::displayWarning("!!! This may be due to branch length == 0.");
+                ApplicationTools::displayWarning("!!! All null branch lengths will be set to 0.000001.");
+                ParameterList pl = tl->getBranchLengthsParameters();
+                for (unsigned int i = 0; i < pl.size(); i++)
+                  {
+                  if (pl[i].getValue() < 0.000001) pl[i].setValue(0.000001);
+                  }
+                tl->matchParametersValues(pl);
+                logL = tl->getValue();
+                }
+              ApplicationTools::displayResult("Initial log likelihood for family", file+": "+TextTools::toString(-logL, 15)); 
+              if (std::isinf(logL))
+                {
+                ApplicationTools::displayError("!!! Unexpected initial likelihood == 0.");
+                CodonAlphabet *pca=dynamic_cast<CodonAlphabet*>(alphabet);
+                if (pca){
+                  bool f=false;
+                  unsigned int  s;
+                  for (unsigned int i = 0; i < sites->getNumberOfSites(); i++){
+                    if (std::isinf(tl->getLogLikelihoodForASite(i))){
+                      const Site& site=sites->getSite(i);
+                      s=site.size();
+                      for (unsigned int j=0;j<s;j++)
+                        if (pca->isStop(site.getValue(j))){
+                          (*ApplicationTools::error << "Stop Codon at site " << site.getPosition() << " in sequence " << sites->getSequence(j).getName()).endLine();
+                          f=true;
+                        }
+                    }
+                  }
+                  if (f)
+                    exit(-1);
+                }
+                ApplicationTools::displayError("!!! Looking at each site:");
+                for (unsigned int i = 0; i < sites->getNumberOfSites(); i++)
+                  {
+                  (*ApplicationTools::error << "Site " << sites->getSite(i).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(i)).endLine();
+                  }
+                ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularily if datasets are big (>~500 sequences).");
+                exit(-1);
+                }
+                           tl = dynamic_cast<NNIHomogeneousTreeLikelihood*>(
+                                                                           PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params));
+              std::cout <<"AFTER optimize"<<std::endl;
+              //PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
               params[ std::string("optimization.topology.algorithm_nni.method")] = backupParamOptTopo ;
               delete unrootedGeneTree;
-              unrootedGeneTree = new TreeTemplate<Node> ( (tl->getTree()) );
+              unrootedGeneTree = new TreeTemplate<Node> ( tl->getTree() );
+              std::cout <<"AFTER getTree"<<std::endl;
+
               delete tl;
             }
           geneTree = unrootedGeneTree;
