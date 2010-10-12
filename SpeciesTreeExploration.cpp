@@ -700,9 +700,9 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
         lossExpectedNumbers = bestLossProba;
         if ( (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) || (ApplicationTools::getTime() >= timeLimit) ) 
           {
-          stop = true;
           broadcast(world, stop, server); 
           broadcast(world, bestIndex, server);
+          stop = true; //ATTEMPT 12/10/2010
           }
         }
       }
