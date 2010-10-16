@@ -1042,7 +1042,6 @@ int main(int args, char ** argv)
                                               lossExpectedNumbers, 
                                               duplicationExpectedNumbers, 
                                               currentSpeciesTree);
-
               TreeTemplate<Node> * tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
               spId = computeSpeciesNamesToIdsMap(*tree);
               for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
@@ -1058,7 +1057,7 @@ int main(int args, char ** argv)
             { 
               /****************************************************************************
                * The end, outputting the results.
-               *****************************************************************************/            
+               *****************************************************************************/      
               if (recordGeneTrees) 
                 {
                 broadcast(world, bestIndex, server);
@@ -1066,7 +1065,6 @@ int main(int args, char ** argv)
                 outputGeneTrees(assignedFilenames, allParams, numDeletedFamilies, 
                                 reconciledTrees, duplicationTrees, lossTrees, 
                                 bestIndex, startRecordingTreesFrom);
-                std::cout<<"CLIENT : trees output"<<std::endl;
                 }
               break;
             }

@@ -359,7 +359,6 @@ void SpeciesTreeLikelihood::MLsearch()
    *****************************************************************************/
   while (!stop_) 
     {
-    std::cout <<"IN LOOP "<< currentStep_<<" "<<numIterationsWithoutImprovement_<< " "<<noMoreSPR<<std::endl;
     //Using deterministic SPRs first, and then NNIs
     //Making SPRs, from leaves to deeper nodes (approximately), plus root changes
     if (currentStep_ >= 3)
@@ -483,16 +482,14 @@ void SpeciesTreeLikelihood::MLsearch()
       }        
     else 
       { 
-
+        rearrange_ = true; //Now we rearrange gene trees
         /****************************************************************************
          * noMoreSPR==true, we thus only make NNIs and root changes, 
          * and we rearrange gene trees.
          *****************************************************************************/            
         if ( ( ((!rearrange_)&&(numIterationsWithoutImprovement_>=2*speciesTreeNodeNumber_)) || ((!rearrange_)&&(!optimizeSpeciesTreeTopology_)) || (currentStep_ == 3) ) && (ApplicationTools::getTime() < timeLimit_)  )
           {
-          std::cout<<"before computeSpeciesTreeLikelihood"<<std::endl;
-
-          rearrange_ = true; //Now we rearrange gene trees
+          //rearrange_ = true; //Now we rearrange gene trees
           numIterationsWithoutImprovement_ = 0;
           //This first computation is done without rearranging gene trees
           computeSpeciesTreeLikelihood(world_, index_, 

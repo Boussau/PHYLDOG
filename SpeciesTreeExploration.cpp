@@ -1174,11 +1174,11 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
 /************************************************************************
  * Broadcasts all necessary information. 
  ************************************************************************/
-void broadcastsAllInformation(const mpi::communicator& world, int server, bool stop, bool rearrange, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, std::string & currentSpeciesTree) {
+void broadcastsAllInformation(const mpi::communicator& world, int server, bool stop, bool &rearrange, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, std::string & currentSpeciesTree) {
   broadcast(world, stop, server);
   broadcastsAllInformationButStop(world,server, rearrange, lossExpectedNumbers, duplicationExpectedNumbers, currentSpeciesTree);
 }
-void broadcastsAllInformationButStop(const mpi::communicator& world, int server, bool rearrange, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, std::string & currentSpeciesTree) {
+void broadcastsAllInformationButStop(const mpi::communicator& world, int server, bool &rearrange, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, std::string & currentSpeciesTree) {
   broadcast(world, rearrange, server); 
   broadcast(world, lossExpectedNumbers, server);
   broadcast(world, duplicationExpectedNumbers, server); 
