@@ -40,11 +40,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include "ReconciliationTreeLikelihood.h"
 
 // From Utils:
-#include <Utils/TextTools.h>
-#include <Utils/ApplicationTools.h>
+#include <Bpp/Text/TextTools.h>
+#include <Bpp/App/ApplicationTools.h>
 
 // From NumCalc:
-#include <NumCalc/AutoParameter.h>
+#include <Bpp/Numeric/AutoParameter.h>
 
 // From the STL:
 #include <iostream>

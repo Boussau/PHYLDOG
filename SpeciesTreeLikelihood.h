@@ -11,16 +11,15 @@
 #define _SPECIESTREELIKELIHOOD_H_
 
 // From NumCalc:
-#include <NumCalc/Parametrizable.h>
-#include <NumCalc/ParameterList.h>
-#include <NumCalc/Parametrizable.h>
-#include <NumCalc/Parameter.h>
-#include <NumCalc/AbstractParametrizable.h>
-#include <NumCalc/Functions.h>
+#include <Bpp/Numeric/Parametrizable.h>
+#include <Bpp/Numeric/ParameterList.h>
+#include <Bpp/Numeric/Parameter.h>
+#include <Bpp/Numeric/AbstractParametrizable.h>
+#include <Bpp/Numeric/Function/Functions.h>
 
 // From PhylLib:
-#include <Phyl/Tree.h>
-#include <Phyl/PhylogeneticsApplicationTools.h>
+#include <Bpp/Phyl/Tree.h>
+#include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
 
 
 //From the BOOST library 

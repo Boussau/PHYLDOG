@@ -7,24 +7,24 @@
 #include <set>
 
 // From PhylLib:
-#include <Phyl/Tree.h>
-#include <Phyl/PhylogeneticsApplicationTools.h>
-#include <Phyl/Newick.h>
+#include <Bpp/Phyl/Tree.h>
+#include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
+#include <Bpp/Phyl/Io/Newick.h>
 
 
 // From NumCalc:
-#include <NumCalc/VectorTools.h>
-#include <NumCalc/NumConstants.h>
+#include <Bpp/Numeric/VectorTools.h>
+#include <Bpp/Numeric/NumConstants.h>
 
 // From Utils:
-#include <Utils/AttributesTools.h>
-#include <Utils/ApplicationTools.h>
-#include <Utils/FileTools.h>
-#include <Utils/TextTools.h>
-#include <Utils/Clonable.h>
-#include <Utils/Number.h>
-#include <Utils/BppString.h>
-#include <Utils/KeyvalTools.h>
+#include <Bpp/Utils/AttributesTools.h>
+#include <Bpp/App/ApplicationTools.h>
+#include <Bpp/Io/FileTools.h>
+#include <Bpp/Text/TextTools.h>
+#include <Bpp/Clonable.h>
+#include <Bpp/Numeric/Number.h>
+#include <Bpp/BppString.h>
+#include <Bpp/Text/KeyvalTools.h>
 
 #include "mpi.h" 
 using namespace bpp;

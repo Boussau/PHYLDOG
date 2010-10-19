@@ -40,14 +40,14 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef _SPECIESTREEEXPLORATION_H_
 #define _SPECIESTREEEXPLORATION_H_
 // From PhylLib:
-#include <Phyl/Tree.h>
-#include <Phyl/PhylogeneticsApplicationTools.h>
-#include <Phyl/Node.h>
+#include <Bpp/Phyl/Tree.h>
+#include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
+#include <Bpp/Phyl/Node.h>
 
 // From NumCalc:
-#include <NumCalc/VectorTools.h>
-#include <NumCalc/RandomTools.h>
-#include <NumCalc/NumConstants.h>
+#include <Bpp/Numeric/VectorTools.h>
+#include <Bpp/Numeric/RandomTools.h>
+#include <Bpp/Numeric/NumConstants.h>
 
 
 //#include <algorithm>

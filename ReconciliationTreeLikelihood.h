@@ -40,13 +40,13 @@
 #ifndef _RECONCILIATIONTREELIKELIHOOD_H_
 #define _RECONCILIATIONTREELIKELIHOOD_H_
 
-#include <Phyl/NNIHomogeneousTreeLikelihood.h>
+#include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 
 // From NumCalc:
-#include <NumCalc/VectorTools.h>
-#include <NumCalc/DiscreteDistribution.h>
-#include <NumCalc/BrentOneDimension.h>
-#include <NumCalc/Parametrizable.h>
+#include <Bpp/Numeric/VectorTools.h>
+#include <Bpp/Numeric/Prob/DiscreteDistribution.h>
+#include <Bpp/Numeric/Function/BrentOneDimension.h>
+#include <Bpp/Numeric/Parametrizable.h>
 
 #include "ReconciliationTools.h"
 #include "mpi.h" 

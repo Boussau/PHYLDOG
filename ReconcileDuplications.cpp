@@ -43,49 +43,49 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <algorithm>
 
 // From SeqLib:
-#include <Seq/Alphabet.h>
-#include <Seq/VectorSiteContainer.h>
-#include <Seq/SiteTools.h>
-#include <Seq/SequenceApplicationTools.h>
+#include <Bpp/Seq/Alphabet/Alphabet.h>
+#include <Bpp/Seq/Container/VectorSiteContainer.h>
+#include <Bpp/Seq/SiteTools.h>
+#include <Bpp/Seq/App/SequenceApplicationTools.h>
 
 // From PhylLib:
-#include <Phyl/Tree.h>
-#include <Phyl/DiscreteRatesAcrossSitesTreeLikelihood.h>
-#include <Phyl/HomogeneousTreeLikelihood.h>
-#include <Phyl/DRHomogeneousTreeLikelihood.h>
+#include <Bpp/Phyl/Tree.h>
+#include <Bpp/Phyl/Likelihood/DiscreteRatesAcrossSitesTreeLikelihood.h>
+#include <Bpp/Phyl/Likelihood/HomogeneousTreeLikelihood.h>
+#include <Bpp/Phyl/Likelihood/DRHomogeneousTreeLikelihood.h>
 //#include <Phyl/NNIHomogeneousTreeLikelihood.h>
-#include <Phyl/ClockTreeLikelihood.h>
-#include <Phyl/PatternTools.h>
-#include <Phyl/PhylogeneticsApplicationTools.h>
-#include <Phyl/MarginalAncestralStateReconstruction.h>
-#include <Phyl/OptimizationTools.h>
-#include <Phyl/RASTools.h>
-#include <Phyl/Newick.h>
-#include <Phyl/TreeTools.h>
-#include <Phyl/BioNJ.h>
-#include <Phyl/OptimizationTools.h>
+#include <Bpp/Phyl/Likelihood/ClockTreeLikelihood.h>
+#include <Bpp/Phyl/PatternTools.h>
+#include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
+#include <Bpp/Phyl/Likelihood/MarginalAncestralStateReconstruction.h>
+#include <Bpp/Phyl/OptimizationTools.h>
+#include <Bpp/Phyl/Likelihood/RASTools.h>
+#include <Bpp/Phyl/Io/Newick.h>
+#include <Bpp/Phyl/TreeTools.h>
+#include <Bpp/Phyl/Distance/BioNJ.h>
+#include <Bpp/Phyl/OptimizationTools.h>
 
 
 // From NumCalc:
-#include <NumCalc/DiscreteDistribution.h>
-#include <NumCalc/ConstantDistribution.h>
-#include <NumCalc/DataTable.h>
-#include <NumCalc/MatrixTools.h>
-#include <NumCalc/VectorTools.h>
-#include <NumCalc/AutoParameter.h>
-#include <NumCalc/RandomTools.h>
-#include <NumCalc/NumConstants.h>
-#include <NumCalc/PowellMultiDimensions.h>
+#include <Bpp/Numeric/Prob/DiscreteDistribution.h>
+#include <Bpp/Numeric/Prob/ConstantDistribution.h>
+#include <Bpp/Numeric/DataTable.h>
+#include <Bpp/Numeric/Matrix/MatrixTools.h>
+#include <Bpp/Numeric/VectorTools.h>
+#include <Bpp/Numeric/AutoParameter.h>
+#include <Bpp/Numeric/RandomTools.h>
+#include <Bpp/Numeric/NumConstants.h>
+#include <Bpp/Numeric/Function/PowellMultiDimensions.h>
 
 // From Utils:
-#include <Utils/AttributesTools.h>
-#include <Utils/ApplicationTools.h>
-#include <Utils/FileTools.h>
-#include <Utils/TextTools.h>
-#include <Utils/Clonable.h>
-#include <Utils/Number.h>
-#include <Utils/BppString.h>
-#include <Utils/KeyvalTools.h>
+#include <Bpp/Utils/AttributesTools.h>
+#include <Bpp/App/ApplicationTools.h>
+#include <Bpp/Io/FileTools.h>
+#include <Bpp/Text/TextTools.h>
+#include <Bpp/Clonable.h>
+#include <Bpp/Numeric/Number.h>
+#include <Bpp/BppString.h>
+#include <Bpp/Text/KeyvalTools.h>
 
 
 //#include <Phyl/SAHomogeneousTreeLikelihood.h>
