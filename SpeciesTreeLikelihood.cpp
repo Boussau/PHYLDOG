@@ -521,7 +521,7 @@ void SpeciesTreeLikelihood::MLsearch()
           bestNum2Lineages_ = num2Lineages_;
           }
        
-        if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) )
+        if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) || (!optimizeSpeciesTreeTopology_))
           {
           if (optimizeSpeciesTreeTopology_) 
             {
