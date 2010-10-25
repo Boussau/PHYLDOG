@@ -270,6 +270,8 @@ class ReconciliationTreeLikelihood:
     
     TreeTemplate<Node> & getRootedTree() const {return *_rootedTree;}
     
+    std::map <std::string, std::string> getSeqSp() {return _seqSp;}
+    
     void setProbabilities(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
     
     int getRootNodeindex();

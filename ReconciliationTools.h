@@ -31,8 +31,8 @@ using namespace bpp;
 
 const std::string SPECIESID="SPECIESID";
 const std::string EVENT="EVENT";
-const std::string LOSSES="LOSSES";
-const std::string DUPLICATIONS="DUPLICATIONS";
+const std::string LOSSES="L";
+const std::string DUPLICATIONS="D";
 const std::string EVENTSPROBA="EVENTSPROBA";
 const std::string LOWLIK="LOWLIK";
 const std::string NUMGENES="NUMGENES";
@@ -58,8 +58,8 @@ void resetVector(std::vector<double> & v);
 void resetSpeciesIds (TreeTemplate<Node> & tree);
 void resetSpeciesIdsForGivenNodes (TreeTemplate<Node> & tree, std::vector<int > nodesToUpdate, std::vector <int> & removedNodeIds); 
 void resetSpeciesIdsForGivenNodes (TreeTemplate<Node> & tree, std::vector<int > nodesToUpdate);
-void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::vector<int> &branchNumbers, std::map <int,int> & geneNodeIdToDuplications, std::map <int, std::vector <int> > & geneNodeIdToLosses, std::map <int, std::vector <int> > & geneNodeIdToSpeciations) ;
-void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::map <int,int> &geneNodeIdToDuplications, std::map <int, std::vector <int> > &geneNodeIdToLosses, std::map <int, std::vector <int> > &geneNodeIdToSpeciations) ;
+//void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::vector<int> &branchNumbers, std::map <int,int> & geneNodeIdToDuplications, std::map <int, std::vector <int> > & geneNodeIdToLosses, std::map <int, std::vector <int> > & geneNodeIdToSpeciations) ;
+//void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::map <int,int> &geneNodeIdToDuplications, std::map <int, std::vector <int> > &geneNodeIdToLosses, std::map <int, std::vector <int> > &geneNodeIdToSpeciations) ;
 void computeDuplicationAndLossProbabilities (int i, int j, int k, double & lossProbability, double & duplicationProbability);
 void computeDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> numOGenes, std::vector <int> num1Genes, std::vector <int> num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities);
 void computeAverageDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> numOGenes, std::vector <int> num1Genes, std::vector <int> num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities);
@@ -85,7 +85,7 @@ double makeReconciliationAtGivenRoot (TreeTemplate<Node> * tree,
                                       std::vector< double> lossProbabilities, 
                                       std::vector < double> duplicationProbabilities, 
                                       int MLindex);
-double findMLReconciliation (TreeTemplate<Node> * spTree, 
+/*double findMLReconciliation (TreeTemplate<Node> * spTree, 
                              TreeTemplate<Node> * geneTreeSafe, 
                              std::map<std::string, std::string > seqSp, 
                              std::vector<int> & lossNumbers, 
@@ -99,7 +99,7 @@ double findMLReconciliation (TreeTemplate<Node> * spTree,
                              std::vector <int> &num0lineages, 
                              std::vector <int> &num1lineages, 
                              std::vector <int> &num2lineages, 
-                             std::set <int> &nodesToTryInNNISearch);
+                             std::set <int> &nodesToTryInNNISearch);*/
 int assignSpeciesIdToLeaf(Node * node,  
                           const std::map<std::string, 
                           std::string > & seqSp, 
@@ -271,6 +271,12 @@ std::string removeComments(
                            const std::string & s,
                            const std::string & begin,
                            const std::string & end);
+void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree, 
+                                            TreeTemplate<Node> & geneTree, 
+                                            Node * node, 
+                                            std::map<std::string, std::string > seqSp,
+                                            std::map<std::string, int > spID); 
+
 
 #endif  //_RECONCILIATIONTOOLS_H_
 

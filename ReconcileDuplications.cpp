@@ -61,6 +61,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Phyl/OptimizationTools.h>
 #include <Bpp/Phyl/Likelihood/RASTools.h>
 #include <Bpp/Phyl/Io/Newick.h>
+#include <Bpp/Phyl/Io/NHX.h>
 #include <Bpp/Phyl/TreeTools.h>
 #include <Bpp/Phyl/Distance/BioNJ.h>
 #include <Bpp/Phyl/OptimizationTools.h>
@@ -697,6 +698,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
 // This function outputs gene trees from the clients.
 /******************************************************************************/
 void outputGeneTrees (std::vector<std::string> & assignedFilenames, 
+                      std::vector <ReconciliationTreeLikelihood *> treeLikelihoods, 
                       std::vector< std::map<std::string, std::string> > & allParams, 
                       int & numDeletedFamilies, 
                       std::vector <std::vector <std::string> > & reconciledTrees,                       
@@ -712,12 +714,30 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
   int rightIndex = bestIndex-startRecordingTreesFrom;
   for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
     {
-    std::cout <<"reconciledTrees[i].size(): "<<reconciledTrees[i].size()<<std::endl;
-    suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
-    reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
-    reconcTree = reconcTree + suffix;
+
+      suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
+      reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
+      reconcTree = reconcTree + suffix;
+      NHX *nhx = new NHX();
+      string temp = reconciledTrees[i][rightIndex];
+      TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
+      temp = duplicationTrees[i][rightIndex];
+      TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);
+
+      breadthFirstreNumber (*spTree);
+      std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*spTree);
+      std::map <std::string, std::string> seqSp = treeLikelihoods[i]->getSeqSp();
+      annotateGeneTreeWithDuplicationEvents (*spTree, 
+                                             *geneTree, 
+                                             geneTree->getRootNode(), 
+                                             treeLikelihoods[i]->getSeqSp(),
+                                             spId); 
+      
     out.open (reconcTree.c_str(), std::ios::out);
-    out << reconciledTrees[i][rightIndex]<<std::endl;
+      
+    //out << reconciledTrees[i][rightIndex]<<std::endl;
+    nhx->write(*geneTree, out);
+      
     out.close();
     dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
     dupTree = dupTree + suffix;
@@ -955,7 +975,7 @@ int main(int args, char ** argv)
        * Main loop: iterative likelihood computations
        ****************************************************************************
        *****************************************************************************/
-      
+        NHX *nhx = new NHX();
       while (!stop)            
         {      
           logL=0.0;
@@ -993,9 +1013,13 @@ int main(int args, char ** argv)
               }
             if (recordGeneTrees) 
               {
+                reconciledTrees[i].push_back(nhx->treeToParenthesis (*geneTree));
+                duplicationTrees[i].push_back(nhx->treeToParenthesis (*tree));
+                lossTrees[i].push_back(nhx->treeToParenthesis (*tree));
+                /*
               reconciledTrees[i].push_back(TreeTools::treeToParenthesis (*geneTree, false, EVENT));
               duplicationTrees[i].push_back(treeToParenthesisWithIntNodeValues (*tree, false, DUPLICATIONS));
-              lossTrees[i].push_back(treeToParenthesisWithIntNodeValues (*tree, false, LOSSES));
+              lossTrees[i].push_back(treeToParenthesisWithIntNodeValues (*tree, false, LOSSES));*/
               }
             if (geneTree) 
               {
@@ -1062,7 +1086,7 @@ int main(int args, char ** argv)
                 {
                 broadcast(world, bestIndex, server);
                 std::cout << "bestIndex: "<<bestIndex<<" startRecordingTreesFrom: "<<startRecordingTreesFrom<<std::endl;
-                outputGeneTrees(assignedFilenames, allParams, numDeletedFamilies, 
+                outputGeneTrees(assignedFilenames, treeLikelihoods, allParams, numDeletedFamilies, 
                                 reconciledTrees, duplicationTrees, lossTrees, 
                                 bestIndex, startRecordingTreesFrom);
                 }

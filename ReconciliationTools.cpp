@@ -192,7 +192,8 @@ void changeBranchProperty(Node & noeud, const std::string & name, const Clonable
 
 void resetLossesAndDuplications(TreeTemplate<Node> & tree, /*std::vector <int> &lossNumbers, */std::vector <double> &lossProbabilities, /*std::vector <int> &duplicationNumbers, */std::vector <double> &duplicationProbabilities) {
   std::vector< int > nodesIds = tree.getNodesId ();
-  Number<int> zero = Number<int>(0);
+//  Number<int> zero = Number<int>(0);
+  BppString zero = BppString(TextTools::toString(0));
   for (int i=0; i<nodesIds.size(); i++) {
     changeBranchProperty(*(tree.getNode(nodesIds[i])),LOSSES, zero);
     changeBranchProperty(*(tree.getNode(nodesIds[i])),DUPLICATIONS, zero);
@@ -203,7 +204,9 @@ void resetLossesAndDuplications(TreeTemplate<Node> & tree, /*std::vector <int> &
 
 void resetLossesDuplicationsSpeciations(TreeTemplate<Node> & tree, std::vector <int> &lossNumbers, std::vector <double> &lossProbabilities, std::vector <int> &duplicationNumbers, std::vector <double> &duplicationProbabilities, std::vector <int> &branchNumbers) {
   std::vector< int > nodesIds = tree.getNodesId ();
-  Number<int> zero = Number<int>(0);
+ // Number<int> zero = Number<int>(0);
+  BppString zero = BppString(TextTools::toString(0));
+
   for (int i=0; i<nodesIds.size(); i++) {
     changeBranchProperty(*(tree.getNode(nodesIds[i])),LOSSES, zero);
     changeBranchProperty(*(tree.getNode(nodesIds[i])),DUPLICATIONS, zero);
@@ -220,7 +223,7 @@ void resetLossesDuplicationsSpeciationsForGivenNodes(TreeTemplate<Node> & tree, 
       int size = geneNodeIdToLosses[nodesToUpdate[i]].size();
       for (int j = 0 ; j< size ; j++) {
         lossNumbers[geneNodeIdToLosses[nodesToUpdate[i]][j]]--;
-        changeBranchProperty(*(tree.getNode(geneNodeIdToLosses[nodesToUpdate[i]][j])),LOSSES, Number<int>(lossNumbers[geneNodeIdToLosses[nodesToUpdate[i]][j]]));
+        changeBranchProperty(*(tree.getNode(geneNodeIdToLosses[nodesToUpdate[i]][j])),LOSSES, BppString(TextTools::toString((lossNumbers[geneNodeIdToLosses[nodesToUpdate[i]][j]]))));
       }
       size = geneNodeIdToSpeciations[nodesToUpdate[i]].size();
       for (int j = 0 ; j< size ; j++) {
@@ -228,7 +231,7 @@ void resetLossesDuplicationsSpeciationsForGivenNodes(TreeTemplate<Node> & tree, 
       }
       if (geneNodeIdToDuplications[nodesToUpdate[i]] != -1) {
         duplicationNumbers[geneNodeIdToDuplications[nodesToUpdate[i]]]--;
-        changeBranchProperty(*(tree.getNode(geneNodeIdToDuplications[nodesToUpdate[i]])), DUPLICATIONS, Number<int>(duplicationNumbers[geneNodeIdToDuplications[nodesToUpdate[i]]]));
+        changeBranchProperty(*(tree.getNode(geneNodeIdToDuplications[nodesToUpdate[i]])), DUPLICATIONS, BppString(TextTools::toString((duplicationNumbers[geneNodeIdToDuplications[nodesToUpdate[i]]]))));
       }
     }
 
@@ -334,524 +337,6 @@ void resetSpeciesIdsAndLiksForGivenNodes (TreeTemplate<Node> & tree, std::vector
 int getLimitIdFromNumberOfLevels(std::map<int, std::vector <int> > DepthToIds, int levelsToRootAt){
   return(  VectorTools::max(DepthToIds[levelsToRootAt]));
 }
-
-/**************************************************************************
- * This function reconciles a gene tree with a species tree with a post-order tree-traversal, using Zmasek and Eddy algorithm (2001). 
- * An added feature is that we also get loss events. 
- * We also fill std::maps containing links between nodes of the gene tree and events on the species tree. 
- * It is important to note that the number of events associated to a given node comes from the values in the "tree" object.
- * Special care must then be used to ascertain these numbers in the "tree" object are correct.
- **************************************************************************/
-
-void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::vector<int> &branchNumbers, std::map <int,int> &geneNodeIdToDuplications, std::map <int, std::vector <int> > &geneNodeIdToLosses, std::map <int, std::vector <int> > &geneNodeIdToSpeciations) {
-  if (noeud->isLeaf()) {
-    const int temp = tree.getLeafId(seqSp[noeud->getName()]); 
-    branchNumbers[temp]=branchNumbers[temp]+1; 
-    changeNodeProperty(*noeud, SPECIESID, Number<int>(temp));
-    changeBranchProperty(*noeud, EVENT, BppString("S"));
-    geneNodeIdToSpeciations[noeud->getId()].push_back(temp);
-  }
-  else{
-    //std::cout << "Root degree : "<<noeud->degree()<<" Number of sons : "<<noeud->getNumberOfSons()<< std::endl;
-    Node * son0=noeud->getSon(0);
-    Node * son1=noeud->getSon(1);  
-    if ((dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue())==-1)
-      {
-	reconcile (tree, geneTree, son0, seqSp, lossNumbers, duplicationNumbers, branchNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);
-      }
-    if ((dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue())==-1)
-      {
-	reconcile (tree, geneTree, son1, seqSp, lossNumbers, duplicationNumbers, branchNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);
-      }
-    int a = (dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue()); 
-    int b = (dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue());
-    int a0=a;
-    int b0=b;
-    int olda=a;
-    int oldb=b;
-    //Within this loop, it is also possible to get gene losses, and where they occured !
-    while (a!=b) { 
-		if (a>b) {
-			olda=a;
-			a = tree.getNode(a)->getFather()->getId();
-			//Recording gene losses
-		 std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(a)->getSon(0)->getId());
-			nodesIds0.push_back(tree.getNode(a)->getSon(0)->getId());
-		 std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(a)->getSon(1)->getId());
-			nodesIds1.push_back(tree.getNode(a)->getSon(1)->getId());
-			if ((tree.getNode(a)->getSon(0)->getId()==olda)&&(!(VectorTools::contains(nodesIds1, b)))&&(b!=a))
-			{
-				int lostNodeId=tree.getNode(a)->getSon(1)->getId();
-				int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-				changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES,  Number<int>(lossNumber));
-				//tree.getNode(lostNodeId)->setBranchProperty(LOSSES,  Number<int>(lossNumber));
-				lossNumbers[lostNodeId]=lossNumber;
-				branchNumbers[a]=branchNumbers[a]+1;
-				geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-				geneNodeIdToSpeciations[noeud->getId()].push_back(a);
-				//std::cout <<"\tA One loss on the branch leading to node " <<lostNodeId<<std::endl;
-			}
-			else if ((tree.getNode(a)->getSon(1)->getId()==olda)&&(!(VectorTools::contains(nodesIds0, b)))&&(b!=a))
-			{
-				int lostNodeId=tree.getNode(a)->getSon(0)->getId();
-				int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-				changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES,  Number<int>(lossNumber));
-				//tree.getNode(lostNodeId)->setBranchProperty(LOSSES,  Number<int>(lossNumber));
-				lossNumbers[lostNodeId]=lossNumber;
-				branchNumbers[a]=branchNumbers[a]+1;
-				geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-				geneNodeIdToSpeciations[noeud->getId()].push_back(a);
-				//std::cout <<"\tB One loss on the branch leading to node " <<lostNodeId<<std::endl;
-			}
-		}
-		else { //b>a
-			oldb=b;
-			b = tree.getNode(b)->getFather()->getId();
-			//Recording gene losses
-		 std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(b)->getSon(0)->getId());
-			nodesIds0.push_back(tree.getNode(b)->getSon(0)->getId());
-		 std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(b)->getSon(1)->getId());
-			nodesIds1.push_back(tree.getNode(b)->getSon(1)->getId());
-			if ((tree.getNode(b)->getSon(0)->getId()==oldb)&&(!(VectorTools::contains(nodesIds1, a)))&&(b!=a))
-			{
-				int lostNodeId=tree.getNode(b)->getSon(1)->getId();
-				int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-				changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
-				/* tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-				tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-				lossNumbers[lostNodeId]=lossNumber;
-				branchNumbers[b]=branchNumbers[b]+1;
-				geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-				geneNodeIdToSpeciations[noeud->getId()].push_back(b);
-				//std::cout <<"\tC One loss on the branch leading to node " <<lostNodeId<<std::endl;
-			}
-			else if ((tree.getNode(b)->getSon(1)->getId()==oldb)&&(!(VectorTools::contains(nodesIds0, a)))&&(b!=a))
-			{
-				int lostNodeId=tree.getNode(b)->getSon(0)->getId();
-				int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-				changeBranchProperty(*( tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
-				/* tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-				tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber)); */
-				lossNumbers[lostNodeId]=lossNumber; 
-				branchNumbers[b]=branchNumbers[b]+1;
-				geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-				geneNodeIdToSpeciations[noeud->getId()].push_back(b);
-				//std::cout <<"\tD One loss on the branch leading to node " <<lostNodeId<<std::endl;
-			}
-		}
-	}
-   
-    changeNodeProperty(*(noeud), SPECIESID, Number<int>(a));
-    //noeud->setNodeProperty(SPECIESID, Number<int>(a));
-    if ((a==a0) || (b==b0)) //There has been a duplication !!
-      {
-	changeBranchProperty(*(noeud), EVENT, BppString("D"));
-	//noeud->setBranchProperty(EVENT, std::string("D"));
-	//	geneNodeIdToDuplications[noeud->getId()] = a;
-	//std::cout << "\tOne duplication on branch leading to node " << a <<std::endl;
-	//The same species node number should be on the two sides of the duplication event, had there been no loss
-	if ((a==a0) && (b==b0)) {}//there has been no loss, here
-	else if (b==b0) { //The loss has occured before a0
-	  //We need to place the loss event in the right lineage
-	  if (olda==a0) { // only one loss !
-		  int lostNodeId;
-		  if (tree.getNode(olda)->getFather()->getSon(0)->getId()==olda) {
-			  lostNodeId=tree.getNode(olda)->getFather()->getSon(1)->getId();
-		  }
-		  else {
-			  lostNodeId=tree.getNode(olda)->getFather()->getSon(0)->getId();
-		  }
-		  int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-		  changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
-		  /* tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-		  tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-		  lossNumbers[lostNodeId]=lossNumber;
-		  branchNumbers[olda]=branchNumbers[olda]+1;
-		  geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-		  geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
-		  //  branchNumbers[tree.getNode(olda)->getFather()->getId()]=branchNumbers[tree.getNode(olda)->getFather()->getId()]+1;
-		  //std::cout <<"\t 1 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-	  }
-		else {// several losses
-			//get the list of nodes present in the subtree defined by olda
-			if (tree.getNode(a)->getSon(0)->getId()==olda) {
-				int lostNodeId = tree.getNode(a)->getSon(1)->getId();
-				int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-				changeBranchProperty(*(tree.getNode(lostNodeId)),LOSSES, Number<int>(lossNumber)); 
-				lossNumbers[lostNodeId]=lossNumber;
-				branchNumbers[olda]=branchNumbers[olda]+1;
-				geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-				geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
-				//  branchNumbers[tree.getNode(olda)->getFather()->getId()]=branchNumbers[tree.getNode(olda)->getFather()->getId()]+1;
-				//std::cout <<"\t 2 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-			}
-			// else if (VectorTools::contains(nodesIds1, a0)) {
-			else if(tree.getNode(a)->getSon(1)->getId()==olda) {
-				int lostNodeId = tree.getNode(a)->getSon(0)->getId();
-				int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-				changeBranchProperty(*(tree.getNode(lostNodeId)),LOSSES, Number<int>(lossNumber));
-				/*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-				tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-				lossNumbers[lostNodeId]=lossNumber;
-				branchNumbers[olda]=branchNumbers[olda]+1;
-				geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-				geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
-				//  branchNumbers[tree.getNode(olda)->getFather()->getId()]=branchNumbers[tree.getNode(olda)->getFather()->getId()]+1;
-				//std::cout <<"\t 3 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-			} 
-			else {std::cout <<"Problem reconcile !!"<<std::endl;
-				exit(-1);
-			}
-		}
-	}
-	else { 
-	  //We need to place the loss event in the right lineage 
-	  if (oldb==b0) { // only one loss !
-		  int lostNodeId;
-		  if (tree.getNode(oldb)->getFather()->getSon(0)->getId()==oldb) {
-			  lostNodeId=tree.getNode(oldb)->getFather()->getSon(1)->getId();
-		  }
-		  else {
-			  lostNodeId=tree.getNode(oldb)->getFather()->getSon(0)->getId();
-		  }
-		  int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-		  changeBranchProperty(*(tree.getNode(lostNodeId)),LOSSES, Number<int>(lossNumber));
-		  /*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-		  tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-		  lossNumbers[lostNodeId]=lossNumber;
-		  branchNumbers[oldb]=branchNumbers[oldb]+1;
-		  geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-		  geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
-		  //  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
-		  //std::cout <<"\t 4 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-	  }
-		else {// several losses
-			//get the list of nodes present in the subtree defined by oldb
-			/* std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(oldb)->getSon(0)->getId()); 
-			nodesIds0.push_back(tree.getNode(oldb)->getSon(0)->getId());
-		 std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(oldb)->getSon(1)->getId()); 
-			nodesIds1.push_back(tree.getNode(oldb)->getSon(1)->getId());
-			if (VectorTools::contains(nodesIds0, b0)) {*/
-			if (tree.getNode(a)->getSon(0)->getId()==oldb) {
-				int lostNodeId = tree.getNode(b)->getSon(1)->getId();
-				int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-				changeBranchProperty(*( tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
-				/* tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-				tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-				lossNumbers[lostNodeId]=lossNumber; 
-				branchNumbers[oldb]=branchNumbers[oldb]+1; 
-				geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-				geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
-				//  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
-				// std::cout <<"\t 5 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-			} 
-			// else if (VectorTools::contains(nodesIds1, b0)) {
-			else if(tree.getNode(a)->getSon(1)->getId()==oldb) {
-				int lostNodeId = tree.getNode(b)->getSon(0)->getId();
-				int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
-				changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
-				/*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-				tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-				lossNumbers[lostNodeId]=lossNumber;
-				branchNumbers[oldb]=branchNumbers[oldb]+1;  
-				geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-				geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
-				//  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
-				//std::cout <<"\t 6 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-			}
-			else {std::cout <<"Problem reconcile !!"<<std::endl;
-				exit(-1);
-			}
-		}
-	}
-		  int spId= (dynamic_cast<const Number<int> *>(noeud->getNodeProperty(SPECIESID))->getValue());
-		  int dupNumber = (dynamic_cast<const Number<int> *>(tree.getNode(spId)->getBranchProperty(DUPLICATIONS))->getValue())+1; 
-		  changeBranchProperty(*(tree.getNode(spId)), DUPLICATIONS, Number<int>(dupNumber)); 
-		  /*tree.getNode(spId)->deleteBranchProperty(DUPLICATIONS);
-		  tree.getNode(spId)->setBranchProperty(DUPLICATIONS, Number<int>(dupNumber)); */
-		  duplicationNumbers[spId]=dupNumber;
-		  //std::cout <<"One duplication on node "<<spId<<std::endl;
-		  geneNodeIdToDuplications[noeud->getId()] = spId;
-	  }
-	  else 
-	  {
-		  branchNumbers[a]+=1;
-		  changeBranchProperty(*(noeud), EVENT, BppString("S"));
-		  //noeud->setBranchProperty(EVENT, std::string("S"));
-		  geneNodeIdToSpeciations[noeud->getId()].push_back(a);
-	  }
-  }
-}
-
-
-
-/******************************************************************************************
- * In this version of the function, we do not fill the branch numbers std::vector.
- *****************************************************************************************/
-
-void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::map <int,int> &geneNodeIdToDuplications, std::map <int, std::vector <int> > &geneNodeIdToLosses, std::map <int, std::vector <int> > &geneNodeIdToSpeciations) {
-  if (noeud->isLeaf()) {
-    const int temp = tree.getLeafId(seqSp[noeud->getName()]); 
-    changeNodeProperty(*(noeud), SPECIESID, Number<int>(temp));
-    changeBranchProperty(*(noeud),EVENT, BppString("S")); 
-    geneNodeIdToSpeciations[noeud->getId()].push_back(temp);
-  }
-  else{
-    Node * son0=noeud->getSon(0);
-    Node * son1=noeud->getSon(1);  
-    if ((dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue())==-1)
-      {
-        reconcile (tree, geneTree, son0, seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);
-      }
-    if ((dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue())==-1)
-      {
-        reconcile (tree, geneTree, son1, seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);
-      }
-    int a = (dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue()); 
-    int b = (dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue());
-    int a0=a;
-    int b0=b;
-    int olda=a;
-    int oldb=b;
-    Node * nodeA = tree.getNode(a);
-    Node * oldNodeA = nodeA;
-    Node * nodeB;
-    if (a!=b) {
-      nodeB = tree.getNode(b);
-    }
-    else {
-      nodeB = nodeA;
-    }
-    Node * oldNodeB = nodeB;
-    //Within this loop, it is also possible to get gene losses, and where they occured !
-    while (a!=b) { 
-      if (a>b) {
-        olda=a;
-        oldNodeA = nodeA;
-        nodeA = nodeA->getFather();
-        a = nodeA->getId();
-        //Recording gene losses
-        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, nodeA->getSon(0)->getId());
-        nodesIds0.push_back(nodeA->getSon(0)->getId());
-        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, nodeA->getSon(1)->getId());
-        nodesIds1.push_back(nodeA->getSon(1)->getId());
-        if ((nodeA->getSon(0)->getId()==olda)&&(!(VectorTools::contains(nodesIds1, b)))&&(b!=a))
-          {
-            Node * lostNode = nodeA->getSon(1);
-            int lostNodeId=lostNode->getId();
-            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-            changeBranchProperty(*(lostNode), LOSSES,  Number<int>(lossNumber));
-            //tree.getNode(lostNodeId)->setBranchProperty(LOSSES,  Number<int>(lossNumber));
-            lossNumbers[lostNodeId]=lossNumber;
-            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-            geneNodeIdToSpeciations[noeud->getId()].push_back(a);
-            //std::cout <<"\tA One loss on the branch leading to node " <<lostNodeId<<std::endl;
-          }
-        else if ((nodeA->getSon(1)->getId()==olda)&&(!(VectorTools::contains(nodesIds0, b)))&&(b!=a))
-          {
-            Node * lostNode = nodeA->getSon(0);
-            int lostNodeId=lostNode->getId();
-            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-            changeBranchProperty(*(lostNode), LOSSES,  Number<int>(lossNumber));
-            // tree.getNode(lostNodeId)->setBranchProperty(LOSSES,  Number<int>(lossNumber));
-            lossNumbers[lostNodeId]=lossNumber;
-            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-            geneNodeIdToSpeciations[noeud->getId()].push_back(a);
-            //std::cout <<"\tB One loss on the branch leading to node " <<lostNodeId<<std::endl;
-          }
-      }
-      else { //b>a
-        oldb=b;
-        oldNodeB = nodeB;
-        nodeB = nodeB->getFather();
-        b = nodeB->getId();
-        //Recording gene losses
-        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, nodeB->getSon(0)->getId());
-        nodesIds0.push_back(nodeB->getSon(0)->getId());
-        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, nodeB->getSon(1)->getId());
-        nodesIds1.push_back(nodeB->getSon(1)->getId());
-        if ((nodeB->getSon(0)->getId()==oldb)&&(!(VectorTools::contains(nodesIds1, a)))&&(b!=a))
-          {
-            Node * lostNode = nodeB->getSon(1);
-            int lostNodeId=lostNode->getId();
-            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-            changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
-            /*	    tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-             tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-            lossNumbers[lostNodeId]=lossNumber;
-            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-            geneNodeIdToSpeciations[noeud->getId()].push_back(b);
-            //std::cout <<"\tC One loss on the branch leading to node " <<lostNodeId<<std::endl;
-          }
-        else if ((nodeB->getSon(1)->getId()==oldb)&&(!(VectorTools::contains(nodesIds0, a)))&&(b!=a))
-          {
-            Node * lostNode = nodeB->getSon(0);
-            int lostNodeId = lostNode->getId();
-            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-            changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber)); 
-            /* tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-             tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber)); */
-            lossNumbers[lostNodeId]=lossNumber; 
-            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-            geneNodeIdToSpeciations[noeud->getId()].push_back(b);
-            //std::cout <<"\tD One loss on the branch leading to node " <<lostNodeId<<std::endl;
-          }
-      }
-    }
-    
-    changeNodeProperty(*(noeud), SPECIESID, Number<int>(a));
-    // noeud->setNodeProperty(SPECIESID, Number<int>(a));
-    if ((a==a0) || (b==b0)) //There has been a duplication !!
-      {
-        //	std::cout << "\n\n\n\t\t\tDUPLICATION on node "<<a<<std::endl;
-        //	std::cout << TreeTools::nodeToParenthesis(geneTree, noeud->getId())<<std::endl;
-        changeBranchProperty(*(noeud), EVENT, BppString("D"));
-        //noeud->setBranchProperty(EVENT, std::string("D"));
-        //	geneNodeIdToDuplications[noeud->getId()] = a;
-        //std::cout << "\tOne duplication on branch leading to node " << a <<std::endl;
-        //The same species node number should be on the two sides of the duplication event, had there been no loss
-        if ((a==a0) && (b==b0)) {}//there has been no loss, here
-        else if (b==b0) { //The loss has occured before a0
-          //We need to place the loss event in the right lineage
-          if (olda==a0) { // only one loss !
-            int lostNodeId;
-            Node * lostNode;
-            if (oldNodeA->getFather()->getSon(0)->getId()==olda) {
-              lostNode = oldNodeA->getFather()->getSon(1);
-              lostNodeId =lostNode->getId();
-            }
-            else {
-              lostNode = oldNodeA->getFather()->getSon(0);
-              lostNodeId =lostNode->getId();
-            }
-            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-            changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
-            /*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-             tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-            lossNumbers[lostNodeId]=lossNumber;
-            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-            geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
-            //std::cout <<"\t 1 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-          }
-          else {// several losses
-            //get the list of nodes present in the subtree defined by olda
-            /*  std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(olda)->getSon(0)->getId());
-             nodesIds0.push_back(tree.getNode(olda)->getSon(0)->getId());
-             std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(olda)->getSon(1)->getId());
-             nodesIds1.push_back(tree.getNode(olda)->getSon(1)->getId());	    
-             if (VectorTools::contains(nodesIds0, a0)) {*/
-            if (nodeA->getSon(0)->getId()==olda) {
-              Node * lostNode = nodeA->getSon(1);
-              int lostNodeId = lostNode->getId();
-              int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-              changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
-              /*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-               tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-              lossNumbers[lostNodeId]=lossNumber;
-              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-              geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
-              
-              //std::cout <<"\t 2 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-            }
-            // else if (VectorTools::contains(nodesIds1, a0)) {
-            else if(nodeA->getSon(1)->getId()==olda) {
-              Node * lostNode = nodeA->getSon(0);
-              int lostNodeId = lostNode->getId();
-              int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-              changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
-              /*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-               tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-              lossNumbers[lostNodeId]=lossNumber;
-              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-              geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
-              //std::cout <<"\t 3 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-            } 
-            else {std::cout <<"Problem reconcile !!"<<std::endl;
-              exit(-1);
-            }
-          }
-        }
-        else { 
-          //We need to place the loss event in the right lineage 
-          if (oldb==b0) { // only one loss !
-            Node * lostNode;
-            int lostNodeId;
-            if (oldNodeB->getFather()->getSon(0)->getId()==oldb) {
-              lostNode = oldNodeB->getFather()->getSon(1);
-              lostNodeId=lostNode->getId();
-            }
-            else {
-              lostNode = oldNodeB->getFather()->getSon(0);
-              lostNodeId=lostNode->getId();
-            }
-            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-            changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
-            /*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-             tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-            lossNumbers[lostNodeId]=lossNumber;
-            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-            geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
-            //std::cout <<"\t 4 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-          }
-          else {// several losses
-            //get the list of nodes present in the subtree defined by oldb
-            /* std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(oldb)->getSon(0)->getId()); 
-             nodesIds0.push_back(tree.getNode(oldb)->getSon(0)->getId());
-             std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(oldb)->getSon(1)->getId()); 
-             nodesIds1.push_back(tree.getNode(oldb)->getSon(1)->getId());
-             if (VectorTools::contains(nodesIds0, b0)) {*/
-            if (nodeA->getSon(0)->getId()==oldb) {
-              Node * lostNode = nodeB->getSon(1);
-              int lostNodeId = lostNode->getId();
-              int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-              changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
-              /*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-               tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-              lossNumbers[lostNodeId]=lossNumber; 
-              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-              geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
-              //  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
-              // std::cout <<"\t 5 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-            } 
-            // else if (VectorTools::contains(nodesIds1, b0)) {
-            else if(nodeA->getSon(1)->getId()==oldb) {
-              Node * lostNode = nodeB->getSon(0);
-              int lostNodeId = lostNode->getId();
-              int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
-              changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
-              /*tree.getNode(lostNodeId)->deleteBranchProperty(LOSSES);
-               tree.getNode(lostNodeId)->setBranchProperty(LOSSES, Number<int>(lossNumber));*/
-              lossNumbers[lostNodeId]=lossNumber;
-              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
-              geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
-              //  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
-              //std::cout <<"\t 6 One loss on the branch leading to node " <<lostNodeId<<std::endl;
-            }
-            else {std::cout <<"Problem reconcile !!"<<std::endl;
-              exit(-1);
-            }
-          }
-        }
-        int spId= (dynamic_cast<const Number<int> *>(noeud->getNodeProperty(SPECIESID))->getValue());
-        Node * nodeSpId = tree.getNode(spId);
-        int dupNumber = (dynamic_cast<const Number<int> *>(nodeSpId->getBranchProperty(DUPLICATIONS))->getValue())+1; 
-        changeBranchProperty(*(nodeSpId), DUPLICATIONS, Number<int>(dupNumber)); 
-        /*tree.getNode(spId)->deleteBranchProperty(DUPLICATIONS);
-         tree.getNode(spId)->setBranchProperty(DUPLICATIONS, Number<int>(dupNumber)); */
-        duplicationNumbers[spId]=dupNumber;
-        //std::cout <<"One duplication on node "<<spId<<std::endl;
-        geneNodeIdToDuplications[noeud->getId()] = spId;
-      }
-    else 
-      {
-        changeBranchProperty(*(noeud), EVENT, BppString("S"));
-        //noeud->setBranchProperty(EVENT, std::string("S"));
-        geneNodeIdToSpeciations[noeud->getId()].push_back(a);
-      }
-  }
-}
-
-
 
 
 
@@ -1626,11 +1111,11 @@ void setLossesAndDuplications(TreeTemplate<Node> & tree,
     if(tree.hasBranchProperty(nodesIds[i], LOSSES)) {
       tree.getNode(nodesIds[i])->deleteBranchProperty(LOSSES);
     }
-    tree.getNode(nodesIds[i])->setBranchProperty(LOSSES, Number<int>(lossNumbers[nodesIds[i]]));
+    tree.getNode(nodesIds[i])->setBranchProperty(LOSSES, BppString(TextTools::toString((lossNumbers[nodesIds[i]]))));
     if(tree.hasBranchProperty(nodesIds[i], DUPLICATIONS)) {
       tree.getNode(nodesIds[i])->deleteBranchProperty(DUPLICATIONS);
     }
-    tree.getNode(nodesIds[i])->setBranchProperty(DUPLICATIONS, Number<int>(duplicationNumbers[nodesIds[i]]));
+    tree.getNode(nodesIds[i])->setBranchProperty(DUPLICATIONS, BppString(TextTools::toString((duplicationNumbers[nodesIds[i]]))));
   }
 }
 
@@ -1656,278 +1141,6 @@ void assignNumLineagesOnSpeciesTree(TreeTemplate<Node> & tree,
       tree.getNode(nodesIds[i])->setName( tree.getNode(nodesIds[i])->getName() + "_"+nums) ;
     }
   }
-}
-
-
-
-
-/**************************************************************************
- * This function computes a reconciliation for a given root node
- **************************************************************************/
-
-double makeReconciliationAtGivenRoot (TreeTemplate<Node> * tree, 
-                                      TreeTemplate<Node> * geneTree, 
-                                      std::map<std::string, std::string > seqSp, 
-                                      std::vector< double> lossProbabilities, 
-                                      std::vector < double> duplicationProbabilities, 
-                                      int MLindex)
-{
-  std::vector <int> lossNumbers;
-  std::vector <int> duplicationNumbers; 
-  std::vector <int> branchNumbers; 
-  std::vector <int> numOlineages; 
-  std::vector <int> num1lineages;
-  std::vector <int> num2lineages;
-
- 
-  std::map <int,int> geneNodeIdToDuplications;
-  std::map <int, std::vector <int> > geneNodeIdToLosses;
-  std::map <int, std::vector <int> > geneNodeIdToSpeciations;
-  resetSpeciesIdsAndLiks (*geneTree);
- 
-  int numSpNodes = tree->getNumberOfNodes(); 
-  std::vector <int> vec;
-  for (int i=0; i<numSpNodes; i++) {
-    lossNumbers.push_back(0);
-    duplicationNumbers.push_back(0);
-    branchNumbers.push_back(0);
-    geneNodeIdToDuplications.insert(std::make_pair(i, -1));
-    geneNodeIdToLosses.insert(make_pair(i, vec));
-    geneNodeIdToSpeciations.insert(make_pair(i, vec));
-  }
- 
-  double MLRooting = UNLIKELY;
-  if (geneTree->isRooted()) {
-    geneTree->unroot();
-  }
-  if (MLindex != geneTree->getRootNode()->getId()){
-    geneTree->newOutGroup(MLindex);
-    resetLossesAndDuplications(*tree, /*lossNumbers, */lossProbabilities, /*duplicationNumbers, */duplicationProbabilities);
-    resetVector(branchNumbers); 
-  //  std::cout << "reconcile 1!!"<<std::endl;
-    reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations); 
-    computeScenarioScore (*tree, *geneTree, geneTree->getRootNode(), branchNumbers, geneNodeIdToSpeciations, duplicationProbabilities, lossProbabilities, numOlineages, num1lineages, num2lineages);
-    MLRooting = (dynamic_cast<const Number<double> *>(geneTree->getRootNode()->getNodeProperty(LOWLIK))->getValue());
-  }
-  return MLRooting;
-}
-
-
-
-/*****************************************************************************
-  * Various heuristics are implemented in this function. The choice between the various heuristics depends upon the value of heuristicsLevel.
-  * 1 : fastest heuristics : only a few nodes are tried for the roots (the number of the nodes tried depends upon speciesIdLimitForRootPosition), and for each root tried, the events are re-computed only for a subset of the tree.
-  * 2 : All roots are tried, and for each root tried, the events are re-computed only for a subset of the tree.
-  * 3 : All roots are tried, and for each root tried, the events are re-computed for all nodes of the tree (which should be useless unless there is a bug in the selection of the subset of the nodes.
-  ****************************************************************************/
-
-double findMLReconciliation (TreeTemplate<Node> * spTree, 
-                             TreeTemplate<Node> * geneTreeSafe, 
-                             std::map<std::string, std::string > seqSp, 
-                             std::vector<int> & lossNumbers, 
-                             std::vector< double> lossProbabilities, 
-                             std::vector< int> & duplicationNumbers, 
-                             std::vector < double> duplicationProbabilities, 
-                             int & MLindex, 
-                             std::vector<int> &branchNumbers, 
-                             int speciesIdLimitForRootPosition, 
-                             int heuristicsLevel, 
-                             std::vector <int> &num0lineages, 
-                             std::vector <int> &num1lineages, 
-                             std::vector <int> &num2lineages, 
-                             std::set <int> &nodesToTryInNNISearch)
-{
-	TreeTemplate<Node> * geneTree = geneTreeSafe->clone();
-	TreeTemplate<Node> * tree = spTree->clone();
-	if (!geneTree->isRooted()) {
-		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
-		std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliation !!!!!!"<<std::endl;
-		exit(-1);
-	}
-	int oldRoot = geneTree->getRootNode()->getId();
-/*  std::vector <int> allNodesIds= geneTree->getNodesId();
-  for (int i=0; i< allNodesIds.size() ; i++) {
-    nodesToTryInNNISearch.insert(allNodesIds[i]); 
-  }*/
-  
-	/* 
-	 std::cout <<" HERE BASIC TREE : ";
-	 std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
-	std::vector <int> geneNodes; // contains potential roots to try
-	std::vector <Node *> allNodes;
-	allNodes = geneTree->getNodes();
-	double MLRooting = UNLIKELY;
-	double currentScore = UNLIKELY;
-	std::vector <int> bestLossNumbers = lossNumbers;
-	std::vector <int> bestDuplicationNumbers = duplicationNumbers;
-	std::vector <int> bestBranchNumbers = branchNumbers;
-	std::vector <int> bestnum0lineages = num0lineages;
-	std::vector <int> bestnum1lineages = num1lineages;
-	std::vector <int> bestnum2lineages = num2lineages;
-
- std::map <int,int> geneNodeIdToDuplications;
- std::map <int, std::vector <int> > geneNodeIdToLosses;
- std::map <int, std::vector <int> > geneNodeIdToSpeciations; 
-	std::vector <int> vec;
-	for (int i = 0 ; i< allNodes.size(); i++ ) {
-		geneNodeIdToDuplications.insert(std::make_pair(i, -1));
-		geneNodeIdToLosses.insert(std::make_pair(i, vec));
-		geneNodeIdToSpeciations.insert(std::make_pair(i, vec));
-	}
-	resetSpeciesIdsAndLiks (*geneTree);
- std::map <int, int > NodeIdToSpId; //correspondence between ids in the gene tree and ids in the species tree
-
-	resetLossesAndDuplications(*tree, /*lossNumbers, */lossProbabilities, /*duplicationNumbers, */duplicationProbabilities);
-	resetVector(branchNumbers);
-	resetVector(num0lineages);
-	resetVector(num1lineages);
-	resetVector(num2lineages);
-  reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations); 
-	int rootSon1;	
-	int rootSon2;
-	if (heuristicsLevel > 1) {
-		//we try all possible roots
-		std::cout <<"All possible roots for gene trees are tried"<<std::endl;
-		geneNodes = geneTree->getNodesId();
-	}
-	else {
-		//we only try a smart subset of all nodes
-		for (int i = 0; i< allNodes.size() ; i++) {
-			int temp = (dynamic_cast<const Number<int> *>(allNodes[i]->getNodeProperty(SPECIESID))->getValue());
-				NodeIdToSpId.insert(std::pair <int,int> (allNodes[i]->getId(),temp));
-		}
-
-		//Now we choose the nodes that we want to try
-    rootSon1=geneTree->getRootNode()->getSon(0)->getId();
-		rootSon2=geneTree->getRootNode()->getSon(1)->getId();
-		int limit = -1;
-    std::map<int,int >::iterator iter;
-		//This loop aims at finding the smallest species node index in the tree (not all gene trees will have node with species id = 0!)
-		for( iter = NodeIdToSpId.begin(); iter != NodeIdToSpId.end(); iter++ ) {
-			if ((iter->second<limit)||(limit==-1)) {
-				limit = iter->second;
-			}
-		}
-		limit += speciesIdLimitForRootPosition;
-
-		for( iter = NodeIdToSpId.begin(); iter != NodeIdToSpId.end(); iter++ ) {
-			if ((iter->second <= limit) &&(iter->first!=rootSon1)&&(iter->first!=rootSon2)) {
-        geneNodes.push_back(iter->first);
-			}
-		}
-	}
-	//We backup this tree and the gene tree, which will constitute our starting point for all roots tried, to avoid computing reconciliation for all nodes. Similarly, we backup the various std::maps.
-	TreeTemplate<Node> * backup = geneTree->clone();
-	TreeTemplate<Node> * backupTree = tree->clone();
- std::map <int, int> backupGeneNodeIdToDuplications = geneNodeIdToDuplications;
- std::map <int, std::vector <int> > backupGeneNodeIdToLosses = geneNodeIdToLosses;
- std::map <int, std::vector <int> > backupGeneNodeIdToSpeciations = geneNodeIdToSpeciations; 
-	std::vector <int> backupLossNumbers = lossNumbers;
-	std::vector <int> backupDuplicationNumbers = duplicationNumbers;
-	std::vector <int> backupBranchNumbers = branchNumbers;
-	std::vector <int> backupnum0lineages = num0lineages;
-	std::vector <int> backupnum1lineages = num1lineages;
-	std::vector <int> backupnum2lineages = num2lineages;
-
-	computeScenarioScore (*tree, *geneTree, geneTree->getRootNode(), branchNumbers, geneNodeIdToSpeciations, duplicationProbabilities, lossProbabilities, num0lineages, num1lineages, num2lineages);
-	currentScore = (dynamic_cast<const Number<double> *>(geneTree->getRootNode()->getNodeProperty(LOWLIK))->getValue());
-	//std::cout <<"startingScore : "<<currentScore<<std::endl;	
-
-	MLRooting = currentScore;
-	MLindex = oldRoot;
-	bestLossNumbers = lossNumbers;
-	bestDuplicationNumbers =duplicationNumbers;
-	bestBranchNumbers = branchNumbers;
-	bestnum0lineages = num0lineages;
-	bestnum1lineages = num1lineages;
-	bestnum2lineages = num2lineages;
-	double backupScore=currentScore;
-  
-  nodesToTryInNNISearch.clear();
-  for (int i =0 ; i < allNodes.size(); i++) {
-    if (geneNodeIdToDuplications[i]!=-1) {
-      nodesToTryInNNISearch.insert(i);
-    }
-  }
-
-	//In this loop we try all rootings, starting from the starting rooting in geneTreeSafe
-	for (int i = 0; i< geneNodes.size(); i++) {
-		if ((heuristicsLevel != 1) ||(geneNodes[i]!=oldRoot)) {
-      delete geneTree;
-			delete tree;
-			geneTree = backup->clone();
-			tree = backupTree->clone();
-			//We want to only update nodes whose status has changed between the two roots
-			std::vector <int > nodesToUpdate = TreeTools::getPathBetweenAnyTwoNodes(*geneTree, oldRoot, geneNodes[i], true);
-			resetSpeciesIdsAndLiksForGivenNodes (*geneTree, nodesToUpdate);
-
-			geneNodeIdToDuplications = backupGeneNodeIdToDuplications;
-			geneNodeIdToLosses = backupGeneNodeIdToLosses;
-			geneNodeIdToSpeciations = backupGeneNodeIdToSpeciations; 
-			lossNumbers = backupLossNumbers;
-			duplicationNumbers = backupDuplicationNumbers;
-			branchNumbers = backupBranchNumbers;
-			num0lineages = backupnum0lineages;
-			num1lineages = backupnum1lineages;
-			num2lineages = backupnum2lineages;
-			geneTree->newOutGroup(geneNodes[i]);
-			resetLossesDuplicationsSpeciationsForGivenNodes(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities, branchNumbers, nodesToUpdate, geneNodeIdToLosses, geneNodeIdToDuplications, geneNodeIdToSpeciations);
-		
-			if (heuristicsLevel == 3) {
-				// Total reset :
-				resetSpeciesIdsAndLiks (*geneTree);
-				resetLossesAndDuplications(*tree, /*lossNumbers, */lossProbabilities, /*duplicationNumbers, */duplicationProbabilities);
-				resetVector(branchNumbers);
-				resetVector(num0lineages);
-				resetVector(num1lineages);
-				resetVector(num2lineages);
-			}
-
-
-			// std::cout << "#######################BEFORE RECONCILE##########################"<<std::endl; 
-			reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);  
-
-			// std::cout << "#######################AFTER RECONCILE##########################"<<std::endl;
-      computeScenarioScore (*tree, *geneTree, geneTree->getRootNode(), branchNumbers, geneNodeIdToSpeciations, duplicationProbabilities, lossProbabilities, num0lineages, num1lineages, num2lineages);
-			currentScore = (dynamic_cast<const Number<double> *>(geneTree->getRootNode()->getNodeProperty(LOWLIK))->getValue());
-
-			if (currentScore>MLRooting) {
-				MLRooting = currentScore;
-				MLindex = geneNodes[i];
-				bestLossNumbers = lossNumbers;
-				bestDuplicationNumbers =duplicationNumbers;
-				bestBranchNumbers = branchNumbers;
-				bestnum0lineages = num0lineages;
-				bestnum1lineages = num1lineages;
-				bestnum2lineages = num2lineages;
-        nodesToTryInNNISearch.clear();
-        for (int i =0 ; i < allNodes.size(); i++) {
-          if (geneNodeIdToDuplications[i]!=-1) {
-            nodesToTryInNNISearch.insert(i);
-          }
-        }
-			}
-
-		}
-}
-
- // std::cout <<"END OF findMLREconciliation  : MLindex :"<<MLindex<<" LK :"<<MLRooting<<std::endl;
-
-lossNumbers = bestLossNumbers;
-duplicationNumbers = bestDuplicationNumbers;
-branchNumbers = bestBranchNumbers;
-num0lineages = bestnum0lineages;
-num1lineages = bestnum1lineages;
-num2lineages = bestnum2lineages;
-delete tree;
-delete geneTree;
-delete backup;
-delete backupTree;
-
-return MLRooting;
-
-
-
 }
 
 
@@ -3604,6 +2817,62 @@ std::string removeComments(
 
 
 
+/**************************************************************************
+ * Annotate gene tree with duplication events. Adds D=Y to node properties where
+ * there was a duplication, and D=N where there was no duplication.
+ *************************************************************************/
+
+void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree, 
+                                            TreeTemplate<Node> & geneTree, 
+                                            Node * node, 
+                                            std::map<std::string, std::string > seqSp,
+                                            std::map<std::string, int > spID) 
+{
+  int id=node->getId();
+ 	if (node->isLeaf()) {
+    node->setNodeProperty("S", BppString(TextTools::toString(assignSpeciesIdToLeaf(node, seqSp, spID))));
+    node->setNodeProperty("D", BppString("N"));
+    return;
+  }
+  else {
+    std::vector <Node *> sons = node->getSons();
+    for (int i = 0; i< sons.size(); i++){
+      annotateGeneTreeWithDuplicationEvents(spTree, geneTree, sons[i], seqSp, spID);
+    }
+    
+    int a = TextTools::toInt((dynamic_cast<const BppString*>(sons[0]->getNodeProperty("S")))->toSTL());
+    int b = TextTools::toInt((dynamic_cast<const BppString*>(sons[1]->getNodeProperty("S")))->toSTL());
+    
+    int aold = a;
+    int bold = b;
+    
+    while (a!=b) 
+      {
+        if (a>b)
+          a = spTree.getNode(a)->getFather()->getId(); 
+        else
+          b = spTree.getNode(b)->getFather()->getId(); 
+      }
+    node->setNodeProperty("S", BppString(TextTools::toString(a)));
+    if ((a == aold ) || (a == bold))
+      {
+        node->setNodeProperty("D", BppString("Y"));
+      }
+    else 
+      {
+        node->setNodeProperty("D", BppString("N"));
+      }
+    return;
+	}
+  
+  
+  
+  
+  
+  
+  
+  
+}
 
 
 
@@ -4430,3 +3699,765 @@ void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node *
 	  std::cout <<"branch Number#"<< i<<" du Num: "<< duplicationNumbers[i]<<" du Prob: "<< duplicationProbabilities[i]<<" loss Num: "<< lossNumbers[i]<<" loss Prob: "<< lossProbabilities[i]<<" branch Num: "<< branchNumbers[i]<<std::endl;
 	  }
 	*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**************************************************************************
+ * This function reconciles a gene tree with a species tree with a post-order tree-traversal, using Zmasek and Eddy algorithm (2001). 
+ * An added feature is that we also get loss events. 
+ * We also fill std::maps containing links between nodes of the gene tree and events on the species tree. 
+ * It is important to note that the number of events associated to a given node comes from the values in the "tree" object.
+ * Special care must then be used to ascertain these numbers in the "tree" object are correct.
+ **************************************************************************/
+/*
+void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::vector<int> &branchNumbers, std::map <int,int> &geneNodeIdToDuplications, std::map <int, std::vector <int> > &geneNodeIdToLosses, std::map <int, std::vector <int> > &geneNodeIdToSpeciations) {
+  if (noeud->isLeaf()) {
+    const int temp = tree.getLeafId(seqSp[noeud->getName()]); 
+    branchNumbers[temp]=branchNumbers[temp]+1; 
+    changeNodeProperty(*noeud, SPECIESID, Number<int>(temp));
+    changeBranchProperty(*noeud, EVENT, BppString("S"));
+    geneNodeIdToSpeciations[noeud->getId()].push_back(temp);
+  }
+  else{
+    //std::cout << "Root degree : "<<noeud->degree()<<" Number of sons : "<<noeud->getNumberOfSons()<< std::endl;
+    Node * son0=noeud->getSon(0);
+    Node * son1=noeud->getSon(1);  
+    if ((dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue())==-1)
+      {
+        reconcile (tree, geneTree, son0, seqSp, lossNumbers, duplicationNumbers, branchNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);
+      }
+    if ((dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue())==-1)
+      {
+        reconcile (tree, geneTree, son1, seqSp, lossNumbers, duplicationNumbers, branchNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);
+      }
+    int a = (dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue()); 
+    int b = (dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue());
+    int a0=a;
+    int b0=b;
+    int olda=a;
+    int oldb=b;
+    //Within this loop, it is also possible to get gene losses, and where they occured !
+    while (a!=b) { 
+      if (a>b) {
+        olda=a;
+        a = tree.getNode(a)->getFather()->getId();
+        //Recording gene losses
+        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(a)->getSon(0)->getId());
+        nodesIds0.push_back(tree.getNode(a)->getSon(0)->getId());
+        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(a)->getSon(1)->getId());
+        nodesIds1.push_back(tree.getNode(a)->getSon(1)->getId());
+        if ((tree.getNode(a)->getSon(0)->getId()==olda)&&(!(VectorTools::contains(nodesIds1, b)))&&(b!=a))
+          {
+            int lostNodeId=tree.getNode(a)->getSon(1)->getId();
+            int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES,  Number<int>(lossNumber));
+            //tree.getNode(lostNodeId)->setBranchProperty(LOSSES,  Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            branchNumbers[a]=branchNumbers[a]+1;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(a);
+            //std::cout <<"\tA One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+        else if ((tree.getNode(a)->getSon(1)->getId()==olda)&&(!(VectorTools::contains(nodesIds0, b)))&&(b!=a))
+          {
+            int lostNodeId=tree.getNode(a)->getSon(0)->getId();
+            int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES,  Number<int>(lossNumber));
+            //tree.getNode(lostNodeId)->setBranchProperty(LOSSES,  Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            branchNumbers[a]=branchNumbers[a]+1;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(a);
+            //std::cout <<"\tB One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+      }
+      else { //b>a
+        oldb=b;
+        b = tree.getNode(b)->getFather()->getId();
+        //Recording gene losses
+        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(b)->getSon(0)->getId());
+        nodesIds0.push_back(tree.getNode(b)->getSon(0)->getId());
+        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(b)->getSon(1)->getId());
+        nodesIds1.push_back(tree.getNode(b)->getSon(1)->getId());
+        if ((tree.getNode(b)->getSon(0)->getId()==oldb)&&(!(VectorTools::contains(nodesIds1, a)))&&(b!=a))
+          {
+            int lostNodeId=tree.getNode(b)->getSon(1)->getId();
+            int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            branchNumbers[b]=branchNumbers[b]+1;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(b);
+            //std::cout <<"\tC One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+        else if ((tree.getNode(b)->getSon(1)->getId()==oldb)&&(!(VectorTools::contains(nodesIds0, a)))&&(b!=a))
+          {
+            int lostNodeId=tree.getNode(b)->getSon(0)->getId();
+            int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*( tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber; 
+            branchNumbers[b]=branchNumbers[b]+1;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(b);
+            //std::cout <<"\tD One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+      }
+    }
+    
+    changeNodeProperty(*(noeud), SPECIESID, Number<int>(a));
+    //noeud->setNodeProperty(SPECIESID, Number<int>(a));
+    if ((a==a0) || (b==b0)) //There has been a duplication !!
+      {
+        changeBranchProperty(*(noeud), EVENT, BppString("D"));
+        //noeud->setBranchProperty(EVENT, std::string("D"));
+        //	geneNodeIdToDuplications[noeud->getId()] = a;
+        //std::cout << "\tOne duplication on branch leading to node " << a <<std::endl;
+        //The same species node number should be on the two sides of the duplication event, had there been no loss
+        if ((a==a0) && (b==b0)) {}//there has been no loss, here
+        else if (b==b0) { //The loss has occured before a0
+          //We need to place the loss event in the right lineage
+          if (olda==a0) { // only one loss !
+            int lostNodeId;
+            if (tree.getNode(olda)->getFather()->getSon(0)->getId()==olda) {
+              lostNodeId=tree.getNode(olda)->getFather()->getSon(1)->getId();
+            }
+            else {
+              lostNodeId=tree.getNode(olda)->getFather()->getSon(0)->getId();
+            }
+            int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
+             lossNumbers[lostNodeId]=lossNumber;
+            branchNumbers[olda]=branchNumbers[olda]+1;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
+            //  branchNumbers[tree.getNode(olda)->getFather()->getId()]=branchNumbers[tree.getNode(olda)->getFather()->getId()]+1;
+            //std::cout <<"\t 1 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+          else {// several losses
+            //get the list of nodes present in the subtree defined by olda
+            if (tree.getNode(a)->getSon(0)->getId()==olda) {
+              int lostNodeId = tree.getNode(a)->getSon(1)->getId();
+              int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+              changeBranchProperty(*(tree.getNode(lostNodeId)),LOSSES, Number<int>(lossNumber)); 
+              lossNumbers[lostNodeId]=lossNumber;
+              branchNumbers[olda]=branchNumbers[olda]+1;
+              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+              geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
+              //  branchNumbers[tree.getNode(olda)->getFather()->getId()]=branchNumbers[tree.getNode(olda)->getFather()->getId()]+1;
+              //std::cout <<"\t 2 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+            }
+            // else if (VectorTools::contains(nodesIds1, a0)) {
+            else if(tree.getNode(a)->getSon(1)->getId()==olda) {
+              int lostNodeId = tree.getNode(a)->getSon(0)->getId();
+              int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+              changeBranchProperty(*(tree.getNode(lostNodeId)),LOSSES, Number<int>(lossNumber));
+              lossNumbers[lostNodeId]=lossNumber;
+              branchNumbers[olda]=branchNumbers[olda]+1;
+              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+              geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
+              //  branchNumbers[tree.getNode(olda)->getFather()->getId()]=branchNumbers[tree.getNode(olda)->getFather()->getId()]+1;
+              //std::cout <<"\t 3 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+            } 
+            else {std::cout <<"Problem reconcile !!"<<std::endl;
+              exit(-1);
+            }
+          }
+        }
+        else { 
+          //We need to place the loss event in the right lineage 
+          if (oldb==b0) { // only one loss !
+            int lostNodeId;
+            if (tree.getNode(oldb)->getFather()->getSon(0)->getId()==oldb) {
+              lostNodeId=tree.getNode(oldb)->getFather()->getSon(1)->getId();
+            }
+            else {
+              lostNodeId=tree.getNode(oldb)->getFather()->getSon(0)->getId();
+            }
+            int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(tree.getNode(lostNodeId)),LOSSES, Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            branchNumbers[oldb]=branchNumbers[oldb]+1;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
+            //  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
+            //std::cout <<"\t 4 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+          else {// several losses
+            //get the list of nodes present in the subtree defined by oldb
+            if (tree.getNode(a)->getSon(0)->getId()==oldb) {
+              int lostNodeId = tree.getNode(b)->getSon(1)->getId();
+              int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+              changeBranchProperty(*( tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
+              lossNumbers[lostNodeId]=lossNumber; 
+              branchNumbers[oldb]=branchNumbers[oldb]+1; 
+              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+              geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
+              //  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
+              // std::cout <<"\t 5 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+            } 
+            // else if (VectorTools::contains(nodesIds1, b0)) {
+            else if(tree.getNode(a)->getSon(1)->getId()==oldb) {
+              int lostNodeId = tree.getNode(b)->getSon(0)->getId();
+              int lossNumber = (dynamic_cast<const Number<int> *>(tree.getNode(lostNodeId)->getBranchProperty(LOSSES))->getValue())+1;
+              changeBranchProperty(*(tree.getNode(lostNodeId)), LOSSES, Number<int>(lossNumber));
+              lossNumbers[lostNodeId]=lossNumber;
+              branchNumbers[oldb]=branchNumbers[oldb]+1;  
+              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+              geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
+              //  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
+              //std::cout <<"\t 6 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+            }
+            else {std::cout <<"Problem reconcile !!"<<std::endl;
+              exit(-1);
+            }
+          }
+        }
+        int spId= (dynamic_cast<const Number<int> *>(noeud->getNodeProperty(SPECIESID))->getValue());
+        int dupNumber = (dynamic_cast<const Number<int> *>(tree.getNode(spId)->getBranchProperty(DUPLICATIONS))->getValue())+1; 
+        changeBranchProperty(*(tree.getNode(spId)), DUPLICATIONS, Number<int>(dupNumber)); 
+        duplicationNumbers[spId]=dupNumber;
+        //std::cout <<"One duplication on node "<<spId<<std::endl;
+        geneNodeIdToDuplications[noeud->getId()] = spId;
+      }
+	  else 
+      {
+        branchNumbers[a]+=1;
+        changeBranchProperty(*(noeud), EVENT, BppString("S"));
+        //noeud->setBranchProperty(EVENT, std::string("S"));
+        geneNodeIdToSpeciations[noeud->getId()].push_back(a);
+      }
+  }
+}
+*/
+
+
+/******************************************************************************************
+ * In this version of the function, we do not fill the branch numbers std::vector.
+ *****************************************************************************************/
+/*
+void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::map <int,int> &geneNodeIdToDuplications, std::map <int, std::vector <int> > &geneNodeIdToLosses, std::map <int, std::vector <int> > &geneNodeIdToSpeciations) {
+  if (noeud->isLeaf()) {
+    const int temp = tree.getLeafId(seqSp[noeud->getName()]); 
+    changeNodeProperty(*(noeud), SPECIESID, Number<int>(temp));
+    changeBranchProperty(*(noeud),EVENT, BppString("S")); 
+    geneNodeIdToSpeciations[noeud->getId()].push_back(temp);
+  }
+  else{
+    Node * son0=noeud->getSon(0);
+    Node * son1=noeud->getSon(1);  
+    if ((dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue())==-1)
+      {
+        reconcile (tree, geneTree, son0, seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);
+      }
+    if ((dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue())==-1)
+      {
+        reconcile (tree, geneTree, son1, seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);
+      }
+    int a = (dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue()); 
+    int b = (dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue());
+    int a0=a;
+    int b0=b;
+    int olda=a;
+    int oldb=b;
+    Node * nodeA = tree.getNode(a);
+    Node * oldNodeA = nodeA;
+    Node * nodeB;
+    if (a!=b) {
+      nodeB = tree.getNode(b);
+    }
+    else {
+      nodeB = nodeA;
+    }
+    Node * oldNodeB = nodeB;
+    //Within this loop, it is also possible to get gene losses, and where they occured !
+    while (a!=b) { 
+      if (a>b) {
+        olda=a;
+        oldNodeA = nodeA;
+        nodeA = nodeA->getFather();
+        a = nodeA->getId();
+        //Recording gene losses
+        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, nodeA->getSon(0)->getId());
+        nodesIds0.push_back(nodeA->getSon(0)->getId());
+        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, nodeA->getSon(1)->getId());
+        nodesIds1.push_back(nodeA->getSon(1)->getId());
+        if ((nodeA->getSon(0)->getId()==olda)&&(!(VectorTools::contains(nodesIds1, b)))&&(b!=a))
+          {
+            Node * lostNode = nodeA->getSon(1);
+            int lostNodeId=lostNode->getId();
+            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(lostNode), LOSSES,  Number<int>(lossNumber));
+            //tree.getNode(lostNodeId)->setBranchProperty(LOSSES,  Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(a);
+            //std::cout <<"\tA One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+        else if ((nodeA->getSon(1)->getId()==olda)&&(!(VectorTools::contains(nodesIds0, b)))&&(b!=a))
+          {
+            Node * lostNode = nodeA->getSon(0);
+            int lostNodeId=lostNode->getId();
+            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(lostNode), LOSSES,  Number<int>(lossNumber));
+            // tree.getNode(lostNodeId)->setBranchProperty(LOSSES,  Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(a);
+            //std::cout <<"\tB One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+      }
+      else { //b>a
+        oldb=b;
+        oldNodeB = nodeB;
+        nodeB = nodeB->getFather();
+        b = nodeB->getId();
+        //Recording gene losses
+        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, nodeB->getSon(0)->getId());
+        nodesIds0.push_back(nodeB->getSon(0)->getId());
+        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, nodeB->getSon(1)->getId());
+        nodesIds1.push_back(nodeB->getSon(1)->getId());
+        if ((nodeB->getSon(0)->getId()==oldb)&&(!(VectorTools::contains(nodesIds1, a)))&&(b!=a))
+          {
+            Node * lostNode = nodeB->getSon(1);
+            int lostNodeId=lostNode->getId();
+            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(b);
+            //std::cout <<"\tC One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+        else if ((nodeB->getSon(1)->getId()==oldb)&&(!(VectorTools::contains(nodesIds0, a)))&&(b!=a))
+          {
+            Node * lostNode = nodeB->getSon(0);
+            int lostNodeId = lostNode->getId();
+            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber)); 
+            lossNumbers[lostNodeId]=lossNumber; 
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(b);
+            //std::cout <<"\tD One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+      }
+    }
+    
+    changeNodeProperty(*(noeud), SPECIESID, Number<int>(a));
+    // noeud->setNodeProperty(SPECIESID, Number<int>(a));
+    if ((a==a0) || (b==b0)) //There has been a duplication !!
+      {
+        //	std::cout << "\n\n\n\t\t\tDUPLICATION on node "<<a<<std::endl;
+        //	std::cout << TreeTools::nodeToParenthesis(geneTree, noeud->getId())<<std::endl;
+        changeBranchProperty(*(noeud), EVENT, BppString("D"));
+        //noeud->setBranchProperty(EVENT, std::string("D"));
+        //	geneNodeIdToDuplications[noeud->getId()] = a;
+        //std::cout << "\tOne duplication on branch leading to node " << a <<std::endl;
+        //The same species node number should be on the two sides of the duplication event, had there been no loss
+        if ((a==a0) && (b==b0)) {}//there has been no loss, here
+        else if (b==b0) { //The loss has occured before a0
+          //We need to place the loss event in the right lineage
+          if (olda==a0) { // only one loss !
+            int lostNodeId;
+            Node * lostNode;
+            if (oldNodeA->getFather()->getSon(0)->getId()==olda) {
+              lostNode = oldNodeA->getFather()->getSon(1);
+              lostNodeId =lostNode->getId();
+            }
+            else {
+              lostNode = oldNodeA->getFather()->getSon(0);
+              lostNodeId =lostNode->getId();
+            }
+            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
+            //std::cout <<"\t 1 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+          else {// several losses
+            //get the list of nodes present in the subtree defined by olda
+            if (nodeA->getSon(0)->getId()==olda) {
+              Node * lostNode = nodeA->getSon(1);
+              int lostNodeId = lostNode->getId();
+              int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+              changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
+              lossNumbers[lostNodeId]=lossNumber;
+              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+              geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
+              
+              //std::cout <<"\t 2 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+            }
+            // else if (VectorTools::contains(nodesIds1, a0)) {
+            else if(nodeA->getSon(1)->getId()==olda) {
+              Node * lostNode = nodeA->getSon(0);
+              int lostNodeId = lostNode->getId();
+              int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+              changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
+               lossNumbers[lostNodeId]=lossNumber;
+              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+              geneNodeIdToSpeciations[noeud->getId()].push_back(olda);
+              //std::cout <<"\t 3 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+            } 
+            else {std::cout <<"Problem reconcile !!"<<std::endl;
+              exit(-1);
+            }
+          }
+        }
+        else { 
+          //We need to place the loss event in the right lineage 
+          if (oldb==b0) { // only one loss !
+            Node * lostNode;
+            int lostNodeId;
+            if (oldNodeB->getFather()->getSon(0)->getId()==oldb) {
+              lostNode = oldNodeB->getFather()->getSon(1);
+              lostNodeId=lostNode->getId();
+            }
+            else {
+              lostNode = oldNodeB->getFather()->getSon(0);
+              lostNodeId=lostNode->getId();
+            }
+            int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+            changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
+            lossNumbers[lostNodeId]=lossNumber;
+            geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+            geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
+            //std::cout <<"\t 4 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+          }
+          else {// several losses
+            //get the list of nodes present in the subtree defined by oldb
+            if (nodeA->getSon(0)->getId()==oldb) {
+              Node * lostNode = nodeB->getSon(1);
+              int lostNodeId = lostNode->getId();
+              int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+              changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
+              lossNumbers[lostNodeId]=lossNumber; 
+              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+              geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
+              //  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
+              // std::cout <<"\t 5 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+            } 
+            // else if (VectorTools::contains(nodesIds1, b0)) {
+            else if(nodeA->getSon(1)->getId()==oldb) {
+              Node * lostNode = nodeB->getSon(0);
+              int lostNodeId = lostNode->getId();
+              int lossNumber = (dynamic_cast<const Number<int> *>(lostNode->getBranchProperty(LOSSES))->getValue())+1;
+              changeBranchProperty(*(lostNode), LOSSES, Number<int>(lossNumber));
+              lossNumbers[lostNodeId]=lossNumber;
+              geneNodeIdToLosses[noeud->getId()].push_back(lostNodeId);
+              geneNodeIdToSpeciations[noeud->getId()].push_back(oldb);
+              //  branchNumbers[tree.getNode(oldb)->getFather()->getId()]=branchNumbers[tree.getNode(oldb)->getFather()->getId()]+1;
+              //std::cout <<"\t 6 One loss on the branch leading to node " <<lostNodeId<<std::endl;
+            }
+            else {std::cout <<"Problem reconcile !!"<<std::endl;
+              exit(-1);
+            }
+          }
+        }
+        int spId= (dynamic_cast<const Number<int> *>(noeud->getNodeProperty(SPECIESID))->getValue());
+        Node * nodeSpId = tree.getNode(spId);
+        int dupNumber = (dynamic_cast<const Number<int> *>(nodeSpId->getBranchProperty(DUPLICATIONS))->getValue())+1; 
+        changeBranchProperty(*(nodeSpId), DUPLICATIONS, Number<int>(dupNumber)); 
+        duplicationNumbers[spId]=dupNumber;
+        //std::cout <<"One duplication on node "<<spId<<std::endl;
+        geneNodeIdToDuplications[noeud->getId()] = spId;
+      }
+    else 
+      {
+        changeBranchProperty(*(noeud), EVENT, BppString("S"));
+        //noeud->setBranchProperty(EVENT, std::string("S"));
+        geneNodeIdToSpeciations[noeud->getId()].push_back(a);
+      }
+  }
+}
+
+*/
+
+
+
+
+
+
+/**************************************************************************
+ * This function computes a reconciliation for a given root node
+ **************************************************************************/
+/*
+double makeReconciliationAtGivenRoot (TreeTemplate<Node> * tree, 
+                                      TreeTemplate<Node> * geneTree, 
+                                      std::map<std::string, std::string > seqSp, 
+                                      std::vector< double> lossProbabilities, 
+                                      std::vector < double> duplicationProbabilities, 
+                                      int MLindex)
+{
+  std::vector <int> lossNumbers;
+  std::vector <int> duplicationNumbers; 
+  std::vector <int> branchNumbers; 
+  std::vector <int> numOlineages; 
+  std::vector <int> num1lineages;
+  std::vector <int> num2lineages;
+  
+  
+  std::map <int,int> geneNodeIdToDuplications;
+  std::map <int, std::vector <int> > geneNodeIdToLosses;
+  std::map <int, std::vector <int> > geneNodeIdToSpeciations;
+  resetSpeciesIdsAndLiks (*geneTree);
+  
+  int numSpNodes = tree->getNumberOfNodes(); 
+  std::vector <int> vec;
+  for (int i=0; i<numSpNodes; i++) {
+    lossNumbers.push_back(0);
+    duplicationNumbers.push_back(0);
+    branchNumbers.push_back(0);
+    geneNodeIdToDuplications.insert(std::make_pair(i, -1));
+    geneNodeIdToLosses.insert(make_pair(i, vec));
+    geneNodeIdToSpeciations.insert(make_pair(i, vec));
+  }
+  
+  double MLRooting = UNLIKELY;
+  if (geneTree->isRooted()) {
+    geneTree->unroot();
+  }
+  if (MLindex != geneTree->getRootNode()->getId()){
+    geneTree->newOutGroup(MLindex);
+    resetLossesAndDuplications(*tree, lossProbabilities, duplicationProbabilities);
+    resetVector(branchNumbers); 
+    //  std::cout << "reconcile 1!!"<<std::endl;
+    reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations); 
+    computeScenarioScore (*tree, *geneTree, geneTree->getRootNode(), branchNumbers, geneNodeIdToSpeciations, duplicationProbabilities, lossProbabilities, numOlineages, num1lineages, num2lineages);
+    MLRooting = (dynamic_cast<const Number<double> *>(geneTree->getRootNode()->getNodeProperty(LOWLIK))->getValue());
+  }
+  return MLRooting;
+}
+*/
+
+
+/*****************************************************************************
+ * Various heuristics are implemented in this function. The choice between the various heuristics depends upon the value of heuristicsLevel.
+ * 1 : fastest heuristics : only a few nodes are tried for the roots (the number of the nodes tried depends upon speciesIdLimitForRootPosition), and for each root tried, the events are re-computed only for a subset of the tree.
+ * 2 : All roots are tried, and for each root tried, the events are re-computed only for a subset of the tree.
+ * 3 : All roots are tried, and for each root tried, the events are re-computed for all nodes of the tree (which should be useless unless there is a bug in the selection of the subset of the nodes.
+ ****************************************************************************/
+/*
+double findMLReconciliation (TreeTemplate<Node> * spTree, 
+                             TreeTemplate<Node> * geneTreeSafe, 
+                             std::map<std::string, std::string > seqSp, 
+                             std::vector<int> & lossNumbers, 
+                             std::vector< double> lossProbabilities, 
+                             std::vector< int> & duplicationNumbers, 
+                             std::vector < double> duplicationProbabilities, 
+                             int & MLindex, 
+                             std::vector<int> &branchNumbers, 
+                             int speciesIdLimitForRootPosition, 
+                             int heuristicsLevel, 
+                             std::vector <int> &num0lineages, 
+                             std::vector <int> &num1lineages, 
+                             std::vector <int> &num2lineages, 
+                             std::set <int> &nodesToTryInNNISearch)
+{
+	TreeTemplate<Node> * geneTree = geneTreeSafe->clone();
+	TreeTemplate<Node> * tree = spTree->clone();
+	if (!geneTree->isRooted()) {
+		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+		std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliation !!!!!!"<<std::endl;
+		exit(-1);
+	}
+	int oldRoot = geneTree->getRootNode()->getId();
+  
+	std::vector <int> geneNodes; // contains potential roots to try
+	std::vector <Node *> allNodes;
+	allNodes = geneTree->getNodes();
+	double MLRooting = UNLIKELY;
+	double currentScore = UNLIKELY;
+	std::vector <int> bestLossNumbers = lossNumbers;
+	std::vector <int> bestDuplicationNumbers = duplicationNumbers;
+	std::vector <int> bestBranchNumbers = branchNumbers;
+	std::vector <int> bestnum0lineages = num0lineages;
+	std::vector <int> bestnum1lineages = num1lineages;
+	std::vector <int> bestnum2lineages = num2lineages;
+  
+  std::map <int,int> geneNodeIdToDuplications;
+  std::map <int, std::vector <int> > geneNodeIdToLosses;
+  std::map <int, std::vector <int> > geneNodeIdToSpeciations; 
+	std::vector <int> vec;
+	for (int i = 0 ; i< allNodes.size(); i++ ) {
+		geneNodeIdToDuplications.insert(std::make_pair(i, -1));
+		geneNodeIdToLosses.insert(std::make_pair(i, vec));
+		geneNodeIdToSpeciations.insert(std::make_pair(i, vec));
+	}
+	resetSpeciesIdsAndLiks (*geneTree);
+  std::map <int, int > NodeIdToSpId; //correspondence between ids in the gene tree and ids in the species tree
+  
+	resetLossesAndDuplications(*tree, lossProbabilities, duplicationProbabilities);
+	resetVector(branchNumbers);
+	resetVector(num0lineages);
+	resetVector(num1lineages);
+	resetVector(num2lineages);
+  reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations); 
+	int rootSon1;	
+	int rootSon2;
+	if (heuristicsLevel > 1) {
+		//we try all possible roots
+		std::cout <<"All possible roots for gene trees are tried"<<std::endl;
+		geneNodes = geneTree->getNodesId();
+	}
+	else {
+		//we only try a smart subset of all nodes
+		for (int i = 0; i< allNodes.size() ; i++) {
+			int temp = (dynamic_cast<const Number<int> *>(allNodes[i]->getNodeProperty(SPECIESID))->getValue());
+      NodeIdToSpId.insert(std::pair <int,int> (allNodes[i]->getId(),temp));
+		}
+    
+		//Now we choose the nodes that we want to try
+    rootSon1=geneTree->getRootNode()->getSon(0)->getId();
+		rootSon2=geneTree->getRootNode()->getSon(1)->getId();
+		int limit = -1;
+    std::map<int,int >::iterator iter;
+		//This loop aims at finding the smallest species node index in the tree (not all gene trees will have node with species id = 0!)
+		for( iter = NodeIdToSpId.begin(); iter != NodeIdToSpId.end(); iter++ ) {
+			if ((iter->second<limit)||(limit==-1)) {
+				limit = iter->second;
+			}
+		}
+		limit += speciesIdLimitForRootPosition;
+    
+		for( iter = NodeIdToSpId.begin(); iter != NodeIdToSpId.end(); iter++ ) {
+			if ((iter->second <= limit) &&(iter->first!=rootSon1)&&(iter->first!=rootSon2)) {
+        geneNodes.push_back(iter->first);
+			}
+		}
+	}
+	//We backup this tree and the gene tree, which will constitute our starting point for all roots tried, to avoid computing reconciliation for all nodes. Similarly, we backup the various std::maps.
+	TreeTemplate<Node> * backup = geneTree->clone();
+	TreeTemplate<Node> * backupTree = tree->clone();
+  std::map <int, int> backupGeneNodeIdToDuplications = geneNodeIdToDuplications;
+  std::map <int, std::vector <int> > backupGeneNodeIdToLosses = geneNodeIdToLosses;
+  std::map <int, std::vector <int> > backupGeneNodeIdToSpeciations = geneNodeIdToSpeciations; 
+	std::vector <int> backupLossNumbers = lossNumbers;
+	std::vector <int> backupDuplicationNumbers = duplicationNumbers;
+	std::vector <int> backupBranchNumbers = branchNumbers;
+	std::vector <int> backupnum0lineages = num0lineages;
+	std::vector <int> backupnum1lineages = num1lineages;
+	std::vector <int> backupnum2lineages = num2lineages;
+  
+	computeScenarioScore (*tree, *geneTree, geneTree->getRootNode(), branchNumbers, geneNodeIdToSpeciations, duplicationProbabilities, lossProbabilities, num0lineages, num1lineages, num2lineages);
+	currentScore = (dynamic_cast<const Number<double> *>(geneTree->getRootNode()->getNodeProperty(LOWLIK))->getValue());
+	//std::cout <<"startingScore : "<<currentScore<<std::endl;	
+  
+	MLRooting = currentScore;
+	MLindex = oldRoot;
+	bestLossNumbers = lossNumbers;
+	bestDuplicationNumbers =duplicationNumbers;
+	bestBranchNumbers = branchNumbers;
+	bestnum0lineages = num0lineages;
+	bestnum1lineages = num1lineages;
+	bestnum2lineages = num2lineages;
+	double backupScore=currentScore;
+  
+  nodesToTryInNNISearch.clear();
+  for (int i =0 ; i < allNodes.size(); i++) {
+    if (geneNodeIdToDuplications[i]!=-1) {
+      nodesToTryInNNISearch.insert(i);
+    }
+  }
+  
+	//In this loop we try all rootings, starting from the starting rooting in geneTreeSafe
+	for (int i = 0; i< geneNodes.size(); i++) {
+		if ((heuristicsLevel != 1) ||(geneNodes[i]!=oldRoot)) {
+      delete geneTree;
+			delete tree;
+			geneTree = backup->clone();
+			tree = backupTree->clone();
+			//We want to only update nodes whose status has changed between the two roots
+			std::vector <int > nodesToUpdate = TreeTools::getPathBetweenAnyTwoNodes(*geneTree, oldRoot, geneNodes[i], true);
+			resetSpeciesIdsAndLiksForGivenNodes (*geneTree, nodesToUpdate);
+      
+			geneNodeIdToDuplications = backupGeneNodeIdToDuplications;
+			geneNodeIdToLosses = backupGeneNodeIdToLosses;
+			geneNodeIdToSpeciations = backupGeneNodeIdToSpeciations; 
+			lossNumbers = backupLossNumbers;
+			duplicationNumbers = backupDuplicationNumbers;
+			branchNumbers = backupBranchNumbers;
+			num0lineages = backupnum0lineages;
+			num1lineages = backupnum1lineages;
+			num2lineages = backupnum2lineages;
+			geneTree->newOutGroup(geneNodes[i]);
+			resetLossesDuplicationsSpeciationsForGivenNodes(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities, branchNumbers, nodesToUpdate, geneNodeIdToLosses, geneNodeIdToDuplications, geneNodeIdToSpeciations);
+      
+			if (heuristicsLevel == 3) {
+				// Total reset :
+				resetSpeciesIdsAndLiks (*geneTree);
+				resetLossesAndDuplications(*tree, lossProbabilities, duplicationProbabilities);
+				resetVector(branchNumbers);
+				resetVector(num0lineages);
+				resetVector(num1lineages);
+				resetVector(num2lineages);
+			}
+      
+      
+			// std::cout << "#######################BEFORE RECONCILE##########################"<<std::endl; 
+			reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, geneNodeIdToDuplications, geneNodeIdToLosses, geneNodeIdToSpeciations);  
+      
+			// std::cout << "#######################AFTER RECONCILE##########################"<<std::endl;
+      computeScenarioScore (*tree, *geneTree, geneTree->getRootNode(), branchNumbers, geneNodeIdToSpeciations, duplicationProbabilities, lossProbabilities, num0lineages, num1lineages, num2lineages);
+			currentScore = (dynamic_cast<const Number<double> *>(geneTree->getRootNode()->getNodeProperty(LOWLIK))->getValue());
+      
+			if (currentScore>MLRooting) {
+				MLRooting = currentScore;
+				MLindex = geneNodes[i];
+				bestLossNumbers = lossNumbers;
+				bestDuplicationNumbers =duplicationNumbers;
+				bestBranchNumbers = branchNumbers;
+				bestnum0lineages = num0lineages;
+				bestnum1lineages = num1lineages;
+				bestnum2lineages = num2lineages;
+        nodesToTryInNNISearch.clear();
+        for (int i =0 ; i < allNodes.size(); i++) {
+          if (geneNodeIdToDuplications[i]!=-1) {
+            nodesToTryInNNISearch.insert(i);
+          }
+        }
+			}
+      
+		}
+  }
+  
+  // std::cout <<"END OF findMLREconciliation  : MLindex :"<<MLindex<<" LK :"<<MLRooting<<std::endl;
+  
+  lossNumbers = bestLossNumbers;
+  duplicationNumbers = bestDuplicationNumbers;
+  branchNumbers = bestBranchNumbers;
+  num0lineages = bestnum0lineages;
+  num1lineages = bestnum1lineages;
+  num2lineages = bestnum2lineages;
+  delete tree;
+  delete geneTree;
+  delete backup;
+  delete backupTree;
+  
+  return MLRooting;
+  
+  
+  
+}
+
+*/
+
+
+
+
+
+
+
