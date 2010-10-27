@@ -446,90 +446,6 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nod
 
 
 
-/************************************************************************
- * Makes a modification, knowing what previous modifications have been done. Everything is deterministic, even SPRs.
- * For the moment we allow SPRs at a distance of 2 or 3 branches. There are 4 possible branching points at a distance of 2 branches, and 8 at a distance of 3 branches, which amounts to 12 branching points to try.
-
-************************************************************************/
-void makeTotallyDeterministicModifications(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForSPR, int & nodeForRooting) {
-  int numberOfBranchingPoints = 12;
-   if (nodeForNNI < tree.getNumberOfNodes()) {//Make a NNI move
-    if (nodeForNNI <3) {
-      if (nodeForRooting<tree.getNumberOfNodes()) {
-	changeRoot(tree, nodeForRooting);
-	nodeForRooting++;
-      }
-      else {
-	nodeForNNI=3;
-	nodeForRooting = 1;
-	makeNNI(tree, nodeForNNI);
-	nodeForNNI++;
-      }
-    }
-    else {
-      makeNNI(tree, nodeForNNI);
-      nodeForNNI++;
-    }
-  }
-   else {//we make a SPR
-     if (nodeForSPR == tree.getNumberOfNodes()) {
-       nodeForSPR = 1;
-       nodeForNNI = 0;
-       	changeRoot(tree, nodeForRooting);
-	nodeForRooting++;
-     }
-
-     int reste = nodeForSPR % numberOfBranchingPoints;
-     int prunedSubtree = nodeForSPR / numberOfBranchingPoints;
-
-
-
-     std::vector <int> allNodeIds;
-     Node * N = tree.getRootNode();
-     std::vector <int> firstHalfNodeIds = TreeTemplateTools::getNodesId(*(N->getSon(0)));
-     std::vector <int> secondHalfNodeIds = TreeTemplateTools::getNodesId(*(N->getSon(1)));
-     
-     if (secondHalfNodeIds.size()<firstHalfNodeIds.size()) {
-       allNodeIds = firstHalfNodeIds;
-       for (int i = 0 ; i< secondHalfNodeIds.size() ; i++ ) {
-	 allNodeIds.push_back(secondHalfNodeIds[i]);
-       }
-     }
-     else {
-       allNodeIds = secondHalfNodeIds;
-       for (int i = 0 ; i< firstHalfNodeIds.size() ; i++ ) {
-	 allNodeIds.push_back(firstHalfNodeIds[i]);
-       }
-     }
-     std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
-
-     int oldFatherId = tree.getNode(nodeForSPR)->getFather()->getId();
-     int brotherId;
-     //Get one brother ; a binary tree is supposed here (because of the "break")
-     for(int i=0;i<tree.getNode(oldFatherId)->getNumberOfSons();i++)
-       if(tree.getNode(oldFatherId)->getSon(i)->getId()!=nodeForSPR){brotherId=tree.getNode(oldFatherId)->getSon(i)->getId(); break;}
-     if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
-       forbiddenIds.push_back(brotherId);
-     }
-     std::vector <int> toRemove;
-     for (int i = 0 ; i< allNodeIds.size() ; i++) {
-       if (VectorTools::contains(forbiddenIds, allNodeIds[i])) {
-	 toRemove.push_back(i);
-       }
-     }
-     sort(toRemove.begin(), toRemove.end(), cmp);
-     for (int i = 0 ; i< toRemove.size() ; i++) {
-       std::vector<int>::iterator vi = allNodeIds.begin();
-       allNodeIds.erase(vi+toRemove[i]);
-     }
-     int ran2 = RandomTools::giveIntRandomNumberBetweenZeroAndEntry(allNodeIds.size());
-     int newBrotherId = allNodeIds[ran2];
-     makeSPR(tree, nodeForSPR, newBrotherId);
-     nodeForSPR++;
-   }
-   
-}
-
 
 /************************************************************************
  * Procedure that makes sure that an NNI or rerooting one is about to make has
@@ -556,18 +472,20 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
         if (nodeForRooting >= tree.getNumberOfNodes()) 
           { //Make a NNI move
             nodeForNNI=3;
-            while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+         //   while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+            while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
               {
-              //std::cout<<NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
+              std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
               nodeForNNI++;
               }
           }
         }
       else 
         {
-        while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+        //  while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))       
+        while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
           {
-          //std::cout<<NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
+          std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
           nodeForNNI++;
           }
         }
@@ -654,13 +572,24 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                                                          duplicationExpectedNumbers, rearrange, 
                                                                          server, branchProbaOptimization, 
                                                                          genomeMissing, *tree, bestlogL);
-
-      if ((nodeForNNI >=3) /*&& (nodeForRooting == 4)*/) //A NNI has been done
+      
+      if ((nodeForNNI <3) /*&& (nodeForRooting == 4)*/) //A NNI has been done
         {
-        int branchId = bestTree->getNode(nodeForNNI-1)->getFather()->getId();
-        if (logL < NNILks[branchId]) 
+        if (logL < rootLks[nodeForRooting-1]) 
           {
-          NNILks[branchId] = logL;
+          rootLks[nodeForRooting-1] = logL;
+          }
+        }
+      else {
+        if (logL < NNILks[nodeForNNI-1]) 
+          {
+          NNILks[nodeForNNI-1] = logL;
+          }
+      }
+        //int branchId = bestTree->getNode(nodeForNNI-1)->getFather()->getId();
+      /*  if (logL < NNILks[nodeForNNI]) 
+          {
+          NNILks[nodeForNNI] = logL;
           }
         }
       else //A rerooting has been done 
@@ -669,7 +598,7 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
           {
           rootLks[nodeForRooting] = logL;
           }
-        }
+        }*/
       
       
       if (logL+0.01<bestlogL) 
@@ -710,10 +639,10 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
         duplicationExpectedNumbers = bestDupProba;
         lossExpectedNumbers = bestLossProba;
         if ( (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) || (ApplicationTools::getTime() >= timeLimit) ) 
-          {
-          broadcast(world, stop, server); 
-          broadcast(world, bestIndex, server);
-          stop = true; //ATTEMPT 12/10/2010
+          {          
+            stop = true; 
+            broadcast(world, stop, server); 
+            broadcast(world, bestIndex, server);
           }
         }
       }
@@ -2291,6 +2220,96 @@ void makeRandomModifications(TreeTemplate<Node> &tree, int expectedFrequencyNNI,
   
 }
 
+*/
+
+
+
+
+
+
+/************************************************************************
+ * Makes a modification, knowing what previous modifications have been done. Everything is deterministic, even SPRs.
+ * For the moment we allow SPRs at a distance of 2 or 3 branches. There are 4 possible branching points at a distance of 2 branches, and 8 at a distance of 3 branches, which amounts to 12 branching points to try.
+ 
+ ************************************************************************/
+/*void makeTotallyDeterministicModifications(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForSPR, int & nodeForRooting) {
+  int numberOfBranchingPoints = 12;
+  if (nodeForNNI < tree.getNumberOfNodes()) {//Make a NNI move
+    if (nodeForNNI <3) {
+      if (nodeForRooting<tree.getNumberOfNodes()) {
+        changeRoot(tree, nodeForRooting);
+        nodeForRooting++;
+      }
+      else {
+        nodeForNNI=3;
+        nodeForRooting = 1;
+        makeNNI(tree, nodeForNNI);
+        nodeForNNI++;
+      }
+    }
+    else {
+      makeNNI(tree, nodeForNNI);
+      nodeForNNI++;
+    }
+  }
+  else {//we make a SPR
+    if (nodeForSPR == tree.getNumberOfNodes()) {
+      nodeForSPR = 1;
+      nodeForNNI = 0;
+      changeRoot(tree, nodeForRooting);
+      nodeForRooting++;
+    }
+    
+    int reste = nodeForSPR % numberOfBranchingPoints;
+    int prunedSubtree = nodeForSPR / numberOfBranchingPoints;
+    
+    
+    
+    std::vector <int> allNodeIds;
+    Node * N = tree.getRootNode();
+    std::vector <int> firstHalfNodeIds = TreeTemplateTools::getNodesId(*(N->getSon(0)));
+    std::vector <int> secondHalfNodeIds = TreeTemplateTools::getNodesId(*(N->getSon(1)));
+    
+    if (secondHalfNodeIds.size()<firstHalfNodeIds.size()) {
+      allNodeIds = firstHalfNodeIds;
+      for (int i = 0 ; i< secondHalfNodeIds.size() ; i++ ) {
+        allNodeIds.push_back(secondHalfNodeIds[i]);
+      }
+    }
+    else {
+      allNodeIds = secondHalfNodeIds;
+      for (int i = 0 ; i< firstHalfNodeIds.size() ; i++ ) {
+        allNodeIds.push_back(firstHalfNodeIds[i]);
+      }
+    }
+    std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
+    
+    int oldFatherId = tree.getNode(nodeForSPR)->getFather()->getId();
+    int brotherId;
+    //Get one brother ; a binary tree is supposed here (because of the "break")
+    for(int i=0;i<tree.getNode(oldFatherId)->getNumberOfSons();i++)
+      if(tree.getNode(oldFatherId)->getSon(i)->getId()!=nodeForSPR){brotherId=tree.getNode(oldFatherId)->getSon(i)->getId(); break;}
+    if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
+      forbiddenIds.push_back(brotherId);
+    }
+    std::vector <int> toRemove;
+    for (int i = 0 ; i< allNodeIds.size() ; i++) {
+      if (VectorTools::contains(forbiddenIds, allNodeIds[i])) {
+        toRemove.push_back(i);
+      }
+    }
+    sort(toRemove.begin(), toRemove.end(), cmp);
+    for (int i = 0 ; i< toRemove.size() ; i++) {
+      std::vector<int>::iterator vi = allNodeIds.begin();
+      allNodeIds.erase(vi+toRemove[i]);
+    }
+    int ran2 = RandomTools::giveIntRandomNumberBetweenZeroAndEntry(allNodeIds.size());
+    int newBrotherId = allNodeIds[ran2];
+    makeSPR(tree, nodeForSPR, newBrotherId);
+    nodeForSPR++;
+  }
+  
+}
 */
 
 

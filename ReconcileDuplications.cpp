@@ -61,7 +61,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Phyl/OptimizationTools.h>
 #include <Bpp/Phyl/Likelihood/RASTools.h>
 #include <Bpp/Phyl/Io/Newick.h>
-#include <Bpp/Phyl/Io/NHX.h>
+#include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Phyl/TreeTools.h>
 #include <Bpp/Phyl/Distance/BioNJ.h>
 #include <Bpp/Phyl/OptimizationTools.h>
@@ -718,12 +718,11 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
       suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
       reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
       reconcTree = reconcTree + suffix;
-      NHX *nhx = new NHX();
+      Nhx *nhx = new Nhx();
       string temp = reconciledTrees[i][rightIndex];
       TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
       temp = duplicationTrees[i][rightIndex];
       TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);
-
       breadthFirstreNumber (*spTree);
       std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*spTree);
       std::map <std::string, std::string> seqSp = treeLikelihoods[i]->getSeqSp();
@@ -732,12 +731,8 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
                                              geneTree->getRootNode(), 
                                              treeLikelihoods[i]->getSeqSp(),
                                              spId); 
-      
     out.open (reconcTree.c_str(), std::ios::out);
-      
-    //out << reconciledTrees[i][rightIndex]<<std::endl;
     nhx->write(*geneTree, out);
-      
     out.close();
     dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
     dupTree = dupTree + suffix;
@@ -975,7 +970,7 @@ int main(int args, char ** argv)
        * Main loop: iterative likelihood computations
        ****************************************************************************
        *****************************************************************************/
-        NHX *nhx = new NHX();
+        Nhx *nhx = new Nhx();
       while (!stop)            
         {      
           logL=0.0;

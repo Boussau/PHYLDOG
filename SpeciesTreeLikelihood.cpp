@@ -82,10 +82,8 @@ void SpeciesTreeLikelihood::initialize()
   breadthFirstreNumber (*tree_, duplicationExpectedNumbers_, lossExpectedNumbers_);
   bestTree_ = tree_->clone();
   currentTree_ = tree_->clone();
-  std::cout<<"SERVER IN initialize 0"<<std::endl;
 
   std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
-  std::cout<<"SERVER IN initialize 0b"<<std::endl;
 
   
   computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world_, 
@@ -564,15 +562,26 @@ void SpeciesTreeLikelihood::MLsearch()
             }
           else 
             {
-            std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+            std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit 1.\n\n"<< std::endl;
             ApplicationTools::displayTime("Execution time so far:");
             if (stop_==false)
               {
               stop_ = true;
-              broadcast(world_, stop_, server_); 
-              broadcast(world_, bestIndex_, server_);                      
+             broadcast(world_, stop_, server_); 
+              broadcast(world_, bestIndex_, server_);                     
               }
             }
+          }
+        else if (ApplicationTools::getTime() >= timeLimit_)
+          {
+          std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit 2.\n\n"<< std::endl;
+          ApplicationTools::displayTime("Execution time so far:");
+          if (stop_==false)
+            {
+            stop_ = true;
+           broadcast(world_, stop_, server_); 
+            broadcast(world_, bestIndex_, server_);                    
+            }          
           }
       }
     }      
