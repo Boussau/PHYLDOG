@@ -1222,26 +1222,32 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                         std::map < std::string, int> genomeMissing, 
                                                                         TreeTemplate<Node> &tree, double & bestlogL) 
 {
-  //we set the expected numbers to 0.001 uniformly: we start afresh for each new species tree topology.
-  for (int i = 0 ; i < lossExpectedNumbers.size() ; i++ ) 
+  if (branchProbaOptimization != "no")
     {
-    lossExpectedNumbers[i] = 0.001;
-    duplicationExpectedNumbers[i] = 0.001;
+    //we set the expected numbers to 0.001 uniformly: we start afresh for each new species tree topology.
+    for (int i = 0 ; i < lossExpectedNumbers.size() ; i++ ) 
+      {
+      lossExpectedNumbers[i] = 0.001;
+      duplicationExpectedNumbers[i] = 0.001;
+      }
     }
-  
   std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index, stop, logL, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossExpectedNumbers, duplicationExpectedNumbers, rearrange, server, branchProbaOptimization, genomeMissing, tree);
   std::cout << "logLikelihood after the first round: "<<logL<<std::endl;
   double currentlogL = -UNLIKELY;
   int i=1;
-  //Then we update duplication and loss rates based on the results of this first 
-  //computation, until the likelihood stabilizes (roughly)
-  while ((i<=1)&&(currentlogL-logL>logL-bestlogL)) 
-    { 
-      currentlogL = logL;
-      i++;
-      computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossExpectedNumbers, duplicationExpectedNumbers, genomeMissing, tree);
-      computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, stop, logL, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossExpectedNumbers, duplicationExpectedNumbers, rearrange, server, branchProbaOptimization, genomeMissing, tree, currentSpeciesTree, false);      
+  if (branchProbaOptimization != "no")
+    {
+    //Then we update duplication and loss rates based on the results of this first 
+    //computation, until the likelihood stabilizes (roughly)
+    while ((i<=1)&&(currentlogL-logL>logL-bestlogL)) 
+      { 
+        currentlogL = logL;
+        i++;
+        computeDuplicationAndLossRatesForTheSpeciesTree (branchProbaOptimization, num0Lineages, num1Lineages, num2Lineages, lossExpectedNumbers, duplicationExpectedNumbers, genomeMissing, tree);
+        computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, stop, logL, num0Lineages, num1Lineages, num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossExpectedNumbers, duplicationExpectedNumbers, rearrange, server, branchProbaOptimization, genomeMissing, tree, currentSpeciesTree, false);      
+      }
     }
+
   std::cout <<"\t\tNumber of species trees tried: "<<index<< std::endl;
   std::cout<<"\t\tMinus logLk value for this species tree: "<<logL<<std::endl;
 

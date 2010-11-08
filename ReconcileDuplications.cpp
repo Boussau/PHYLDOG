@@ -986,7 +986,7 @@ int main(int args, char ** argv)
               }
            // std::cout <<  TreeTools::treeToParenthesis(*geneTree, true)<<std::endl;
             PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
-            geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getTree());
+            geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getRootedTree()); //MODIFICATION
 
             ///LIKELIHOOD OPTIMIZED
                         

@@ -28,46 +28,6 @@ void SpeciesTreeLikelihood::updateDuplicationAndLossExpectedNumbers()
 void SpeciesTreeLikelihood::initialize() 
 {
   /****************************************************************************
-   * Various initializations.
-   * We set the expected numbers of duplications to arbitrary values,
-   * we set the numbers of duplications and losses to 0, 
-   * we take into account genome coverage.
-   *****************************************************************************/
-  
-  for (int i=0; i<speciesTreeNodeNumber_; i++) 
-    {
-    //We fill the vectors with 0s until they are the right sizes.
-    lossExpectedNumbers_.push_back(0);
-    duplicationExpectedNumbers_.push_back(0);
-    num0Lineages_.push_back(0);
-    num1Lineages_.push_back(0);
-    num2Lineages_.push_back(0);
-    }
-  
-  resetLossesAndDuplications(*tree_, lossExpectedNumbers_, duplicationExpectedNumbers_);
-  breadthFirstreNumber (*tree_);
-  //We set preliminary loss and duplication rates, correcting for genome coverage
-  computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization_, 
-                                                           num0Lineages_, 
-                                                           num1Lineages_, 
-                                                           num2Lineages_, 
-                                                           lossExpectedNumbers_, 
-                                                           duplicationExpectedNumbers_, 
-                                                           genomeMissing_, 
-                                                           *tree_);
-  currentSpeciesTree_ = TreeTools::treeToParenthesis(*tree_, true);
-  bestlogL_ = -UNLIKELY;
-  numIterationsWithoutImprovement_ = 0;
-  bestIndex_ = 0;
-  index_ = 0; 
-  //vector to keep NNIs likelihoods, for making aLRTs.
-  for (int i = 0 ; i <tree_->getNumberOfNodes() ; i ++)
-       {
-       NNILks_.push_back(NumConstants::VERY_BIG);
-       rootLks_.push_back(NumConstants::VERY_BIG);
-       }
-
-  /****************************************************************************
    * First communications between the server and the clients.
    *****************************************************************************/
   firstCommunicationsServerClient (world_ , server_, numbersOfGenesPerClient_, assignedNumberOfGenes_,
@@ -280,6 +240,86 @@ void SpeciesTreeLikelihood::parseOptions()
   //Current step: information to give when the run is stopped for timing reasons, 
   //or to get if given.
   currentStep_ = ApplicationTools::getIntParameter("current.step",params_,0);
+  
+  /****************************************************************************
+   * We can also get duplication and loss expected numbers, 
+   * if the respective trees have been provided. Otherwise, 
+   * we set the expected numbers of duplications to arbitrary values,
+   * we set the numbers of duplications and losses to 0, 
+   * we take into account genome coverage.
+   *****************************************************************************/
+  
+  for (int i=0; i<speciesTreeNodeNumber_; i++) 
+    {
+    //We fill the vectors with 0s until they are the right sizes.
+    lossExpectedNumbers_.push_back(0);
+    duplicationExpectedNumbers_.push_back(0);
+    num0Lineages_.push_back(0);
+    num1Lineages_.push_back(0);
+    num2Lineages_.push_back(0);
+    }
+  
+  resetLossesAndDuplications(*tree_, lossExpectedNumbers_, duplicationExpectedNumbers_);
+  breadthFirstreNumber (*tree_);
+  std::string spTreeDupFile =ApplicationTools::getStringParameter("species.duplication.tree.file",params_,"none");
+  std::string spTreeLossFile =ApplicationTools::getStringParameter("species.loss.tree.file",params_,"none");
+
+  if ( (spTreeDupFile == "none") && (spTreeLossFile == "none") ) {
+   //We set preliminary loss and duplication rates, correcting for genome coverage
+  computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization_, 
+                                                           num0Lineages_, 
+                                                           num1Lineages_, 
+                                                           num2Lineages_, 
+                                                           lossExpectedNumbers_, 
+                                                           duplicationExpectedNumbers_, 
+                                                           genomeMissing_, 
+                                                           *tree_);
+    
+  }
+  else {
+    if ( (spTreeDupFile == "none") || (spTreeLossFile == "none") ) {
+      std::cout <<"Sorry, you have to input both loss and duplication rates, or none of them."<<std::endl;
+      exit(-1);
+    }
+    TreeTemplate<Node> * treeD = dynamic_cast < TreeTemplate < Node > * > (newick.read(spTreeDupFile));
+    breadthFirstreNumber (*treeD);
+    TreeTemplate<Node> * treeL = dynamic_cast < TreeTemplate < Node > * > (newick.read(spTreeLossFile));
+    breadthFirstreNumber (*treeL);
+
+    for (int i = 0 ; i < treeD->getNumberOfNodes() ; i++)
+      {
+       if (treeD->getNode(i)->hasFather()) 
+         {
+         duplicationExpectedNumbers_[i] = treeD->getNode(i)->getDistanceToFather();
+         }
+      if (treeL->getNode(i)->hasFather()) 
+        {
+        lossExpectedNumbers_[i] = treeL->getNode(i)->getDistanceToFather();
+        }
+      }
+    backupDuplicationExpectedNumbers_ = duplicationExpectedNumbers_;
+    backupLossExpectedNumbers_ = lossExpectedNumbers_;
+  }
+
+  currentSpeciesTree_ = TreeTools::treeToParenthesis(*tree_, true);
+  bestlogL_ = -UNLIKELY;
+  numIterationsWithoutImprovement_ = 0;
+  bestIndex_ = 0;
+  index_ = 0; 
+  //vector to keep NNIs likelihoods, for making aLRTs.
+  for (int i = 0 ; i <tree_->getNumberOfNodes() ; i ++)
+    {
+    NNILks_.push_back(NumConstants::VERY_BIG);
+    rootLks_.push_back(NumConstants::VERY_BIG);
+    }
+  
+  
+  
+  
+  
+  
+  
+  
   
   /****************************************************************************
    // Then, we handle all gene families.
