@@ -956,7 +956,14 @@ int main(int args, char ** argv)
           }
           std::cout <<"Continued family "<<assignedFilenames.size()-numDeletedFamilies<<std::endl;
         }
-			bool recordGeneTrees = false; //At the beginning, we do not record the gene trees.
+			bool recordGeneTrees; 
+      if (optimizeSpeciesTreeTopology)
+        {//At the beginning, we do not record the gene trees.
+          recordGeneTrees = false;
+        }
+      else {
+        recordGeneTrees = true;
+      }
 			int startRecordingTreesFrom = 0; //This int is incremented until the gene trees start to be backed-up, when we start the second phase of the algorithm.
       bool firstTimeImprovingGeneTrees = false; //When for the first time we optimize gene trees, we set it at true
       //We make a backup of the gene tree likelihoods.

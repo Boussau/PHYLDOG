@@ -2062,7 +2062,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   }
   
   
-   /*
+ /*  
   std::cout <<"Printing all rooting likelihoods as found by the DR tree traversal"<<std::endl;
   std::map<double, Node*>::iterator it;
 
@@ -2080,7 +2080,9 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   TreeTemplate<Node > * tree = geneTree->clone();
   
   tree->newOutGroup(LksToNodes.rbegin()->second->getId());
- // std::cout << TreeTools::treeToParenthesis (*tree, true)<<std::endl;
+  
+//  geneTree->newOutGroup(LksToNodes.rbegin()->second->getId()); //TEMPORARY 08112010
+ //std::cout << TreeTools::treeToParenthesis (*tree, true)<<std::endl;
 
   nodesToTryInNNISearch.clear();
 
@@ -2090,7 +2092,8 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   resetVector(num2lineages);
   
   
-//  std::cout <<"HERE_rooted_tree "<<TreeTools::treeToParenthesis (*tree, true)<<std::endl;
+// std::cout <<"HERE_rooted_tree "<<TreeTools::treeToParenthesis (*tree, true)<<std::endl;
+//  std::cout <<"HERE_rooted_tree2 "<<TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
 //  std::cout <<"HERE_SP_tree "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
   computeNumbersOfLineagesFromRoot(spTree, tree, tree->getRootNode(), seqSp, spID, num0lineages, num1lineages, num2lineages, speciesIDs, dupData, nodesToTryInNNISearch);
 /*

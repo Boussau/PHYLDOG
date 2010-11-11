@@ -27,6 +27,8 @@ void SpeciesTreeLikelihood::updateDuplicationAndLossExpectedNumbers()
 /*******************************************************************************/
 void SpeciesTreeLikelihood::initialize() 
 {
+  rearrange_ = false;
+  
   /****************************************************************************
    * First communications between the server and the clients.
    *****************************************************************************/
