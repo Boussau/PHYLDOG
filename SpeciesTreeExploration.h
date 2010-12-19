@@ -60,25 +60,15 @@ knowledge of the CeCILL license and that you accept its terms.
 namespace mpi = boost::mpi;
 
 #include "ReconciliationTools.h"
+#include "GenericTreeExplorationAlgorithms.h"
+
 
 using namespace bpp;
 
-void changeRoot(TreeTemplate<Node> &tree, int newOutGroup);
-void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId);
-void makeNNI(TreeTemplate<Node> &tree, int nodeId);
-void buildVectorOfRegraftingNodes(TreeTemplate<Node> &tree, int nodeForSPR, std::vector <int> & nodeIdsToRegraft);
-std::vector<int> getRemainingNeighbors(const Node * node1, const Node * node2);
-void getRemainingNeighborsUntilDistance(const Node * node1, const Node * node2, int distance, int d, std::vector <int> & neighbors);
-void getNeighboringNodesIdLimitedDistance (TreeTemplate<Node> &tree, int nodeId, int distance, std::vector <int> & neighboringNodeIds);
-void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int nodeForSPR, int distance, std::vector <int> & nodeIdsToRegraft);
 
 void tryAllPossibleSPRsAndMakeBestOne(const mpi::communicator& world, TreeTemplate<Node> *currentTree, TreeTemplate<Node> *bestTree,int nodeForSPR, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, /*double averageDuplicationProbability, double averageLossProbability,*/ bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchProbaOptimization, std::map <std::string, int> genomeMissing);
-
 void tryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, TreeTemplate<Node> *currentTree, TreeTemplate<Node> *bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, /*double averageDuplicationProbability, double averageLossProbability,*/ bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchProbaOptimization, std::map <std::string, int> genomeMissing);
 void tryAndMakeNNIs(const mpi::communicator& world, TreeTemplate<Node> *currentTree, TreeTemplate<Node> *bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, /*double averageDuplicationProbability, double averageLossProbability,*/ bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchProbaOptimization, std::map <std::string, int> genomeMissing);
-void makeRandomModifications(TreeTemplate<Node> &tree, int expectedFrequencyNNI, int expectedFrequencySPR, int expectedFrequencyChangeRoot);
-void makeDeterministicModifications(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForSPR, int & nodeForRooting);
-void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForRooting);
 
 void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world, 
                                             TreeTemplate<Node> *tree, 
@@ -313,6 +303,11 @@ void outputNNIAndRootLks(std::vector <double> & NNILks,
                          std::vector <double> & rootLks, 
                          std::map<std::string, std::string> & params, 
                          std::string & suffix);
+
+/*void makeRandomModifications(TreeTemplate<Node> &tree, int expectedFrequencyNNI, int expectedFrequencySPR, int expectedFrequencyChangeRoot);
+
+*/
+
 
 /*void numericalOptimizationOfDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, bool rearrange, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL);*/
 #endif 

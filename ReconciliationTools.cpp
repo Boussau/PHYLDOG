@@ -1161,7 +1161,7 @@ int assignSpeciesIdToLeaf(Node * node,  const std::map<std::string, std::string 
       return(sptoid->second);
     }
     else {
-      std::cout <<"Error in assignSpeciesIdToLeaf: "<< seqtosp->second <<" not found in std::map spID"<<std::endl;
+      std::cout <<"Error in assignSpeciesIdToLeaf: "<< seqtosp->second <<" not found in std::map spID for sequence "<< seqtosp->first<<std::endl;
       exit(-1);
     }
   }
@@ -2081,7 +2081,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   
   tree->newOutGroup(LksToNodes.rbegin()->second->getId());
   
-//  geneTree->newOutGroup(LksToNodes.rbegin()->second->getId()); //TEMPORARY 08112010
+  geneTree->newOutGroup(LksToNodes.rbegin()->second->getId()); //uncomment that if you want to keep gene family trees fixed except for the root
  //std::cout << TreeTools::treeToParenthesis (*tree, true)<<std::endl;
 
   nodesToTryInNNISearch.clear();
@@ -2096,6 +2096,9 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
 //  std::cout <<"HERE_rooted_tree2 "<<TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
 //  std::cout <<"HERE_SP_tree "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
   computeNumbersOfLineagesFromRoot(spTree, tree, tree->getRootNode(), seqSp, spID, num0lineages, num1lineages, num2lineages, speciesIDs, dupData, nodesToTryInNNISearch);
+  
+  
+  
 /*
   std::cout <<"num0Lineages :"<<std::endl;
   VectorTools::print(num0lineages);
@@ -2867,15 +2870,16 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
       }
     return;
 	}
-  
-  
-  
-  
-  
-  
-  
-  
 }
+
+
+
+
+
+
+
+
+
 
 
 
