@@ -236,18 +236,92 @@ std::vector <double> operator + (std::vector <double> x, std::vector <double> y)
 
 
 /******************************************************************************/
-// This function parses a vector of gene family files, 
-// discards the ones that do not pass certain criteria, 
-// and initializes the others. Used by clients.
+// This function refines branch lengths of a gene tree.
+/******************************************************************************/
+
+void refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, TreeTemplate<Node>  *unrootedGeneTree, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, string file, Alphabet *alphabet)
+{ 
+  std::string backupParamnumEval = params[ std::string("optimization.max_number_f_eval")];
+  std::string backupParamOptTol = params[ std::string("optimization.tolerance")];
+  std::string backupParamOptTopol = params[ std::string("optimization.topology")];
+  params[ std::string("optimization.tolerance")] = "0.00001";
+  params[ std::string("optimization.max_number_f_eval")] = "100000";
+  params[ std::string("optimization.topology")] = "no";
+  DiscreteRatesAcrossSitesTreeLikelihood* tl;
+  //DRHomogeneousTreeLikelihood * 
+  tl = new DRHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true);
+  tl->initialize();//Only initializes the parameter list, and computes the likelihood
+  double logL = tl->getValue();
+  if (std::isinf(logL))
+    {
+      // This may be due to null branch lengths, leading to null likelihood!
+      ApplicationTools::displayWarning("!!! Warning!!! Initial likelihood is zero.");
+      ApplicationTools::displayWarning("!!! This may be due to branch length == 0.");
+      ApplicationTools::displayWarning("!!! All null branch lengths will be set to 0.000001.");
+      ParameterList pl = tl->getBranchLengthsParameters();
+      for (unsigned int i = 0; i < pl.size(); i++)
+        {
+          if (pl[i].getValue() < 0.000001) pl[i].setValue(0.000001);
+        }
+      tl->matchParametersValues(pl);
+      logL = tl->getValue();
+    }
+  ApplicationTools::displayResult("Initial log likelihood for family", file+": "+TextTools::toString(-logL, 15)); 
+  if (std::isinf(logL))
+    {
+      ApplicationTools::displayError("!!! Unexpected initial likelihood == 0.");
+      CodonAlphabet *pca=dynamic_cast<CodonAlphabet*>(alphabet);
+      if (pca){
+        bool f=false;
+        unsigned int  s;
+        for (unsigned int i = 0; i < sites->getNumberOfSites(); i++){
+          if (std::isinf(tl->getLogLikelihoodForASite(i))){
+            const Site& site=sites->getSite(i);
+            s=site.size();
+            for (unsigned int j=0;j<s;j++)
+              if (pca->isStop(site.getValue(j))){
+                (*ApplicationTools::error << "Stop Codon at site " << site.getPosition() << " in sequence " << sites->getSequence(j).getName()).endLine();
+                f=true;
+              }
+          }
+        }
+        if (f)
+          exit(-1);
+      }
+      ApplicationTools::displayError("!!! Looking at each site:");
+      for (unsigned int i = 0; i < sites->getNumberOfSites(); i++)
+        {
+          (*ApplicationTools::error << "Site " << sites->getSite(i).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(i)).endLine();
+        }
+      ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularily if datasets are big (>~500 sequences).");
+      exit(-1);
+    }
+  tl = dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(
+                                                             PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params));
+  
+  params[ std::string("optimization.tolerance")] = backupParamOptTol;
+  params[ std::string("optimization.max_number_f_eval")] = backupParamnumEval;
+  params[ std::string("optimization.topology")] = backupParamOptTopol;
+  //delete unrootedGeneTree;
+  unrootedGeneTree = new TreeTemplate<Node> ( tl->getTree() );
+  delete tl;
+}
+
+
+
+/******************************************************************************/
+// This function refines a gene tree topology and branch lengths using the PhyML 
+// algorithm.
 /******************************************************************************/
 
 void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, TreeTemplate<Node>  *unrootedGeneTree, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, string file, Alphabet *alphabet)
 { 
   std::string backupParamOptTopo = params[ std::string("optimization.topology.algorithm_nni.method")];
+  std::string backupParamnumEval = params[ std::string("optimization.max_number_f_eval")];
+  std::string backupParamOptTol = params[ std::string("optimization.tolerance")];
   params[ std::string("optimization.topology.algorithm_nni.method")] = "phyml";
- 
-  params[ std::string("optimization.verbose")] = "3";
-  std::cout << "in refineGeneTreeUsingSequenceLikelihoodOnly"<<std::endl;
+  params[ std::string("optimization.tolerance")] = "0.00001";
+  params[ std::string("optimization.max_number_f_eval")] = "100000";
   NNIHomogeneousTreeLikelihood * tl = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true);
   tl->initialize();//Only initializes the parameter list, and computes the likelihood
   double logL = tl->getValue();
@@ -295,16 +369,15 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
     ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularily if datasets are big (>~500 sequences).");
     exit(-1);
     }
-  std::cout << "in refineGeneTreeUsingSequenceLikelihoodOnly 2"<<std::endl;
 
   tl = dynamic_cast<NNIHomogeneousTreeLikelihood*>(PhylogeneticsApplicationTools::optimizeParameters(tl, 
                                                                                                      tl->getParameters(), 
                                                                                                      params));
-  std::cout << "in refineGeneTreeUsingSequenceLikelihoodOnly 3 "<< TreeTools::treeToParenthesis(tl->getTree(), true)<<std::endl;
 
-  //PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
   params[ std::string("optimization.topology.algorithm_nni.method")] = backupParamOptTopo ;
-  delete unrootedGeneTree;
+  params[ std::string("optimization.tolerance")] = backupParamOptTol;
+  params[ std::string("optimization.max_number_f_eval")] = backupParamnumEval;
+  //delete unrootedGeneTree;
   unrootedGeneTree = new TreeTemplate<Node> ( tl->getTree() );
   delete tl;
 }
@@ -317,7 +390,28 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
 /******************************************************************************/
 
 
-void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std::map<std::string, std::string> & params, int & numDeletedFamilies, TreeTemplate<Node> * geneTree, TreeTemplate<Node> * tree, std::vector <int> & num0Lineages, std::vector <std::vector<int> > & allNum0Lineages, std::vector <std::vector<int> > & allNum1Lineages, std::vector <std::vector<int> > & allNum2Lineages, std::vector <double> & lossExpectedNumbers, std::vector <double> & duplicationExpectedNumbers, std::map <std::string, int> & spId, int speciesIdLimitForRootPosition, int heuristicsLevel, int MLindex, std::vector <double> & allLogLs, std::vector <ReconciliationTreeLikelihood *> & treeLikelihoods, std::vector <ReconciliationTreeLikelihood *> & backupTreeLikelihoods, std::vector <std::map<std::string, std::string> > & allParams, std::vector <Alphabet *> allAlphabets, std::vector <VectorSiteContainer *> & allDatasets, std::vector <SubstitutionModel *> & allModels, std::vector <DiscreteDistribution *> & allDistributions, std::vector <TreeTemplate<Node> *> & allGeneTrees, std::vector <TreeTemplate<Node> *> & allUnrootedGeneTrees) 
+void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, 
+                               std::map<std::string, std::string> & params, 
+                               int & numDeletedFamilies, TreeTemplate<Node> * geneTree, 
+                               TreeTemplate<Node> * tree, std::vector <int> & num0Lineages, 
+                               std::vector <std::vector<int> > & allNum0Lineages, 
+                               std::vector <std::vector<int> > & allNum1Lineages, 
+                               std::vector <std::vector<int> > & allNum2Lineages, 
+                               std::vector <double> & lossExpectedNumbers, 
+                               std::vector <double> & duplicationExpectedNumbers, 
+                               std::map <std::string, int> & spId, 
+                               int speciesIdLimitForRootPosition, 
+                               int heuristicsLevel, int MLindex, 
+                               std::vector <double> & allLogLs, 
+                               std::vector <ReconciliationTreeLikelihood *> & treeLikelihoods, 
+                               std::vector <ReconciliationTreeLikelihood *> & backupTreeLikelihoods, 
+                               std::vector <std::map<std::string, std::string> > & allParams, 
+                               std::vector <Alphabet *> allAlphabets, 
+                               std::vector <VectorSiteContainer *> & allDatasets, 
+                               std::vector <SubstitutionModel *> & allModels, 
+                               std::vector <DiscreteDistribution *> & allDistributions, 
+                               std::vector <TreeTemplate<Node> *> & allGeneTrees, 
+                               std::vector <TreeTemplate<Node> *> & allUnrootedGeneTrees) 
 {
   bool avoidFamily;
   std::string initTree;
@@ -685,11 +779,24 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
            *****************************************************************************/
           std::string alterStartingTopologyWithDL = ApplicationTools::getStringParameter("DL.starting.gene.tree.optimization", params, "no", "", true, false);
           
-          if (alterStartingTopologyWithDL == "yes")
+          bool DLStartingGeneTree;
+          if (alterStartingTopologyWithDL == "yes") 
+            {
+            DLStartingGeneTree = true;
+            }
+          else 
+            {
+            DLStartingGeneTree = false;
+            }
+          
+          if (DLStartingGeneTree)
             {
             //we temporarily build a ReconciliationTreeLikelihood object, 
             //but won't consider sequences, to save computational time
             std::cout << "Changing the starting gene tree to minimize the numbers of duplications and losses"<<std::endl;
+            /*         unrootedGeneTree->resetNodesId ();
+            geneTree->resetNodesId ();
+*/
             ReconciliationTreeLikelihood * tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, 
                                                   model, rDist, *tree, 
                                                   *geneTree, seqSp, spId, 
@@ -703,6 +810,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
                                                   true, false, rootOptimization, false);
             tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
             double lk = tl->getValue();
+
             if(std::isinf(lk))
               {
               // This may be due to null branch lengths, leading to null likelihood!
@@ -718,6 +826,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
               
               allLogLs[i-numDeletedFamilies]= tl->f(tl->getParameters());
               }
+
             ApplicationTools::displayResult("Initial likelihood", TextTools::toString(lk, 15));
             if(std::isinf(lk))
               {
@@ -730,24 +839,30 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
               ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularly if datasets are big (>~500 sequences).");
               exit(-1);
               }
-            std::cout << TreeTools::treeToParenthesis(*geneTree, true) << std::endl;
-            std::cout << TreeTools::treeToParenthesis(*unrootedGeneTree, true) << std::endl;
-            PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false); 
-            delete geneTree;
-            geneTree = new TreeTemplate<Node>(tl->getRootedTree());
-            delete unrootedGeneTree;
-            unrootedGeneTree = new TreeTemplate<Node>(tl->getTree());
-            //Now we re-estimate branch-lengths on this new topology
-            std::string backupParamOptTopo = params[ std::string("optimization.topology")];
-            params[ std::string("optimization.topology")] = "no";
 
-            refineGeneTreeUsingSequenceLikelihoodOnly (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
-            std::cout << "After optimization bl: "<<TreeTools::treeToParenthesis(*unrootedGeneTree, true) << std::endl;
-            
-            params[ std::string("optimization.topology")] = backupParamOptTopo;
-            
-            
+            PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false); 
+
+           // delete unrootedGeneTree;
+
+            unrootedGeneTree = new TreeTemplate<Node>(tl->getTree());
+
+           // delete geneTree;
+
+          //  geneTree = new TreeTemplate<Node>(tl->getRootedTree());
+
+
+            int MLindex = tl->getRootNodeindex();
+            //Now we re-estimate branch-lengths on this new topology
+
+            refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
+            //std::cout << "After optimization bl: "<<TreeTools::treeToParenthesis(*geneTree, true) << std::endl;
+
+            geneTree = unrootedGeneTree->clone();
+            geneTree->resetNodesId ();
+            geneTree->newOutGroup(MLindex);
+            delete tl;
             }
+
           //Outputting the starting tree, with species names, and with sequence names
           Newick newick(true);
           std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
@@ -755,13 +870,13 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
           delete treeWithSpNames;
           std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
           newick.write(*geneTree, startingGeneTreeFile, true);
-          
-          
+          //std::cout << " Rooted tree? : "<<TreeTools::treeToParenthesis(*geneTree, true) << std::endl;
+
+
           DiscreteRatesAcrossSitesTreeLikelihood* tl;
 
           std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params, "no", "", true, false);
-          ApplicationTools::displayResult("Clock", optimizeClock);
-          
+          //ApplicationTools::displayResult("Clock", optimizeClock);
           
           if(optimizeClock == "global")
             {
@@ -780,11 +895,12 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
                                                   allNum2Lineages[i-numDeletedFamilies], 
                                                   speciesIdLimitForRootPosition, 
                                                   heuristicsLevel, MLindex, 
-                                                  true, true, rootOptimization);
+                                                  true, true, rootOptimization, true, DLStartingGeneTree);
             }
           else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
-          
+
           tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+
           allLogLs.push_back(tl->getValue());
           if(std::isinf(allLogLs[i-numDeletedFamilies]))
             {
@@ -835,7 +951,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames, std
     std::cout<<"WARNING: A client is in charge of 0 gene family after gene family filtering!"<<std::endl;        
     std::cout<<"A processor will be idle most of the time, the load could probably be better distributed."<<std::endl; 
     }
-  
+
 }
 
 
@@ -1099,7 +1215,6 @@ int main(int args, char ** argv)
             allParams[i][ std::string("optimization")] = "None"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
             treeLikelihoods[i]->OptimizeSequenceLikelihood(false);
           }
-          std::cout <<"Continued family "<<assignedFilenames.size()-numDeletedFamilies<<std::endl;
         }
 			bool recordGeneTrees; 
       if (optimizeSpeciesTreeTopology)
@@ -1232,7 +1347,7 @@ int main(int args, char ** argv)
               if (recordGeneTrees) 
                 {
                 broadcast(world, bestIndex, server);
-                std::cout << "bestIndex: "<<bestIndex<<" startRecordingTreesFrom: "<<startRecordingTreesFrom<<std::endl;
+                //std::cout << "bestIndex: "<<bestIndex<<" startRecordingTreesFrom: "<<startRecordingTreesFrom<<std::endl;
                 outputGeneTrees(assignedFilenames, treeLikelihoods, allParams, numDeletedFamilies, 
                                 reconciledTrees, duplicationTrees, lossTrees, 
                                 bestIndex, startRecordingTreesFrom);

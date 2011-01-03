@@ -74,7 +74,8 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(
                                                            bool checkRooted,
                                                            bool verbose, 
                                                            bool rootOptimization, 
-                                                           bool considerSequenceLikelihood)
+                                                           bool considerSequenceLikelihood, 
+                                                           bool DLStartingGeneTree)
 throw (Exception):
   NNIHomogeneousTreeLikelihood(tree, model, rDist, checkRooted, verbose), _spTree(0),_rootedTree(0),_seqSp(seqSp), _spId(spId)
 {
@@ -107,6 +108,7 @@ throw (Exception):
   _optimizeSequenceLikelihood = true;
   _optimizeReconciliationLikelihood = true;
   _considerSequenceLikelihood = considerSequenceLikelihood;
+  _DLStartingGeneTree = DLStartingGeneTree;
   // _listOfPreviousRoots = new std::vector <int> ();
 }
 
@@ -135,7 +137,8 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(
                                                            bool checkRooted,
                                                            bool verbose,
                                                            bool rootOptimization, 
-                                                           bool considerSequenceLikelihood)
+                                                           bool considerSequenceLikelihood, 
+                                                           bool DLStartingGeneTree)
 throw (Exception):
 NNIHomogeneousTreeLikelihood(tree, data, model, rDist, checkRooted, verbose), 
 _spTree(0), _rootedTree(0), _seqSp (seqSp), _spId(spId)
@@ -162,6 +165,7 @@ _spTree(0), _rootedTree(0), _seqSp (seqSp), _spId(spId)
   _optimizeSequenceLikelihood = true;
   _optimizeReconciliationLikelihood = true;
   _considerSequenceLikelihood = considerSequenceLikelihood;
+  _DLStartingGeneTree = DLStartingGeneTree;
 }
 
 /******************************************************************************/
@@ -193,7 +197,7 @@ ReconciliationTreeLikelihood::ReconciliationTreeLikelihood(const ReconciliationT
   _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
   _optimizeReconciliationLikelihood = lik._optimizeReconciliationLikelihood ;
   _considerSequenceLikelihood = lik._considerSequenceLikelihood;
-
+  _DLStartingGeneTree = lik._DLStartingGeneTree;
 }
 
 /******************************************************************************/
@@ -228,6 +232,7 @@ ReconciliationTreeLikelihood & ReconciliationTreeLikelihood::operator=(const Rec
   _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
   _optimizeReconciliationLikelihood = lik._optimizeReconciliationLikelihood ;
   _considerSequenceLikelihood = lik._considerSequenceLikelihood;
+  _DLStartingGeneTree = lik._DLStartingGeneTree;
   return *this;
 }
 
@@ -479,9 +484,10 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
   //int nodeId = son->getId();
 //  std::cout<<"IN TESTNNI, nodeId "<< nodeId << "_nodesToTryInNNISearch.size() "<< _nodesToTryInNNISearch.size()<<std::endl;
  // std::cout << "before "<<TreeTools::treeToParenthesis (*tree_, true)<<std::endl;
-  if (_nodesToTryInNNISearch.count(nodeId)==1) {
-   // std::cout << "before "<<TreeTools::treeToParenthesis (tree_, true)<<std::endl;
-   // std::cout<<"Node To Try"<<std::endl;
+ //If the NNI is around a branch where a duplication was found, 
+ //or if we just try all branches because the starting gene trees are parsimonious in
+ //numbers of DL.
+  if ((_nodesToTryInNNISearch.count(nodeId)==1) || _DLStartingGeneTree) {
     TreeTemplate<Node> * treeForNNI = tree_->clone();
     
     _tentativeMLindex = _MLindex;
@@ -887,39 +893,6 @@ void ReconciliationTreeLikelihood::print () const {
 
 
 }
-
-
-
-/**************************************************************************
- * Refine a starting gene tree using the DL likelihood only.
- *************************************************************************/
-/*
-void refineGeneTreeByDLLikelihood (TreeTemplate<Node> & spTree, 
-                                   TreeTemplate<Node> & geneTree,
-                                   std::map<std::string, std::string > seqSp,
-                                   std::map<std::string, int > spID, 
-                                   std::vector<double> & lossExpectedNumbers, 
-                                   std::vector<double> & duplicationExpectedNumbers, 
-                                   std::set <int> &nodesToTryInNNISearch
-                                   ) 
-{
-  
-   makeNNI(TreeTemplate<Node> &tree, int nodeId);
-   findMLReconciliationDR (TreeTemplate<Node> * spTree, 
-   TreeTemplate<Node> * geneTree, 
-   std::map<std::string, std::string > seqSp,
-   std::map<std::string, int > spID,
-   std::vector< double> lossExpectedNumbers, 
-   std::vector < double> duplicationExpectedNumbers, 
-   int & MLindex, 
-   std::vector <int> &num0lineages, 
-   std::vector <int> &num1lineages, 
-   std::vector <int> &num2lineages, 
-   std::set <int> &nodesToTryInNNISearch);
-   
-  
-}
-*/
 
 
 

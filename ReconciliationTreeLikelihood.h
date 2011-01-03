@@ -97,6 +97,7 @@ class ReconciliationTreeLikelihood:
     mutable bool _optimizeSequenceLikelihood;
     mutable bool _optimizeReconciliationLikelihood;
     mutable bool _considerSequenceLikelihood;
+    mutable bool _DLStartingGeneTree;
 
   public:
     /**
@@ -147,7 +148,8 @@ class ReconciliationTreeLikelihood:
                                  bool checkRooted = true,
                                  bool verbose = false,
                                  bool rootOptimization = false, 
-                                 bool considerSequenceLikelihood = true)
+                                 bool considerSequenceLikelihood = true, 
+                                 bool DLStartingGeneTree = false)
     throw (Exception);
     
     /**
@@ -200,7 +202,8 @@ class ReconciliationTreeLikelihood:
                                  bool checkRooted = true,
                                  bool verbose = false, 
                                  bool rootOptimization = false, 
-                                 bool considerSequenceLikelihood = true)
+                                 bool considerSequenceLikelihood = true, 
+                                 bool DLStartingGeneTree = false)
     throw (Exception);
     
     /**
@@ -296,17 +299,7 @@ class ReconciliationTreeLikelihood:
     
   };
   
-  
-  //A function to refine a tree using only the DL likelihood, without ever considering the alignment (which is indeed not in the arguments)
- /* void refineGeneTreeByDLLikelihood (TreeTemplate<Node> & spTree, 
-                                     TreeTemplate<Node> & geneTree,
-                                     std::map<std::string, std::string > seqSp,
-                                     std::map<std::string, int > spID, 
-                                     std::vector<double> & lossExpectedNumbers, 
-                                     std::vector<double> & duplicationExpectedNumbers 
-                                     ); 
-  */
-  
+    
 } //end of namespace bpp.
 
 #endif  //_RECONCILIATIONTREELIKELIHOOD_H_
