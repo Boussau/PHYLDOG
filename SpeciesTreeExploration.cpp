@@ -372,17 +372,18 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
   breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
   std::vector <double> bestDupProba=duplicationExpectedNumbers;
   std::vector<double> bestLossProba=lossExpectedNumbers;
+  std::vector <int> nodeIdsToRegraft;
+  bool betterTree;
+  TreeTemplate<Node> *tree;
   for (int nodeForSPR=currentTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
-    TreeTemplate<Node> *tree;
-    std::vector <int> nodeIdsToRegraft; 
-    tree = currentTree->clone();
     buildVectorOfRegraftingNodesLimitedDistance(*tree, nodeForSPR, sprLimit, nodeIdsToRegraft);
-    bool betterTree = false;
+    betterTree = false;
     for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) {
-      if (i!=0) {
+      if (tree) {
         delete tree;
-        tree = currentTree->clone();
       }
+      tree = currentTree->clone();
+      
       makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i]);
       if (optimizeRates) 
         {

@@ -304,6 +304,8 @@ void outputNNIAndRootLks(std::vector <double> & NNILks,
                          std::map<std::string, std::string> & params, 
                          std::string & suffix);
 
+
+
 /*void makeRandomModifications(TreeTemplate<Node> &tree, int expectedFrequencyNNI, int expectedFrequencySPR, int expectedFrequencyChangeRoot);
 
 */

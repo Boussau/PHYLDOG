@@ -1992,24 +1992,21 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
                                TreeTemplate<Node> * geneTree, 
                                std::map<std::string, std::string > seqSp,
                                std::map<std::string, int > spID,
-/*vector<int> & lossNumbers,*/ 
                                std::vector< double> lossRates, 
-/*vector< int> & duplicationNumbers,*/ 
                                std::vector < double> duplicationRates, 
                                int & MLindex, 
-/*vector<int> &branchNumbers, int speciesIdLimitForRootPosition, int heuristicsLevel,*/ 
                                std::vector <int> &num0lineages, 
                                std::vector <int> &num1lineages, 
                                std::vector <int> &num2lineages, 
-                               std::set <int> &nodesToTryInNNISearch)
+                               std::set <int> &nodesToTryInNNISearch, 
+                               bool fillTables)
 {
-  double MLRooting;
+  double MLRooting;  
 	if (!geneTree->isRooted()) {
 		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
 		std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliationDR !!!!!!"<<std::endl;
 		exit(-1);
-	}
-  
+      }		
 	std::vector <double> nodeData(3, 0.0);
 	std::vector <std::vector<double> > likelihoodData(geneTree->getNumberOfNodes(), nodeData);
 
@@ -2033,6 +2030,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
 //std::cout <<"Postorder tree traversal over: Initial likelihood: "<<initialLikelihood<<std::endl;
 	//computeSubtreeLikelihoodPrefix then computes the other conditional likelihoods, and also returns the best rooting.
   std::vector <Node *> sons = geneRoot->getSons();
+
   if (sons.size()!=2) {
     std::cout <<"Error: "<<sons.size()<< "sons at the root!"<<std::endl; 
   }
@@ -2054,13 +2052,13 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
     std::cout <<"ID "<<i<<"likelihoodData[ID][0]"<<likelihoodData[i][0]<<std::endl;
   }
   */
-  
+
   for (int i = 0; i< sons.size(); i++){
     for (int j =0; j<sons[i]->getNumberOfSons(); j++) {
       computeSubtreeLikelihoodPreorder(*spTree, *geneTree, sons[i], seqSp, spID, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData, j, LksToNodes);
     }
   }
-  
+
   
  /*  
   std::cout <<"Printing all rooting likelihoods as found by the DR tree traversal"<<std::endl;
@@ -2069,6 +2067,9 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   for ( it=LksToNodes.begin() ; it != LksToNodes.end(); it++ )
     std::cout << (*it).second->getId() << " => " << (*it).first << std::endl;
    */
+  geneTree->newOutGroup(LksToNodes.rbegin()->second->getId()); //uncomment that if you want to keep gene family trees fixed except for the root
+  
+  if (fillTables) {
   
 	//Now the best root has been found. I can thus run a function with this best root to fill all the needed tables. This additional tree traversal could be avoided.
 	//To this end, the needed tables should be filled by the postfix and prefix traversals. This has not been done yet.
@@ -2079,9 +2080,9 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   // Getting a well-rooted tree
   TreeTemplate<Node > * tree = geneTree->clone();
   
-  tree->newOutGroup(LksToNodes.rbegin()->second->getId());
+  //tree->newOutGroup(LksToNodes.rbegin()->second->getId());
   
-  geneTree->newOutGroup(LksToNodes.rbegin()->second->getId()); //uncomment that if you want to keep gene family trees fixed except for the root
+  
  //std::cout << TreeTools::treeToParenthesis (*tree, true)<<std::endl;
 
   nodesToTryInNNISearch.clear();
@@ -2090,13 +2091,15 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   resetVector(num0lineages);
   resetVector(num1lineages);
   resetVector(num2lineages);
-  
+
   
 // std::cout <<"HERE_rooted_tree "<<TreeTools::treeToParenthesis (*tree, true)<<std::endl;
 //  std::cout <<"HERE_rooted_tree2 "<<TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
 //  std::cout <<"HERE_SP_tree "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
   computeNumbersOfLineagesFromRoot(spTree, tree, tree->getRootNode(), seqSp, spID, num0lineages, num1lineages, num2lineages, speciesIDs, dupData, nodesToTryInNNISearch);
-  
+  delete tree;
+
+  }
   
   
 /*
@@ -2108,11 +2111,11 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   VectorTools::print(num2lineages);
   std::cout <<std::endl;
   */
-  delete tree;
   
   //We return the best likelihood
   MLindex = LksToNodes.rbegin()->second->getId();
 // std::cout <<"Bestlikelihood"<< LksToNodes.rbegin()->first<<std::endl;
+
 	return LksToNodes.rbegin()->first;
   
   
@@ -2871,14 +2874,6 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
     return;
 	}
 }
-
-
-
-
-
-
-
-
 
 
 

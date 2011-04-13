@@ -266,7 +266,11 @@ void ReconciliationTreeLikelihood::initParameters()
 //    _scenarioLikelihood = findMLReconciliation (&_spTree, &_rootedTree, _seqSp, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, _MLindex, _branchNumbers, _speciesIdLimitForRootPosition, _heuristicsLevel, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
   }
   else {
-    _scenarioLikelihood = findMLReconciliationDR (_spTree, _rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _MLindex, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
+    _scenarioLikelihood = findMLReconciliationDR (_spTree, _rootedTree, 
+                                                  _seqSp, _spId, _lossProbabilities, 
+                                                  _duplicationProbabilities, _MLindex, 
+                                                  _num0Lineages, _num1Lineages,
+                                                  _num2Lineages, _nodesToTryInNNISearch); 
   }
   _MLindex = -1;
   // std::cout << "in ReconciliationTreeLikelihood::initParameters : _num0Lineages, _num1Lineages, _num2Lineages : "<< TextTools::toString(VectorTools::sum(_num0Lineages))<<" "<<TextTools::toString(VectorTools::sum(_num1Lineages))<<" "<< TextTools::toString(VectorTools::sum(_num2Lineages))<<std::endl;

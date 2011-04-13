@@ -724,29 +724,9 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
               unrootedGeneTree->unroot();
               }
             else 
-              std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene tree."<<std::endl;
+              std::cout<<"Sequence "<<seqsToRemove[j] <<" is not present in the gene tree."<<std::endl;
             }
           
-          //printing the gene trees with the species names instead of the sequence names
-          //This is useful to build an input for duptree for instance
-          TreeTemplate<Node> * treeWithSpNames = unrootedGeneTree->clone();
-          std::vector <Node *> leaves = treeWithSpNames->getLeaves();
-          for (int j =0; j<leaves.size() ; j++) 
-            {
-            leaves[j]->setName(seqSp[leaves[j]->getName()]);
-            }
-          std::vector <Node *> nodes =  treeWithSpNames->getNodes();
-          for (int j =0; j<nodes.size() ; j++) 
-            {
-            if (nodes[j]->hasFather()) 
-              {
-              nodes[j]->deleteDistanceToFather(); 
-              }
-            if (nodes[j]->hasBootstrapValue()) 
-              {
-              nodes[j]->removeBranchProperty(TreeTools::BOOTSTRAP); 
-              }
-            }
           
           /****************************************************************************
            //Then we initialize the losses and duplication numbers on this tree.
@@ -796,7 +776,27 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
             std::cout << "Changing the starting gene tree to minimize the numbers of duplications and losses"<<std::endl;
             /*         unrootedGeneTree->resetNodesId ();
             geneTree->resetNodesId ();
-*/
+             */
+            std::set <int> nodesToTryInNNISearch;
+            double lk = refineGeneTreeDLOnly (tree, 
+                                              geneTree, 
+                                              seqSp,
+                                              spId,
+                                              lossExpectedNumbers, 
+                                              duplicationExpectedNumbers, 
+                                              MLindex, 
+                                              allNum0Lineages[i-numDeletedFamilies], 
+                                              allNum1Lineages[i-numDeletedFamilies], 
+                                              allNum2Lineages[i-numDeletedFamilies], 
+                                              nodesToTryInNNISearch);
+            std::cout << "Reconciliation Lk after rearranging the gene tree: "<<lk<<endl;
+            
+            if (unrootedGeneTree)
+              delete unrootedGeneTree;
+            unrootedGeneTree = geneTree->clone();
+            unrootedGeneTree->unroot();
+
+            /*
             ReconciliationTreeLikelihood * tl = new ReconciliationTreeLikelihood(*unrootedGeneTree, *sites, 
                                                   model, rDist, *tree, 
                                                   *geneTree, seqSp, spId, 
@@ -810,7 +810,6 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
                                                   true, false, rootOptimization, false);
             tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
             double lk = tl->getValue();
-
             if(std::isinf(lk))
               {
               // This may be due to null branch lengths, leading to null likelihood!
@@ -839,18 +838,11 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
               ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularly if datasets are big (>~500 sequences).");
               exit(-1);
               }
-
             PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false); 
-
            // delete unrootedGeneTree;
-
             unrootedGeneTree = new TreeTemplate<Node>(tl->getTree());
-
            // delete geneTree;
-
           //  geneTree = new TreeTemplate<Node>(tl->getRootedTree());
-
-
             int MLindex = tl->getRootNodeindex();
             //Now we re-estimate branch-lengths on this new topology
 
@@ -860,9 +852,35 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
             geneTree = unrootedGeneTree->clone();
             geneTree->resetNodesId ();
             geneTree->newOutGroup(MLindex);
-            delete tl;
+            if (!geneTree->isRooted()) {
+              TreeTools::midpointRooting 	(*geneTree);
             }
-
+            delete tl;            
+            */
+            }
+          
+          //printing the gene trees with the species names instead of the sequence names
+          //This is useful to build an input for duptree for instance
+          TreeTemplate<Node> * treeWithSpNames = unrootedGeneTree->clone();
+          std::vector <Node *> leaves = treeWithSpNames->getLeaves();
+          for (int j =0; j<leaves.size() ; j++) 
+            {
+            leaves[j]->setName(seqSp[leaves[j]->getName()]);
+            }
+          std::vector <Node *> nodes =  treeWithSpNames->getNodes();
+          for (int j =0; j<nodes.size() ; j++) 
+            {
+            if (nodes[j]->hasFather()) 
+              {
+              nodes[j]->deleteDistanceToFather(); 
+              }
+            if (nodes[j]->hasBootstrapValue()) 
+              {
+              nodes[j]->removeBranchProperty(TreeTools::BOOTSTRAP); 
+              }
+            }
+          
+          
           //Outputting the starting tree, with species names, and with sequence names
           Newick newick(true);
           std::string geneTreeFile =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
@@ -898,9 +916,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
                                                   true, true, rootOptimization, true, DLStartingGeneTree);
             }
           else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
-
           tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
-
           allLogLs.push_back(tl->getValue());
           if(std::isinf(allLogLs[i-numDeletedFamilies]))
             {
@@ -914,7 +930,6 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
               if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
               }
             dynamic_cast<ReconciliationTreeLikelihood*>(tl)->initParameters();
-            
             allLogLs[i-numDeletedFamilies]= tl->f(tl->getParameters());
             }
           ApplicationTools::displayResult("Initial likelihood", TextTools::toString(allLogLs[i-numDeletedFamilies], 15));
@@ -937,7 +952,6 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
           allDistributions.push_back(rDist);
           allGeneTrees.push_back(geneTree);
           allUnrootedGeneTrees.push_back(unrootedGeneTree);
-          // allLikelihoodFiles.push_back(likelihoodFile);
         }
       else 
         {
@@ -951,7 +965,6 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
     std::cout<<"WARNING: A client is in charge of 0 gene family after gene family filtering!"<<std::endl;        
     std::cout<<"A processor will be idle most of the time, the load could probably be better distributed."<<std::endl; 
     }
-
 }
 
 
@@ -1127,9 +1140,6 @@ int main(int args, char ** argv)
       TreeTemplate<Node> * tree = 0;
       
       
-      /*std::vector <int> lossNumbers;
-       std::vector <int> duplicationNumbers;
-       std::vector <int> branchNumbers;*/
       
       
       //  char currentSpeciesTree[MAXSPECIESTREESIZE];

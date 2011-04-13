@@ -68,12 +68,13 @@ std::string nodeToParenthesisBIS(const Tree & tree, int nodeId, bool bootstrap) 
  * Make a SPR between two nodes. A subtree is cut at node with Id cutNodeId, 
  * and pasted beneath node with Id newFatherId.
  ************************************************************************/
-void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId) {
+void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool verbose) {
   
   Node *cutNode, *newBrother, *oldFather, *oldGrandFather, *brother, *newBrothersFather, *N;
   double dist = 0.1;  
   
-  std::cout <<"Making a SPR, moving node "<<cutNodeId<< " as brother of node "<< newBrotherId<< std::endl;
+  if (verbose)
+    std::cout <<"Making a SPR, moving node "<<cutNodeId<< " as brother of node "<< newBrotherId<< std::endl;
   newBrother = tree.getNode(newBrotherId);
   cutNode = tree.getNode(cutNodeId); 
   std::vector <int> nodeIds =tree.getNodesId();
@@ -285,18 +286,23 @@ void getNeighboringNodesIdLimitedDistance (TreeTemplate<Node> &tree, int nodeId,
 //This whole function efficiency may well be improved
 void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int nodeForSPR, int distance, std::vector <int> & nodeIdsToRegraft) {
   
-  
   Node * N = tree.getRootNode();
-  
+
   // std::vector <int> allNodeIds = tree.getNodesId();
   std::vector <int> allNodeIds;
   getNeighboringNodesIdLimitedDistance(tree, nodeForSPR, distance, allNodeIds);
+
   std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
+
   forbiddenIds.push_back(tree.getRootNode()->getId());
+
   int oldFatherId = tree.getNode(nodeForSPR)->getFather()->getId();
+
   forbiddenIds.push_back(oldFatherId);
-  
-	
+/*
+  std::vector <int> descendantIds = TreeTemplateTools::getInnerNodesId(*(tree.getNode(nodeForSPR)));
+  forbiddenIds.insert(forbiddenIds.end(), descendantIds.begin(), descendantIds.end());
+	*/
   int brotherId;
   //Get one brother ; a binary tree is supposed here (because of the "break")
   for(int i=0;i<tree.getNode(oldFatherId)->getNumberOfSons();i++)
@@ -304,15 +310,17 @@ void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int n
   if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
     forbiddenIds.push_back(brotherId);
   }
+
+  
   
   //We remove the nodes that are not appropriate for regrafting
-  
   std::vector <int> toRemove;
   for (int i = 0 ; i< allNodeIds.size() ; i++) {
     if (VectorTools::contains(forbiddenIds, allNodeIds[i])) {
       toRemove.push_back(i);
     }
   }
+
   sort(toRemove.begin(), toRemove.end(), cmp);
   for (int i = 0 ; i< toRemove.size() ; i++) {
     std::vector<int>::iterator vi = allNodeIds.begin();
@@ -321,7 +329,7 @@ void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int n
   
   //Now allNodeIds contains all the Ids of nodes where the subtree can be reattached.
   nodeIdsToRegraft = allNodeIds;
-  
+
 }
 
 
@@ -477,7 +485,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
             while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
               {
               std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
-              nodeForNNI++;
+              nodeForNNI = nodeForNNI+2;
               }
           }
         }
@@ -487,7 +495,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
         while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
           {
           std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
-          nodeForNNI++;
+          nodeForNNI = nodeForNNI+2;
           }
         }
     }
@@ -508,5 +516,114 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
     return false;
   }
 }
+
+
+
+
+
+/**************************************************************************
+ * This function optimizes a gene tree based on the reconciliation score only.
+ * It uses SPRs and NNIs, and calls findMLReconciliationDR to compute the likelihood.
+ **************************************************************************/
+
+double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
+                             TreeTemplate<Node> * geneTree, 
+                             std::map<std::string, std::string > seqSp,
+                             std::map<std::string, int > spID,
+                             std::vector< double> lossExpectedNumbers, 
+                             std::vector < double> duplicationExpectedNumbers, 
+                             int & MLindex, 
+                             std::vector <int> &num0lineages, 
+                             std::vector <int> &num1lineages, 
+                             std::vector <int> &num2lineages, 
+                             std::set <int> &nodesToTryInNNISearch)
+{
+  TreeTemplate<Node> *tree = 0;
+  TreeTemplate<Node> *bestTree = 0;
+  TreeTemplate<Node> *currentTree = 0;
+  currentTree = geneTree->clone();
+  breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
+  int sprLimit = 10; //Arbitrary.
+  std::vector <int> nodeIdsToRegraft; 
+  double bestlogL;
+  double logL;
+  bool betterTree;
+  int numIterationsWithoutImprovement = 0;
+  double startingML = findMLReconciliationDR (spTree, 
+                                              currentTree, 
+                                              seqSp,
+                                              spID,
+                                              lossExpectedNumbers, 
+                                              duplicationExpectedNumbers, 
+                                              MLindex, 
+                                              num0lineages, 
+                                              num1lineages, 
+                                              num2lineages, 
+                                              nodesToTryInNNISearch, false);
+  tree = currentTree->clone();
+  bestTree = currentTree->clone();
+  bestlogL = startingML;
+
+  while (numIterationsWithoutImprovement < geneTree->getNumberOfNodes()-1) {
+    for (int nodeForSPR=geneTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
+      betterTree = false;
+      tree = currentTree->clone();
+      buildVectorOfRegraftingNodesLimitedDistance(*tree, nodeForSPR, sprLimit, nodeIdsToRegraft);
+
+      for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) {
+        if (tree) {
+          delete tree;
+        }
+        tree = currentTree->clone();
+        makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i], false);
+        logL = findMLReconciliationDR (spTree, 
+                                       tree, 
+                                       seqSp,
+                                       spID,
+                                       lossExpectedNumbers, 
+                                       duplicationExpectedNumbers, 
+                                       MLindex, 
+                                       num0lineages, 
+                                       num1lineages, 
+                                       num2lineages, 
+                                       nodesToTryInNNISearch, false);
+        if (logL-0.01>bestlogL) {
+          betterTree = true;
+          bestlogL =logL;
+          if (bestTree)
+            delete bestTree;
+          bestTree = tree->clone();  
+          /*std::cout << "Gene tree SPR: Better candidate tree likelihood : "<<bestlogL<< std::endl;
+          std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;*/
+        }
+      }
+      if (betterTree) {
+        logL = bestlogL; 
+        if (currentTree)
+          delete currentTree;
+        currentTree = bestTree->clone();
+        breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
+        //std::cout <<"NEW BETTER TREE: \n"<< TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
+        numIterationsWithoutImprovement = 0;
+      }
+      else {
+        logL = bestlogL; 
+        if (currentTree)
+          delete currentTree;
+        currentTree = bestTree->clone(); 
+        numIterationsWithoutImprovement++;
+      }
+    }
+  }
+  delete geneTree;
+  geneTree = bestTree->clone();
+  if (tree) delete tree;
+  if (bestTree) delete bestTree;
+  if (currentTree) delete currentTree;  
+  return bestlogL;
+}
+
+
+
 
 

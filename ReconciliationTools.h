@@ -201,16 +201,14 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
                                TreeTemplate<Node> * geneTree, 
                                std::map<std::string, std::string > seqSp,
                                std::map<std::string, int > spID,
-/*vector<int> & lossNumbers,*/ 
                                std::vector< double> lossRates, 
-/*vector< int> & duplicationNumbers,*/ 
                                std::vector < double> duplicationRates, 
                                int & MLindex, 
-/*vector<int> &branchNumbers, int speciesIdLimitForRootPosition, int heuristicsLevel,*/ 
                                std::vector <int> &num0lineages, 
                                std::vector <int> &num1lineages, 
                                std::vector <int> &num2lineages, 
-                               std::set <int> &nodesToTryInNNISearch);
+                               std::set <int> &nodesToTryInNNISearch, 
+                               bool fillTables = true);
 double computeAverageLossProportionOnCompletelySequencedLineages(std::vector <int> & num0lineages, 
                                     std::vector <int> & num1lineages, 
                                     std::vector <int> & num2lineages, 

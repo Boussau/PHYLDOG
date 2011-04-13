@@ -27,7 +27,7 @@ using namespace std;
 
 
 void changeRoot(TreeTemplate<Node> &tree, int newOutGroup);
-void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId);
+void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool verbose = true);
 void makeNNI(TreeTemplate<Node> &tree, int nodeId);
 void buildVectorOfRegraftingNodes(TreeTemplate<Node> &tree, int nodeForSPR, std::vector <int> & nodeIdsToRegraft);
 std::vector<int> getRemainingNeighbors(const Node * node1, const Node * node2);
@@ -39,4 +39,16 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nod
 bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, int & nodeForNNI, 
                                int & nodeForRooting, std::vector < double >  &NNILks, 
                                std::vector < double >  &rootLks);
+double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
+                             TreeTemplate<Node> * geneTree, 
+                             std::map<std::string, std::string > seqSp,
+                             std::map<std::string, int > spID,
+                             std::vector< double> lossRates, 
+                             std::vector < double> duplicationRates, 
+                             int & MLindex, 
+                             std::vector <int> &num0lineages, 
+                             std::vector <int> &num1lineages, 
+                             std::vector <int> &num2lineages, 
+                             std::set <int> &nodesToTryInNNISearch);
+
 #endif 
