@@ -530,8 +530,8 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
                              TreeTemplate<Node> * geneTree, 
                              std::map<std::string, std::string > seqSp,
                              std::map<std::string, int > spID,
-                             std::vector< double> lossExpectedNumbers, 
-                             std::vector < double> duplicationExpectedNumbers, 
+                             std::vector< double> &lossExpectedNumbers, 
+                             std::vector < double> &duplicationExpectedNumbers, 
                              int & MLindex, 
                              std::vector <int> &num0lineages, 
                              std::vector <int> &num1lineages, 
@@ -542,7 +542,7 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
   TreeTemplate<Node> *bestTree = 0;
   TreeTemplate<Node> *currentTree = 0;
   currentTree = geneTree->clone();
-  breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
+  breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
   int sprLimit = 10; //Arbitrary.
   std::vector <int> nodeIdsToRegraft; 
   double bestlogL;
@@ -602,7 +602,7 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
         if (currentTree)
           delete currentTree;
         currentTree = bestTree->clone();
-        breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
+        breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
         //std::cout <<"NEW BETTER TREE: \n"<< TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
         numIterationsWithoutImprovement = 0;
       }

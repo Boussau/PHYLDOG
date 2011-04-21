@@ -431,7 +431,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
       DiscreteDistribution* rDist    = 0;
       if(!FileTools::fileExists(file))
         {
-        std::cerr << "Parameter file "<< file <<" not found." << std::endl;
+        std::cerr << "Error: Parameter file "<< file <<" not found." << std::endl;
         exit(-1);
         }
       else
@@ -444,6 +444,12 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
       
       //Sequences and model of evolution
       Alphabet * alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
+      std::string seqFile = ApplicationTools::getStringParameter("input.sequence.file",params,"none");
+      if(!FileTools::fileExists(seqFile))
+        {
+        std::cerr << "Error: Sequence file "<< seqFile <<" not found." << std::endl;
+        exit(-1);
+        }
       VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params);       
       VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
       delete allSites;             
@@ -467,6 +473,12 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
         std::cout << "ReconcileDuplications species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
         exit(-1);
       }
+      if(!FileTools::fileExists(taxaseqFile))
+        {
+        std::cerr << "Error: taxaseqfile "<< taxaseqFile <<" not found." << std::endl;
+        exit(-1);
+        }
+ 
       //Getting the relations between species and sequence names
       //In this file, the format is expected to be as follows :
       /*
@@ -570,6 +582,12 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
             exit(-1);
             }
           Newick newick(true);
+          if(!FileTools::fileExists(geneTreeFile))
+            {
+            std::cerr << "Error: geneTreeFile "<< geneTreeFile <<" not found." << std::endl;
+            exit(-1);
+            }
+          
           geneTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTreeFile));
           if (!geneTree->isRooted()) 
             {
