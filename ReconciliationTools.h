@@ -245,8 +245,8 @@ void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOp
                                                       std::vector <int> & num0Lineages, 
                                                       std::vector <int> & num1Lineages, 
                                                       std::vector <int> & num2Lineages, 
-                                                      std::vector<double> & lossProbabilities, 
-                                                      std::vector<double> & duplicationProbabilities, 
+                                                      std::vector<double> & lossExpectedNumbers, 
+                                                      std::vector<double> & duplicationExpectedNumbers, 
                                                       std::map <std::string, int> & genomeMissing, 
                                                       TreeTemplate<Node> & tree);
 void computeDuplicationAndLossRatesForTheSpeciesTreeInitially (std::string &branchProbaOptimization, 

@@ -585,7 +585,9 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
           if(!FileTools::fileExists(geneTreeFile))
             {
             std::cerr << "Error: geneTreeFile "<< geneTreeFile <<" not found." << std::endl;
-            exit(-1);
+            std::cerr << "Building a bionj tree instead for gene " << geneTreeFile << std::endl;
+            initTree = "bionj";
+            //exit(-1);
             }
           
           geneTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTreeFile));
@@ -603,7 +605,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
           ApplicationTools::displayResult("Gene Tree file", geneTreeFile);
           ApplicationTools::displayResult("Number of leaves", TextTools::toString(geneTree->getNumberOfLeaves()));
           }
-        else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
+        if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
           {
           DistanceEstimation distEstimation(model, rDist, sites, 1, false);
           BioNJ * bionj = new BioNJ();      

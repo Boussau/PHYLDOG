@@ -778,7 +778,7 @@ void firstCommunicationsServerClient (const mpi::communicator & world, int & ser
 
 
 /******************************************************************************/
-// These functions input and output alternate topolohies likelihoods.
+// These functions input and output alternate topologies likelihoods.
 /******************************************************************************/
 
 void inputNNIAndRootLks(std::vector <double> & NNILks, std::vector <double> & rootLks, std::map<std::string, std::string> & params, std::string & suffix)

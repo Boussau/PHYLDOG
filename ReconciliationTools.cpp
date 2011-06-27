@@ -2301,61 +2301,17 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
   
  extractSubVectorsWithCompletelySequencedLineages(num0lineages, num1lineages, num2lineages, genomeMissing, tree, num0, num1, num2);
   
- // extractSubVectorsWithInternalLineages(num0lineages, num1lineages, num2lineages, genomeMissing, tree, num0, num1, num2);
-//  std::cout <<"num0Size : "<<num0.size()<<std::endl;
- 
   double avg0d = VectorTools::mean<int, double>(num0);
   double avg1d = VectorTools::mean<int, double>(num1);
   double avg2d = VectorTools::mean<int, double>(num2);
-  /*
-  double avg0d = (double)VectorTools::median<int>(num0);
-  double avg1d = (double)VectorTools::median<int>(num1);
-  double avg2d = (double)VectorTools::median<int>(num2);
- */
+
   if (avg0d+avg1d+avg2d==0) {//This shouldn't happen but if it does...
     std::cerr<<"WARNING: No event on average on all branches. Setting default values."<<std::endl;
     avg0d = 267;
     avg1d = 723;
     avg2d = 10;
   }
-/*  
-  while((avg0d < 10.0)||(avg1d < 10.0)||(avg2d < 10.0 )) {
-    avg0d = avg0d*100;
-    avg1d = avg1d*100;
-    avg2d = avg2d*100;
-    if (avg0d < 1.0) {
-      avg0d =1;
-    }
-    if (avg1d < 1.0) {
-      avg1d =1;
-    }
-    if (avg2d < 1.0) {
-      avg2d =1;
-    }
-  }
- */
-/*
-  bool toPrint = false;
-  for (int i =0 ; i<num0lineages.size(); i++) {
-    if ((num0lineages[i]<0)||(num1lineages[i]<0)||(num2lineages[i]<0)) {
-      toPrint=true;
-      break;
-    }
-  }
-  
-  
-if ((avg0d<=0)||(avg1d<=0)||(avg2d<=0)||toPrint) {
-    std::cout <<"in alterLineageCountsWithCoverages 1"<<std::endl;
-    VectorTools::print(num0lineages);
-    VectorTools::print(num1lineages);
-    VectorTools::print(num2lineages);
-    std::cout <<"in alterLineageCountsWithCoverages 2"<<std::endl;
-    VectorTools::print(num0);
-    VectorTools::print(num1);
-    VectorTools::print(num2);
-    std::cout <<"in alterLineageCountsWithCoverages 3 "<< avg0d<<" "<<avg1d<<" "<<avg2d<<std::endl;
- }
-  */
+
   double propLoss = avg0d/(avg0d+avg1d+avg2d);
   if (propLoss > 0.99) {
     propLoss = 0.99;
@@ -2413,11 +2369,6 @@ if ((avg0d<=0)||(avg1d<=0)||(avg2d<=0)||toPrint) {
   
   
 }
-
-
-
-
-
 
 /**************************************************************************/
 //We average all count values, and increase num0lineages in some external branches to account for the low sequence coverage of some genomes. 
@@ -2531,7 +2482,31 @@ std::map <std::string, int> computeSpeciesNamesToIdsMap (TreeTemplate<Node> & tr
 
 
 
-void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOptimization, std::vector <int> & num0Lineages, std::vector <int> & num1Lineages, std::vector <int> & num2Lineages, std::vector<double> & lossProbabilities, std::vector<double> & duplicationProbabilities, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
+void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOptimization, std::vector <int> & num0Lineages, std::vector <int> & num1Lineages, std::vector <int> & num2Lineages, std::vector<double> & lossExpectedNumbers, std::vector<double> & duplicationExpectedNumbers, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
+  //outputting trees with branch lengths in numbers of events, before correction.
+  computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossExpectedNumbers, duplicationExpectedNumbers);
+  std::cout << "Species tree with expected numbers of duplications as branch lengths:"<<std::endl;
+  for (int i =0; i<num0Lineages.size() ; i++ ) 
+    {
+    tree.getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationExpectedNumbers[i]));
+    if (tree.getNode(i)->hasFather()) 
+      {
+      tree.getNode(i)->setDistanceToFather(duplicationExpectedNumbers[i]);
+      }
+    }
+  std::cout << treeToParenthesisWithDoubleNodeValues(tree, false, "DUPLICATIONS")<<std::endl;
+  std::cout << "Species tree with expected numbers of losses as branch lengths:"<<std::endl;
+  for (int i =0; i<num0Lineages.size() ; i++ ) 
+    {
+    tree.getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers[i]));
+    if (tree.getNode(i)->hasFather()) 
+      {
+      tree.getNode(i)->setDistanceToFather(lossExpectedNumbers[i]);
+      }
+    }
+  std::cout << treeToParenthesisWithDoubleNodeValues(tree, false, "LOSSES")<<std::endl;
+  
+  //Doing the correction:
   if (branchProbaOptimization=="average") {
     alterLineageCountsWithCoverages(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree, true);
   }
@@ -2539,7 +2514,7 @@ void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOp
     alterLineageCountsWithCoverages(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree, false);
   }
   
-  computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities);
+  computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossExpectedNumbers, duplicationExpectedNumbers);
 
 }
 
@@ -2829,6 +2804,7 @@ std::string removeComments(
 /**************************************************************************
  * Annotate gene tree with duplication events. Adds D=Y to node properties where
  * there was a duplication, and D=N where there was no duplication.
+ * Also adds species node id for each node of the gene tree, using :S=spId.
  *************************************************************************/
 
 void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree, 
