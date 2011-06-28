@@ -307,6 +307,59 @@ void refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::strin
   delete tl;
 }
 
+/******************************************************************************/
+// This function builds a bionj tree
+/******************************************************************************/
+
+void buildBioNJTree (std::map<std::string, std::string> & params, TreeTemplate<Node>  *unrootedGeneTree, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, string file, Alphabet *alphabet) {
+  
+  DistanceEstimation distEstimation(model, rDist, sites, 1, false);
+  BioNJ * bionj = new BioNJ();      
+  bionj->outputPositiveLengths(true);   
+  std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
+  if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
+  else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
+  else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
+  else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
+  // Should I ignore some parameters?
+  ParameterList allParameters = model->getParameters();
+  allParameters.addParameters(rDist->getParameters());
+  ParameterList parametersToIgnore;
+  std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
+  bool ignoreBrLen = false;
+  StringTokenizer st(paramListDesc, ",");
+  while(st.hasMoreToken())
+    {
+    try
+      {
+      std::string param = st.nextToken();
+      if(param == "BrLen")
+        ignoreBrLen = true;
+      else
+        {
+        if (allParameters.hasParameter(param))
+          {
+          Parameter* p = &allParameters.getParameter(param);
+          parametersToIgnore.addParameter(*p);
+          }
+        else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
+        }
+      } 
+    catch(ParameterNotFoundException pnfe)
+      {
+      ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
+      }
+    }
+  double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
+  unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
+  std::vector<Node*> nodes = unrootedGeneTree->getNodes();
+  for(unsigned int k = 0; k < nodes.size(); k++)
+    {
+    if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
+    if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() >= 5) throw Exception("Found a very large branch length in a gene tree; will avoid this family.");
+    }
+  delete bionj;  
+}
 
 
 /******************************************************************************/
@@ -586,11 +639,14 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
             {
             std::cerr << "Error: geneTreeFile "<< geneTreeFile <<" not found." << std::endl;
             std::cerr << "Building a bionj tree instead for gene " << geneTreeFile << std::endl;
-            initTree = "bionj";
+            buildBioNJTree (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
+            geneTree = unrootedGeneTree;
+            geneTree->newOutGroup(0);            
             //exit(-1);
             }
-          
-          geneTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTreeFile));
+          else {
+            geneTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTreeFile));
+          }
           if (!geneTree->isRooted()) 
             {
             unrootedGeneTree = geneTree->clone();
@@ -605,53 +661,9 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
           ApplicationTools::displayResult("Gene Tree file", geneTreeFile);
           ApplicationTools::displayResult("Number of leaves", TextTools::toString(geneTree->getNumberOfLeaves()));
           }
-        if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
+        else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
           {
-          DistanceEstimation distEstimation(model, rDist, sites, 1, false);
-          BioNJ * bionj = new BioNJ();      
-          bionj->outputPositiveLengths(true);   
-          std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
-          if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
-          else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
-          else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
-          else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
-          // Should I ignore some parameters?
-          ParameterList allParameters = model->getParameters();
-          allParameters.addParameters(rDist->getParameters());
-          ParameterList parametersToIgnore;
-          std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
-          bool ignoreBrLen = false;
-          StringTokenizer st(paramListDesc, ",");
-          while(st.hasMoreToken())
-            {
-            try
-              {
-              std::string param = st.nextToken();
-              if(param == "BrLen")
-                ignoreBrLen = true;
-              else
-                {
-                if (allParameters.hasParameter(param))
-                  {
-                  Parameter* p = &allParameters.getParameter(param);
-                  parametersToIgnore.addParameter(*p);
-                  }
-                else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
-                }
-              } 
-            catch(ParameterNotFoundException pnfe)
-              {
-              ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
-              }
-            }
-          double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
-          unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
-          std::vector<Node*> nodes = unrootedGeneTree->getNodes();
-          for(unsigned int k = 0; k < nodes.size(); k++)
-            {
-            if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
-            if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() >= 5) throw Exception("Found a very large branch length in a gene tree; will avoid this family.");
-            }
+          buildBioNJTree (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
           if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
             { 
               refineGeneTreeUsingSequenceLikelihoodOnly (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
@@ -716,7 +728,6 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
             }
           geneTree = unrootedGeneTree;
           geneTree->newOutGroup(0);
-          delete bionj;
           }
         else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
         }
