@@ -189,12 +189,12 @@ void help()
     PhylogeneticsApplicationTools::printOutputTreeHelp();*/
   (*ApplicationTools::message << "output.infos                      | file where to write site infos").endLine();
   (*ApplicationTools::message << "output.estimates                  | file where to write estimated parameter values").endLine();
-  (*ApplicationTools::message << "starting.tree.file                | file where to write the initial tree").endLine();
+  (*ApplicationTools::message << "starting.tree.file                | file where to write the initial species tree").endLine();
   (*ApplicationTools::message << "init.species.tree                 | user or random").endLine();
   (*ApplicationTools::message << "species.tree.file                 | if the former is set to \"user\", path to a species tree" ).endLine();
   (*ApplicationTools::message << "species.names.file                | if instead it was set to \"random\", path to a list of species names ").endLine();
-  (*ApplicationTools::message << "heuristics.level                  | 0, 1, 2, or 3; 0: DR exact algorithm (default); 1 fast heuristics; 2: exhaustive and fast; 3: exhaustive and slow").endLine();
-  (*ApplicationTools::message << "species.id.limit.for.root.position| Threshold for trying root positions").endLine();
+  (*ApplicationTools::message << "heuristics.level                  | 0, 1, 2, or 3; 0: DR exact algorithm (default, best); 1 fast heuristics; 2: exhaustive and fast; 3: exhaustive and slow").endLine();
+  //(*ApplicationTools::message << "species.id.limit.for.root.position| Threshold for trying root positions").endLine();
   (*ApplicationTools::message << "genelist.file                     | file containing a list of gene option files to analyse").endLine();
   (*ApplicationTools::message << "branchProbabilities.optimization  | average, branchwise, average_then_branchwise or no: how we optimize duplication and loss probabilities").endLine();
   (*ApplicationTools::message << "genome.coverage.file              | file giving the percent coverage of the genomes used").endLine();
@@ -311,11 +311,15 @@ void refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::strin
 // This function builds a bionj tree
 /******************************************************************************/
 
-void buildBioNJTree (std::map<std::string, std::string> & params, TreeTemplate<Node>  *unrootedGeneTree, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, string file, Alphabet *alphabet) {
+TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & params, SiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, string file, Alphabet *alphabet) {
+  TreeTemplate<Node>  *unrootedGeneTree = 0;
   
   DistanceEstimation distEstimation(model, rDist, sites, 1, false);
-  BioNJ * bionj = new BioNJ();      
-  bionj->outputPositiveLengths(true);   
+
+  BioNJ * bionj = new BioNJ();     
+
+  bionj->outputPositiveLengths(true);  
+
   std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
   if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
   else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
@@ -328,6 +332,7 @@ void buildBioNJTree (std::map<std::string, std::string> & params, TreeTemplate<N
   std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
   bool ignoreBrLen = false;
   StringTokenizer st(paramListDesc, ",");
+
   while(st.hasMoreToken())
     {
     try
@@ -351,14 +356,18 @@ void buildBioNJTree (std::map<std::string, std::string> & params, TreeTemplate<N
       }
     }
   double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
+
   unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
   std::vector<Node*> nodes = unrootedGeneTree->getNodes();
+
   for(unsigned int k = 0; k < nodes.size(); k++)
     {
     if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
     if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() >= 5) throw Exception("Found a very large branch length in a gene tree; will avoid this family.");
     }
+    
   delete bionj;  
+  return unrootedGeneTree;
 }
 
 
@@ -478,7 +487,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
       std::cout <<"Examining family "<<assignedFilenames[i]<<std::endl;
       avoidFamily = false;
       std::string file =assignedFilenames[i];
-      TreeTemplate<Node> * unrootedGeneTree = NULL;
+      TreeTemplate<Node> * unrootedGeneTree = 0;
       SubstitutionModel*    model    = 0;
       SubstitutionModelSet* modelSet = 0;
       DiscreteDistribution* rDist    = 0;
@@ -639,9 +648,13 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
             {
             std::cerr << "Error: geneTreeFile "<< geneTreeFile <<" not found." << std::endl;
             std::cerr << "Building a bionj tree instead for gene " << geneTreeFile << std::endl;
-            buildBioNJTree (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
-            geneTree = unrootedGeneTree;
-            geneTree->newOutGroup(0);            
+            unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, file, alphabet);
+            if (geneTree) 
+              {
+              delete geneTree;
+              }            
+            geneTree = unrootedGeneTree->clone();
+            geneTree->newOutGroup(0); 
             //exit(-1);
             }
           else {
@@ -663,7 +676,8 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
           }
         else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
           {
-          buildBioNJTree (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
+          unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, file, alphabet);
+
           if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
             { 
               refineGeneTreeUsingSequenceLikelihoodOnly (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
@@ -726,8 +740,15 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
               unrootedGeneTree = new TreeTemplate<Node> ( tl->getTree() );
               delete tl;*/
             }
-          geneTree = unrootedGeneTree;
-          geneTree->newOutGroup(0);
+
+          if (geneTree) 
+            {
+            delete geneTree;
+            }        
+
+          geneTree = unrootedGeneTree->clone(); 
+          geneTree->newOutGroup(0); 
+
           }
         else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
         }
@@ -738,7 +759,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
         avoidFamily=true;
         }
       }
-      
+
       if (!avoidFamily) 
         { //This family is phylogenetically informative
           //Pruning sequences from the gene tree
@@ -1113,11 +1134,11 @@ int main(int args, char ** argv)
       std::cout << "******************************************************************" << std::endl;
       std::cout << std::endl;
       
-      
+
       
       SpeciesTreeLikelihood spTL = SpeciesTreeLikelihood(world, server, size, params);
       spTL.initialize();
-      
+
       spTL.MLsearch();
           
       
@@ -1186,7 +1207,7 @@ int main(int args, char ** argv)
 			std::vector <double> allLogLs;
       double logL;
 			std::vector <std::map<std::string, std::string> > allParams;
-			TreeTemplate<Node> * geneTree = NULL;
+			TreeTemplate<Node> * geneTree = 0;
 			int MLindex = 0;
 			std::vector <ReconciliationTreeLikelihood *> treeLikelihoods;
 			std::vector <ReconciliationTreeLikelihood *> backupTreeLikelihoods;

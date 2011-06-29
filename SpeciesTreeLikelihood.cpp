@@ -28,7 +28,7 @@ void SpeciesTreeLikelihood::updateDuplicationAndLossExpectedNumbers()
 void SpeciesTreeLikelihood::initialize() 
 {
   rearrange_ = false;
-  
+
   /****************************************************************************
    * First communications between the server and the clients.
    *****************************************************************************/
@@ -46,7 +46,6 @@ void SpeciesTreeLikelihood::initialize()
   currentTree_ = tree_->clone();
 
   std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
-
   
   computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world_, 
                                                          index_, 
@@ -158,13 +157,18 @@ void SpeciesTreeLikelihood::parseOptions()
   assignArbitraryBranchLengths(*tree_);
   //We write the starting species tree to a file
   std::string file = ApplicationTools::getStringParameter("starting.tree.file", params_, "starting.tree");
+
   Newick newick;
+
   newick.write(*tree_, file, true);
   // Try to write the current tree to file. This will be overwritten by the optimized tree,
   // but allows to check file existence before running optimization!
-  PhylogeneticsApplicationTools::writeTree(*tree_, params_);
+
+  PhylogeneticsApplicationTools::writeTree(*tree_, params_, "", "", true, false, true);
+
   speciesTreeNodeNumber_ = tree_->getNumberOfNodes();
   
+
   /****************************************************************************
    * branchExpectedNumbersOptimization_ sets the type of optimization that is applied to duplication and loss rates:
    * "average": all branches have the same average rates. These rates are optimized during the course of the program.
@@ -184,6 +188,7 @@ void SpeciesTreeLikelihood::parseOptions()
   //Hordjik and Gascuel (2005) consider 10% of the total number of hedges is already large.
   sprLimit_=ApplicationTools::getIntParameter("spr.limit",params_,4);
   
+
   /****************************************************************************
    // We get percent coverage of the genomes under study.
    // We produce a genomeMissing std::map that associates species names to percent of missing data.
@@ -222,7 +227,7 @@ void SpeciesTreeLikelihood::parseOptions()
         }
       }
     }
-  
+
   /****************************************************************************
    // Then, we get the maximum time allowed, in hours. 1h before the limit, 
    // the program will nicely stop and save the current species tree and 
@@ -265,7 +270,7 @@ void SpeciesTreeLikelihood::parseOptions()
   breadthFirstreNumber (*tree_);
   std::string spTreeDupFile =ApplicationTools::getStringParameter("species.duplication.tree.file",params_,"none");
   std::string spTreeLossFile =ApplicationTools::getStringParameter("species.loss.tree.file",params_,"none");
-
+  
   if ( (spTreeDupFile == "none") && (spTreeLossFile == "none") ) {
    //We set preliminary loss and duplication rates, correcting for genome coverage
   computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization_, 
@@ -317,12 +322,6 @@ void SpeciesTreeLikelihood::parseOptions()
   
   
   
-  
-  
-  
-  
-  
-  
   /****************************************************************************
    // Then, we handle all gene families.
    // First, we get and read the file containing the list of all gene family files.
@@ -344,6 +343,7 @@ void SpeciesTreeLikelihood::parseOptions()
     std::cout << "ReconcileDuplications species.tree.file=bigtree taxaseq.file=taxaseqlist genelist.file=geneList output.tree.file=outputtree\n"<<std::endl;
     exit(-1);
     }
+
   //Addresses to these option files are expected to be absolute: 
   //may be improved, for instance through the use of global variables, as in other files.
   std::ifstream inListOpt (listGeneFile.c_str());
@@ -707,8 +707,10 @@ void SpeciesTreeLikelihood::MLsearch()
     std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params_, "AllDuplications.tree", "", false, false); 
     dupTree = dupTree + suffix_;
     std::ofstream out (dupTree.c_str(), std::ios::out);
+
     out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
     out.close();
+
     //For loss rates
     for (int i =0; i<num0Lineages_.size() ; i++ ) 
       {
@@ -718,29 +720,34 @@ void SpeciesTreeLikelihood::MLsearch()
         bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
         }
       }
+
     std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params_, "AllLosses.tree", "", false, false);
     lossTree = lossTree + suffix_;
     out.open (lossTree.c_str(), std::ios::out);
     out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+
     out.close();
     std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params_, "ServerNumbered.tree", "", false, false);
     numTree = numTree + suffix_;
     out.open (numTree.c_str(), std::ios::out);
     out << TreeTools::treeToParenthesis (*bestTree_, true)<<std::endl;
     out.close();
+
     //Here we output the species tree with numbers of times 
     //a given number of lineages has been found per branch.
     assignNumLineagesOnSpeciesTree(*bestTree_, 
                                    num0Lineages_, 
                                    num1Lineages_, 
                                    num2Lineages_);
+
     std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params_, "lineageNumbers.tree", "", false, false); 
     lineagesTree = lineagesTree + suffix_;
     out.open (lineagesTree.c_str(), std::ios::out);
     out << TreeTools::treeToParenthesis(*bestTree_, false, NUMLINEAGES)<<std::endl;
     out.close();
+
     std::cout <<"Number of species trees tried : "<<index_<<std::endl;        
-    PhylogeneticsApplicationTools::writeTree(*bestTree_, params_);
+    PhylogeneticsApplicationTools::writeTree(*bestTree_, params_, "", "", true, false, false);
     std::cout << "\t\tServer : best found logLikelihood value : "<<bestlogL_<<std::endl;
     }
 }
