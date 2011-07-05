@@ -9,6 +9,9 @@
 
 /******************************************************************************/
 
+#include "DTL.h"
+
+
 void help()
 {
   (*ApplicationTools::message << "__________________________________________________________________________").endLine();
@@ -35,7 +38,138 @@ void help()
 }
 
 
+/**************************************************************************
+ * This function produces a string version of a gene tree, 
+ * replaced by species names.
+ **************************************************************************/
+string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
+                                          std::map<std::string, std::string > seqSp) {
+  
+}
+
+string parenthesisWithSpeciesNamesToGeneTree (TreeTemplate<Node> * geneTree,
+                                          std::map<std::string, std::string > seqSp) {
+  
+}
+
+
+/**************************************************************************
+ * This function optimizes a gene tree based on the reconciliation score only.
+ * It uses SPRs and NNIs, and calls findMLReconciliationDR to compute the likelihood.
+ **************************************************************************/
+
+double refineGeneTreeDTL (Species_tree * scoringTree, 
+                          TreeTemplate<Node> *& geneTree, 
+                          std::map<std::string, std::string > seqSp,
+                          std::map<std::string, int > spID, 
+                          pair <double, string> MLValueAndTree,
+                          int & MLindex)
+{
+  TreeTemplate<Node> *tree = 0;
+  TreeTemplate<Node> *bestTree = 0;
+  TreeTemplate<Node> *currentTree = 0;
+  currentTree = geneTree->clone();
+  breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
+  int sprLimit = 10; //Arbitrary.
+  std::vector <int> nodeIdsToRegraft; 
+  double bestlogL;
+  double logL;
+  bool betterTree;
+  int numIterationsWithoutImprovement = 0;
+  double startingML = findMLReconciliationDR (spTree, 
+                                              currentTree, 
+                                              seqSp,
+                                              spID,
+                                              lossExpectedNumbers, 
+                                              duplicationExpectedNumbers, 
+                                              MLindex, 
+                                              num0lineages, 
+                                              num1lineages, 
+                                              num2lineages, 
+                                              nodesToTryInNNISearch, false);
+  tree = currentTree->clone();
+  bestTree = currentTree->clone();
+  bestlogL = startingML;
+  string strTree = "";
+  
+  while (numIterationsWithoutImprovement < geneTree->getNumberOfNodes()-1) {
+    for (int nodeForSPR=geneTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
+      betterTree = false;
+      tree = currentTree->clone();
+      buildVectorOfRegraftingNodesLimitedDistance(*tree, nodeForSPR, sprLimit, nodeIdsToRegraft);
+      for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) {
+        if (tree) {
+          delete tree;
+        }
+        tree = currentTree->clone();
+        makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i], false);
+        strTree = TreeTemplateTools::treeToParenthesis(*tree);
+        logL = findMLReconciliationDR (spTree, 
+                                       tree, 
+                                       seqSp,
+                                       spID,
+                                       lossExpectedNumbers, 
+                                       duplicationExpectedNumbers, 
+                                       MLindex, 
+                                       num0lineages, 
+                                       num1lineages, 
+                                       num2lineages, 
+                                       nodesToTryInNNISearch, false);
+        if (logL-0.01>bestlogL) {
+          betterTree = true;
+          bestlogL =logL;
+          if (bestTree)
+            delete bestTree;
+          bestTree = tree->clone();  
+          /*std::cout << "Gene tree SPR: Better candidate tree likelihood : "<<bestlogL<< std::endl;
+           std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;*/
+        }
+      }
+      if (betterTree) {
+        logL = bestlogL; 
+        if (currentTree)
+          delete currentTree;
+        currentTree = bestTree->clone();
+        breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
+                                            //std::cout <<"NEW BETTER TREE: \n"<< TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
+        numIterationsWithoutImprovement = 0;
+      }
+      else {
+        logL = bestlogL; 
+        if (currentTree)
+          delete currentTree;
+        currentTree = bestTree->clone(); 
+        numIterationsWithoutImprovement++;
+      }
+    }
+  }
+  if (geneTree)
+    delete geneTree;
+  geneTree = bestTree->clone();
+  if (tree) delete tree;
+  if (bestTree) delete bestTree;
+  if (currentTree) delete currentTree;  
+  std::cout << "DTL initial likelihood: "<< startingML << "; Optimized DTL log likelihood "<< bestlogL <<" for family: " << file << std::endl; 
+
+  return bestlogL;
+}
+
+
+
+
+
+
+
+
+
+
 /******************************************************************************/
+// Program to rearrange a gene tree taking into account sequence likelihood and 
+// DTL likelihood.
+// Algorithm: we generate a lot of gene tree topologies, and compute the DTL scores
+// for these. We compute the sequence lk for those that have higher DTL lks than 
+// the current topology, select the best one, and start again from this new one.
+//
 /******************************************************************************/
 
 
@@ -51,17 +185,55 @@ int main(int args, char ** argv)
 		ApplicationTools::startTimer();
 		std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
     std::cout << "******************************************************************" << std::endl;
-    std::cout << "*       Bio++ Gene Tree Rearrangement Program, version 1.0       *" << std::endl;
+    std::cout << "*         DTL Gene Tree Rearrangement Program, version 1.0       *" << std::endl;
     std::cout << "* Authors: G. Szollosi, B. Boussau            Created 29/06/2011 *" << std::endl;
     std::cout << "******************************************************************" << std::endl;
     std::cout << std::endl;
     
     
+    ////////////////////////////////////////////////
+    //Species tree related options:
+    ////////////////////////////////////////////////
+    // Get the initial tree
+    std::string initTree = ApplicationTools::getStringParameter("init.species.tree", params_, "user", "", false, false);
+    ApplicationTools::displayResult("Input species tree", initTree);
+    // A given species tree
+    if(initTree == "user")
+      {
+      std::string spTreeFile =ApplicationTools::getStringParameter("species.tree.file",params_,"none");
+      if (spTreeFile=="none" )
+        {
+        std::cout << "\n\nNo Species tree was provided. The option init.species.tree is set to user (by default), which means that the option species.tree.file must be filled with the path of a valid tree file.\n\n" << std::endl;
+        exit(-1);
+        }
+      ApplicationTools::displayResult("Species Tree file", spTreeFile);
+      Newick newick(true);
+      spTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(spTreeFile));
+      if (!tree_->isRooted()) 
+        {
+        std::cout << "The tree is not rooted, midpoint-rooting it!\n";
+        TreeTools::midpointRooting(*spTree);
+        }
+      ApplicationTools::displayResult("Number of leaves", TextTools::toString(spTree->getNumberOfLeaves()));
+      spNames=spTree->getLeavesNames();
+      }
+    else {
+      std::cout << "\n\nA user-defined Species tree needs to be provided. The option init.species.tree is set to user (by default), which means that the option species.tree.file must be filled with the path of a valid tree file.\n\n" << std::endl;
+      exit(-1);
+    }
     
-    ///////////////////////////////
-    //Gene family-related options:
-    ///////////////////////////////
     
+    ////////////////////////////////////////////////
+    //DTL related options:
+    ////////////////////////////////////////////////
+    double delta=ApplicationTools::getDoubleParameter("duplication.rate", params, 0.2, "", false, false);
+    double tau=ApplicationTools::getDoubleParameter("transfer.rate", params, 0.1, "", false, false);
+    double delta=ApplicationTools::getDoubleParameter("loss.rate", params, 0.7, "", false, false);    
+    
+    
+    ////////////////////////////////////////////////
+    //Gene family related options:
+    ////////////////////////////////////////////////
     //Sequences and model of evolution
     Alphabet * alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
     std::string seqFile = ApplicationTools::getStringParameter("input.sequence.file",params,"none");
@@ -72,7 +244,9 @@ int main(int args, char ** argv)
       }
     VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params);       
     VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
-      
+    ApplicationTools::displayResult("Number of sequences", TextTools::toString(sites->getNumberOfSequences()));
+    ApplicationTools::displayResult("Number of sites", TextTools::toString(sites->getNumberOfSites()));
+    
     /****************************************************************************
      //Then we need to get the file containing links between sequences and species.
      *****************************************************************************/
@@ -163,7 +337,7 @@ int main(int args, char ** argv)
       
       model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params); 
       if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
-      if (model->getNumberOfStates() > model->getAlphabet()->getSize())
+      if (model->getNumberOfStates() >= 2 * model->getAlphabet()->getSize())
         {
         // Markov-modulated Markov model!
         rDist = new ConstantDistribution(1.);
@@ -239,6 +413,9 @@ int main(int args, char ** argv)
         
         }
       else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
+      // Try to write the current tree to file. This will be overwritten by the optimized tree,
+      // but allows to check file existence before running optimization!
+      PhylogeneticsApplicationTools::writeTree(*tree_, params_, "", "", true, false, true);      
       }
       catch (std::exception& e)
       {
@@ -247,7 +424,83 @@ int main(int args, char ** argv)
       avoidFamily=true;
       }
     }
+    else {
+      delete sites;
+      delete alphabet;
+      throw Exception("\nWe do not rearrange this gene tree.\n");
+    }
+
+    //This family is phylogenetically informative
+    //Pruning sequences from the gene tree
+    for (int j =0 ; j<seqsToRemove.size(); j++) 
+      {
+      std::vector <std::string> leafNames = geneTree->getLeavesNames();
+      if ( VectorTools::contains(leafNames, seqsToRemove[j]) )
+        {
+        removeLeaf(*geneTree, seqsToRemove[j]);
+        unrootedGeneTree = geneTree->clone();
+        if (!geneTree->isRooted()) {
+          std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
+        }
+        unrootedGeneTree->unroot();
+        }
+      else 
+        std::cout<<"Sequence "<<seqsToRemove[j] <<" is not present in the gene tree."<<std::endl;
+      }
+    
+    ////////////////////////////////////////////
+    // How do we score gene trees?
+    // Summing over roots and reconciliations? "integral"
+    // Summing over reconciliations only and maximizing over roots? "ML.root"
+    // Maximizing over both roots and reconciliations? "ML.root.reconciliation"
+    ////////////////////////////////////////////
+    
+    std::string scoringMethod =ApplicationTools::getStringParameter("gene.tree.scoring.method",params_,"ML.root");
+
+    ////////////////////////////////////////////
+    //Real Work Starting Now
+    ////////////////////////////////////////////
+    // We construct a species tree object that will calculate the probability of G-s in the vector trees according to the scoring method scoringMethod:
+    Species_tree * scoringTree = new Species_tree(spTree);
+    //init_treewise sets up different pieces of the calculation, and LL_treewise computes likelihoods.
+    vector < pair<double,string> > treeDTLlogLks;
+    string strTree = TreeTemplateTools::treeToParenthesis(*unrootedGeneTree);
+    pair<double, string> MLValueAndTree;
+    if (scoringMethod == "integral") {
+      std::cout << "DTL likelihood summed over roots and reconciliations."<<std::endl;
+      scoringTree->init_treewise(spTree,delta,tau,lambda,"sum");
+      treeDTLlogLks=scoringTree->LL_treewise(strTree);
+      MLValueAndTree = VectorTools::max(treeDTLlogLks);
+      std::cout << "Initial DTL likelihood: "<< MLValueAndTree.first << ", for tree: "<< MLValueAndTree.second << std::endl;
+    }
+    else if (scoringMethod == "ML.root") {
+      std::cout << "DTL likelihood summed over reconciliations, using ML root."<<std::endl;
+      scoringTree->init_treewise(spTree,delta,tau,lambda,"root");
+      treeDTLlogLks=scoringTree->LL_treewise(strTree);
+      MLValueAndTree = VectorTools::max(treeDTLlogLks);
+      std::cout << "Initial DTL likelihood: "<< MLValueAndTree.first << ", for tree: "<< MLValueAndTree.second << std::endl;
+    }
+    else if (scoringMethod == "ML.root.reconciliation") {
+      std::cout << "DTL likelihood using ML reconciliations and ML root."<<std::endl;
+      scoringTree->init_treewise(spTree,delta,tau,lambda,"tree");
+      treeDTLlogLks=scoringTree->LL_treewise(strTree);
+      MLValueAndTree = VectorTools::max(treeDTLlogLks);
+      std::cout << "Initial DTL likelihood: "<< MLValueAndTree.first << ", for tree: "<< MLValueAndTree.second << std::endl;
+    }
+    else {
+      throw Exception("Unknown DTL scoring method: "<< scoringMethod <<". It should be 'integral', 'ML.root', or 'ML.root.reconciliation'.\n");
+    }
+    
+    //Now we optimize the gene tree.
+    
+    refineGeneTreeDTL (scoringTree, 
+                       unrootedGeneTree, 
+                       seqSp,
+                       spID, 
+                       MLValueAndTree,
+                       MLindex);
       
+    
     
     
     

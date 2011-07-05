@@ -527,7 +527,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
  **************************************************************************/
 
 double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
-                             TreeTemplate<Node> * geneTree, 
+                             TreeTemplate<Node> *& geneTree, 
                              std::map<std::string, std::string > seqSp,
                              std::map<std::string, int > spID,
                              std::vector< double> &lossExpectedNumbers, 
@@ -615,11 +615,13 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
       }
     }
   }
-  delete geneTree;
+  if (geneTree)
+    delete geneTree;
   geneTree = bestTree->clone();
   if (tree) delete tree;
   if (bestTree) delete bestTree;
-  if (currentTree) delete currentTree;  
+  if (currentTree) delete currentTree;
+  std::cout << "DL initial likelihood: "<< startingML << "; Optimized DL log likelihood "<< bestlogL <<"." << std::endl; 
   return bestlogL;
 }
 

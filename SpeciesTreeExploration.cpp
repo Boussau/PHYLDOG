@@ -728,7 +728,7 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
       }
     }
   std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index, stop, logL, num0Lineages, num1Lineages,num2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossExpectedNumbers, duplicationExpectedNumbers, rearrange, server, branchProbaOptimization, genomeMissing, tree);
-  std::cout << "logLikelihood after the first round: "<<logL<<std::endl;
+  std::cout << "Species tree LogLikelihood after the first round: "<< - logL<<std::endl;
   double currentlogL = -UNLIKELY;
   int i=1;
   if (branchProbaOptimization != "no")
@@ -745,7 +745,7 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
     }
 
   std::cout <<"\t\tNumber of species trees tried: "<<index<< std::endl;
-  std::cout<<"\t\tMinus logLk value for this species tree: "<<logL<<std::endl;
+  std::cout<<"\t\tLogLk value for this species tree: "<< - logL<<std::endl;
 
  // std::cout << i<< " iterations of likelihood computation for optimizing duplication and loss rates have been done."<< std::endl;
 }

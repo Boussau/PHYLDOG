@@ -40,7 +40,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
                                int & nodeForRooting, std::vector < double >  &NNILks, 
                                std::vector < double >  &rootLks);
 double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
-                             TreeTemplate<Node> * geneTree, 
+                             TreeTemplate<Node> *& geneTree, 
                              std::map<std::string, std::string > seqSp,
                              std::map<std::string, int > spID,
                              std::vector< double> &lossExpectedNumbers, 

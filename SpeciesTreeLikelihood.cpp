@@ -541,7 +541,7 @@ void SpeciesTreeLikelihood::MLsearch()
                                        branchExpectedNumbersOptimization_, genomeMissing_, 
                                        *currentTree_);
 
-          std::cout<<"Species tree likelihood without gene tree rearrangement: "<<logL_<<std::endl;
+          std::cout<<"Species tree likelihood without gene tree rearrangement: "<< - logL_<<std::endl;
           //Now gene trees are really rearranged.
           computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
                                                                              stop_, logL_, 
@@ -552,7 +552,7 @@ void SpeciesTreeLikelihood::MLsearch()
                                                                              branchExpectedNumbersOptimization_, genomeMissing_, 
                                                                              *currentTree_, bestlogL_);
 
-          std::cout << "\t\tSpecies tree likelihood with gene tree optimization and new branch probabilities: "<<logL_<<" compared to the former log-likelihood : "<<bestlogL_<<std::endl;
+          std::cout << "\t\tSpecies tree likelihood with gene tree optimization and new branch probabilities: "<< - logL_<<" compared to the former log-likelihood : "<< - bestlogL_<<std::endl;
           numIterationsWithoutImprovement_ = 0;
           bestlogL_ =logL_;
           bestIndex_ = index_;
@@ -748,7 +748,7 @@ void SpeciesTreeLikelihood::MLsearch()
 
     std::cout <<"Number of species trees tried : "<<index_<<std::endl;        
     PhylogeneticsApplicationTools::writeTree(*bestTree_, params_, "", "", true, false, false);
-    std::cout << "\t\tServer : best found logLikelihood value : "<<bestlogL_<<std::endl;
+    std::cout << "\t\tServer : best found logLikelihood value : "<< - bestlogL_<<std::endl;
     }
 }
 

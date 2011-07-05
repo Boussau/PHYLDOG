@@ -16,10 +16,7 @@
 
 // From PhylLib:
 #include <Bpp/Phyl/Tree.h>
-#include <Bpp/Phyl/Likelihood/DiscreteRatesAcrossSitesTreeLikelihood.h>
-#include <Bpp/Phyl/Likelihood/HomogeneousTreeLikelihood.h>
-#include <Bpp/Phyl/Likelihood/DRHomogeneousTreeLikelihood.h>
-#include <Bpp/Phyl/Likelihood/ClockTreeLikelihood.h>
+#include <Bpp/Phyl/Likelihood.all>
 #include <Bpp/Phyl/PatternTools.h>
 #include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
 #include <Bpp/Phyl/Likelihood/MarginalAncestralStateReconstruction.h>
@@ -30,6 +27,7 @@
 #include <Bpp/Phyl/TreeTools.h>
 #include <Bpp/Phyl/Distance/BioNJ.h>
 #include <Bpp/Phyl/OptimizationTools.h>
+#include <Bpp/Phyl/Mapping.all>
 
 
 // From NumCalc:
@@ -78,11 +76,29 @@ TreeTemplate<Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondanceMap (Tre
 // This function refines branch lengths of a gene tree.
 /******************************************************************************/
 void refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
-                                                             TreeTemplate<Node>  *unrootedGeneTree, 
+                                                             TreeTemplate<Node>  *& unrootedGeneTree, 
                                                              VectorSiteContainer * sites, 
                                                              SubstitutionModel* model, 
                                                              DiscreteDistribution* rDist, 
-                                                             string file, Alphabet *alphabet);
+                                                             string file, Alphabet *alphabet, bool mapping=false);
+/******************************************************************************/
+// This function maps substitutions in a gene tree.
+/******************************************************************************/
+
+vector< vector<unsigned int> > getCountsPerBranch(
+                                                  DRTreeLikelihood& drtl,
+                                                  const vector<int>& ids,
+                                                  SubstitutionModel* model,
+                                                  const SubstitutionRegister& reg,
+                                                  bool stationarity = true,
+                                                  double threshold = -1);
+/******************************************************************************/
+// This function optimizes branch lengths in a gene tree using substitution mapping
+/******************************************************************************/
+
+void optimizeBLMapping(
+                       DRTreeLikelihood* tl,
+                       double precision);
 /******************************************************************************/
 // This function builds a bionj tree
 /******************************************************************************/
@@ -97,7 +113,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
 // algorithm.
 /******************************************************************************/
 void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
-                                                TreeTemplate<Node>  *unrootedGeneTree, 
+                                                TreeTemplate<Node>  *& unrootedGeneTree, 
                                                 VectorSiteContainer * sites, 
                                                 SubstitutionModel* model, 
                                                 DiscreteDistribution* rDist, 
