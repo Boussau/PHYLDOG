@@ -271,7 +271,7 @@ namespace bpp
   void initialize();
   
   //Does a ML search for the best species tree
-  void MLsearch();
+  void MLSearch();
   
   protected:
   //Computes the loglk of the species tree

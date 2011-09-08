@@ -7,6 +7,9 @@
  *
  */
 
+#ifndef _GENETREEALGORITHMS_H_
+#define _GENETREEALGORITHMS_H_
+
 
 // From SeqLib:
 #include <Bpp/Seq/Alphabet/Alphabet.h>
@@ -37,7 +40,7 @@
 #include <Bpp/Numeric/Matrix/MatrixTools.h>
 #include <Bpp/Numeric/VectorTools.h>
 #include <Bpp/Numeric/AutoParameter.h>
-#include <Bpp/Numeric/RandomTools.h>
+#include <Bpp/Numeric/Random/RandomTools.h>
 #include <Bpp/Numeric/NumConstants.h>
 #include <Bpp/Numeric/Function/PowellMultiDimensions.h>
 
@@ -75,7 +78,7 @@ TreeTemplate<Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondanceMap (Tre
 /******************************************************************************/
 // This function refines branch lengths of a gene tree.
 /******************************************************************************/
-void refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
+double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
                                                              TreeTemplate<Node>  *& unrootedGeneTree, 
                                                              VectorSiteContainer * sites, 
                                                              SubstitutionModel* model, 
@@ -90,6 +93,7 @@ vector< vector<unsigned int> > getCountsPerBranch(
                                                   const vector<int>& ids,
                                                   SubstitutionModel* model,
                                                   const SubstitutionRegister& reg,
+                                                  SubstitutionCount *count,
                                                   bool stationarity = true,
                                                   double threshold = -1);
 /******************************************************************************/
@@ -106,7 +110,6 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
                                       SiteContainer * sites, 
                                       SubstitutionModel* model, 
                                       DiscreteDistribution* rDist, 
-                                      string file, 
                                       Alphabet *alphabet);
 /******************************************************************************/
 // This function refines a gene tree topology and branch lengths using the PhyML 
@@ -121,3 +124,43 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
                                                 Alphabet *alphabet);
 
 
+/*
+string parenthesisWithSpeciesNamesToGeneTree (TreeTemplate<Node> * geneTree,
+                                              std::map<std::string, std::string > seqSp ) {  
+  //,                                             std::vector<string> &geneNames) {
+  
+}
+*/
+
+/**************************************************************************
+ * This function produces a string version of a gene tree, 
+ * with gene names replaced by species names. 
+ **************************************************************************/
+string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
+                                              std::map<std::string, std::string > seqSp );
+
+/**************************************************************************
+ * This function produces a gene tree from a string version in which 
+ * gene names have been changed to include species names. 
+ **************************************************************************/
+TreeTemplate<Node> * parenthesisPlusSpeciesNamesToGeneTree (string geneTreeStr) ;
+  
+
+/**************************************************************************
+ * This function produces a string version of a gene tree, 
+ * with gene names changed to include species names. 
+ **************************************************************************/
+string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
+                                              std::map<std::string, std::string > seqSp );
+
+
+/**************************************************************************
+ * This function produces a gene tree with leaves annotated with species names.
+ **************************************************************************/
+void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
+                                       std::map<std::string, std::string > seqSp ) ;
+
+
+
+
+#endif //_GENETREEALGORITHMS_H_

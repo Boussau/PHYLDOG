@@ -35,7 +35,7 @@ LINK =  -L. -lDTL -lblas
 INCLUDE = -I$(BOOST_INCLUDE) -I$(BIOPP_INCLUDE)
 
 RearrangeGeneTreeDTL : $(SRC)RearrangeGeneTreeDTL.cpp DTLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o libDTL.a mpi_time_order.o
-	$(CC) -o RearrangeGeneTreeDTL $(SRC)RearrangeGeneTreeDTL.cpp DTLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o libDTL.a mpi_time_order.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL) $(LINK)
+	$(CC) $(INCLUDE) -o RearrangeGeneTreeDTL $(SRC)RearrangeGeneTreeDTL.cpp DTLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o libDTL.a mpi_time_order.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL) $(LINK)
 
 DTLGeneTreeLikelihood.o : $(SRC)DTLGeneTreeLikelihood.cpp $(SRC)DTLGeneTreeLikelihood.h ReconciliationTools.o GeneTreeAlgorithms.o libDTL.a mpi_time_order.o
 	$(CC) $(INCLUDE) -c $(SRC)DTLGeneTreeLikelihood.cpp $(SRC)DTLGeneTreeLikelihood.h $(SRC)GeneTreeAlgorithms.h 
@@ -75,28 +75,28 @@ mpi_time_order.o : $(SRC)mpi_time_order.cpp  $(SRC)DTL.h $(SRC)DTL_mpi.h
 ####DL model only
 
 ReconcileDuplications : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o
-	$(CC) -o ReconcileDuplications ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
+	$(CC) $(INCLUDE) -o ReconcileDuplications ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
 
 ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp SpeciesTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o
-	$(CC) -c $(SRC)ReconcileDuplications.cpp $(SRC)ReconciliationTools.h 
+	$(CC) $(INCLUDE) -c $(SRC)ReconcileDuplications.cpp $(SRC)ReconciliationTools.h 
   
 GeneTreeAlgorithms.o : $(SRC)GeneTreeAlgorithms.cpp $(SRC)GeneTreeAlgorithms.h ReconciliationTools.o
-	$(CC) -c $(SRC)GeneTreeAlgorithms.cpp $(SRC)GeneTreeAlgorithms.h $(SRC)ReconciliationTools.h
+	$(CC) $(INCLUDE) -c $(SRC)GeneTreeAlgorithms.cpp $(SRC)GeneTreeAlgorithms.h $(SRC)ReconciliationTools.h
   
 SpeciesTreeLikelihood.o : $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
-	$(CC) -c $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
+	$(CC) $(INCLUDE) -c $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
 
 ReconciliationTreeLikelihood.o : $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h ReconciliationTools.o $(SRC)GenericTreeExplorationAlgorithms.h
-	$(CC) -c $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h $(SRC)ReconciliationTools.h 
+	$(CC) $(INCLUDE) -c $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h $(SRC)ReconciliationTools.h 
 
 SpeciesTreeExploration.o : $(SRC)SpeciesTreeExploration.cpp $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h GenericTreeExplorationAlgorithms.o
-	$(CC) -c $(SRC)SpeciesTreeExploration.cpp $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
+	$(CC) $(INCLUDE) -c $(SRC)SpeciesTreeExploration.cpp $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
 
 GenericTreeExplorationAlgorithms.o : $(SRC)GenericTreeExplorationAlgorithms.cpp $(SRC)GenericTreeExplorationAlgorithms.h ReconciliationTools.o
-	$(CC) -c $(SRC)GenericTreeExplorationAlgorithms.cpp $(SRC)GenericTreeExplorationAlgorithms.h $(SRC)ReconciliationTools.h
+	$(CC) $(INCLUDE) -c $(SRC)GenericTreeExplorationAlgorithms.cpp $(SRC)GenericTreeExplorationAlgorithms.h $(SRC)ReconciliationTools.h
 
 ReconciliationTools.o : $(SRC)ReconciliationTools.cpp $(SRC)ReconciliationTools.h 
-	$(CC) -c $(SRC)ReconciliationTools.cpp $(SRC)ReconciliationTools.h 
+	$(CC) $(INCLUDE) -c $(SRC)ReconciliationTools.cpp $(SRC)ReconciliationTools.h 
 
   
   

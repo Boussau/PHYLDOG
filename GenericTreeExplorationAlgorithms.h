@@ -16,7 +16,7 @@
 
 // From NumCalc:
 #include <Bpp/Numeric/VectorTools.h>
-#include <Bpp/Numeric/RandomTools.h>
+#include <Bpp/Numeric/Random/RandomTools.h>
 #include <Bpp/Numeric/NumConstants.h>
 
 #include "ReconciliationTools.h"

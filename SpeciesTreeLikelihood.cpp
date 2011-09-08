@@ -375,7 +375,7 @@ void SpeciesTreeLikelihood::parseOptions()
 
 
 /*******************************************************************************/
-void SpeciesTreeLikelihood::MLsearch()
+void SpeciesTreeLikelihood::MLSearch()
 {
   //Indices used in the exploration
   int nodeForNNI = 0;

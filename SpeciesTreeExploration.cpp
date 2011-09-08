@@ -12,8 +12,8 @@
 
 
 void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world, 
-                                            TreeTemplate<Node> *tree, 
-                                            TreeTemplate<Node> *bestTree, 
+                                            TreeTemplate<Node> *& tree, 
+                                            TreeTemplate<Node> *& bestTree, 
                                             int &index, 
                                             int &bestIndex,  
                                             bool &stop, 
@@ -169,8 +169,8 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
  * Only optimizes duplication and loss rates
 ************************************************************************/
 void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world, 
-                                         TreeTemplate<Node> *tree, 
-                                         TreeTemplate<Node> *bestTree, 
+                                         TreeTemplate<Node> *& tree, 
+                                         TreeTemplate<Node> *& bestTree, 
                                          int &index, 
                                          int &bestIndex,  
                                          bool &stop,
@@ -225,8 +225,8 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
  However, there are lots of useless identical std::vector copies...
  ************************************************************************/
 void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
-                                                TreeTemplate<Node> *currentTree, 
-                                                TreeTemplate<Node> *bestTree, 
+                                                TreeTemplate<Node> *& currentTree, 
+                                                TreeTemplate<Node> *& bestTree, 
                                                 int &index, int &bestIndex,  
                                                 bool stop, int timeLimit,
                                                 double &logL, double &bestlogL, 
@@ -257,7 +257,6 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
   for (int i =0 ; i<nodeIds.size() ; i++) {
     if ((nodeIds[i]!=0)&&(nodeIds[i]!=1)&&(nodeIds[i]!=2)) { //We do not want to try the root we're already at
       if (i!=0) {
-        deleteTreeProperties(*tree);
         delete tree;
         tree = currentTree->clone();
       }
@@ -345,18 +344,17 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
     delete currentTree;
     currentTree = bestTree->clone(); 
   }
-  deleteTreeProperties(*tree);
+
   delete tree;
 }
 
 
 /************************************************************************
- * Tries all SPRs at a distance dist for all possible subtrees of the subtree starting in node nodeForSPR, 
- and executes the ones with the highest likelihood. 
- Uses only average rates of duplication and loss, not branchwise rates.
+ * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
+ * and executes the ones with the highest likelihood. 
  ************************************************************************/
-void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *currentTree, 
-                            TreeTemplate<Node> *bestTree, int &index, int &bestIndex,  
+void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *& currentTree, 
+                            TreeTemplate<Node> *& bestTree, int &index, int &bestIndex,  
                             bool stop, int timeLimit, double &logL, double &bestlogL, 
                             std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, 
                             std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, 
@@ -374,17 +372,20 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
   std::vector<double> bestLossProba=lossExpectedNumbers;
   std::vector <int> nodeIdsToRegraft;
   bool betterTree;
-  TreeTemplate<Node> *tree;
+  TreeTemplate<Node> *tree = 0;
   for (int nodeForSPR=currentTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
-    buildVectorOfRegraftingNodesLimitedDistance(*tree, nodeForSPR, sprLimit, nodeIdsToRegraft);
+    buildVectorOfRegraftingNodesLimitedDistance(*currentTree, nodeForSPR, sprLimit, nodeIdsToRegraft);
+
     betterTree = false;
     for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) {
       if (tree) {
         delete tree;
+        tree = 0;
       }
       tree = currentTree->clone();
-      
+
       makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i]);
+
       if (optimizeRates) 
         {
           computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, 
@@ -395,6 +396,7 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                                                                              lossExpectedNumbers, duplicationExpectedNumbers, 
                                                                              rearrange, server, branchProbaOptimization, 
                                                                              genomeMissing, *tree, bestlogL);
+
         }
       else 
         {
@@ -406,11 +408,11 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                                        lossExpectedNumbers, duplicationExpectedNumbers, 
                                        rearrange, server, branchProbaOptimization, 
                                        genomeMissing, *tree);
+
         }
       if (logL+0.01<bestlogL) {
         betterTree = true;
         bestlogL =logL;
-        deleteTreeProperties(*bestTree);
         delete bestTree;
         bestTree = tree->clone();  
         bestDupProba=duplicationExpectedNumbers;
@@ -485,8 +487,10 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
       numIterationsWithoutImprovement++;
      std::cout <<"SPRs: Number of iterations without improvement : "<<numIterationsWithoutImprovement<< std::endl;
     }
-    deleteTreeProperties(*tree);
-    delete tree;
+    if (tree) {
+      delete tree;
+      tree = 0;
+    }
     if (ApplicationTools::getTime() >= timeLimit)
       {
       stop = true;
@@ -504,8 +508,8 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
  * not branchwise rates. Only does SPRs at a given distance. 
  ************************************************************************/
 void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world, 
-                                         TreeTemplate<Node> *currentTree, 
-                                         TreeTemplate<Node> *bestTree, 
+                                         TreeTemplate<Node> *& currentTree, 
+                                         TreeTemplate<Node> *& bestTree, 
                                          int &index, int &bestIndex,  
                                          bool stop, 
                                          int timeLimit,

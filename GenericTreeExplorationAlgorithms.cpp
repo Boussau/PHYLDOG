@@ -13,9 +13,14 @@
 
 
 
-//To sort in ascending order
+//To sort in descending order
 bool cmp( int a, int b ) {
   return a > b;
+}  
+
+//To sort in ascending order
+bool anticmp( int a, int b ) {
+  return a < b;
 }  
 
 
@@ -74,7 +79,7 @@ void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool ver
   double dist = 0.1;  
   
   if (verbose)
-    std::cout <<"Making a SPR, moving node "<<cutNodeId<< " as brother of node "<< newBrotherId<< std::endl;
+    std::cout <<"\t\t\tMaking a SPR, moving node "<<cutNodeId<< " as brother of node "<< newBrotherId<< std::endl;
   newBrother = tree.getNode(newBrotherId);
   cutNode = tree.getNode(cutNodeId); 
   std::vector <int> nodeIds =tree.getNodesId();
@@ -286,32 +291,33 @@ void getNeighboringNodesIdLimitedDistance (TreeTemplate<Node> &tree, int nodeId,
 //This whole function efficiency may well be improved
 void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int nodeForSPR, int distance, std::vector <int> & nodeIdsToRegraft) {
   
-  Node * N = tree.getRootNode();
+//  Node * N = tree.getRootNode();
 
   // std::vector <int> allNodeIds = tree.getNodesId();
   std::vector <int> allNodeIds;
   getNeighboringNodesIdLimitedDistance(tree, nodeForSPR, distance, allNodeIds);
 
+  std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)->getFather()));
+  /*
   std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
 
-  forbiddenIds.push_back(tree.getRootNode()->getId());
+  
 
   int oldFatherId = tree.getNode(nodeForSPR)->getFather()->getId();
 
   forbiddenIds.push_back(oldFatherId);
-/*
-  std::vector <int> descendantIds = TreeTemplateTools::getInnerNodesId(*(tree.getNode(nodeForSPR)));
-  forbiddenIds.insert(forbiddenIds.end(), descendantIds.begin(), descendantIds.end());
-	*/
+  std::cout <<"FatherID: "<< oldFatherId <<std::endl; 
+
   int brotherId;
   //Get one brother ; a binary tree is supposed here (because of the "break")
   for(int i=0;i<tree.getNode(oldFatherId)->getNumberOfSons();i++)
     if(tree.getNode(oldFatherId)->getSon(i)->getId()!=nodeForSPR){brotherId=tree.getNode(oldFatherId)->getSon(i)->getId(); break;}
-  if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
+ // if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
     forbiddenIds.push_back(brotherId);
-  }
-
-  
+ // }
+  std::cout <<"BrotherID: "<< brotherId <<std::endl; 
+*/
+  forbiddenIds.push_back(tree.getRootNode()->getId());
   
   //We remove the nodes that are not appropriate for regrafting
   std::vector <int> toRemove;
@@ -321,7 +327,11 @@ void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int n
     }
   }
 
+/*  std:: cout <<"nodeForSPR: "<< nodeForSPR <<"; FORBIDDEN IDS: "<<std::endl;
+  VectorTools::print(forbiddenIds);*/
   sort(toRemove.begin(), toRemove.end(), cmp);
+  /*VectorTools::print(forbiddenIds);
+  sort(allNodeIds.begin(), allNodeIds.end(), anticmp);*/
   for (int i = 0 ; i< toRemove.size() ; i++) {
     std::vector<int>::iterator vi = allNodeIds.begin();
     allNodeIds.erase(vi+toRemove[i]);

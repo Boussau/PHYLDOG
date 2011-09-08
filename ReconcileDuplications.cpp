@@ -381,7 +381,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
             {
             std::cerr << "Error: geneTreeFile "<< geneTreeFile <<" not found." << std::endl;
             std::cerr << "Building a bionj tree instead for gene " << geneTreeFile << std::endl;
-            unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, file, alphabet);
+            unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, alphabet);
             if (geneTree) 
               {
               delete geneTree;
@@ -409,7 +409,7 @@ void parseAssignedGeneFamilies(std::vector<std::string> & assignedFilenames,
           }
         else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
           {
-          unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, file, alphabet);
+          unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, alphabet);
 
           if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
             { 
@@ -874,7 +874,7 @@ int main(int args, char ** argv)
       SpeciesTreeLikelihood spTL = SpeciesTreeLikelihood(world, server, size, params);
       spTL.initialize();
 
-      spTL.MLsearch();
+      spTL.MLSearch();
           
       
 			std::cout << "ReconcileDuplication's done. Bye." << std::endl;
