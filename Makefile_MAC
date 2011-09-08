@@ -104,4 +104,4 @@ clean :
 	rm *.o *.gch
   
 archive : 
-	tar cfz MOGEarchive.tgz *.cpp *.h Makefile
+	tar cfz MOGEarchive.tgz *.cpp *.h Makefile Makefile_MAC
