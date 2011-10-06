@@ -49,6 +49,7 @@
 #include <Bpp/Numeric/Parametrizable.h>
 
 #include "ReconciliationTools.h"
+#include "GeneTreeAlgorithms.h"
 #include "mpi.h" 
 
 namespace bpp 
@@ -98,6 +99,7 @@ class ReconciliationTreeLikelihood:
     mutable bool _optimizeReconciliationLikelihood;
     mutable bool _considerSequenceLikelihood;
     mutable bool _DLStartingGeneTree;
+    unsigned int sprLimit_;
 
   public:
     /**
@@ -149,7 +151,8 @@ class ReconciliationTreeLikelihood:
                                  bool verbose = false,
                                  bool rootOptimization = false, 
                                  bool considerSequenceLikelihood = true, 
-                                 bool DLStartingGeneTree = false)
+                                 bool DLStartingGeneTree = false, 
+                                 unsigned int sprLimit = 2)
     throw (Exception);
     
     /**
@@ -203,7 +206,8 @@ class ReconciliationTreeLikelihood:
                                  bool verbose = false, 
                                  bool rootOptimization = false, 
                                  bool considerSequenceLikelihood = true, 
-                                 bool DLStartingGeneTree = false)
+                                 bool DLStartingGeneTree = false, 
+                                 unsigned int sprLimit = 2)
     throw (Exception);
     
     /**
@@ -223,7 +227,11 @@ class ReconciliationTreeLikelihood:
     Clonable*
 #endif
     clone() const { return new ReconciliationTreeLikelihood(*this); }
-    
+    /*
+     Copy all contents except alignment.
+     */
+      void copyContentsFrom  (const ReconciliationTreeLikelihood & lik) ;
+      
     void initParameters();
     void resetMLindex() ;
     /**
@@ -295,6 +303,14 @@ class ReconciliationTreeLikelihood:
     }
   
     void print() const;
+      
+      /************************************************************************
+       * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
+       * and executes the ones with the highest likelihood. 
+       ************************************************************************/
+      void refineGeneTreeSPRs(map<string, string> params);
+      
+      
 
     
   };

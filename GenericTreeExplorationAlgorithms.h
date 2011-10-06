@@ -39,16 +39,5 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nod
 bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, int & nodeForNNI, 
                                int & nodeForRooting, std::vector < double >  &NNILks, 
                                std::vector < double >  &rootLks);
-double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
-                             TreeTemplate<Node> *& geneTree, 
-                             std::map<std::string, std::string > seqSp,
-                             std::map<std::string, int > spID,
-                             std::vector< double> &lossExpectedNumbers, 
-                             std::vector < double> &duplicationExpectedNumbers, 
-                             int & MLindex, 
-                             std::vector <int> &num0lineages, 
-                             std::vector <int> &num1lineages, 
-                             std::vector <int> &num2lineages, 
-                             std::set <int> &nodesToTryInNNISearch);
 
 #endif 

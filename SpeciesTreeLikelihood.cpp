@@ -176,7 +176,7 @@ void SpeciesTreeLikelihood::parseOptions()
    * "average_then_branchwise": at the beginning, all branches have the same average rates, and then they are individualised.
    *****************************************************************************/
   optimizeSpeciesTreeTopology_ = ApplicationTools::getBooleanParameter("optimization.topology", params_, false, "", true, false);
-  branchExpectedNumbersOptimization_ = ApplicationTools::getStringParameter("branchProbabilities.optimization",params_,"average");
+  branchExpectedNumbersOptimization_ = ApplicationTools::getStringParameter("branch.expected.numbers.optimization",params_,"average");
   std::cout << "Branch expected numbers of duplications and losses: "<<branchExpectedNumbersOptimization_ <<std::endl;
   if ((branchExpectedNumbersOptimization_!="average")&&(branchExpectedNumbersOptimization_!="branchwise")&&
       (branchExpectedNumbersOptimization_!="average_then_branchwise")&&(branchExpectedNumbersOptimization_!="no")) 
@@ -396,238 +396,250 @@ void SpeciesTreeLikelihood::MLSearch()
    ****************************************************************************
    * Species tree likelihood optimization: main loop.
    ****************************************************************************
-   *****************************************************************************/
-  while (!stop_) 
-    {
-    //Using deterministic SPRs first, and then NNIs
-    //Making SPRs, from leaves to deeper nodes (approximately), plus root changes
-    if (currentStep_ >= 3)
-      {
-      noMoreSPR = true;
-      numIterationsWithoutImprovement_=2*speciesTreeNodeNumber_;
-      }
-    if (!noMoreSPR) 
-      {
-      if (currentStep_ == 0) 
+   *****************************************************************************/        
+        while (!stop_) 
         {
-        /****************************************************************************
-         * Doing SPRs and rerootings. This first function does not optimize duplication 
-         * and loss (D and L) expected numbers, as proved by the last "false" argument.
-         *****************************************************************************/            
-        fastTryAllPossibleSPRsAndReRootings(world_, currentTree_, bestTree_, 
-                                            index_, bestIndex_, stop_, timeLimit_, 
-                                            logL_, bestlogL_, 
-                                            num0Lineages_, num1Lineages_, num2Lineages_, 
-                                            bestNum0Lineages_, bestNum1Lineages_, 
-                                            bestNum2Lineages_, 
-                                            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-                                            lossExpectedNumbers_, duplicationExpectedNumbers_, 
-                                            rearrange_, numIterationsWithoutImprovement_, 
-                                            server_, branchExpectedNumbersOptimization_, 
-                                            genomeMissing_, sprLimit_, false);
-        if (ApplicationTools::getTime() < timeLimit_) 
-          {
-          std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings over.\n\n"<< std::endl;
-          ApplicationTools::displayTime("Execution time so far:");
-          currentStep_ = 1;
-          }  
-        else 
-          {
-          std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
-          ApplicationTools::displayTime("Execution time so far:");
-          if (stop_==false)
+            //Using deterministic SPRs first, and then NNIs
+            //Making SPRs, from leaves to deeper nodes (approximately), plus root changes
+            if (currentStep_ >= 3)
             {
-            stop_ = true;
-            broadcast(world_, stop_, server_); 
-            broadcast(world_, bestIndex_, server_);                      
-            }              
-          }
-        }
-      
-      /****************************************************************************
-       * Doing SPRs and rerootings. Now we update expected numbers of D and L.
-       *****************************************************************************/            
-      std::cout <<"Before updating expected numbers of Duplication and loss; current Likelihood "<<bestlogL_  <<" and logL: "<<logL_<<std::endl;
-      backupLossExpectedNumbers_ = lossExpectedNumbers_;
-      backupDuplicationExpectedNumbers_ = duplicationExpectedNumbers_;
-      if ((currentStep_ == 1) && (ApplicationTools::getTime() < timeLimit_) )
-        {
-        computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
-                                                                           stop_, logL_, 
-                                                                           num0Lineages_, num1Lineages_, num2Lineages_, 
-                                                                           allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-                                                                           lossExpectedNumbers_, duplicationExpectedNumbers_, 
-                                                                           rearrange_, server_, 
-                                                                           branchExpectedNumbersOptimization_, genomeMissing_, 
-                                                                           *currentTree_, bestlogL_);
-        std::cout <<"After updating expected numbers of Duplication and loss; current Likelihood "<<logL_<<std::endl;
-        if (logL_+0.01<bestlogL_) 
-          {
-          bestlogL_ =logL_;
-          bestNum0Lineages_ = num0Lineages_;
-          bestNum1Lineages_ = num1Lineages_;
-          bestNum2Lineages_ = num2Lineages_;
-          bestIndex_ = index_;
-          std::cout << "Updating duplication and loss expected numbers yields a better candidate tree likelihood : "<<bestlogL_<<std::endl;
-          std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
-          } 
-        else 
-          {
-          std::cout << "No improvement: we keep former expected numbers. "<<bestlogL_<<std::endl;
-          lossExpectedNumbers_ = backupLossExpectedNumbers_;
-          duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_;
-          }
-        for (int i =0; i<num0Lineages_.size() ; i++ ) 
-          {
-          std::cout <<"branch Number#"<< i<<"Expected numbers:  dup: "<< duplicationExpectedNumbers_[i]<<" loss: "<< lossExpectedNumbers_[i]<<std::endl;
-          }
-        if (ApplicationTools::getTime() < timeLimit_) 
-          currentStep_ = 2;
-        }
-      if ( (currentStep_ == 2) && (ApplicationTools::getTime() < timeLimit_) )
-        {
-        fastTryAllPossibleSPRsAndReRootings(world_, currentTree_, bestTree_, 
-                                            index_, bestIndex_, stop_, timeLimit_, 
-                                            logL_, bestlogL_, 
-                                            num0Lineages_, num1Lineages_, num2Lineages_, 
-                                            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
-                                            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-                                            lossExpectedNumbers_, duplicationExpectedNumbers_, 
-                                            rearrange_, numIterationsWithoutImprovement_, 
-                                            server_, branchExpectedNumbersOptimization_, 
-                                            genomeMissing_, sprLimit_, true);
-        if (ApplicationTools::getTime() < timeLimit_) 
-          {
-          std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters over.\n\n"<< std::endl;
-          ApplicationTools::displayTime("Execution time so far:");
-          currentStep_ = 3;
-          }
-        else 
-          {
-          std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
-          ApplicationTools::displayTime("Execution time so far:");
-          if (stop_==false)
-            {
-            stop_ = true;
-            broadcast(world_, stop_, server_); 
-            broadcast(world_, bestIndex_, server_);                      
+                noMoreSPR = true;
+                numIterationsWithoutImprovement_=2*speciesTreeNodeNumber_;
             }
-          }
-        
-        noMoreSPR=true;
-        
-        std::cout << "\n\n\t\t\tNow entering the final optimization steps, without SPRs\n\n"<<std::endl;
-        std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
-        }
-      }        
-    else 
-      { 
-        rearrange_ = true; //Now we rearrange gene trees
-        /****************************************************************************
-         * noMoreSPR==true, we thus only make NNIs and root changes, 
-         * and we rearrange gene trees.
-         *****************************************************************************/            
-        if ( ( ((!rearrange_)&&(numIterationsWithoutImprovement_>=2*speciesTreeNodeNumber_)) || ((!rearrange_)&&(!optimizeSpeciesTreeTopology_)) || (currentStep_ == 3) ) && (ApplicationTools::getTime() < timeLimit_)  )
-          {
-          //rearrange_ = true; //Now we rearrange gene trees
-          numIterationsWithoutImprovement_ = 0;
-          //This first computation is done without rearranging gene trees
-          computeSpeciesTreeLikelihood(world_, index_, 
-                                       stop_, logL_, 
-                                       num0Lineages_, num1Lineages_, num2Lineages_, 
-                                       allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-                                       lossExpectedNumbers_, duplicationExpectedNumbers_, 
-                                       rearrange_, server_, 
-                                       branchExpectedNumbersOptimization_, genomeMissing_, 
-                                       *currentTree_);
+            if (!noMoreSPR) 
+            {
+                if (currentStep_ == 0) 
+                {
+                    /****************************************************************************
+                     * Doing SPRs and rerootings. This first function does not optimize duplication 
+                     * and loss (D and L) expected numbers, as proved by the last "false" argument.
+                     *****************************************************************************/            
+                    fastTryAllPossibleSPRsAndReRootings(world_, currentTree_, bestTree_, 
+                                                        index_, bestIndex_, stop_, timeLimit_, 
+                                                        logL_, bestlogL_, 
+                                                        num0Lineages_, num1Lineages_, num2Lineages_, 
+                                                        bestNum0Lineages_, bestNum1Lineages_, 
+                                                        bestNum2Lineages_, 
+                                                        allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
+                                                        lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                        rearrange_, numIterationsWithoutImprovement_, 
+                                                        server_, branchExpectedNumbersOptimization_, 
+                                                        genomeMissing_, sprLimit_, false);
+                    if (ApplicationTools::getTime() < timeLimit_) 
+                    {
+                        std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings over.\n\n"<< std::endl;
+                        ApplicationTools::displayTime("Execution time so far:");
+                        currentStep_ = 1;
+                    }  
+                    else 
+                    {
+                        std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+                        ApplicationTools::displayTime("Execution time so far:");
+                        if (stop_==false)
+                        {
+                            stop_ = true;
+                            broadcast(world_, stop_, server_); 
+                            broadcast(world_, bestIndex_, server_);                      
+                        }              
+                    }
+                }
+                
+                /****************************************************************************
+                 * Doing SPRs and rerootings. Now we update expected numbers of D and L.
+                 *****************************************************************************/            
+                std::cout <<"Before updating expected numbers of Duplication and loss; current Likelihood "<<bestlogL_  <<" and logL: "<<logL_<<std::endl;
+                backupLossExpectedNumbers_ = lossExpectedNumbers_;
+                backupDuplicationExpectedNumbers_ = duplicationExpectedNumbers_;
+                if ((currentStep_ == 1) && (ApplicationTools::getTime() < timeLimit_) )
+                {
+                    computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
+                                                                                       stop_, logL_, 
+                                                                                       num0Lineages_, num1Lineages_, num2Lineages_, 
+                                                                                       allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
+                                                                                       lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                                                       rearrange_, server_, 
+                                                                                       branchExpectedNumbersOptimization_, genomeMissing_, 
+                                                                                       *currentTree_, bestlogL_);
+                    std::cout <<"After updating expected numbers of Duplication and loss; current Likelihood "<<logL_<<std::endl;
+                    if (logL_+0.01<bestlogL_) 
+                    {
+                        bestlogL_ =logL_;
+                        bestNum0Lineages_ = num0Lineages_;
+                        bestNum1Lineages_ = num1Lineages_;
+                        bestNum2Lineages_ = num2Lineages_;
+                        bestIndex_ = index_;
+                        std::cout << "Updating duplication and loss expected numbers yields a better candidate tree likelihood : "<<bestlogL_<<std::endl;
+                        std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
+                    } 
+                    else 
+                    {
+                        std::cout << "No improvement: we keep former expected numbers. "<<bestlogL_<<std::endl;
+                        lossExpectedNumbers_ = backupLossExpectedNumbers_;
+                        duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_;
+                    }
+                    for (int i =0; i<num0Lineages_.size() ; i++ ) 
+                    {
+                        std::cout <<"branch Number#"<< i<<"Expected numbers:  dup: "<< duplicationExpectedNumbers_[i]<<" loss: "<< lossExpectedNumbers_[i]<<std::endl;
+                    }
+                    if (ApplicationTools::getTime() < timeLimit_) 
+                        currentStep_ = 2;
+                }
+                if ( (currentStep_ == 2) && (ApplicationTools::getTime() < timeLimit_) )
+                {
+                    fastTryAllPossibleSPRsAndReRootings(world_, currentTree_, bestTree_, 
+                                                        index_, bestIndex_, stop_, timeLimit_, 
+                                                        logL_, bestlogL_, 
+                                                        num0Lineages_, num1Lineages_, num2Lineages_, 
+                                                        bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
+                                                        allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
+                                                        lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                        rearrange_, numIterationsWithoutImprovement_, 
+                                                        server_, branchExpectedNumbersOptimization_, 
+                                                        genomeMissing_, sprLimit_, true);
+                    if (ApplicationTools::getTime() < timeLimit_) 
+                    {
+                        std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters over.\n\n"<< std::endl;
+                        ApplicationTools::displayTime("Execution time so far:");
+                        currentStep_ = 3;
+                    }
+                    else 
+                    {
+                        std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+                        ApplicationTools::displayTime("Execution time so far:");
+                        if (stop_==false)
+                        {
+                            stop_ = true;
+                            broadcast(world_, stop_, server_); 
+                            broadcast(world_, bestIndex_, server_);                      
+                        }
+                    }
+                    
+                    noMoreSPR=true;
+                    
+                    std::cout << "\n\n\t\t\tNow entering the final optimization steps, without SPRs\n\n"<<std::endl;
+                    std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
+                }
+            }        
+            else 
+            { 
+                rearrange_ = true; //Now we rearrange gene trees
+                /****************************************************************************
+                 * noMoreSPR==true, we thus only make NNIs and root changes, 
+                 * and we rearrange gene trees.
+                 *****************************************************************************/            
+                if ( ( ((!rearrange_)&&(numIterationsWithoutImprovement_>=2*speciesTreeNodeNumber_)) || ((!rearrange_)&&(!optimizeSpeciesTreeTopology_)) || (currentStep_ == 3) ) && (ApplicationTools::getTime() < timeLimit_)  )
+                {
+                    //rearrange_ = true; //Now we rearrange gene trees
+                    numIterationsWithoutImprovement_ = 0;
+                    //This first computation is done without rearranging gene trees
+                    computeSpeciesTreeLikelihood(world_, index_, 
+                                                 stop_, logL_, 
+                                                 num0Lineages_, num1Lineages_, num2Lineages_, 
+                                                 allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
+                                                 lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                 rearrange_, server_, 
+                                                 branchExpectedNumbersOptimization_, genomeMissing_, 
+                                                 *currentTree_);
+                    
+                    std::cout<<"Species tree likelihood without gene tree rearrangement: "<< - logL_<<std::endl;
+                    //Now gene trees are really rearranged.
+                    computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
+                                                                                       stop_, logL_, 
+                                                                                       num0Lineages_, num1Lineages_, num2Lineages_, 
+                                                                                       allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
+                                                                                       lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                                                       rearrange_, server_, 
+                                                                                       branchExpectedNumbersOptimization_, genomeMissing_, 
+                                                                                       *currentTree_, bestlogL_);
+                    if (branchExpectedNumbersOptimization_ != "no") {
+                    std::cout << "\t\tSpecies tree likelihood with gene tree optimization and new branch parameters: "<< - logL_<<" compared to the former log-likelihood : "<< - bestlogL_<<std::endl;
+                    }
+                    else {
+                        std::cout << "\t\tSpecies tree likelihood with gene tree optimization: "<< - logL_<<" compared to the former log-likelihood : "<< - bestlogL_<<std::endl;
 
-          std::cout<<"Species tree likelihood without gene tree rearrangement: "<< - logL_<<std::endl;
-          //Now gene trees are really rearranged.
-          computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
-                                                                             stop_, logL_, 
-                                                                             num0Lineages_, num1Lineages_, num2Lineages_, 
-                                                                             allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-                                                                             lossExpectedNumbers_, duplicationExpectedNumbers_, 
-                                                                             rearrange_, server_, 
-                                                                             branchExpectedNumbersOptimization_, genomeMissing_, 
-                                                                             *currentTree_, bestlogL_);
+                    }
+                    numIterationsWithoutImprovement_ = 0;
+                    bestlogL_ =logL_;
+                    bestIndex_ = index_;
+                    bestNum0Lineages_ = num0Lineages_;
+                    bestNum1Lineages_ = num1Lineages_;
+                    bestNum2Lineages_ = num2Lineages_;
+                }
+                
+                if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) || (!optimizeSpeciesTreeTopology_))
+                {
+                    if (optimizeSpeciesTreeTopology_) 
+                    {
+                        std::cout<<"Reading previous topology likelihoods"<<std::endl;
+                        inputNNIAndRootLks(NNILks_, rootLks_, params_, suffix_);
+                        
+                        std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
+                        localOptimizationWithNNIsAndReRootings(world_, currentTree_, bestTree_, 
+                                                               index_, bestIndex_, 
+                                                               stop_, timeLimit_, 
+                                                               logL_, bestlogL_, 
+                                                               num0Lineages_, num1Lineages_, num2Lineages_, 
+                                                               bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
+                                                               allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
+                                                               lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                               rearrange_, numIterationsWithoutImprovement_, 
+                                                               server_, nodeForNNI, nodeForRooting, 
+                                                               branchExpectedNumbersOptimization_, genomeMissing_, NNILks_, rootLks_);
+                    }
+                    else 
+                    {
+                        if(branchExpectedNumbersOptimization_ != "no") {
+                            std::cout <<"\tDuplication and loss rate optimization: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
+                            optimizeOnlyDuplicationAndLossRates(world_, currentTree_, bestTree_, 
+                                                                index_, bestIndex_, 
+                                                                stop_, timeLimit_, 
+                                                                logL_, bestlogL_, 
+                                                                num0Lineages_, num1Lineages_, num2Lineages_, 
+                                                                bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
+                                                                allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
+                                                                lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                                rearrange_, numIterationsWithoutImprovement_, 
+                                                                server_, nodeForNNI, nodeForRooting, 
+                                                                branchExpectedNumbersOptimization_, genomeMissing_);
+                        }
+                        else {
+                            stop_ = true;
+                            broadcast(world_, stop_, server_); 
+                            broadcast(world_, bestIndex_, server_);
+                        }
+                    }
+                    if (ApplicationTools::getTime() < timeLimit_) 
+                    {
+                        std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
+                        ApplicationTools::displayTime("Execution time so far:");
+                        currentStep_ = 4;
+                    }
+                    else 
+                    {
+                        std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit 1.\n\n"<< std::endl;
+                        ApplicationTools::displayTime("Execution time so far:");
+                        if (stop_==false)
+                        {
+                            stop_ = true;
+                            broadcast(world_, stop_, server_); 
+                            broadcast(world_, bestIndex_, server_);                     
+                        }
+                    }
+                }
+                else if (ApplicationTools::getTime() >= timeLimit_)
+                {
+                    std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit 2.\n\n"<< std::endl;
+                    ApplicationTools::displayTime("Execution time so far:");
+                    if (stop_==false)
+                    {
+                        stop_ = true;
+                        broadcast(world_, stop_, server_); 
+                        broadcast(world_, bestIndex_, server_);                    
+                    }          
+                }
+            }
+        }      
 
-          std::cout << "\t\tSpecies tree likelihood with gene tree optimization and new branch probabilities: "<< - logL_<<" compared to the former log-likelihood : "<< - bestlogL_<<std::endl;
-          numIterationsWithoutImprovement_ = 0;
-          bestlogL_ =logL_;
-          bestIndex_ = index_;
-          bestNum0Lineages_ = num0Lineages_;
-          bestNum1Lineages_ = num1Lineages_;
-          bestNum2Lineages_ = num2Lineages_;
-          }
-       
-        if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) || (!optimizeSpeciesTreeTopology_))
-          {
-          if (optimizeSpeciesTreeTopology_) 
-            {
-            std::cout<<"Reading previous topology likelihoods"<<std::endl;
-            inputNNIAndRootLks(NNILks_, rootLks_, params_, suffix_);
-
-            std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
-            localOptimizationWithNNIsAndReRootings(world_, currentTree_, bestTree_, 
-                                                   index_, bestIndex_, 
-                                                   stop_, timeLimit_, 
-                                                   logL_, bestlogL_, 
-                                                   num0Lineages_, num1Lineages_, num2Lineages_, 
-                                                   bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
-                                                   allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-                                                   lossExpectedNumbers_, duplicationExpectedNumbers_, 
-                                                   rearrange_, numIterationsWithoutImprovement_, 
-                                                   server_, nodeForNNI, nodeForRooting, 
-                                                   branchExpectedNumbersOptimization_, genomeMissing_, NNILks_, rootLks_);
-            }
-          else 
-            {
-            std::cout <<"\tDuplication and loss rate optimization: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
-            optimizeOnlyDuplicationAndLossRates(world_, currentTree_, bestTree_, 
-                                                index_, bestIndex_, 
-                                                stop_, timeLimit_, 
-                                                logL_, bestlogL_, 
-                                                num0Lineages_, num1Lineages_, num2Lineages_, 
-                                                bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
-                                                allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-                                                lossExpectedNumbers_, duplicationExpectedNumbers_, 
-                                                rearrange_, numIterationsWithoutImprovement_, 
-                                                server_, nodeForNNI, nodeForRooting, 
-                                                branchExpectedNumbersOptimization_, genomeMissing_);
-            }
-          if (ApplicationTools::getTime() < timeLimit_) 
-            {
-            std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
-            ApplicationTools::displayTime("Execution time so far:");
-            currentStep_ = 4;
-            }
-          else 
-            {
-            std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit 1.\n\n"<< std::endl;
-            ApplicationTools::displayTime("Execution time so far:");
-            if (stop_==false)
-              {
-              stop_ = true;
-             broadcast(world_, stop_, server_); 
-              broadcast(world_, bestIndex_, server_);                     
-              }
-            }
-          }
-        else if (ApplicationTools::getTime() >= timeLimit_)
-          {
-          std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit 2.\n\n"<< std::endl;
-          ApplicationTools::displayTime("Execution time so far:");
-          if (stop_==false)
-            {
-            stop_ = true;
-           broadcast(world_, stop_, server_); 
-            broadcast(world_, bestIndex_, server_);                    
-            }          
-          }
-      }
-    }      
-  
   
   
   
