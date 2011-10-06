@@ -333,6 +333,8 @@ void optimizeBLMapping(
                        DRTreeLikelihood* tl,
                        double precision)
 {
+    std::cout<< "BEFORE: "<<TreeTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
+
   double currentValue = tl->getValue();
   double newValue = currentValue - 2* precision;
   ParameterList bls = tl->getBranchLengthsParameters () ;
@@ -342,13 +344,11 @@ void optimizeBLMapping(
   vector<int> ids = tl->getTree().getNodesId();
   ids.pop_back(); //remove root id.
   bool stationarity = true;
-  SubstitutionRegister* reg = 0;
-
-  
+  SubstitutionRegister* reg = 0;  
   //Counting all substitutions
   reg = new TotalSubstitutionRegister(tl->getAlphabet());
   bool first = true;
-  SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);
+    SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);   
   while (currentValue > newValue + precision) {
     if (first)
       first=false;
@@ -368,9 +368,16 @@ void optimizeBLMapping(
     tl->matchParametersValues(newBls);
     
     newValue = tl->getValue();
-   // std::cout <<"before: "<< currentValue<<" AFTER: "<< newValue <<std::endl;
-    if (currentValue > newValue + precision) { //Significant improvement
+   std::cout <<"before: "<< currentValue<<" AFTER: "<< newValue <<std::endl;
+      if (currentValue > newValue + precision) { //Significant improvement
       bls = newBls;
+        tl->setParameters(bls);
+        std::cout<< "AFTER: "<<TreeTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
+
+      /*  TreeTemplate<Node *>* t = tl->getTree();
+        for (unsigned int i = 0 ; i < counts.size() ; i ++) {
+            t->getNode(i)->setDistanceToFather(bls[i]);
+        }*/
     }
     else { 
       if (currentValue < newValue) //new state worse, getting back to the former state
@@ -412,6 +419,81 @@ void optimizeBLMapping(
     }
   }*/
 }
+
+
+/******************************************************************************/
+// This function optimizes branch lengths in a gene tree using substitution mapping
+/******************************************************************************/
+
+void optimizeBLMappingForSPRs(
+                       DRTreeLikelihood* tl,
+                       double precision, map<string, string> params)
+{    
+    double currentValue = tl->getValue();
+    double newValue = currentValue - 2* precision;
+    ParameterList bls = tl->getBranchLengthsParameters () ;
+    ParameterList newBls = bls;
+    vector< vector<unsigned int> > counts;
+    double numberOfSites = (double) tl->getNumberOfSites();
+    vector<int> ids = tl->getTree().getNodesId();
+    ids.pop_back(); //remove root id.
+    bool stationarity = true;
+    SubstitutionRegister* reg = 0;  
+    //Counting all substitutions
+    reg = new TotalSubstitutionRegister(tl->getAlphabet());
+    bool first = true;
+    
+    //Then, normal optimization.
+    
+  /*  tl = dynamic_cast<DRTreeLikelihood*>(PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<TreeLikelihood*>(tl), 
+                                                                                           tl->getParameters(), 
+                                                                                           params));*/
+    
+    SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);   
+   //We do the mapping based thing only once:
+    /*while (currentValue > newValue + precision) {
+        if (first)
+            first=false;
+        else {
+            currentValue = newValue;
+        }*/
+        //Perform the mapping:
+        counts = getTotalCountsOfSubstitutionsPerBranch(*tl, ids, tl->getSubstitutionModel(0,0), *reg, count, -1);
+        double value;
+        string name;
+        for (unsigned int i = 0 ; i < counts.size() ; i ++) {
+          //  if (abs(bls[i].getValue() - 0.1) < 0.000001) {
+            value = double(VectorTools::sum(counts[i])) / (double)numberOfSites;
+         /*   } else {
+                value = bls[i].getValue();
+            }*/
+            name = "BrLen" + TextTools::toString(i);
+            newBls.setParameterValue(name, newBls.getParameter(name).getConstraint()->getAcceptedLimit (value));
+        }
+        
+        tl->matchParametersValues(newBls);
+        
+        newValue = tl->getValue();
+        if (currentValue > newValue + precision) { //Significant improvement
+            bls = newBls;
+            tl->setParameters(bls);            
+            /*  TreeTemplate<Node *>* t = tl->getTree();
+             for (unsigned int i = 0 ; i < counts.size() ; i ++) {
+             t->getNode(i)->setDistanceToFather(bls[i]);
+             }*/
+        }
+        else { 
+            if (currentValue < newValue) //new state worse, getting back to the former state
+                tl->matchParametersValues(bls);
+        }
+  //  }
+    //Then, normal optimization.
+    
+//ATTEMPT WITHOUT FULL OPTIMIZATION    PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
+    
+}
+
+
 /******************************************************************************/
 // This function builds a bionj tree
 /******************************************************************************/
@@ -650,6 +732,114 @@ void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
   }
   return;  
 }
+
+
+
+
+/**************************************************************************
+ * This function optimizes a gene tree based on the reconciliation score only.
+ * It uses SPRs and NNIs, and calls findMLReconciliationDR to compute the likelihood.
+ **************************************************************************/
+
+double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
+                             TreeTemplate<Node> *& geneTree, 
+                             std::map<std::string, std::string > seqSp,
+                             std::map<std::string, int > spID,
+                             std::vector< double> &lossExpectedNumbers, 
+                             std::vector < double> &duplicationExpectedNumbers, 
+                             int & MLindex, 
+                             std::vector <int> &num0lineages, 
+                             std::vector <int> &num1lineages, 
+                             std::vector <int> &num2lineages, 
+                             std::set <int> &nodesToTryInNNISearch)
+{
+    TreeTemplate<Node> *tree = 0;
+    TreeTemplate<Node> *bestTree = 0;
+    TreeTemplate<Node> *currentTree = 0;
+    currentTree = geneTree->clone();
+    breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
+    int sprLimit = 10; //Arbitrary.
+    std::vector <int> nodeIdsToRegraft; 
+    double bestlogL;
+    double logL;
+    bool betterTree;
+    int numIterationsWithoutImprovement = 0;
+    double startingML = findMLReconciliationDR (spTree, 
+                                                currentTree, 
+                                                seqSp,
+                                                spID,
+                                                lossExpectedNumbers, 
+                                                duplicationExpectedNumbers, 
+                                                MLindex, 
+                                                num0lineages, 
+                                                num1lineages, 
+                                                num2lineages, 
+                                                nodesToTryInNNISearch, false);
+    tree = currentTree->clone();
+    bestTree = currentTree->clone();
+    bestlogL = startingML;
+    
+    while (numIterationsWithoutImprovement < geneTree->getNumberOfNodes()-1) {
+        for (int nodeForSPR=geneTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
+            betterTree = false;
+            tree = currentTree->clone();
+            buildVectorOfRegraftingNodesLimitedDistance(*tree, nodeForSPR, sprLimit, nodeIdsToRegraft);
+            
+            for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) {
+                if (tree) {
+                    delete tree;
+                }
+                tree = currentTree->clone();
+                makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i], false);
+                logL = findMLReconciliationDR (spTree, 
+                                               tree, 
+                                               seqSp,
+                                               spID,
+                                               lossExpectedNumbers, 
+                                               duplicationExpectedNumbers, 
+                                               MLindex, 
+                                               num0lineages, 
+                                               num1lineages, 
+                                               num2lineages, 
+                                               nodesToTryInNNISearch, false);
+                if (logL-0.01>bestlogL) {
+                    betterTree = true;
+                    bestlogL =logL;
+                    if (bestTree)
+                        delete bestTree;
+                    bestTree = tree->clone();  
+                    /*std::cout << "Gene tree SPR: Better candidate tree likelihood : "<<bestlogL<< std::endl;
+                     std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;*/
+                }
+            }
+            if (betterTree) {
+                logL = bestlogL; 
+                if (currentTree)
+                    delete currentTree;
+                currentTree = bestTree->clone();
+                breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
+                //std::cout <<"NEW BETTER TREE: \n"<< TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
+                numIterationsWithoutImprovement = 0;
+            }
+            else {
+                logL = bestlogL; 
+                if (currentTree)
+                    delete currentTree;
+                currentTree = bestTree->clone(); 
+                numIterationsWithoutImprovement++;
+            }
+        }
+    }
+    if (geneTree)
+        delete geneTree;
+    geneTree = bestTree->clone();
+    if (tree) delete tree;
+    if (bestTree) delete bestTree;
+    if (currentTree) delete currentTree;
+    std::cout << "DL initial likelihood: "<< startingML << "; Optimized DL log likelihood "<< bestlogL <<"." << std::endl; 
+    return bestlogL;
+}
+
 
 
 

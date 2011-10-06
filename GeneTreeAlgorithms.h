@@ -58,7 +58,7 @@
 
 
 #include "ReconciliationTools.h"
-
+#include "GenericTreeExplorationAlgorithms.h"
 
 /**************************************************************************
  * This function creates a sequence tree from a species tree and a std::map 
@@ -103,6 +103,15 @@ vector< vector<unsigned int> > getCountsPerBranch(
 void optimizeBLMapping(
                        DRTreeLikelihood* tl,
                        double precision);
+
+/******************************************************************************/
+// This function optimizes branch lengths in a gene tree using substitution mapping
+/******************************************************************************/
+void optimizeBLMappingForSPRs(
+                              DRTreeLikelihood* tl,
+                              double precision, map<string, string> params);
+
+
 /******************************************************************************/
 // This function builds a bionj tree
 /******************************************************************************/
@@ -160,6 +169,21 @@ string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
 void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
                                        std::map<std::string, std::string > seqSp ) ;
 
+/**************************************************************************
+ * This function optimizes a gene tree based on the reconciliation score only.
+ * It uses SPRs and NNIs, and calls findMLReconciliationDR to compute the likelihood.
+ **************************************************************************/
+double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
+                             TreeTemplate<Node> *& geneTree, 
+                             std::map<std::string, std::string > seqSp,
+                             std::map<std::string, int > spID,
+                             std::vector< double> &lossExpectedNumbers, 
+                             std::vector < double> &duplicationExpectedNumbers, 
+                             int & MLindex, 
+                             std::vector <int> &num0lineages, 
+                             std::vector <int> &num1lineages, 
+                             std::vector <int> &num2lineages, 
+                             std::set <int> &nodesToTryInNNISearch);
 
 
 
