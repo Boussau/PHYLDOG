@@ -277,6 +277,8 @@ namespace bpp
         std::vector <int> get1LineagesNumbers() const;
         std::vector <int> get2LineagesNumbers() const;
         
+        ParameterList getParameters() {return nniLk_->getParameters();}
+        
         TreeTemplate<Node> & getSpTree() const {return *_spTree;}
         
         TreeTemplate<Node> & getRootedTree() const {return *_rootedTree;}

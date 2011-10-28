@@ -603,6 +603,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                                 branchExpectedNumbersOptimization_, genomeMissing_);
                         }
                         else {
+                            if (logL_ > bestlogL_)
+                                bestlogL_ = logL_;
                             stop_ = true;
                             broadcast(world_, stop_, server_); 
                             broadcast(world_, bestIndex_, server_);

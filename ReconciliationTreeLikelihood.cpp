@@ -262,6 +262,7 @@ ReconciliationTreeLikelihood::~ReconciliationTreeLikelihood()
 /******************************************************************************/
 
 void ReconciliationTreeLikelihood::copyContentsFrom  (const ReconciliationTreeLikelihood & lik) {
+    /*
     if (tree_) delete tree_;
     if (lik.tree_) tree_ = lik.tree_->clone();
     else           tree_ = 0;
@@ -285,14 +286,6 @@ void ReconciliationTreeLikelihood::copyContentsFrom  (const ReconciliationTreeLi
     verbose_         = lik.verbose_;
     minimumBrLen_    = lik.minimumBrLen_;
     brLenConstraint_ = lik.brLenConstraint_->clone();
-   /* if (likelihoodData_) delete likelihoodData_;
-    likelihoodData_ = dynamic_cast<DRASDRTreeLikelihoodData*>(lik.likelihoodData_->clone());
-    likelihoodData_->setTree(tree_);
-    minusLogLik_ = lik.minusLogLik_;    
-    if(brLikFunction_) delete brLikFunction_;
-    brLikFunction_  = dynamic_cast<BranchLikelihood *>(lik.brLikFunction_->clone());
-    if(brentOptimizer_) delete brentOptimizer_;
-    brentOptimizer_ = dynamic_cast<BrentOneDimension *>(lik.brentOptimizer_->clone());*/
     brLenNNIValues_ = lik.brLenNNIValues_;
     brLenNNIParams_ = lik.brLenNNIParams_;
     if (_spTree) delete _spTree;
@@ -325,7 +318,7 @@ void ReconciliationTreeLikelihood::copyContentsFrom  (const ReconciliationTreeLi
     _DLStartingGeneTree = lik._DLStartingGeneTree;
     sprLimit_ = lik.sprLimit_;
     return;
-
+*/
 }
 
 

@@ -489,8 +489,14 @@ void optimizeBLMappingForSPRs(
   //  }
     //Then, normal optimization.
     
-//ATTEMPT WITHOUT FULL OPTIMIZATION    PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
-    
+//ATTEMPT WITHOUT FULL OPTIMIZATION 16 10 2011   
+    //But with few rounds of optimization
+    int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+    {
+        params[ std::string("optimization.max_number_f_eval")] = 10;
+    }
+    PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
+    params[ std::string("optimization.max_number_f_eval")] = backup;
 }
 
 
@@ -836,7 +842,7 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
     if (tree) delete tree;
     if (bestTree) delete bestTree;
     if (currentTree) delete currentTree;
-    std::cout << "DL initial likelihood: "<< startingML << "; Optimized DL log likelihood "<< bestlogL <<"." << std::endl; 
+   // std::cout << "DL initial likelihood: "<< startingML << "; Optimized DL log likelihood "<< bestlogL <<"." << std::endl; 
     return bestlogL;
 }
 

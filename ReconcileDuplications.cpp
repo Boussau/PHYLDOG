@@ -1099,8 +1099,8 @@ int main(int args, char ** argv)
               }
            // std::cout <<  TreeTools::treeToParenthesis(*geneTree, true)<<std::endl;
                 
-// NNI optimization:           PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
-                //SPR optimization:
+// NNI optimization:                 PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods[i], treeLikelihoods[i]->getParameters(), allParams[i], "", true, false); 
+                //SPR optimization:              
                 treeLikelihoods[i]->refineGeneTreeSPRs(allParams[i]);
             geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getRootedTree()); //MODIFICATION
 

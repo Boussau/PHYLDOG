@@ -868,20 +868,19 @@ void DLGeneTreeLikelihood::print () const {
  * and executes the ones with the highest likelihood. 
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
-    std::cout <<"\t\t\tStarting MLSearch : current tree : "<< std::endl;
-    std::cout<< TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
-    breadthFirstreNumber (*_rootedTree);
+  /*  std::cout <<"\t\t\tStarting MLSearch : current tree : "<< std::endl;
+    std::cout<< TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;*/
     std::vector <int> nodeIdsToRegraft;
     bool betterTree;
     TreeTemplate<Node> * treeForSPR = 0;
     TreeTemplate<Node> * bestTree = 0;
     int bestNodeForSPR;
     int bestNodeToRegraft;
-    if (getLogLikelihood()==UNLIKELY) 
+   // if (getLogLikelihood()==UNLIKELY) 
         computeReconciliationLikelihood();
     //    ReconciliationTreeLikelihood * bestTreeLogLk = this->clone();
     double logL = getLogLikelihood();
-    std::cout << "logL before mapping: " <<getSequenceLikelihood()<<std::endl;
+  //std::cout << "logL before mapping: " <<getSequenceLikelihood()<<std::endl;
     //initial perturbation of branch lengths, to use suboptimal ones for speed
     ParameterList bls = nniLk_->getBranchLengthsParameters () ;
     for (unsigned int i  = 0 ; i < bls.size()/3 ; i++) {
@@ -889,119 +888,215 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     }
     nniLk_->matchParametersValues(bls);
 
-    std::cout << "logL before mapping 2: " <<getSequenceLikelihood()<<std::endl;
+   // std::cout << "logL before mapping 2: " <<getSequenceLikelihood()<<std::endl;
 
     optimizeBLMappingForSPRs(nniLk_,
                              0.1, params);
+   // std::cout<< "Unrooted starting tree: "<<TreeTools::treeToParenthesis(nniLk_->getTree(), true)<< std::endl;
+    /*
     bls = nniLk_->getBranchLengthsParameters () ;
     for (unsigned int i  = 0 ; i < bls.size() ; i++) {
         if (_rootedTree->getNode(i)->hasFather()) {
             _rootedTree->getNode(i)->setDistanceToFather(bls[i].getValue());
         }
-    }
+    }*/
     logL = getLogLikelihood();
-    std::cout << "logL after mapping: " <<getSequenceLikelihood()<<std::endl;
+ //  std::cout << "logL after mapping: " <<getSequenceLikelihood()<<std::endl;
 
     double bestlogL = logL;
     double candidateScenarioLk ;
     double bestSequenceLogL;
     double bestScenarioLk = getScenarioLikelihood();
-    std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
+   // std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
     int numIterationsWithoutImprovement = 0;
-    int index = 0;
     double MLValue;
     NNIHomogeneousTreeLikelihood * drlk = 0;
     NNIHomogeneousTreeLikelihood * bestDrlk = 0;
-    
+    breadthFirstreNumber (*_rootedTree);
+
     // DRHomogeneousTreeLikelihood drlk;
-    while (numIterationsWithoutImprovement < _rootedTree->getNumberOfNodes())
+  //  std::cout<< "Starting tree: "<<TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
+
+    string parentDup;
+    string nodeDup;
+    while (numIterationsWithoutImprovement < _rootedTree->getNumberOfNodes() - 2)
     {
+        annotateGeneTreeWithDuplicationEvents (*_spTree, 
+                                               *_rootedTree, 
+                                               _rootedTree->getRootNode(), 
+                                               _seqSp, _spId); 
+
         for (int nodeForSPR=_rootedTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
         {
-            buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
-            
-            betterTree = false;
-            for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
-            {
-                if (treeForSPR) 
-                {
-                    delete treeForSPR;
-                    treeForSPR = 0;
-                }
-                treeForSPR = _rootedTree->clone();
-                makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i]);
-                breadthFirstreNumber (*treeForSPR);
-                
-                //Compute the DL likelihood
-                candidateScenarioLk =  findMLReconciliationDR (_spTree, treeForSPR, 
-                                                               _seqSp, _spId, 
-                                                               _lossProbabilities, 
-                                                               _duplicationProbabilities, 
-                                                               _tentativeMLindex, 
-                                                               _tentativeNum0Lineages, 
-                                                               _tentativeNum1Lineages, 
-                                                               _tentativeNum2Lineages, 
-                                                               _tentativeNodesToTryInNNISearch); 
-                std::cout << "candidateScenarioLk: "<< candidateScenarioLk<<"; bestScenarioLk: "<< bestScenarioLk<< std::endl;
-                
-                if (candidateScenarioLk > bestScenarioLk) //We investigate the sequence likelihood
-                {
-                    /*   if (tree_) 
-                     {
-                     delete tree_;
-                     tree_ = 0;
-                     }  */
-                    if (drlk) {
-                        delete drlk;
-                        drlk = 0;
+            if (_rootedTree->getNode(nodeForSPR)->getFather()->hasNodeProperty("D")) {
+                parentDup = (dynamic_cast<const BppString *>(_rootedTree->getNode(nodeForSPR)->getFather()->getNodeProperty("D")))->toSTL() ;}
+            else {
+                parentDup = "F" ;}
+          /*  if ( _rootedTree->getNode(nodeForSPR)->hasNodeProperty("D")) { 
+                nodeDup = (dynamic_cast<const BppString *>(_rootedTree->getNode(nodeForSPR)->getNodeProperty("D")))->toSTL() ; }
+            else {
+                nodeDup = "F" ; }*/
+            if ( parentDup == "Y" )/* || nodeDup == "Y")*/ {
+                    buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                    /*if (_rootedTree->getNode(nodeForSPR)->isLeaf()) {
+                        std::cout << "nodeForSPR: "<< _rootedTree->getNode(nodeForSPR)->getName()<<" ; "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
                     }
-                    drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution());
-                    drlk->initialize();
-                    std::cout << "Good SPR; Sequence lk before optimization: "<< -drlk->getValue() << std::endl;
-                    //  _rootedTree = treeForSPR->clone();
-                    // makeSPR(*tree_, nodeForSPR, nodeIdsToRegraft[i]);
-                    // tree_->unroot();
-                    //  tree_ = treeForSPR->clone();
-                    
-                    //Compute sequence likelihood and improve branch lengths on the gene tree.
-                    /*  std::cout<< TreeTools::treeToParenthesis(*tree_, true)<< std::endl;
-                     optimizeBLMapping(this,
-                     0.1);
-                     */
-                    
-                    // tree_->unroot();
-                    
-                    
-                    
-                    //fireParameterChanged(getParameters());
-                    //Compute sequence likelihood and improve branch lengths on the gene tree.
-                    std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
-                    
-                    params[ std::string("optimization.topology")] = "false";
-                    optimizeBLMappingForSPRs(drlk,
-                                             0.1, params);
-                    std::cout << "Good SPR; Sequence lk after optimization: "<< -drlk->getValue() << std::endl;
-                    std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
-                    
-                    
-                    logL = candidateScenarioLk - drlk->getValue();
-                    
-                    
-                }
-                else { logL =logL - 10;}
-                
-                
-                
-                
-                index++;
-                
-                if (logL - 0.01 > bestlogL) 
-                {
-                    betterTree = true;
-                    bestlogL =logL;
-                    bestScenarioLk = candidateScenarioLk;
-                    bestSequenceLogL = drlk->getValue();
-                    
+                    else {
+                        std::cout << "nodeForSPR: "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
+                    }
+                    VectorTools::print(nodeIdsToRegraft);*/
+                    betterTree = false;
+                    for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
+                    {
+                        if (treeForSPR) 
+                        {
+                            delete treeForSPR;
+                            treeForSPR = 0;
+                        }
+                        treeForSPR = _rootedTree->clone();
+                        makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false);
+                        
+                        //breadthFirstreNumber (*treeForSPR);
+                        
+                        //Compute the DL likelihood
+                        candidateScenarioLk =  findMLReconciliationDR (_spTree, treeForSPR, 
+                                                                       _seqSp, _spId, 
+                                                                       _lossProbabilities, 
+                                                                       _duplicationProbabilities, 
+                                                                       _tentativeMLindex, 
+                                                                       _tentativeNum0Lineages, 
+                                                                       _tentativeNum1Lineages, 
+                                                                       _tentativeNum2Lineages, 
+                                                                       _tentativeNodesToTryInNNISearch); 
+                      //  std::cout<< "candidate tree: "<< TreeTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
+                        
+                        if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
+                        {
+                           // std::cout << "good candidateScenarioLk: "<< candidateScenarioLk<<"; bestScenarioLk: "<< bestScenarioLk<< std::endl;
+                            if (drlk) {
+                                delete drlk;
+                                drlk = 0;
+                            }
+                            drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
+                            //drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
+                            ParameterList bls = nniLk_->getBranchLengthsParameters () ;
+                            for (unsigned int i  = 0 ; i < bls.size()/3 ; i++) {
+                                bls[i].setValue(0.1);
+                            }
+                            drlk->matchParametersValues(bls);
+                            
+                            drlk->initialize();
+                            //  std::cout << "Good SPR; Sequence lk before optimization: "<< -drlk->getValue() << std::endl;
+                            //  _rootedTree = treeForSPR->clone();
+                            // makeSPR(*tree_, nodeForSPR, nodeIdsToRegraft[i]);
+                            // tree_->unroot();
+                            //  tree_ = treeForSPR->clone();
+                            
+                            //Compute sequence likelihood and improve branch lengths on the gene tree.
+                            /*  std::cout<< TreeTools::treeToParenthesis(*tree_, true)<< std::endl;
+                             optimizeBLMapping(this,
+                             0.1);
+                             */
+                            // tree_->unroot();
+                            //fireParameterChanged(getParameters());
+                            //Compute sequence likelihood and improve branch lengths on the gene tree.
+                            //  std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
+                            
+                            params[ std::string("optimization.topology")] = "false";
+                            optimizeBLMappingForSPRs(drlk,
+                                                     0.1, params);
+                            /*std::cout << "Good SPR; Sequence lk after optimization: "<< -drlk->getValue() << std::endl;
+                            std::cout<<"Good SPR; optimized tree: "<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
+                            logL = candidateScenarioLk - drlk->getValue();
+                        }
+                        else { 
+                           // std::cout << "bad candidateScenarioLk: "<< candidateScenarioLk<<"; bestScenarioLk: "<< bestScenarioLk<< std::endl;
+                            logL =logL - 10;
+                        }
+                        //If the candidate tree has a DL + sequence Lk better than the current best
+                        if (logL - 0.01 > bestlogL) 
+                        {
+                            betterTree = true;
+                            bestlogL =logL;
+                            bestScenarioLk = candidateScenarioLk;
+                            bestSequenceLogL = drlk->getValue();
+                            if (bestTree) {
+                                delete bestTree;
+                                bestTree = 0;
+                            }
+                            if (bestDrlk) {
+                                delete bestDrlk;
+                                bestDrlk = 0;
+                            }
+                            bestDrlk = drlk->clone();
+                            bestTree = treeForSPR->clone();
+                          /*  std::cout << "\t\t\tSPRs: Better candidate tree likelihood : "<<bestlogL<< std::endl;
+                            std::cout << "\t\t\tTotal likelihood: "<<logL <<"; Reconciliation likelihood: "<< bestScenarioLk << ", Sequence likelihood: "<< bestSequenceLogL <<", for tree: "<< std::endl;*/
+                            /*TreeTools::treeToParenthesis(bestTreeLogLk->getRootedTree()) << */
+                        }
+                        else {
+                            //   copyContentsFrom(*bestTreeLogLk);
+                            //  std::cout << "\t\t\tSPRs: No improvement : "<< logL << " compared to current best: "<< bestlogL << std::endl;
+                        }
+                    }
+                    if (betterTree) //If, among all the SPRs tried, a better tree has been found 
+                    {
+                        logL = bestlogL; 
+                        numIterationsWithoutImprovement = 0;
+                        if (treeForSPR) 
+                        {
+                            delete treeForSPR;
+                            treeForSPR = 0;
+                        }
+                        if (_rootedTree) 
+                        {
+                            delete _rootedTree;
+                            _rootedTree = 0;
+                        }
+                        _rootedTree = bestTree->clone();
+                        breadthFirstreNumber (*_rootedTree);
+                        
+                        if (bestTree) {
+                            delete bestTree;
+                            bestTree = 0;
+                        }
+                        /* bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(bestDrlk->getTree()))->clone();
+                         vector<int> drlkNodes = bestTree->getNodesId();
+                         
+                         for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
+                         if (_rootedTree->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
+                         _rootedTree->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
+                         }*/
+                        
+                        /*    std::cout <<"\t\t\tSPRs: Improvement! : "<<numIterationsWithoutImprovement<< std::endl;
+                         std::cout << "\t\t\tNew total Likelihood value "<<logL<< std::endl;
+                         std::cout <<"\t\t\tNumber of gene trees tried : "<<index<< std::endl;*/
+                        /*  if (bestTree) {
+                         delete bestTree;
+                         bestTree = 0;
+                         }*/
+                        if (nniLk_) {
+                            delete nniLk_;
+                            nniLk_ = 0;
+                        }
+                        nniLk_ = bestDrlk->clone();
+                        /* std::cout << "NOT ROOTED: "<<std::endl;
+                         std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
+                         std::cout << "ROOTED: "<<std::endl;
+                         std::cout<< TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
+                         */
+                    }
+                    else 
+                    {
+                        // logL = bestlogL;  
+                        numIterationsWithoutImprovement++;
+                        //  std::cout <<"\t\t\tSPRs: Number of iterations without improvement : "<<numIterationsWithoutImprovement << "; Total number  of iterations: "<< index << std::endl;
+                    }
+                    if (treeForSPR) 
+                    {
+                        delete treeForSPR;
+                        treeForSPR = 0;
+                    }
                     if (bestTree) {
                         delete bestTree;
                         bestTree = 0;
@@ -1010,92 +1105,54 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                         delete bestDrlk;
                         bestDrlk = 0;
                     }
-                    bestDrlk = drlk->clone();
-                    bestTree = treeForSPR->clone();
-                    std::cout << "\t\t\tSPRs: Better candidate tree likelihood : "<<bestlogL<< std::endl;
-                    std::cout << "\t\t\tTotal likelihood: "<<logL <<"; Reconciliation likelihood: "<< bestScenarioLk << ", Sequence likelihood: "<< bestSequenceLogL <<", for tree: "<< /*TreeTools::treeToParenthesis(bestTreeLogLk->getRootedTree()) << */std::endl;
+                    if (drlk) {
+                        delete drlk;
+                        drlk = 0;
+                    }
                 }
                 else {
-                    //   copyContentsFrom(*bestTreeLogLk);
-                    std::cout << "\t\t\tSPRs: No improvement : "<< logL << " compared to current best: "<< bestlogL << std::endl;
+                    numIterationsWithoutImprovement++;
                 }
             }
-            if (betterTree) 
-            {
-                logL = bestlogL; 
-                numIterationsWithoutImprovement = 0;
-                if (treeForSPR) 
-                {
-                    delete treeForSPR;
-                    treeForSPR = 0;
-                }
-                _rootedTree = bestTree->clone();
-                if (bestTree) {
-                    delete bestTree;
-                    bestTree = 0;
-                }
-                 bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(bestDrlk->getTree()))->clone();
-                vector<int> drlkNodes = bestTree->getNodesId();
-                
-                for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
-                    if (_rootedTree->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
-                        _rootedTree->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
-                }
-                
-                
-                std::cout <<"\t\t\tSPRs: Improvement! : "<<numIterationsWithoutImprovement<< std::endl;
-                std::cout << "\t\t\tNew total Likelihood value "<<logL<< std::endl;
-                std::cout <<"\t\t\tNumber of gene trees tried : "<<index<< std::endl;
-                if (bestTree) {
-                    delete bestTree;
-                    bestTree = 0;
-                }
-                if (nniLk_) {
-                    delete nniLk_;
-                    nniLk_ = 0;
-                }
-                nniLk_ = bestDrlk->clone();
-               /* std::cout << "NOT ROOTED: "<<std::endl;
-                std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
-                std::cout << "ROOTED: "<<std::endl;
-                std::cout<< TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
-                */
-
-            }
-            else 
-            {
-                logL = bestlogL;  
-                numIterationsWithoutImprovement++;
-                std::cout <<"\t\t\tSPRs: Number of iterations without improvement : "<<numIterationsWithoutImprovement << "; Total number  of iterations: "<< index << std::endl;
-            }
-            if (treeForSPR) 
-            {
-                delete treeForSPR;
-                treeForSPR = 0;
-            }
-            if (bestTree) {
-                delete bestTree;
-                bestTree = 0;
-            }
-            if (bestDrlk) {
-                delete bestDrlk;
-                bestDrlk = 0;
-            }
-            if (drlk) {
-                delete drlk;
-                drlk = 0;
-            }
-        }
     }
+    _scenarioLikelihood = bestScenarioLk;
     //final branch lengths optimization
-    PhylogeneticsApplicationTools::optimizeParameters(nniLk_, nniLk_->getParameters(), params, "", true, false);
+    _rootedTree->resetNodesId();
+    if (drlk) {
+        delete drlk;
+        drlk = 0;
+    }
+    bestTree = _rootedTree->clone();
+
+    drlk = new NNIHomogeneousTreeLikelihood (*bestTree, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
+    drlk->initialize();
+    PhylogeneticsApplicationTools::optimizeParameters(drlk, drlk->getParameters(), params, "", true, false);
+    if (nniLk_) {
+        delete nniLk_;
+        nniLk_ = 0;
+    }
+    nniLk_ = drlk->clone();
+    if (bestTree) {
+        delete bestTree;
+        bestTree = 0;
+    }
     bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
     vector<int> drlkNodes = bestTree->getNodesId();
-    
     for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
         if (_rootedTree->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
             _rootedTree->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
     }
+    
+    Nhx *nhx = new Nhx();
+    annotateGeneTreeWithDuplicationEvents (*_spTree, 
+                                           *_rootedTree, 
+                                           _rootedTree->getRootNode(), 
+                                           _seqSp, _spId); 
+ /*   cout << "Rooted tree: "<<endl;
+    nhx->write(*_rootedTree, cout);
+    cout << "unrooted tree: "<<endl;
+    nhx->write(*bestTree, cout);*/
+//    std::cout<< TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
     if (bestTree) {
         delete bestTree;
         bestTree = 0;

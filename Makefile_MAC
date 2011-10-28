@@ -15,7 +15,7 @@ BOOST_LIBRARIES = /usr/local/lib
 SRC = ./
 
 
-CC = mpic++ -g -I $(BOOST_INCLUDE) 
+CC = mpic++ -m64 -g -I $(BOOST_INCLUDE) 
 
 
 

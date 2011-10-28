@@ -646,7 +646,7 @@ double computeBranchProbabilityAtRoot (double duplicationProbability, double los
     std::cout <<"ISNAN beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
   }
   if (numberOfLineages==0) {
-    std::cout <<"Error in computeBranchProbabilityAtRoot: cannot compute P(0 lineage)!"<<std::endl;
+    std::cerr <<"Error in computeBranchProbabilityAtRoot: cannot compute P(0 lineage)!"<<std::endl;
     exit(-1);
 //    return (lossProbability*beta);
   }
@@ -1161,12 +1161,12 @@ int assignSpeciesIdToLeaf(Node * node,  const std::map<std::string, std::string 
       return(sptoid->second);
     }
     else {
-      std::cout <<"Error in assignSpeciesIdToLeaf: "<< seqtosp->second <<" not found in std::map spID for sequence "<< seqtosp->first<<std::endl;
+      std::cerr <<"Error in assignSpeciesIdToLeaf: "<< seqtosp->second <<" not found in std::map spID for sequence "<< seqtosp->first<<std::endl;
       exit(-1);
     }
   }
   else {
-    std::cout <<"Error in assignSpeciesIdToLeaf: "<< node->getName() <<" not found in std::map seqSp"<<std::endl;
+    std::cerr <<"Error in assignSpeciesIdToLeaf: "<< node->getName() <<" not found in std::map seqSp"<<std::endl;
     exit(-1);
   }
 }
@@ -2032,7 +2032,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   std::vector <Node *> sons = geneRoot->getSons();
 
   if (sons.size()!=2) {
-    std::cout <<"Error: "<<sons.size()<< "sons at the root!"<<std::endl; 
+    std::cerr <<"Error: "<<sons.size()<< "sons at the root!"<<std::endl; 
   }
   LksToNodes[initialLikelihood]=sons[0];
   //We fill the likelihood and species ID data for the root node.
