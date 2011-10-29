@@ -938,13 +938,15 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                 nodeDup = "F" ; }*/
             if ( parentDup == "Y" )/* || nodeDup == "Y")*/ {
                     buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
-                    /*if (_rootedTree->getNode(nodeForSPR)->isLeaf()) {
+                  /*
+                if (_rootedTree->getNode(nodeForSPR)->isLeaf()) {
                         std::cout << "nodeForSPR: "<< _rootedTree->getNode(nodeForSPR)->getName()<<" ; "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
                     }
                     else {
                         std::cout << "nodeForSPR: "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
                     }
-                    VectorTools::print(nodeIdsToRegraft);*/
+                    VectorTools::print(nodeIdsToRegraft);
+                */
                     betterTree = false;
                     for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
                     {
@@ -968,7 +970,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                                                                        _tentativeNum1Lineages, 
                                                                        _tentativeNum2Lineages, 
                                                                        _tentativeNodesToTryInNNISearch); 
-                      //  std::cout<< "candidate tree: "<< TreeTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
+                        std::cout<< "candidate tree: "<< TreeTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
                         
                         if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
                         {
@@ -1148,10 +1150,10 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                                            *_rootedTree, 
                                            _rootedTree->getRootNode(), 
                                            _seqSp, _spId); 
- /*   cout << "Rooted tree: "<<endl;
+    cout << "Rooted tree: "<<endl;
     nhx->write(*_rootedTree, cout);
     cout << "unrooted tree: "<<endl;
-    nhx->write(*bestTree, cout);*/
+    nhx->write(*bestTree, cout);
 //    std::cout<< TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
     if (bestTree) {
         delete bestTree;
