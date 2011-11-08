@@ -1,10 +1,10 @@
-To compile and install ReconcileDuplications, two libraries are required:
+To compile and install PHYLDOG, two libraries are required:
 - Bio++
 - Boost with MPI enabled
 
-Then the program ReconcileDuplications can be compiled.
+Then the program PHYLDOG can be compiled.
 
-You can find below how the two libraries are to be installed, and then how ReconcileDuplications can be compiled.
+You can find below how the two libraries are to be installed, and then how PHYLDOGS can be compiled.
 
 ########################
 ## Bio++ installation ##
@@ -15,30 +15,22 @@ then compiled and installed in the directory INSTALLATION_DIRECTORY_BIOPP (where
 described here uses cmake, as it is the most efficient procedure for installing these libraries.
 
 In a terminal: 
-- Anonymous login:
-cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot login
-When asked for a password, just hit enter.
+git clone http://biopp.univ-montp2.fr/git/bpp-core.git
+git clone http://biopp.univ-montp2.fr/git/bpp-seq.git
+git clone http://biopp.univ-montp2.fr/git/bpp-phyl.git
 
-- Downloading the libraries:
-cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot checkout utils
-cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot checkout numcalc
-cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot checkout seqlib
-cvs -d :pserver:anoncvs@kimura.univ-montp2.fr:/usr/local/cvsroot checkout phyllib
 
-- Compilation of the libraries (beware of the order, it needs to be utils first, then numcalc, seqlib, phyllib):
-cd utils
-cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP
-make install
+- Compilation of the libraries (beware of the order, it needs to be bpp-core first, then bpp-seq, then bpp-phyl):
 
-cd ../numcalc
+cd bpp-core
 cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP 
 make install
 
-cd ../seqlib
+cd ../bpp-seq
 cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP
 make install
 
-cd ../phyllib
+cd ../bpp-phyl
 cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP
 make install
 
@@ -54,11 +46,12 @@ will be installed. In the following lines, I call INCLUDE_DIRECTORY the whole pa
 path to the "lib" directory (INSTALLATION_DIRECTORY_BOOST/lib)).
 
 The Boost libraries can be dowloaded from this link:
-http://sourceforge.net/projects/boost/files/boost/1.40.0/boost_1_40_0.tar.gz/download
+http://sourceforge.net/projects/boost/files/boost/1.47.0/boost_1_47_0.tar.gz/download
+
 
 In a terminal:
-tar zxvf boost_1_40_0.tar.gz
-cd boost_1_40_0
+tar zxvf boost_1_47_0.tar.gz
+cd boost_1_47_0
 ./bootstrap.sh --libdir=LIB_DIRECTORY --includedir=INCLUDE_DIRECTORY --prefix=INSTALLATION_DIRECTORY_BOOST --with-libraries=mpi
 ./bjam install
 
@@ -66,10 +59,10 @@ The Boost libraries should now be installed.
 
 
 #######################################
-## ReconcileDuplications compilation ##
+##       phyldog compilation         ##
 #######################################
 
-Compiling ReconcileDuplications involves first changing 4 lines in the file "Makefile_Template", and then entering "make -f Makefile_Template" in the terminal.
+Compiling phyldog involves first changing 4 lines in the file "Makefile", and then entering "make phyldog" in the terminal.
 
 The 4 lines to change in the Makefile are at the beginning of the file.
 
@@ -81,8 +74,7 @@ After "BIOPP_LIBRARIES = ", you should enter the complete path to the Biopp "lib
 
 After "BOOST_LIBRARIES = ", you should enter the complete path to the Boost "lib" directory (i.e. LIB_DIRECTORY above).
 
-Once these 4 lines have been corrected to correspond to the proper values for your system, typing "make" in the terminal should compile the 
-program, and produce an executable file "ReconcileDuplications", ready to run.
+Once these 4 lines have been corrected to correspond to the proper values for your system, typing "make phyldog" in the terminal should compile the program, and produce an executable file "phyldog", ready to run. For indications on how to run phyldog, please read the README file.
 
 
 

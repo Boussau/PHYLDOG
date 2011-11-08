@@ -343,7 +343,6 @@ void optimizeBLMapping(
   double numberOfSites = (double) tl->getNumberOfSites();
   vector<int> ids = tl->getTree().getNodesId();
   ids.pop_back(); //remove root id.
-  bool stationarity = true;
   SubstitutionRegister* reg = 0;  
   //Counting all substitutions
   reg = new TotalSubstitutionRegister(tl->getAlphabet());
@@ -437,11 +436,9 @@ void optimizeBLMappingForSPRs(
     double numberOfSites = (double) tl->getNumberOfSites();
     vector<int> ids = tl->getTree().getNodesId();
     ids.pop_back(); //remove root id.
-    bool stationarity = true;
     SubstitutionRegister* reg = 0;  
     //Counting all substitutions
     reg = new TotalSubstitutionRegister(tl->getAlphabet());
-    bool first = true;
     
     //Then, normal optimization.
     
@@ -786,12 +783,12 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
     bestlogL = startingML;
     
     while (numIterationsWithoutImprovement < geneTree->getNumberOfNodes()-1) {
-        for (int nodeForSPR=geneTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
+        for (unsigned int nodeForSPR=geneTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
             betterTree = false;
             tree = currentTree->clone();
             buildVectorOfRegraftingNodesLimitedDistance(*tree, nodeForSPR, sprLimit, nodeIdsToRegraft);
             
-            for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) {
+            for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) {
                 if (tree) {
                     delete tree;
                 }

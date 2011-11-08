@@ -264,7 +264,7 @@ bool sortMinFunction (std::pair <std::vector<std::string>, double> i, std::pair 
 void generateListOfOptionsPerClient(std::vector <std::string> listOptions, 
                                     int size, 
                                     std::vector <std::vector<std::string> > &listOfOptionsPerClient, 
-                                    std::vector <int> &numbersOfGenesPerClient);
+                                    std::vector <unsigned int> &numbersOfGenesPerClient);
 std::string removeComments(
                            const std::string & s,
                            const std::string & begin,

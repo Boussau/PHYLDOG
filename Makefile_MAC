@@ -15,8 +15,8 @@ BOOST_LIBRARIES = /usr/local/lib
 SRC = ./
 
 
-CC = mpic++ -m64 -g -I $(BOOST_INCLUDE) 
-
+#CC = mpic++ -m64 -g -Wall -I $(BOOST_INCLUDE) 
+CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
 
 
 
@@ -25,7 +25,7 @@ LL =  -L/usr/local/lib -lboost_serialization -lboost_mpi
 
 
 
-all : RearrangeGeneTreeDTL ReconcileDuplications
+all : RearrangeGeneTreeDTL phyldog
 
 ###DTL model
 
@@ -74,8 +74,8 @@ mpi_time_order.o : $(SRC)mpi_time_order.cpp  $(SRC)DTL.h $(SRC)DTL_mpi.h
 
 ####DL model only
 
-ReconcileDuplications : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o
-	$(CC) $(INCLUDE) -o ReconcileDuplications ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
+phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o
+	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
 
 ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp SpeciesTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o
 	$(CC) $(INCLUDE) -c $(SRC)ReconcileDuplications.cpp $(SRC)ReconciliationTools.h 
@@ -108,4 +108,4 @@ clean :
 	rm *.o *.gch
   
 archive : 
-	tar cfz MOGEarchive.tgz *.cpp *.h Makefile Makefile_MAC
+	tar cfz PHYLDOGarchive.tgz *.cpp *.h Makefile Makefile_MAC

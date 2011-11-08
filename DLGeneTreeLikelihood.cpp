@@ -82,6 +82,7 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
 throw (Exception):
 nniLk_(0), _spTree(0),_rootedTree(0),_seqSp(seqSp), _spId(spId)
 {
+    
     nniLk_ = new NNIHomogeneousTreeLikelihood(tree, model, rDist, checkRooted, verbose); 
     _spTree = spTree.clone();
     _rootedTree = rootedTree.clone();
@@ -148,7 +149,6 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
 throw (Exception):
 nniLk_(0), _spTree(0), _rootedTree(0), _seqSp (seqSp), _spId(spId)
 {
-    
     nniLk_ = new NNIHomogeneousTreeLikelihood(tree, data, model, rDist, checkRooted, verbose);
     _spTree = spTree.clone();
     _rootedTree = rootedTree.clone();
@@ -289,7 +289,7 @@ void DLGeneTreeLikelihood::initParameters()
     _MLindex = -1;
     // std::cout << "in ReconciliationTreeLikelihood::initParameters : _num0Lineages, _num1Lineages, _num2Lineages : "<< TextTools::toString(VectorTools::sum(_num0Lineages))<<" "<<TextTools::toString(VectorTools::sum(_num1Lineages))<<" "<< TextTools::toString(VectorTools::sum(_num2Lineages))<<std::endl;
     
-    // std::cout <<"INITIAL _scenarioLikelihood "<<_scenarioLikelihood<<std::endl;
+//    std::cout <<"INITIAL _scenarioLikelihood "<<_scenarioLikelihood <<" nniLk_->getLogLikelihood(): "<< nniLk_->getLogLikelihood()<<std::endl;
 }
 
 
@@ -454,7 +454,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     //If the NNI is around a branch where a duplication was found, 
     //or if we just try all branches because the starting gene trees are parsimonious in
     //numbers of DL.
-    if (/*(_nodesToTryInNNISearch.count(nodeId)==1) || _DLStartingGeneTree*/1) {
+    if ((_nodesToTryInNNISearch.count(nodeId)==1) /*|| _DLStartingGeneTree*/) {
         TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
         
         _tentativeMLindex = _MLindex;
@@ -481,7 +481,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         //In case of multifurcation, an arbitrary uncle is chosen.
         //If we are at root node with a trifurcation, this does not matter, since 2 NNI are possible (see doc of the NNISearchable interface).
         unsigned int parentPosition = grandFather->getSonPosition(parent);
-        const Node * uncle = grandFather->getSon(parentPosition > 1 ? 0 : 1 - parentPosition);
         
         Node * sonForNNI    = treeForNNI->getNode(nodeId);
         Node * parentForNNI = sonForNNI->getFather();
@@ -532,15 +531,16 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         
         
         delete treeForNNI;
-        //  std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< _scenarioLikelihood<<std::endl;
+       // std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< _scenarioLikelihood<<std::endl;
         if (_considerSequenceLikelihood ) 
         {
             if  (ScenarioMLValue >  _scenarioLikelihood) 
             { //If it is worth computing the sequence likelihood
                 //Retrieving arrays of interest:
-                
+               // std::cout << "before nniLk_->testNNI(nodeId);"<<std::endl;
                 double newLkMinusOldLk = nniLk_->testNNI(nodeId);
-                
+               // std::cout << "after nniLk_->testNNI(nodeId);"<<std::endl;
+
                 
                 /*
                 const DRASDRTreeLikelihoodNodeData * parentData = & nniLk_->getLikelihoodData()->getNodeData(parent->getId());
@@ -555,7 +555,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
                     parentArrays[k] = & parentData->getLikelihoodArrayForNeighbor(n->getId()); 
                     parentTProbs[k] = & pxy_[n->getId()];
                 }
-                const DRASDRTreeLikelihoodNodeData * grandFatherData = & nniLk->getLikelihoodData()->getNodeData(grandFather->getId());
+                const DRASDRTreeLikelihoodNodeData * grandFatherData = & nniLk_->getLikelihoodData()->getNodeData(grandFather->getId());
                 const VVVdouble                    * uncleArray      = & grandFatherData->getLikelihoodArrayForNeighbor(uncle->getId()); 
                 std::vector<const Node *> grandFatherNeighbors = TreeTemplateTools::getRemainingNeighbors(grandFather, parent, uncle);
                 unsigned int nbGrandFatherNeighbors = grandFatherNeighbors.size();
@@ -634,7 +634,8 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
           //      double tot = brLikFunction_->getValue() - ScenarioMLValue - temp; // -newsequencelogLk - (newscenariologLk) - (-currenttotallogLk); if <0, worth doing 
            //     if (tot<0) 
                 double tot = - ScenarioMLValue + _scenarioLikelihood + newLkMinusOldLk;
-                if (newLkMinusOldLk<0) 
+               // if (newLkMinusOldLk<0) 
+                    if (tot < 0)
                 {
                     _tentativeScenarioLikelihood=ScenarioMLValue;
                 }
@@ -677,6 +678,7 @@ void DLGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     //Perform the topological move, the likelihood array will have to be recomputed...
     
     nniLk_->doNNI(nodeId);
+
     /*
     Node * son    = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->getNode(nodeId);
     if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", nodeId);
@@ -741,7 +743,7 @@ void DLGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     
     _nodesToTryInNNISearch = _tentativeNodesToTryInNNISearch;
     
-    
+   // std::cout <<"_tentativeScenarioLikelihood: "<<_tentativeScenarioLikelihood<<std::endl;
     _scenarioLikelihood = _tentativeScenarioLikelihood;// + _brLikFunction->getValue();
     
     //Now we need to update _rootedTree
@@ -874,8 +876,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     bool betterTree;
     TreeTemplate<Node> * treeForSPR = 0;
     TreeTemplate<Node> * bestTree = 0;
-    int bestNodeForSPR;
-    int bestNodeToRegraft;
    // if (getLogLikelihood()==UNLIKELY) 
         computeReconciliationLikelihood();
     //    ReconciliationTreeLikelihood * bestTreeLogLk = this->clone();
@@ -909,7 +909,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     double bestScenarioLk = getScenarioLikelihood();
    // std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
     int numIterationsWithoutImprovement = 0;
-    double MLValue;
     NNIHomogeneousTreeLikelihood * drlk = 0;
     NNIHomogeneousTreeLikelihood * bestDrlk = 0;
     breadthFirstreNumber (*_rootedTree);
@@ -948,7 +947,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                     VectorTools::print(nodeIdsToRegraft);
                 */
                     betterTree = false;
-                    for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
+                    for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
                     {
                         if (treeForSPR) 
                         {
@@ -970,7 +969,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                                                                        _tentativeNum1Lineages, 
                                                                        _tentativeNum2Lineages, 
                                                                        _tentativeNodesToTryInNNISearch); 
-                        std::cout<< "candidate tree: "<< TreeTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
+                       // std::cout<< "candidate tree: "<< TreeTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
                         
                         if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
                         {
@@ -1152,8 +1151,8 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                                            _seqSp, _spId); 
     cout << "Rooted tree: "<<endl;
     nhx->write(*_rootedTree, cout);
-    cout << "unrooted tree: "<<endl;
-    nhx->write(*bestTree, cout);
+  /*  cout << "unrooted tree: "<<endl;
+    nhx->write(*bestTree, cout);*/
 //    std::cout<< TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
     if (bestTree) {
         delete bestTree;
@@ -1163,6 +1162,59 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
 }
 
 
+
+
+/************************************************************************
+ * Tries all NNIs, and accepts NNIs that improve the likelihood as soon as
+ * they have been tried.
+ ************************************************************************/
+void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsigned int verbose ) {
+    bool test = true;
+    do
+    { 
+        TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
+        vector<Node *> nodes = tree->getNodes();
+        
+        vector<Node *> nodesSub = nodes;
+        for(unsigned int i = nodesSub.size(); i>0; i--)
+        {
+            // !!! must not reach i==0 because of unsigned int
+            if(!(nodesSub[i-1]->hasFather())) nodesSub.erase(nodesSub.begin()+i-1);//Remove root node.      
+            else if(!(nodesSub[i-1]->getFather()->hasFather())) nodesSub.erase(nodesSub.begin()+i-1);//Remove son of root node.     
+        }
+        
+        // Test all NNIs:
+        test = false;
+        for(unsigned int i = 0; !test && i < nodesSub.size(); i++)
+        {
+            Node* node = nodesSub[i];
+            double diff = testNNI(node->getId());
+            if(verbose >= 3)
+            {
+                ApplicationTools::displayResult("   Testing node " + TextTools::toString(node->getId())
+                                                + " at " + TextTools::toString(node->getFather()->getId()),
+                                                TextTools::toString(diff));
+            }
+            
+            if(diff < 0.)
+            { //Good NNI found...
+                if(verbose >= 2)
+                {
+                    ApplicationTools::displayResult("   Swapping node " + TextTools::toString(node->getId())
+                                                    + " at " + TextTools::toString(node->getFather()->getId()),
+                                                    TextTools::toString(diff));
+                }
+                doNNI(node->getId());
+                test = true;
+                nniLk_->topologyChangeTested( 	TopologyChangeEvent ());
+                nniLk_->topologyChangeSuccessful( 	TopologyChangeEvent ());
+                if(verbose >= 1)
+                    ApplicationTools::displayResult("   Current value", TextTools::toString(getValue(), 10));
+            }
+        }
+    }
+    while(test);
+}
 
 
 

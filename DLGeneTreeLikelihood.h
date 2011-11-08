@@ -310,8 +310,14 @@ namespace bpp
          * and executes the ones with the highest likelihood. 
          ************************************************************************/
         void refineGeneTreeSPRs(map<string, string> params);
-        
-        
+
+        /************************************************************************
+         * Tries all NNIs, and accepts NNIs that improve the likelihood as soon as
+         * they have been tried.
+         ************************************************************************/
+
+        void refineGeneTreeNNIs(map<string, string> params, unsigned int verbose = 0);
+
         
         
     };

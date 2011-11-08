@@ -4,7 +4,6 @@ BOOST_INCLUDE = /usr/local/include/boost
 #Where the include files for Bio++ can be found:
 BIOPP_INCLUDE = /usr/local/include
 
-
 #Where the Bio++ libraries can be found:
 BIOPP_LIBRARIES = /usr/local/lib
 
@@ -14,18 +13,16 @@ BOOST_LIBRARIES = /usr/local/lib
 #Where the sources are:
 SRC = ./
 
+#Debugging compilation options
+#CC = mpic++ -m64 -g -Wall -I $(BOOST_INCLUDE) 
 
-CC = mpic++ -g -I $(BOOST_INCLUDE) 
-
-
+#Efficient compilation options
+CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
 
 
 LL =  -L/usr/local/lib -lboost_serialization -lboost_mpi
 
-
-
-
-all : RearrangeGeneTreeDTL ReconcileDuplications
+all : RearrangeGeneTreeDTL phyldog
 
 ###DTL model
 
@@ -74,8 +71,12 @@ mpi_time_order.o : $(SRC)mpi_time_order.cpp  $(SRC)DTL.h $(SRC)DTL_mpi.h
 
 ####DL model only
 
-ReconcileDuplications : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o
-	$(CC) $(INCLUDE) -o ReconcileDuplications ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
+#phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o
+phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o                                                                                                                                                                                                              
+
+#	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
+
+	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
 
 ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp SpeciesTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o
 	$(CC) $(INCLUDE) -c $(SRC)ReconcileDuplications.cpp $(SRC)ReconciliationTools.h 
@@ -86,8 +87,12 @@ GeneTreeAlgorithms.o : $(SRC)GeneTreeAlgorithms.cpp $(SRC)GeneTreeAlgorithms.h R
 SpeciesTreeLikelihood.o : $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
 	$(CC) $(INCLUDE) -c $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
 
-ReconciliationTreeLikelihood.o : $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h ReconciliationTools.o $(SRC)GenericTreeExplorationAlgorithms.h
-	$(CC) $(INCLUDE) -c $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h $(SRC)ReconciliationTools.h 
+DLGeneTreeLikelihood.o : $(SRC)DLGeneTreeLikelihood.cpp $(SRC)DLGeneTreeLikelihood.h ReconciliationTools.o $(SRC)GenericTreeExplorationAlgorithms.h
+	$(CC) $(INCLUDE) -c $(SRC)DLGeneTreeLikelihood.cpp $(SRC)DLGeneTreeLikelihood.h $(SRC)ReconciliationTools.h 
+
+
+#ReconciliationTreeLikelihood.o : $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h ReconciliationTools.o $(SRC)GenericTreeExplorationAlgorithms.h
+#	$(CC) $(INCLUDE) -c $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h $(SRC)ReconciliationTools.h 
 
 SpeciesTreeExploration.o : $(SRC)SpeciesTreeExploration.cpp $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h GenericTreeExplorationAlgorithms.o
 	$(CC) $(INCLUDE) -c $(SRC)SpeciesTreeExploration.cpp $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
@@ -98,10 +103,16 @@ GenericTreeExplorationAlgorithms.o : $(SRC)GenericTreeExplorationAlgorithms.cpp 
 ReconciliationTools.o : $(SRC)ReconciliationTools.cpp $(SRC)ReconciliationTools.h 
 	$(CC) $(INCLUDE) -c $(SRC)ReconciliationTools.cpp $(SRC)ReconciliationTools.h 
 
-  
-  
+
+### Other useful commands
 clean :
 	rm *.o *.gch
   
 archive : 
-	tar cfz MOGEarchive.tgz *.cpp *.h Makefile Makefile_MAC
+	tar cfz archive.tgz *.cpp *.h Makefile Makefile_MAC INSTALL README
+
+phyldogarchive :
+	mkdir PHYLDOGArchive
+	cp ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp Makefile INSTALL README PHYLDOGArchive
+	tar cfz PHYLDOGArchive.tgz PHYLDOGArchive
+#ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp Makefile

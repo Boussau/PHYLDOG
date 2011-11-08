@@ -284,8 +284,8 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                         std::map <std::string, int> genomeMissing, 
                                                                         TreeTemplate<Node> &tree, double & bestlogL);
 void firstCommunicationsServerClient (const mpi::communicator & world, 
-                                      int & server, std::vector <int>  & numbersOfGenesPerClient, 
-                                      int & assignedNumberOfGenes, 
+                                      int & server, std::vector <unsigned int>  & numbersOfGenesPerClient, 
+                                      unsigned int & assignedNumberOfGenes, 
                                       std::vector<std::string> & assignedFilenames, 
                                       std::vector <std::vector<std::string> > & listOfOptionsPerClient, 
                                       bool & optimizeSpeciesTreeTopology, int & SpeciesNodeNumber, 

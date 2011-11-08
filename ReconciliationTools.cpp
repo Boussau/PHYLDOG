@@ -64,7 +64,7 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
   std::vector <double> lossProba=lossProbabilities;
   std::vector <Node * > nodes = tree.getNodes();
   //All nodes white
-  for (int i = 0; i< nodes.size() ; i++) {
+  for (unsigned int i = 0; i< nodes.size() ; i++) {
     color.insert(std::pair <Node *,int>(nodes[i],0));
   }
   std::queue <Node *> toDo;
@@ -86,10 +86,10 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
     toDo.pop();
     int fatherDepth = IdsToDepths[u->getId()];
     std::vector <Node *> sons;
-    for (int j = 0 ; j< u->getNumberOfSons() ; j++) {
+    for (unsigned int j = 0 ; j< u->getNumberOfSons() ; j++) {
       sons.push_back(u->getSon(j));
     }
-    for (int j = 0; j< sons.size() ; j++) {
+    for (unsigned int j = 0; j< sons.size() ; j++) {
       if (color[sons[j]]==0) {
 	color[sons[j]]=1;
 	dupValue=duplicationProbabilities[sons[j]->getId()];
@@ -122,7 +122,7 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
   std::map <int, int > IdsToDepths;
   std::vector <Node * > nodes = tree.getNodes();
   //All nodes white
-  for (int i = 0; i< nodes.size() ; i++) {
+  for (unsigned int i = 0; i< nodes.size() ; i++) {
     color.insert(std::pair <Node *,int>(nodes[i],0));
   }
   std::queue <Node *> toDo;
@@ -140,10 +140,10 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
     toDo.pop();
     int fatherDepth = IdsToDepths[u->getId()];
     std::vector <Node *> sons;
-    for (int j = 0 ; j< u->getNumberOfSons() ; j++) {
+    for (unsigned int j = 0 ; j< u->getNumberOfSons() ; j++) {
       sons.push_back(u->getSon(j));
     }
-    for (int j = 0; j< sons.size() ; j++) {
+    for (unsigned int j = 0; j< sons.size() ; j++) {
       if (color[sons[j]]==0) {
 	color[sons[j]]=1;
 	sons[j]->setId(index);
@@ -194,7 +194,7 @@ void resetLossesAndDuplications(TreeTemplate<Node> & tree, /*std::vector <int> &
   std::vector< int > nodesIds = tree.getNodesId ();
 //  Number<int> zero = Number<int>(0);
   BppString zero = BppString(TextTools::toString(0));
-  for (int i=0; i<nodesIds.size(); i++) {
+  for (unsigned int i=0; i<nodesIds.size(); i++) {
     changeBranchProperty(*(tree.getNode(nodesIds[i])),LOSSES, zero);
     changeBranchProperty(*(tree.getNode(nodesIds[i])),DUPLICATIONS, zero);
     /*lossNumbers[nodesIds[i]] = 0;
@@ -207,7 +207,7 @@ void resetLossesDuplicationsSpeciations(TreeTemplate<Node> & tree, std::vector <
  // Number<int> zero = Number<int>(0);
   BppString zero = BppString(TextTools::toString(0));
 
-  for (int i=0; i<nodesIds.size(); i++) {
+  for (unsigned int i=0; i<nodesIds.size(); i++) {
     changeBranchProperty(*(tree.getNode(nodesIds[i])),LOSSES, zero);
     changeBranchProperty(*(tree.getNode(nodesIds[i])),DUPLICATIONS, zero);
     lossNumbers[nodesIds[i]] = 0;
@@ -219,14 +219,14 @@ void resetLossesDuplicationsSpeciations(TreeTemplate<Node> & tree, std::vector <
 
 
 void resetLossesDuplicationsSpeciationsForGivenNodes(TreeTemplate<Node> & tree, std::vector <int> & lossNumbers, std::vector <double> & lossProbabilities, std::vector <int> & duplicationNumbers, std::vector <double> & duplicationProbabilities, std::vector <int> & branchNumbers, std::vector <int> nodesToUpdate, std::map <int, std::vector<int> > & geneNodeIdToLosses, std::map <int, int > & geneNodeIdToDuplications, std::map <int, std::vector<int> > & geneNodeIdToSpeciations){
-    for (int i=0; i<nodesToUpdate.size(); i++) {
-      int size = geneNodeIdToLosses[nodesToUpdate[i]].size();
-      for (int j = 0 ; j< size ; j++) {
+    for (unsigned int i=0; i<nodesToUpdate.size(); i++) {
+      unsigned int size = geneNodeIdToLosses[nodesToUpdate[i]].size();
+      for (unsigned int j = 0 ; j< size ; j++) {
         lossNumbers[geneNodeIdToLosses[nodesToUpdate[i]][j]]--;
         changeBranchProperty(*(tree.getNode(geneNodeIdToLosses[nodesToUpdate[i]][j])),LOSSES, BppString(TextTools::toString((lossNumbers[geneNodeIdToLosses[nodesToUpdate[i]][j]]))));
       }
       size = geneNodeIdToSpeciations[nodesToUpdate[i]].size();
-      for (int j = 0 ; j< size ; j++) {
+      for (unsigned int j = 0 ; j< size ; j++) {
 	branchNumbers[geneNodeIdToSpeciations[nodesToUpdate[i]][j]]--;
       }
       if (geneNodeIdToDuplications[nodesToUpdate[i]] != -1) {
@@ -244,38 +244,38 @@ void resetLossesDuplicationsSpeciationsForGivenNodes(TreeTemplate<Node> & tree, 
  **************************************************************************/
 
 void printVector(std::vector<int> & v) {
-  int temp=v.size();
-  for (int i=0;i<temp ; i++) {
+  unsigned int temp=v.size();
+  for (unsigned int i=0;i<temp ; i++) {
     std::cout <<  "i : "<<i<< " vi : "<< v[i]<<std::endl;
   }
 }
 
 void printVectorLine(std::vector<int> & v) {
-  int temp=v.size();
-  for (int i=0;i<temp ; i++) {
+  unsigned int temp=v.size();
+  for (unsigned int i=0;i<temp ; i++) {
     std::cout <<  "i : "<<i<< " vi : "<< v[i]<<" ";
   }
   std::cout <<std::endl;
 }
 
 void resetVector(std::vector<int> & v) {
-  int temp=v.size();
-  for (int i=0;i<temp ; i++) {
+  unsigned int temp=v.size();
+  for (unsigned int i=0;i<temp ; i++) {
     v[i]=0;
   }
 }
 
 void resetVector(std::vector<double> & v) {
-  int temp=v.size();
-  for (int i=0;i<temp ; i++) {
+  unsigned int temp=v.size();
+  for (unsigned int i=0;i<temp ; i++) {
     v[i]=0.0;
   }
 }
 
 
 void resetVectorForGivenNodes(std::vector<int> & v, std::vector <int> nodesToUpdate) {
-  int temp=nodesToUpdate.size();
-  for (int i=0;i<temp ; i++) {
+  unsigned int temp=nodesToUpdate.size();
+  for (unsigned int i=0;i<temp ; i++) {
     v[nodesToUpdate[i]]=0;
   }
 }
@@ -285,27 +285,27 @@ void resetVectorForGivenNodes(std::vector<int> & v, std::vector <int> nodesToUpd
  **************************************************************************/
 void resetSpeciesIds (TreeTemplate<Node> & tree) {
   std::vector <Node *> nodes = tree.getNodes();
-  for (int i = 0; i< nodes.size() ; i++) {
+  for (unsigned int i = 0; i< nodes.size() ; i++) {
     changeNodeProperty(*(nodes[i]), SPECIESID, Number<int>(-1));
   }
 }
 
 void resetSpeciesIdsForGivenNodes (TreeTemplate<Node> & tree, std::vector<int > nodesToUpdate, std::vector <int> & removedNodeIds) {
-  for (int i = 0; i< nodesToUpdate.size() ; i++) {
+  for (unsigned int i = 0; i< nodesToUpdate.size() ; i++) {
     removedNodeIds.push_back((dynamic_cast<const Number<int> *>(tree.getNode(nodesToUpdate[i])->getNodeProperty(SPECIESID))->getValue())); 
     changeNodeProperty(*(tree.getNode(nodesToUpdate[i])), SPECIESID, Number<int>(-1));
   }
 }
 
  void resetSpeciesIdsForGivenNodes (TreeTemplate<Node> & tree, std::vector<int > nodesToUpdate) {
-  for (int i = 0; i< nodesToUpdate.size() ; i++) {
+  for (unsigned int i = 0; i< nodesToUpdate.size() ; i++) {
     changeNodeProperty(*(tree.getNode(nodesToUpdate[i])), SPECIESID, Number<int>(-1));
   }
 }
  
 void resetSpeciesIdsAndLiks (TreeTemplate<Node> & tree) {
   std::vector <Node *> nodes = tree.getNodes();
-  for (int i = 0; i< nodes.size() ; i++) {
+  for (unsigned int i = 0; i< nodes.size() ; i++) {
     changeNodeProperty(*(nodes[i]), SPECIESID, Number<int>(-1));
     changeNodeProperty(*(nodes[i]), LOWLIK, Number<double>(1.0));  
     changeBranchProperty(*(nodes[i]),EVENTSPROBA, Number<double>(1.0)); 
@@ -313,7 +313,7 @@ void resetSpeciesIdsAndLiks (TreeTemplate<Node> & tree) {
 }
 
 void resetSpeciesIdsAndLiksForGivenNodes (TreeTemplate<Node> & tree, std::vector<int > nodesToUpdate, std::vector <int> & removedNodeIds) {
-  for (int i = 0; i< nodesToUpdate.size() ; i++) {
+  for (unsigned int i = 0; i< nodesToUpdate.size() ; i++) {
     removedNodeIds.push_back((dynamic_cast<const Number<int> *>(tree.getNode(nodesToUpdate[i])->getNodeProperty(SPECIESID))->getValue())); 
     changeNodeProperty(*(tree.getNode(nodesToUpdate[i])), SPECIESID, Number<int>(-1));
     changeNodeProperty( *(tree.getNode(nodesToUpdate[i])), LOWLIK, Number<double>(1.0));  
@@ -322,7 +322,7 @@ void resetSpeciesIdsAndLiksForGivenNodes (TreeTemplate<Node> & tree, std::vector
 }
 
  void resetSpeciesIdsAndLiksForGivenNodes (TreeTemplate<Node> & tree, std::vector<int > nodesToUpdate) {
-  for (int i = 0; i< nodesToUpdate.size() ; i++) {
+  for (unsigned int i = 0; i< nodesToUpdate.size() ; i++) {
     changeNodeProperty(*(tree.getNode(nodesToUpdate[i])), SPECIESID, Number<int>(-1));
     changeNodeProperty( *(tree.getNode(nodesToUpdate[i])), LOWLIK, Number<double>(1.0));  
     changeBranchProperty(*(tree.getNode(nodesToUpdate[i])), EVENTSPROBA, Number<double>(1.0));
@@ -527,7 +527,7 @@ void computeDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> num
   //At branch 0, by definition, we never count cases where there has been a loss, so we set it to an average value.
   numOGenes[0] = (int)floor( ((double)totNum0/(double)totNum12)*((double)num1Genes[0]+(double)num2Genes[0]));
   */
-  for (int i =0 ; i< lossProbabilities.size() ; i++) {
+  for (unsigned int i =0 ; i< lossProbabilities.size() ; i++) {
     computeDuplicationAndLossProbabilities (numOGenes[i], num1Genes[i], num2Genes[i], lossProbabilities[i], duplicationProbabilities[i]);
     }
   return;
@@ -1107,7 +1107,7 @@ void setLossesAndDuplications(TreeTemplate<Node> & tree,
                               std::vector <int> &duplicationNumbers) {
   std::vector< int > nodesIds = tree.getNodesId ();
 
-  for (int i=0; i<nodesIds.size(); i++) {
+  for (unsigned int i=0; i<nodesIds.size(); i++) {
     if(tree.hasBranchProperty(nodesIds[i], LOSSES)) {
       tree.getNode(nodesIds[i])->deleteBranchProperty(LOSSES);
     }
@@ -1128,7 +1128,7 @@ void assignNumLineagesOnSpeciesTree(TreeTemplate<Node> & tree,
                               std::vector <int> &num2Lineages) {
   std::vector< int > nodesIds = tree.getNodesId ();
   std::string nums = "";
-  for (int i=0; i<nodesIds.size(); i++) {
+  for (unsigned int i=0; i<nodesIds.size(); i++) {
     if(tree.hasBranchProperty(nodesIds[i], NUMLINEAGES)) {
       tree.getNode(nodesIds[i])->deleteBranchProperty(NUMLINEAGES);
     }
@@ -1319,8 +1319,6 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
                                                  int & son1DupData,
                                                  bool atRoot) {
   if (rootLikelihood == 0.0) {
-    int idSon0 = sons[0]->getId();
-    int idSon1 = sons[1]->getId();
     int a, a0, olda;
     int b, b0, oldb;
     a = a0 = olda = son0SpId;
@@ -1486,13 +1484,13 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
   }
   else {
     std::vector <Node *> sons = node->getSons();
-    for (int i = 0; i< sons.size(); i++){
+    for (unsigned int i = 0; i< sons.size(); i++){
       computeSubtreeLikelihoodPostorder(spTree, geneTree, sons[i], seqSp, spID, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData);
     }
     
     int idSon0 = sons[0]->getId();
     int idSon1 = sons[1]->getId();
-    unsigned int directionSon0, directionSon1, directionFather;
+    unsigned int directionSon0, directionSon1;
     std::vector <Node *> neighbors = sons[0]->getNeighbors();
     for (unsigned int i=0; i<neighbors.size(); i++) {
       if (neighbors[i]==node) {
@@ -1650,7 +1648,7 @@ void computeSubtreeLikelihoodPreorder(TreeTemplate<Node> & spTree,
     son= node->getSon(0);
   }
 //  for (int i = 0; i< sons.size(); i++){
-    for (int j =0; j<son->getNumberOfSons(); j++) {
+    for (unsigned int j =0; j<son->getNumberOfSons(); j++) {
       computeSubtreeLikelihoodPreorder(spTree, geneTree, son, seqSp, spID, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData, j, LksToNodes);
     }
 //  }
@@ -1779,8 +1777,6 @@ void computeNumbersOfLineagesInASubtree(TreeTemplate<Node> & tree,
                                           std::vector <int> &num1lineages, 
                                           std::vector <int> &num2lineages, 
                                           std::set <int> &branchesWithDuplications) {
-  int idSon0 = sons[0]->getId();
-  int idSon1 = sons[1]->getId();
   int a, a0, olda;
   int b, b0, oldb;
   a = a0 = olda = son0SpId;
@@ -1944,13 +1940,13 @@ void computeNumbersOfLineagesFromRoot(TreeTemplate<Node> * spTree,
   }
   else {
     std::vector <Node *> sons = node->getSons();
-    for (int i = 0; i< sons.size(); i++){
+    for (unsigned int i = 0; i< sons.size(); i++){
       computeNumbersOfLineagesFromRoot(spTree, geneTree, sons[i], seqSp, spID, num0lineages, num1lineages, num2lineages, speciesIDs, dupData, branchesWithDuplications);
     }
     
     int idSon0 = sons[0]->getId();
     int idSon1 = sons[1]->getId();
-    unsigned int directionSon0, directionSon1, directionFather;
+    unsigned int directionSon0, directionSon1;
     std::vector <Node *> neighbors = sons[0]->getNeighbors();
     for (unsigned int i=0; i<neighbors.size(); i++) {
       if (neighbors[i]==node) {
@@ -2001,7 +1997,6 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
                                std::set <int> &nodesToTryInNNISearch, 
                                bool fillTables)
 {
-  double MLRooting;  
 	if (!geneTree->isRooted()) {
 		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
 		std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliationDR !!!!!!"<<std::endl;
@@ -2053,8 +2048,8 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   }
   */
 
-  for (int i = 0; i< sons.size(); i++){
-    for (int j =0; j<sons[i]->getNumberOfSons(); j++) {
+  for (unsigned int i = 0; i< sons.size(); i++){
+    for (unsigned int j =0; j<sons[i]->getNumberOfSons(); j++) {
       computeSubtreeLikelihoodPreorder(*spTree, *geneTree, sons[i], seqSp, spID, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData, j, LksToNodes);
     }
   }
@@ -2323,7 +2318,7 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
   int avg2 = (int)avg2d;
     
   if (average) {
-    for (int i =0; i<num0lineages.size(); i++) {
+    for (unsigned int i =0; i<num0lineages.size(); i++) {
       num0lineages[i]=avg0;
       num1lineages[i]=avg1;
       num2lineages[i]=avg2;
@@ -2332,7 +2327,7 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
   else {
     //At branch 0 and branches surrounding the root, by definition, we never count cases where there has been a loss, so we set it to an average value.
     //We also put all num0, num1, and num2 values at the average values computed above.
-    for (int i =0; i<num0lineages.size(); i++) {
+    for (unsigned int i =0; i<num0lineages.size(); i++) {
       if (num0lineages[i] == 0) {
         num0lineages[i]=avg0;
         num1lineages[i]=avg1;
@@ -2430,7 +2425,7 @@ void alterLineageCountsWithCoveragesInitially(std::vector <int> & num0lineages, 
 
 
 void resetLineageCounts(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages) {  
-  for (int i =0; i<num0lineages.size(); i++) {
+  for (unsigned int i =0; i<num0lineages.size(); i++) {
     num0lineages[i]=267;
     num1lineages[i]=723;
     num2lineages[i]=1;
@@ -2470,7 +2465,7 @@ void deleteTreeProperties(TreeTemplate<Node> & tree) {
 std::map <std::string, int> computeSpeciesNamesToIdsMap (TreeTemplate<Node> & tree) {
   std::map <std::string, int> spId;
   std::vector <Node *> nodes = tree.getNodes();
-  for (int i = 0; i< nodes.size() ; i++) {
+  for (unsigned int i = 0; i< nodes.size() ; i++) {
     if (nodes[i]->isLeaf()) {
       spId[nodes[i]->getName()] = nodes[i]->getId(); 
     }
@@ -2486,7 +2481,7 @@ void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOp
   //outputting trees with branch lengths in numbers of events, before correction.
   computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossExpectedNumbers, duplicationExpectedNumbers);
   std::cout << "Species tree with expected numbers of duplications as branch lengths:"<<std::endl;
-  for (int i =0; i<num0Lineages.size() ; i++ ) 
+  for (unsigned int i =0; i<num0Lineages.size() ; i++ ) 
     {
     tree.getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationExpectedNumbers[i]));
     if (tree.getNode(i)->hasFather()) 
@@ -2496,7 +2491,7 @@ void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOp
     }
   std::cout << treeToParenthesisWithDoubleNodeValues(tree, false, "DUPLICATIONS")<<std::endl;
   std::cout << "Species tree with expected numbers of losses as branch lengths:"<<std::endl;
-  for (int i =0; i<num0Lineages.size() ; i++ ) 
+  for (unsigned int i =0; i<num0Lineages.size() ; i++ ) 
     {
     tree.getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers[i]));
     if (tree.getNode(i)->hasFather()) 
@@ -2535,7 +2530,6 @@ void removeLeaf(TreeTemplate<Node> & tree, std::string toRemove){
   if (!NToRemove->hasFather()) {
    // std::cout <<"node is root !!!!!"<<std::endl; 
     Node * father = NToRemove->getSon(0);
-    Node * son0 = father->getSon(0);
     Node * son1 = father->getSon(1);
     father->removeFather();
     tree.newOutGroup(son1->getId());
@@ -2547,7 +2541,7 @@ void removeLeaf(TreeTemplate<Node> & tree, std::string toRemove){
   Node * father = NToRemove->getFather();
  // std::cout <<"in removeLeaf 3"<<std::endl;
   Node * brother;
-  for(int i=0;i<father->getNumberOfSons();i++)
+  for(unsigned int i=0;i<father->getNumberOfSons();i++)
     if(father->getSon(i)!=NToRemove){brother=father->getSon(i); break;}
  // std::cout <<"in removeLeaf 4"<<std::endl;
   double distBro;
@@ -2563,7 +2557,7 @@ void removeLeaf(TreeTemplate<Node> & tree, std::string toRemove){
     tree.rootAt(brother->getId());
    // std::cout <<"After rootAt"<<std::endl;
     //tree.newOutGroup(brother->getSon(0)->getId());
-    for (int i = 0; i<brother->getNumberOfSons(); i++) {
+    for (unsigned int i = 0; i<brother->getNumberOfSons(); i++) {
       if ( brother->getSon(i)==NToRemove) {
         brother->removeSon(i);
         break;
@@ -2584,7 +2578,7 @@ void removeLeaf(TreeTemplate<Node> & tree, std::string toRemove){
   Node * grandFather = father->getFather();
   grandFather->addSon(brother);
   brother->setDistanceToFather(distBro+distFa);
-  for(int i=0;i<grandFather->getNumberOfSons();i++)
+  for(unsigned int i=0;i<grandFather->getNumberOfSons();i++)
     if(grandFather->getSon(i)==father){grandFather->removeSon(i); break;}
   /*if (!grandFather->hasFather()) {
     tree.newOutGroup(grandFather->getSon(0)->getId());
@@ -2671,14 +2665,14 @@ bool sortMinFunction (std::pair <std::vector<std::string>, double> i, std::pair 
 
 
 
-void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int size, std::vector <std::vector<std::string> > &listOfOptionsPerClient, std::vector <int> &numbersOfGenesPerClient) 
+void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int size, std::vector <std::vector<std::string> > &listOfOptionsPerClient, std::vector <unsigned int> &numbersOfGenesPerClient) 
 {
   //Here, two alternatives: either we do have information regarding the gene family sizes, or we don't.
   //Is there size information?==Is there a ":" in the first line?
   if (TextTools::hasSubstring(listOptions[0],":")) 
     {
     std::vector <std::pair <std::string, double> > elements;
-    for (int i = 0; i<listOptions.size() ; i++) {
+    for (unsigned int i = 0; i<listOptions.size() ; i++) {
       StringTokenizer st1 = StringTokenizer::StringTokenizer (listOptions[i], ":", true);
       elements.push_back(std::pair <std::string, double>(st1.getToken(0), TextTools::toDouble(st1.getToken(1))) );
     }
@@ -2692,7 +2686,7 @@ void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int s
     
     std::vector<std::string> temp2;
     std::pair <std::vector<std::string>, double> temp3;
-    int j = 0;
+    unsigned int j = 0;
     
     for (int i = 0; i<size-1 ; i++) {
       listOfOptionsAndTotSizePerClient.push_back(temp3);
@@ -2716,7 +2710,7 @@ void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int s
     numbersOfGenesPerClient.push_back(0);
     
     //We print the result of the assignment and fill listOfOptionsPerClient:
-    for (int i = 0; i<size-1 ; i++) {
+    for ( int i = 0; i<size-1 ; i++) {
       std::cout <<"Client "<<i<<" is in charge of "<< listOfOptionsAndTotSizePerClient[i].first.size()<<" gene families; Total Weight : "<<listOfOptionsAndTotSizePerClient[i].second<<std::endl;
       listOfOptionsPerClient.push_back(listOfOptionsAndTotSizePerClient[i].first);
       numbersOfGenesPerClient.push_back(listOfOptionsAndTotSizePerClient[i].first.size());
@@ -2740,7 +2734,7 @@ void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int s
         numbersOfGenesPerClient.push_back(numberOfGenesPerClient);
         }
       } 
-    std::vector<int>::iterator it2 = numbersOfGenesPerClient.begin();
+    std::vector<unsigned int>::iterator it2 = numbersOfGenesPerClient.begin();
     numbersOfGenesPerClient.insert( it2, int(0) ); //For the server, we insert a "dumb" option file at the beginning of the std::vector, so only clients compute the reconciliation
     int currentFile = 0;
     std::vector<std::string> temp2;
@@ -2753,7 +2747,7 @@ void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int s
         }
       else 
         {
-        for (int j = 0 ; j < numbersOfGenesPerClient[i] ; j++) 
+        for (unsigned int j = 0 ; j < numbersOfGenesPerClient[i] ; j++) 
           {
           listOfOptionsPerClient[i].push_back(listOptions[currentFile]);
           currentFile++;
@@ -2813,15 +2807,14 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
                                             std::map<std::string, std::string > seqSp,
                                             std::map<std::string, int > spID) 
 {
-  int id=node->getId();
  	if (node->isLeaf()) {
     node->setNodeProperty("S", BppString(TextTools::toString(assignSpeciesIdToLeaf(node, seqSp, spID))));
-    node->setNodeProperty("D", BppString("N"));
+    node->setBranchProperty("Ev", BppString("S"));
     return;
   }
   else {
     std::vector <Node *> sons = node->getSons();
-    for (int i = 0; i< sons.size(); i++){
+    for (unsigned int i = 0; i< sons.size(); i++){
       annotateGeneTreeWithDuplicationEvents(spTree, geneTree, sons[i], seqSp, spID);
     }
     
@@ -2841,11 +2834,11 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
     node->setNodeProperty("S", BppString(TextTools::toString(a)));
     if ((a == aold ) || (a == bold))
       {
-        node->setNodeProperty("D", BppString("Y"));
+        node->setBranchProperty("Ev", BppString("D"));
       }
     else 
       {
-        node->setNodeProperty("D", BppString("N"));
+        node->setBranchProperty("Ev", BppString("S"));
       }
     return;
 	}

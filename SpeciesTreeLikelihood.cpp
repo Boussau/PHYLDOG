@@ -21,7 +21,7 @@ void SpeciesTreeLikelihood::updateDuplicationAndLossExpectedNumbers()
   double d = getParameterValue("coefDup");
   duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_ * d;
   double l = getParameterValue("coefLoss");
-  lossExpectedNumbers_ = backupLossExpectedNumbers_ * d;
+  lossExpectedNumbers_ = backupLossExpectedNumbers_ * l;
 }
 
 /*******************************************************************************/
@@ -69,7 +69,7 @@ void SpeciesTreeLikelihood::initialize()
   std::cout << "\t\tServer: total initial Likelihood value "<<logL_<<std::endl;
   bestlogL_ = logL_;
   ApplicationTools::displayTime("Execution time so far:");
-  for (int i =0; i<num0Lineages_.size() ; i++ ) {
+  for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) {
     std::cout <<"branch Number#"<< i<<"Expected numbers:  dup: "<< duplicationExpectedNumbers_[i]<<" loss: "<< lossExpectedNumbers_[i]<<std::endl;
   }
   bestNum0Lineages_ = num0Lineages_;
@@ -164,7 +164,12 @@ void SpeciesTreeLikelihood::parseOptions()
   // Try to write the current tree to file. This will be overwritten by the optimized tree,
   // but allows to check file existence before running optimization!
 
-  PhylogeneticsApplicationTools::writeTree(*tree_, params_, "", "", true, false, true);
+    file = ApplicationTools::getStringParameter("output.tree.file", params_, "output.tree");
+    
+    newick.write(*tree_, file, true);
+
+    
+ // PhylogeneticsApplicationTools::writeTree(*tree_, params_, "", "", true, false, true);
 
   speciesTreeNodeNumber_ = tree_->getNumberOfNodes();
   
@@ -177,7 +182,7 @@ void SpeciesTreeLikelihood::parseOptions()
    *****************************************************************************/
   optimizeSpeciesTreeTopology_ = ApplicationTools::getBooleanParameter("optimization.topology", params_, false, "", true, false);
   branchExpectedNumbersOptimization_ = ApplicationTools::getStringParameter("branch.expected.numbers.optimization",params_,"average");
-  std::cout << "Branch expected numbers of duplications and losses: "<<branchExpectedNumbersOptimization_ <<std::endl;
+  std::cout << "Optimization of the branch-wise expected numbers of duplications and losses: "<<branchExpectedNumbersOptimization_ <<std::endl;
   if ((branchExpectedNumbersOptimization_!="average")&&(branchExpectedNumbersOptimization_!="branchwise")&&
       (branchExpectedNumbersOptimization_!="average_then_branchwise")&&(branchExpectedNumbersOptimization_!="no")) 
     {
@@ -293,7 +298,7 @@ void SpeciesTreeLikelihood::parseOptions()
     TreeTemplate<Node> * treeL = dynamic_cast < TreeTemplate < Node > * > (newick.read(spTreeLossFile));
     breadthFirstreNumber (*treeL);
 
-    for (int i = 0 ; i < treeD->getNumberOfNodes() ; i++)
+    for (unsigned int i = 0 ; i < treeD->getNumberOfNodes() ; i++)
       {
        if (treeD->getNode(i)->hasFather()) 
          {
@@ -314,7 +319,7 @@ void SpeciesTreeLikelihood::parseOptions()
   bestIndex_ = 0;
   index_ = 0; 
   //vector to keep NNIs likelihoods, for making aLRTs.
-  for (int i = 0 ; i <tree_->getNumberOfNodes() ; i ++)
+  for (unsigned int i = 0 ; i <tree_->getNumberOfNodes() ; i ++)
     {
     NNILks_.push_back(NumConstants::VERY_BIG);
     rootLks_.push_back(NumConstants::VERY_BIG);
@@ -361,7 +366,7 @@ void SpeciesTreeLikelihood::parseOptions()
     std::cout << "\n\nThere should be at least one option file specified in the list of option files !"<<std::endl;
     exit(-1);
     }
-  else if (listOptions.size() < size_ -1) 
+  else if (listOptions.size() + 1 < size_ ) 
     {
     std::cout << "You want to use more nodes than (gene families+1). This is not possible (and useless). Please decrease the number of processors to use."<<std::endl;
     exit(-1);
@@ -477,7 +482,7 @@ void SpeciesTreeLikelihood::MLSearch()
                         lossExpectedNumbers_ = backupLossExpectedNumbers_;
                         duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_;
                     }
-                    for (int i =0; i<num0Lineages_.size() ; i++ ) 
+                    for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
                     {
                         std::cout <<"branch Number#"<< i<<"Expected numbers:  dup: "<< duplicationExpectedNumbers_[i]<<" loss: "<< lossExpectedNumbers_[i]<<std::endl;
                     }
@@ -615,10 +620,16 @@ void SpeciesTreeLikelihood::MLSearch()
                         std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
                         ApplicationTools::displayTime("Execution time so far:");
                         currentStep_ = 4;
+                        if (stop_==false)
+                        {
+                            stop_ = true;
+                            broadcast(world_, stop_, server_); 
+                            broadcast(world_, bestIndex_, server_);                     
+                        }
                     }
                     else 
                     {
-                        std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit 1.\n\n"<< std::endl;
+                        std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
                         ApplicationTools::displayTime("Execution time so far:");
                         if (stop_==false)
                         {
@@ -630,7 +641,7 @@ void SpeciesTreeLikelihood::MLSearch()
                 }
                 else if (ApplicationTools::getTime() >= timeLimit_)
                 {
-                    std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit 2.\n\n"<< std::endl;
+                    std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
                     ApplicationTools::displayTime("Execution time so far:");
                     if (stop_==false)
                     {
@@ -683,7 +694,7 @@ void SpeciesTreeLikelihood::MLSearch()
     //In Anisimova and Gascuel, the relevant distribution is a mixture of chi^2_1 and chi^2_0.
     //Here, I am not sure one can do the same. We stick with the classical chi^2_1 distribution, more conservative.
     
-    for (int i = 0; i<bestTree_->getNumberOfNodes() ; i++ ) 
+    for (unsigned int i = 0; i<bestTree_->getNumberOfNodes() ; i++ ) 
       {
       if ((! bestTree_->getNode(i)->isLeaf()) && (bestTree_->getNode(i)->hasFather())) 
         {
@@ -694,7 +705,7 @@ void SpeciesTreeLikelihood::MLSearch()
         if (proba<0) 
           {
           std::cout <<"Negative aLRT!"<<std::endl;
-          proba == 0;
+          proba = 0;
           }
         std::cout <<"Branch "<<i<<" second best Lk: "<< NNILks_[i]<< ";Lk difference: "<< NNILks_[i] - bestlogL_ <<"; aLRT: "<<proba<<std::endl;
         bestTree_->getNode(i)->setBranchProperty("ALRT", Number<double>(proba));
@@ -710,7 +721,7 @@ void SpeciesTreeLikelihood::MLSearch()
     std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "ALRT")<<std::endl;
     //Here we output the species tree with rates of duplication and loss
     //For duplication rates
-    for (int i =0; i<num0Lineages_.size() ; i++ ) 
+    for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
       {
       bestTree_->getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationExpectedNumbers_[i]));
       if (bestTree_->getNode(i)->hasFather()) 
@@ -726,7 +737,7 @@ void SpeciesTreeLikelihood::MLSearch()
     out.close();
 
     //For loss rates
-    for (int i =0; i<num0Lineages_.size() ; i++ ) 
+    for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
       {
       bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
       if (bestTree_->getNode(i)->hasFather()) 
@@ -760,8 +771,14 @@ void SpeciesTreeLikelihood::MLSearch()
     out << TreeTools::treeToParenthesis(*bestTree_, false, NUMLINEAGES)<<std::endl;
     out.close();
 
-    std::cout <<"Number of species trees tried : "<<index_<<std::endl;        
-    PhylogeneticsApplicationTools::writeTree(*bestTree_, params_, "", "", true, false, false);
+    std::cout <<"Number of species trees tried : "<<index_<<std::endl;
+        std::string file = ApplicationTools::getStringParameter("output.tree.file", params_, "output.tree");
+        
+        Newick newick;
+        
+        newick.write(*bestTree_, file, true);
+
+//    PhylogeneticsApplicationTools::writeTree(*bestTree_, params_, "", "", true, false, false);
     std::cout << "\t\tServer : best found logLikelihood value : "<< - bestlogL_<<std::endl;
     }
 }

@@ -49,8 +49,8 @@ namespace bpp
   //Parameter list
   std::map<std::string, std::string> params_;
   //Information related to the clients
-  std::vector <int> numbersOfGenesPerClient_;
-  int assignedNumberOfGenes_;
+  std::vector <unsigned int> numbersOfGenesPerClient_;
+  unsigned int assignedNumberOfGenes_;
   std::vector<std::string> assignedFilenames_;
   std::vector< std::vector<std::string> > listOfOptionsPerClient_;
   //Vectors of expected numbers of events per branch
@@ -58,17 +58,6 @@ namespace bpp
   std::vector<double> lossExpectedNumbers_;
   std::vector<double> backupDuplicationExpectedNumbers_;
   std::vector<double> backupLossExpectedNumbers_;
-  //Vectors of counts of times 0, 1, 2+ lineages were found at the end of
-  //a species tree branch
-  std::vector <int> num0Lineages_;
-  std::vector <int> num1Lineages_; 
-  std::vector <int> num2Lineages_;
-  std::vector <int> bestNum0Lineages_; 
-  std::vector <int> bestNum1Lineages_; 
-  std::vector <int> bestNum2Lineages_; 
-  std::vector <std::vector<int> > allNum0Lineages_;
-  std::vector <std::vector<int> > allNum1Lineages_;
-  std::vector <std::vector<int> > allNum2Lineages_;
   //Species tree, and its string representation
   TreeTemplate<Node> * tree_;
   TreeTemplate<Node> * bestTree_;
@@ -84,6 +73,17 @@ namespace bpp
   //logLk and best logLk
   double logL_;
   double bestlogL_;
+      //Vectors of counts of times 0, 1, 2+ lineages were found at the end of
+      //a species tree branch
+      std::vector <int> num0Lineages_;
+      std::vector <int> num1Lineages_; 
+      std::vector <int> num2Lineages_;
+      std::vector <int> bestNum0Lineages_; 
+      std::vector <int> bestNum1Lineages_; 
+      std::vector <int> bestNum2Lineages_; 
+      std::vector <std::vector<int> > allNum0Lineages_;
+      std::vector <std::vector<int> > allNum1Lineages_;
+      std::vector <std::vector<int> > allNum2Lineages_;
   //Whether we should rearrange the gene trees
   bool rearrange_;
   //Number of iterations of the search algorithm without improvement

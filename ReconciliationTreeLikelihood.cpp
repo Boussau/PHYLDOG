@@ -998,7 +998,6 @@ void ReconciliationTreeLikelihood::refineGeneTreeSPRs(map<string, string> params
     std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
     int numIterationsWithoutImprovement = 0;
     int index = 0;
-    double MLValue;
     DRHomogeneousTreeLikelihood * drlk = 0;
     ParameterList bls;
 
@@ -1010,7 +1009,7 @@ void ReconciliationTreeLikelihood::refineGeneTreeSPRs(map<string, string> params
             buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
             
             betterTree = false;
-            for (int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
+            for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
             {
                 if (treeForSPR) 
                 {
