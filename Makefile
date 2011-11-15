@@ -20,7 +20,8 @@ SRC = ./
 CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
 
 
-LL =  -L/usr/local/lib -lboost_serialization -lboost_mpi
+#LL =  -L/usr/local/lib -lboost_serialization -lboost_mpi
+LL =  -L/usr/local/lib -L$(BIOPP_LIBRARIES) -L$(BOOST_LIBRARIES) -lboost_serialization -lboost_mpi
 
 all : RearrangeGeneTreeDTL phyldog
 

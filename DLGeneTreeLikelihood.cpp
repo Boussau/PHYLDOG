@@ -418,7 +418,12 @@ void DLGeneTreeLikelihood::computeReconciliationLikelihood()
     }
     else {
         //    _scenarioLikelihood = findMLReconciliationDR (&_spTree, &_rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _MLindex, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
-        _scenarioLikelihood = findMLReconciliationDR (_spTree, _rootedTree, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _tentativeMLindex, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch); 
+        _scenarioLikelihood = findMLReconciliationDR (_spTree, _rootedTree, 
+                                                      _seqSp, _spId, 
+                                                      _lossProbabilities, _duplicationProbabilities, 
+                                                      _tentativeMLindex, 
+                                                      _tentativeNum0Lineages, _tentativeNum1Lineages, 
+                                                      _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch); 
         _MLindex = _tentativeMLindex;
         _num0Lineages = _tentativeNum0Lineages;
         _num1Lineages = _tentativeNum1Lineages;
@@ -527,7 +532,12 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
          
          
          }*/
-        ScenarioMLValue =  findMLReconciliationDR (_spTree, treeForNNI/*&_rootedTree*/, _seqSp, _spId, _lossProbabilities, _duplicationProbabilities, _tentativeMLindex, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch); 
+        ScenarioMLValue =  findMLReconciliationDR (_spTree, treeForNNI/*&_rootedTree*/, 
+                                                   _seqSp, _spId, 
+                                                   _lossProbabilities, _duplicationProbabilities, 
+                                                   _tentativeMLindex, 
+                                                   _tentativeNum0Lineages, _tentativeNum1Lineages, 
+                                                   _tentativeNum2Lineages, _tentativeNodesToTryInNNISearch, false); //false so that _tentativeNum*Lineages are not updated
         
         
         delete treeForNNI;
@@ -888,8 +898,8 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     }
     nniLk_->matchParametersValues(bls);
 
-   // std::cout << "logL before mapping 2: " <<getSequenceLikelihood()<<std::endl;
-
+ //  std::cout << "logL before mapping 2: " <<getSequenceLikelihood()<<std::endl;
+    
     optimizeBLMappingForSPRs(nniLk_,
                              0.1, params);
    // std::cout<< "Unrooted starting tree: "<<TreeTools::treeToParenthesis(nniLk_->getTree(), true)<< std::endl;
@@ -918,6 +928,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
 
     string parentDup;
     string nodeDup;
+    string numLoss = "0";
     while (numIterationsWithoutImprovement < _rootedTree->getNumberOfNodes() - 2)
     {
         annotateGeneTreeWithDuplicationEvents (*_spTree, 
@@ -927,17 +938,26 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
 
         for (int nodeForSPR=_rootedTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
         {
-            if (_rootedTree->getNode(nodeForSPR)->getFather()->hasNodeProperty("D")) {
-                parentDup = (dynamic_cast<const BppString *>(_rootedTree->getNode(nodeForSPR)->getFather()->getNodeProperty("D")))->toSTL() ;}
-            else {
-                parentDup = "F" ;}
+            Node * n = _rootedTree->getNode(nodeForSPR);
+/*            if (n->getFather()->hasBranchProperty("Ev")) {
+                parentDup = (dynamic_cast<const BppString *>(n->getFather()->getBranchProperty("Ev")))->toSTL() ;
+            }*/
+            if (n->hasBranchProperty("L")) {
+                numLoss = (dynamic_cast<const BppString *>(n->getBranchProperty("L")))->toSTL() ;
+            }
+           /* else {
+                parentDup = "F" ;}*/
+         //   std::cout << "parentDup : "<< parentDup <<std::endl;
           /*  if ( _rootedTree->getNode(nodeForSPR)->hasNodeProperty("D")) { 
                 nodeDup = (dynamic_cast<const BppString *>(_rootedTree->getNode(nodeForSPR)->getNodeProperty("D")))->toSTL() ; }
             else {
                 nodeDup = "F" ; }*/
-            if ( parentDup == "Y" )/* || nodeDup == "Y")*/ {
-                    buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
-                  /*
+            //if ( parentDup == "D"  /*|| nodeDup == "Y"*/) {
+            if ( numLoss != "0"  /*|| nodeDup == "Y"*/) {
+
+            //CHANGE12 11 2011 buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                buildVectorOfRegraftingNodesGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                  
                 if (_rootedTree->getNode(nodeForSPR)->isLeaf()) {
                         std::cout << "nodeForSPR: "<< _rootedTree->getNode(nodeForSPR)->getName()<<" ; "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
                     }
@@ -945,7 +965,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                         std::cout << "nodeForSPR: "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
                     }
                     VectorTools::print(nodeIdsToRegraft);
-                */
+
                     betterTree = false;
                     for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
                     {
@@ -968,7 +988,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                                                                        _tentativeNum0Lineages, 
                                                                        _tentativeNum1Lineages, 
                                                                        _tentativeNum2Lineages, 
-                                                                       _tentativeNodesToTryInNNISearch); 
+                                                                       _tentativeNodesToTryInNNISearch, false); 
                        // std::cout<< "candidate tree: "<< TreeTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
                         
                         if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
@@ -1143,6 +1163,9 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
         if (_rootedTree->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
             _rootedTree->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
     }
+    
+    //One more reconciliation, to update the "_num*Lineages" vectors.
+    computeReconciliationLikelihood();
     
     Nhx *nhx = new Nhx();
     annotateGeneTreeWithDuplicationEvents (*_spTree, 

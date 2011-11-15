@@ -13,17 +13,6 @@
 
 
 
-//To sort in descending order
-bool cmp( int a, int b ) {
-  return a > b;
-}  
-
-//To sort in ascending order
-bool anticmp( int a, int b ) {
-  return a < b;
-}  
-
-
 /************************************************************************
  * Change the root of the tree by changing the outgroup.
  ************************************************************************/

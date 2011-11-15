@@ -185,6 +185,42 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
                              std::vector <int> &num2lineages, 
                              std::set <int> &nodesToTryInNNISearch);
 
+/**************************************************************************
+ * This function returns a vector of branching points that may diminish the number of duplications/losses.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree, 
+                                          TreeTemplate<Node> &tree, 
+                                          int nodeForSPR, 
+                                          int distance, 
+                                          std::vector <int> & nodeIdsToRegraft) ;
+
+/**************************************************************************
+ * This function returns a vector of branching points that may diminish the number of duplications/losses.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+void getAllCandidateBranchingPointsFromSpeciesID (TreeTemplate<Node> &tree, 
+                                                  std::vector <std::string> spIds, 
+                                                  std::vector <int> & allNodeIds) ;
+
+/**************************************************************************
+ * This recursive function returns node ids with a given species id.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+
+void getNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <int> & allNodeIds);
+
+/**************************************************************************
+ * This recursive function returns node ids with a given species id, upstream from Node node.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+
+void getNodesWithSimilarSpeciesIdsUpstream(Node * node, string spId, std::vector <int> & allNodeIds);
 
 
+/**************************************************************************
+ * This recursive function returns node ids sons of nodes with a given species id.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+void getSonsOfNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <int> & allNodeIds) ;
 #endif //_GENETREEALGORITHMS_H_

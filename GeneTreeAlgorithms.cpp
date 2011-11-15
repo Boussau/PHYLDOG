@@ -846,6 +846,196 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
 
 
 
+/**************************************************************************
+ * This function returns a vector of branching points that may diminish the number of duplications/losses.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+
+
+void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree, 
+                                          TreeTemplate<Node> &tree, 
+                                          int nodeForSPR, 
+                                          int distance, 
+                                          std::vector <int> & nodeIdsToRegraft) {
+    
+    Node * N = tree.getNode(nodeForSPR);
+    Node * brother = 0;
+    if (N->hasFather()) {
+        if (N->getFather()->getSon(0) != N) {
+            brother = N->getFather()->getSon(0);
+        }
+        else {
+            brother = N->getFather()->getSon(1);
+        }
+    }
+    std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(N));
+    
+    // std::vector <int> allNodeIds = tree.getNodesId();
+    std::vector <int> allNodeIds;
+    std::vector <int> allProximalNodes;
+  //TEST12 11 2011
+    getNeighboringNodesIdLimitedDistance(tree, nodeForSPR, distance, allProximalNodes);
+    //Here, all nodes below some threshold have been added.
+    
+    //Another idea: try all regrafting points such that the new father node has a species id between the pruned node species id and the species id of the father of the pruned node.
+    
+    //Now we add nodes that may be good regrafting points based on their species ID.
+    
+//    if (tree.getNode(nodeForSPR)->hasFather() && tree.getNode(nodeForSPR)->getFather()->hasNodeProperty("S")) {
+    if (N->hasNodeProperty("S")) {
+
+        std::vector <std::string> spIds;
+        int spId = TextTools::toInt ( (dynamic_cast<const BppString *>(N->getNodeProperty("S")))->toSTL());
+        int fatherSpId ;
+        Node * node = spTree.getNode(spId);
+        if (N->hasFather() && (N->getFather()->hasNodeProperty("S"))) {
+
+            fatherSpId = TextTools::toInt ( (dynamic_cast<const BppString *>(N->getFather()->getNodeProperty("S")))->toSTL());
+            //we can try all nodes in the tree downstream from the pruned subtree, with species Ids that are between spId and fatherSpId
+            Node * n = node->getFather();
+            vector <int> PotentialSpeciesIds ;
+            PotentialSpeciesIds.push_back(spId);
+            PotentialSpeciesIds.push_back(fatherSpId);
+
+
+            while (n->hasFather() && n->getId() > fatherSpId) {
+                PotentialSpeciesIds.push_back(n->getId());
+                n = n->getFather();
+            }
+
+            for (unsigned int i = 0 ; i < PotentialSpeciesIds.size() ; i++) {
+                getSonsOfNodesWithSimilarSpeciesIds(tree.getRootNode(), TextTools::toString(PotentialSpeciesIds[i]), allNodeIds);
+                //TEST getSonsOfNodesWithSimilarSpeciesIds(brother, TextTools::toString(PotentialSpeciesIds[i]), allNodeIds);
+            }
+           if (N->hasFather() && N->getFather()->hasNodeProperty("S")) {
+                getNodesWithSimilarSpeciesIds(N->getFather(), (dynamic_cast<const BppString *>(N->getFather()->getNodeProperty("S")))->toSTL(), allNodeIds);
+            }
+            getNodesWithSimilarSpeciesIdsUpstream(N, (dynamic_cast<const BppString *>(N->getFather()->getNodeProperty("S")))->toSTL(), allNodeIds);
+        }
+    /*    spIds.push_back(TextTools::toString(spId));
+        //Now we look for the brother species, which we put in spIds
+        if (node->hasFather()) {
+            if (node->getFather()->getSon(0) != node) {
+                spIds.push_back( TextTools::toString(node->getFather()->getSon(0)->getId()));
+            }
+            else {
+                spIds.push_back( TextTools::toString(node->getFather()->getSon(1)->getId()));
+            }
+        }
+        getAllCandidateBranchingPointsFromSpeciesID (tree, spIds, allNodeIds);*/
+    }
+            //We also add nodes with the same species id, downstream from the father node in the gene tree
+    
+    
+            
+    //std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)->getFather()));
+    
+    forbiddenIds.push_back(tree.getRootNode()->getId());
+    
+    //We don't want to reinsert the pruned subtree in the same place!
+    forbiddenIds.push_back(brother->getId());
+    
+    //We remove the nodes that are not appropriate for regrafting
+    std::vector <int> toRemove;
+    for (unsigned int i = 0 ; i< allNodeIds.size() ; i++) {
+        if (VectorTools::contains(forbiddenIds, allNodeIds[i])) {
+            toRemove.push_back(i);
+        }
+    }
+    
+    /*  std:: cout <<"nodeForSPR: "<< nodeForSPR <<"; FORBIDDEN IDS: "<<std::endl;
+     VectorTools::print(forbiddenIds);*/
+    sort(toRemove.begin(), toRemove.end(), cmp);
+    /*VectorTools::print(forbiddenIds);
+     sort(allNodeIds.begin(), allNodeIds.end(), anticmp);*/
+    for (unsigned int i = 0 ; i< toRemove.size() ; i++) {
+        std::vector<int>::iterator vi = allNodeIds.begin();
+        allNodeIds.erase(vi+toRemove[i]);
+    }
+    
+    allNodeIds = VectorTools::unique (allNodeIds);
+    //Now we only consider those nodes not far from the pruned node:
+    allNodeIds = VectorTools::vectorIntersection(allNodeIds, allProximalNodes);
+    
+    //Now allNodeIds contains all the Ids of nodes where the subtree can be reattached.
+    nodeIdsToRegraft = allNodeIds;
+}
+
+
+/**************************************************************************
+ * This function returns a vector of branching points that may diminish the number of duplications/losses.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+void getAllCandidateBranchingPointsFromSpeciesID (TreeTemplate<Node> &tree, 
+                                                  std::vector <std::string> spIds, 
+                                                  std::vector <int> & allNodeIds) {
+    for (unsigned int k = 0 ; k < spIds.size(); k++) {
+        vector <Node *> nodes = tree.getNodes();
+        for (unsigned int i = 0 ; i < nodes.size() ; i++ ) {
+            if (nodes[i]->hasNodeProperty("S") && (dynamic_cast<const BppString *>(nodes[i]->getNodeProperty("S")))->toSTL() == spIds[k]) {
+                allNodeIds.push_back(nodes[i]->getId()); //necessary?
+              /*  for (unsigned int j = 0 ; j < nodes[i]->getNumberOfSons() ; j++) {
+                    allNodeIds.push_back(nodes[i]->getSon(j)->getId());
+                }*/
+            }
+        }
+    }
+    allNodeIds = VectorTools::unique (allNodeIds);
+    return;
+}
+
+/**************************************************************************
+ * This recursive function returns node ids with a given species id, in a subtree starting in node.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+
+void getNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <int> & allNodeIds) {
+    for (unsigned int i = 0 ; i < node->getNumberOfSons() ; i++ ) {
+        if (node->getSon(i)->hasNodeProperty("S") && (dynamic_cast<const BppString *>(node->getSon(i)->getNodeProperty("S")))->toSTL() == spId)
+        {
+            allNodeIds.push_back(node->getSon(i)->getId());
+            getNodesWithSimilarSpeciesIds(node->getSon(i), spId, allNodeIds);
+        }
+    }
+    return;
+}
+
+/**************************************************************************
+ * This recursive function returns node ids with a given species id, upstream from Node node.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+
+void getNodesWithSimilarSpeciesIdsUpstream(Node * node, string spId, std::vector <int> & allNodeIds) {
+        if (node->hasFather() && node->getFather()->hasNodeProperty("S") && (dynamic_cast<const BppString *>(node->getFather()->getNodeProperty("S")))->toSTL() == spId)
+        {
+            if (node->getFather()->getSon(0) == node) {
+                allNodeIds.push_back(node->getFather()->getSon(1)->getId());
+            }
+            else {
+                allNodeIds.push_back(node->getFather()->getSon(0)->getId());
+            }
+            getNodesWithSimilarSpeciesIdsUpstream(node->getFather(), spId, allNodeIds);
+        }
+    return;
+}
+
+
+/**************************************************************************
+ * This recursive function returns node ids of sons of nodes with a given species id, in a subtree starting in node.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+
+void getSonsOfNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <int> & allNodeIds) {
+    for (unsigned int i = 0 ; i < node->getNumberOfSons() ; i++ ) {
+        if (node->hasNodeProperty("S") && (dynamic_cast<const BppString *>(node->getNodeProperty("S")))->toSTL() == spId)
+        {
+            allNodeIds.push_back(node->getSon(i)->getId());
+        }
+        getSonsOfNodesWithSimilarSpeciesIds(node->getSon(i), spId, allNodeIds);
+    }
+    return;
+}
+
 
 
 

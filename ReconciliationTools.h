@@ -276,6 +276,11 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
                                             std::map<std::string, int > spID); 
 
 
+//To sort in descending order
+bool cmp( int a, int b );
+
+//To sort in ascending order
+bool anticmp( int a, int b ) ;
 
 
 #endif  //_RECONCILIATIONTOOLS_H_

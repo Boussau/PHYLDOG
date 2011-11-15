@@ -1982,6 +1982,7 @@ void computeNumbersOfLineagesFromRoot(TreeTemplate<Node> * spTree,
   * likelihoodData[i][j] contains the conditional likelihood of the subtree 
   * having its root in subtree opposite neighbour j of node i.
   * Node species IDs are also recorded in a (number of nodes)*3 cells table.
+  * The boolean "fillTables" is here to tell whether we want to update the vectors num*lineages.
   ****************************************************************************/
 
 double findMLReconciliationDR (TreeTemplate<Node> * spTree, 
@@ -2808,39 +2809,48 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
                                             std::map<std::string, int > spID) 
 {
  	if (node->isLeaf()) {
-    node->setNodeProperty("S", BppString(TextTools::toString(assignSpeciesIdToLeaf(node, seqSp, spID))));
-    node->setBranchProperty("Ev", BppString("S"));
-    return;
-  }
-  else {
-    std::vector <Node *> sons = node->getSons();
-    for (unsigned int i = 0; i< sons.size(); i++){
-      annotateGeneTreeWithDuplicationEvents(spTree, geneTree, sons[i], seqSp, spID);
-    }
-    
-    int a = TextTools::toInt((dynamic_cast<const BppString*>(sons[0]->getNodeProperty("S")))->toSTL());
-    int b = TextTools::toInt((dynamic_cast<const BppString*>(sons[1]->getNodeProperty("S")))->toSTL());
-    
-    int aold = a;
-    int bold = b;
-    
-    while (a!=b) 
-      {
-        if (a>b)
-          a = spTree.getNode(a)->getFather()->getId(); 
-        else
-          b = spTree.getNode(b)->getFather()->getId(); 
-      }
-    node->setNodeProperty("S", BppString(TextTools::toString(a)));
-    if ((a == aold ) || (a == bold))
-      {
-        node->setBranchProperty("Ev", BppString("D"));
-      }
-    else 
-      {
+        node->setNodeProperty("S", BppString(TextTools::toString(assignSpeciesIdToLeaf(node, seqSp, spID))));
         node->setBranchProperty("Ev", BppString("S"));
-      }
-    return;
+        return;
+    }
+    else {
+        std::vector <Node *> sons = node->getSons();
+        for (unsigned int i = 0; i< sons.size(); i++){
+            annotateGeneTreeWithDuplicationEvents(spTree, geneTree, sons[i], seqSp, spID);
+        }
+        
+        int a = TextTools::toInt((dynamic_cast<const BppString*>(sons[0]->getNodeProperty("S")))->toSTL());
+        int b = TextTools::toInt((dynamic_cast<const BppString*>(sons[1]->getNodeProperty("S")))->toSTL());
+        
+        int aold = a;
+        int bold = b;
+        int lossA = 0;
+        int lossB = 0;
+        
+        while (a!=b) 
+        {
+            if (a>b){
+                a = spTree.getNode(a)->getFather()->getId(); 
+                lossA = lossA +1;
+            }
+            else {
+                b = spTree.getNode(b)->getFather()->getId(); 
+                lossB = lossB + 1;
+            }
+        }
+        sons[0]->setBranchProperty("L", BppString(TextTools::toString(lossA)));
+        sons[1]->setBranchProperty("L", BppString(TextTools::toString(lossB)));
+        node->setNodeProperty("S", BppString(TextTools::toString(a)));
+        if ((a == aold ) || (a == bold))
+        {
+            node->setBranchProperty("Ev", BppString("D"));
+        }
+        else 
+        {
+            node->setBranchProperty("Ev", BppString("S"));
+        }
+        
+        return;
 	}
 }
 
@@ -2848,6 +2858,15 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
 
 
 
+//To sort in descending order
+bool cmp( int a, int b ) {
+    return a > b;
+}  
+
+//To sort in ascending order
+bool anticmp( int a, int b ) {
+    return a < b;
+}  
 
 
 

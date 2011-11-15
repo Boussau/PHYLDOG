@@ -1189,6 +1189,7 @@ int main(int args, char ** argv)
             {	// we continue the loop
               //Reset the gene trees by resetting treeLikelihoods:
               //we always start from ML trees according to sequences only
+                /* ATTEMPT 08 11 2011: we try not to reset the gene trees at each iteration. 
                 for (unsigned int i =0 ; i<treeLikelihoods.size() ; i++) {
                     if    (treeLikelihoods[i])
                         delete treeLikelihoods[i];
@@ -1197,7 +1198,8 @@ int main(int args, char ** argv)
               for (unsigned int i=0 ; i<backupTreeLikelihoods.size() ; i++) 
                 {
                 treeLikelihoods.push_back(backupTreeLikelihoods[i]->clone());
-                }          
+                }         */
+                
               if (rearrange) 
                 {
                 allParams = allParamsBackup;
