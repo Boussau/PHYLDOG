@@ -316,11 +316,44 @@ vector< vector<unsigned int> > getTotalCountsOfSubstitutionsPerBranch(
     }
     
     counts[k].resize(countsf.size());
-    for (size_t j = 0; j < countsf.size(); ++j) {
+
+      for (size_t j = 0; j < countsf.size(); ++j) {
       counts[k][j] = static_cast<unsigned int>(floor(countsf[j] + 0.5)); //Round counts
     }
   }
   return counts;
+}
+
+/******************************************************************************/
+// This function maps total expected numbers of substitutions per branch in a gene tree.
+/******************************************************************************/
+
+vector< double > getTotalCountsOfSubstitutionsPerBranch(
+                                                        DRTreeLikelihood& drtl,
+                                                        SubstitutionModel* model,
+                                                        const SubstitutionRegister& reg,
+                                                        SubstitutionCount *count,
+                                                        double threshold)
+{
+    //auto_ptr<SubstitutionCount> count(new UniformizationSubstitutionCount(model, reg.clone()));
+    
+    //SubstitutionCount* count = new SimpleSubstitutionCount(reg);  
+    auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(drtl, *count, false));
+    
+    vector< double > counts;
+    counts.resize(mapping->getNumberOfBranches(), 0.0);
+    
+    
+    vector <int > nodeIds = mapping->getTree().getNodesId();
+    nodeIds.pop_back(); //remove root id.
+    
+    for (unsigned int i = 0 ; i < mapping->getNumberOfSites() ; i++) {
+        for (unsigned int j = 0 ; j < nodeIds.size() ; j++) {
+            //VectorTools::print(mapping->getNumberOfSubstitutions(nodeIds[j], i));
+            counts[nodeIds[j]] += VectorTools::sum(mapping->getNumberOfSubstitutions(nodeIds[j], i));
+        }
+    }
+    return counts;
 }
 
 
@@ -425,28 +458,30 @@ void optimizeBLMapping(
 /******************************************************************************/
 
 void optimizeBLMappingForSPRs(
-                       DRTreeLikelihood* tl,
-                       double precision, map<string, string> params)
+                              DRTreeLikelihood* tl,
+                              double precision, map<string, string> params)
 {    
-    double currentValue = tl->getValue();
+    double currentValue = tl->getValue() * 10;
     double newValue = currentValue - 2* precision;
     ParameterList bls = tl->getBranchLengthsParameters () ;
     ParameterList newBls = bls;
-    vector< vector<unsigned int> > counts;
+  //  vector< vector<unsigned int> > counts;
+    vector< double > counts;
     double numberOfSites = (double) tl->getNumberOfSites();
-    vector<int> ids = tl->getTree().getNodesId();
-    ids.pop_back(); //remove root id.
+ /*   vector<int> ids = tl->getTree().getNodesId();
+    ids.pop_back(); //remove root id.*/
     SubstitutionRegister* reg = 0;  
     //Counting all substitutions
     reg = new TotalSubstitutionRegister(tl->getAlphabet());
-    
+  //  reg = new ComprehensiveSubstitutionRegister(tl->getAlphabet());
+    int backup;
     //Then, normal optimization.
     
   /*  tl = dynamic_cast<DRTreeLikelihood*>(PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<TreeLikelihood*>(tl), 
                                                                                            tl->getParameters(), 
                                                                                            params));*/
-    
-    SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);   
+   
+    SubstitutionCount *count = new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);  //new SimpleSubstitutionCount( reg);   
    //We do the mapping based thing only once:
     /*while (currentValue > newValue + precision) {
         if (first)
@@ -455,46 +490,166 @@ void optimizeBLMappingForSPRs(
             currentValue = newValue;
         }*/
         //Perform the mapping:
-        counts = getTotalCountsOfSubstitutionsPerBranch(*tl, ids, tl->getSubstitutionModel(0,0), *reg, count, -1);
+//        counts = getTotalCountsOfSubstitutionsPerBranch(*tl, ids, tl->getSubstitutionModel(0,0), *reg, count, -1);
+  /*  vector <double> lks;
+    vector<vector <double > > allBls;
+    vector <double> tempBls;*/
+    
+    /*
+    backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+    {
+        params[ std::string("optimization.max_number_f_eval")] = 1;
+    }
+    PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
+    params[ std::string("optimization.max_number_f_eval")] = backup;
+lks.push_back(tl->getValue());
+    std::cout <<"Bls opt: "<<std::endl;
+    tempBls.clear();
+    ParameterList blsParam = tl->getBranchLengthsParameters();
+    for (unsigned int i = 0 ; i < blsParam.size() ; i ++) {
+        tempBls.push_back(blsParam[i].getValue());
+    }
+    VectorTools::print(tempBls);
+*/
+    
+    for (unsigned int j = 0 ; j < 3 ; j++)
+    {
+        counts = getTotalCountsOfSubstitutionsPerBranch(*tl, tl->getSubstitutionModel(0,0), *reg, count, -1);
+    
         double value;
         string name;
+        tempBls.clear();
         for (unsigned int i = 0 ; i < counts.size() ; i ++) {
-          //  if (abs(bls[i].getValue() - 0.1) < 0.000001) {
-            value = double(VectorTools::sum(counts[i])) / (double)numberOfSites;
-         /*   } else {
-                value = bls[i].getValue();
-            }*/
+           // value = double(VectorTools::sum(counts[i])) / (double)numberOfSites;
+             value = counts[i] / (double)numberOfSites;
+           // value = 1.5 * counts[i] / (double)numberOfSites;
+            tempBls.push_back(value);
             name = "BrLen" + TextTools::toString(i);
             newBls.setParameterValue(name, newBls.getParameter(name).getConstraint()->getAcceptedLimit (value));
+          //  newBls.setParameterValue(name, value);
         }
-        
+      /*  std::cout <<"Bls map: "<<std::endl;
+        VectorTools::print(tempBls);
+
+        allBls.push_back(tempBls);*/
         tl->matchParametersValues(newBls);
+       /* std::cout <<"Bls map2: "<<std::endl;
+        tempBls.clear();
+        blsParam = tl->getBranchLengthsParameters();
+        for (unsigned int i = 0 ; i < blsParam.size() ; i ++) {
+            tempBls.push_back(blsParam[i].getValue());
+        }
+        VectorTools::print(tempBls);*/
         
+
         newValue = tl->getValue();
+        lks.push_back(tl->getValue());
+       // std::cout << "NEW VALUE after mapping number "<<j<<" : " << tl->getValue()<<std::endl;
         if (currentValue > newValue + precision) { //Significant improvement
             bls = newBls;
-            tl->setParameters(bls);            
-            /*  TreeTemplate<Node *>* t = tl->getTree();
-             for (unsigned int i = 0 ; i < counts.size() ; i ++) {
-             t->getNode(i)->setDistanceToFather(bls[i]);
-             }*/
+            tl->setParameters(bls);  
+           // tl->matchParametersValues(bls);
+            currentValue = newValue;
         }
         else { 
-            if (currentValue < newValue) //new state worse, getting back to the former state
+            if (currentValue < newValue) { //new state worse, getting back to the former state
+               // std::cout << "Back to former state: " << currentValue<<std::endl;
+
                 tl->matchParametersValues(bls);
+            tl->setParameters(bls);
+            }
         }
+    }
   //  }
     //Then, normal optimization.
     
 //ATTEMPT WITHOUT FULL OPTIMIZATION 16 10 2011   
     //But with few rounds of optimization
-    int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+   /* 
+    for (unsigned int j = 0 ; j < 10 ; j++)
     {
-        params[ std::string("optimization.max_number_f_eval")] = 10;
+    backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+    {
+        params[ std::string("optimization.max_number_f_eval")] = 2;
     }
     PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
     params[ std::string("optimization.max_number_f_eval")] = backup;
+         lks.push_back(tl->getValue());
+    }*/
+  /*  std::cout << "map1; map2; map3; map4; map5; op1; op2; op3; op4; op5; op6; op7; op8; op9; op10"<<std::endl;
+    VectorTools::print(lks);
+    */
+    
+    /*
+    backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+    {
+        params[ std::string("optimization.max_number_f_eval")] = 1;
+    }
+    PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
+    params[ std::string("optimization.max_number_f_eval")] = backup; */
+    
+//    std::cout << "NEW VALUE after optimization: " << tl->getValue()<<std::endl;
+ /*   lks.push_back(tl->getValue());
+   // std::cout << "map1; map2; map3; map4; map5; op1; op2; op3; op4; op5; op6; op7; op8; op9; op10; op11"<<std::endl;
+    std::cout << "op1; map1; map2; map3; map4; map5; op2"<<std::endl;
+    VectorTools::print(lks);
+    std::cout <<"Bls opt: "<<std::endl;
+    tempBls.clear();
+    blsParam = tl->getBranchLengthsParameters();
+    for (unsigned int i = 0 ; i < blsParam.size() ; i ++) {
+        tempBls.push_back(blsParam[i].getValue());
+    }
+    VectorTools::print(tempBls);*/
+    
 }
+
+
+/******************************************************************************/
+// This function optimizes branch lengths in a gene tree using uniformized sampling
+/******************************************************************************/
+/*
+void optimizeBLUniformizedMapping(
+                                  DRTreeLikelihood* tl,
+                                  double precision, map<string, string> params)
+{
+    SubstitutionRegister* reg = 0;  
+    //Counting all substitutions
+    reg = new TotalSubstitutionRegister(tl->getAlphabet());
+    std::cout <<"HEHEH 4"<<std::endl;
+
+    UniformizationSubstitutionCount* count = new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg->clone());
+    std::cout <<"HEHEH 5"<<std::endl;
+
+    //SubstitutionCount* count = new SimpleSubstitutionCount(reg);
+    const CategorySubstitutionRegister* creg = 0;
+
+    auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(*tl, *count, false));
+    vector <double> eqFreqs = tl->getSubstitutionModel(0, 0)->getFrequencies();
+    ParameterList blParams = tl->getBranchLengthsParameters();
+    AugmentedTreeLikelihood * atl = new AugmentedTreeLikelihood (*mapping, eqFreqs, tl->getRateDistribution(), blParams);
+    std::cout <<"HEHEH 6"<<std::endl;
+
+    atl->initModel();    
+    std::cout <<"HEHEH 7"<<std::endl;
+
+    
+    PowellMultiDimensions* simpleMultiDim_ = new PowellMultiDimensions (atl);
+    simpleMultiDim_->setVerbose(3);
+    simpleMultiDim_->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
+    std::cout <<"HEHEH 8"<<std::endl;
+
+    simpleMultiDim_->init(atl->getParameters());
+    std::cout <<"HEHEH 9"<<std::endl;
+
+    simpleMultiDim_->optimize();
+    tl->matchParametersValues(simpleMultiDim_->getParameters());
+//    tl->fireParameterChanged();
+    
+    delete simpleMultiDim_;
+    delete atl;
+    delete reg;
+}
+*/
 
 
 /******************************************************************************/

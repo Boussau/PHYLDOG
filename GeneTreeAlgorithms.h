@@ -59,6 +59,7 @@
 
 #include "ReconciliationTools.h"
 #include "GenericTreeExplorationAlgorithms.h"
+//#include "AugmentedTreeLikelihood.h"
 
 /**************************************************************************
  * This function creates a sequence tree from a species tree and a std::map 
@@ -96,6 +97,18 @@ vector< vector<unsigned int> > getCountsPerBranch(
                                                   SubstitutionCount *count,
                                                   bool stationarity = true,
                                                   double threshold = -1);
+
+/******************************************************************************/
+// This function maps total expected numbers of substitutions per branch in a gene tree.
+/******************************************************************************/
+vector< double > getTotalCountsOfSubstitutionsPerBranch(
+                                                        DRTreeLikelihood& drtl,
+                                                        SubstitutionModel* model,
+                                                        const SubstitutionRegister& reg,
+                                                        SubstitutionCount *count,
+                                                        double threshold);
+
+
 /******************************************************************************/
 // This function optimizes branch lengths in a gene tree using substitution mapping
 /******************************************************************************/
@@ -108,6 +121,13 @@ void optimizeBLMapping(
 // This function optimizes branch lengths in a gene tree using substitution mapping
 /******************************************************************************/
 void optimizeBLMappingForSPRs(
+                              DRTreeLikelihood* tl,
+                              double precision, map<string, string> params);
+
+/******************************************************************************/
+// This function optimizes branch lengths in a gene tree using uniformized sampling
+/******************************************************************************/
+void optimizeBLUniformizedMapping(
                               DRTreeLikelihood* tl,
                               double precision, map<string, string> params);
 

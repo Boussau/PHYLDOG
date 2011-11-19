@@ -892,16 +892,18 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     double logL = getLogLikelihood();
   //std::cout << "logL before mapping: " <<getSequenceLikelihood()<<std::endl;
     //initial perturbation of branch lengths, to use suboptimal ones for speed
-    ParameterList bls = nniLk_->getBranchLengthsParameters () ;
+  /*  ParameterList bls = nniLk_->getBranchLengthsParameters () ;
     for (unsigned int i  = 0 ; i < bls.size()/3 ; i++) {
         bls[i].setValue(0.1);
     }
-    nniLk_->matchParametersValues(bls);
+    nniLk_->matchParametersValues(bls);*/
 
  //  std::cout << "logL before mapping 2: " <<getSequenceLikelihood()<<std::endl;
     
     optimizeBLMappingForSPRs(nniLk_,
                              0.1, params);
+    
+    
    // std::cout<< "Unrooted starting tree: "<<TreeTools::treeToParenthesis(nniLk_->getTree(), true)<< std::endl;
     /*
     bls = nniLk_->getBranchLengthsParameters () ;
@@ -939,7 +941,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
         for (int nodeForSPR=_rootedTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
         {
             Node * n = _rootedTree->getNode(nodeForSPR);
-/*            if (n->getFather()->hasBranchProperty("Ev")) {
+            /*            if (n->getFather()->hasBranchProperty("Ev")) {
                 parentDup = (dynamic_cast<const BppString *>(n->getFather()->getBranchProperty("Ev")))->toSTL() ;
             }*/
             if (n->hasBranchProperty("L")) {
@@ -957,7 +959,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
 
             //CHANGE12 11 2011 buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
                 buildVectorOfRegraftingNodesGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
-                  
+                  /*
                 if (_rootedTree->getNode(nodeForSPR)->isLeaf()) {
                         std::cout << "nodeForSPR: "<< _rootedTree->getNode(nodeForSPR)->getName()<<" ; "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
                     }
@@ -965,7 +967,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                         std::cout << "nodeForSPR: "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
                     }
                     VectorTools::print(nodeIdsToRegraft);
-
+                   */
                     betterTree = false;
                     for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
                     {
@@ -998,13 +1000,18 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                                 delete drlk;
                                 drlk = 0;
                             }
+                            
+                            treeForSPR->resetNodesId();
+                            
                             drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
                             //drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
+                         //TO REMOVE AFTER TEST
+                            /*
                             ParameterList bls = nniLk_->getBranchLengthsParameters () ;
                             for (unsigned int i  = 0 ; i < bls.size()/3 ; i++) {
                                 bls[i].setValue(0.1);
                             }
-                            drlk->matchParametersValues(bls);
+                            drlk->matchParametersValues(bls);*/
                             
                             drlk->initialize();
                             //  std::cout << "Good SPR; Sequence lk before optimization: "<< -drlk->getValue() << std::endl;
@@ -1024,8 +1031,13 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                             //  std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
                             
                             params[ std::string("optimization.topology")] = "false";
-                            optimizeBLMappingForSPRs(drlk,
+                           optimizeBLMappingForSPRs(drlk,
                                                      0.1, params);
+                            //Attempt uniformized optimization
+                        //    optimizeBLUniformizedMapping(drlk,
+//                                                         0.1, params);
+                            
+                            
                             /*std::cout << "Good SPR; Sequence lk after optimization: "<< -drlk->getValue() << std::endl;
                             std::cout<<"Good SPR; optimized tree: "<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
                             logL = candidateScenarioLk - drlk->getValue();
