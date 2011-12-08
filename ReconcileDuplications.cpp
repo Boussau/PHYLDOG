@@ -1133,7 +1133,10 @@ int main(int args, char ** argv)
                     //SPR optimization:              
                     treeLikelihoods[i]->refineGeneTreeSPRs(allParams[i]);
                 }
-
+/*                 std::cout <<  "HEREH " <<std::endl;
+                 std::cout <<  TreeTools::treeToParenthesis(treeLikelihoods[i]->getRootedTree(), true)<<std::endl;
+                std::cout <<  "HEREH 1" <<std::endl;
+*/
                 
             geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getRootedTree()); //MODIFICATION
 
@@ -1149,6 +1152,7 @@ int main(int args, char ** argv)
             num0Lineages = num0Lineages + allNum0Lineages[i];
             num1Lineages = num1Lineages + allNum1Lineages[i];
             num2Lineages = num2Lineages + allNum2Lineages[i];
+
             std::cout<<"Gene Family: " <<allParams[i][ std::string("taxaseq.file")] << " logLk: "<< - allLogLs[i]<< " scenario lk: "<< treeLikelihoods[i]->getScenarioLikelihood() <<std::endl;
             if (std::isnan(allLogLs[i])) 
               {

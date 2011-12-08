@@ -15,8 +15,8 @@ BOOST_LIBRARIES = /usr/local/lib
 SRC = ./
 
 
-#CC = mpic++ -m64 -g -Wall -I $(BOOST_INCLUDE) 
-CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
+CC = mpic++ -m64 -g -Wall -I $(BOOST_INCLUDE) 
+#CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
 
 
 
@@ -74,17 +74,15 @@ mpi_time_order.o : $(SRC)mpi_time_order.cpp  $(SRC)DTL.h $(SRC)DTL_mpi.h
 
 ####DL model only
 
-phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o AugmentedTreeLikelihood.o GeneTreeAlgorithms.o 
-	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o AugmentedTreeLikelihood.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
 
-ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp SpeciesTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o AugmentedTreeLikelihood.o
+phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o AugmentedTreeLikelihood.o GeneTreeAlgorithms.o 
+	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o AugmentedTreeLikelihood.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
+
+ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp SpeciesTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o
 	$(CC) $(INCLUDE) -c $(SRC)ReconcileDuplications.cpp $(SRC)ReconciliationTools.h 
   
-GeneTreeAlgorithms.o : $(SRC)GeneTreeAlgorithms.cpp $(SRC)GeneTreeAlgorithms.h ReconciliationTools.o AugmentedTreeLikelihood.o
+GeneTreeAlgorithms.o : $(SRC)GeneTreeAlgorithms.cpp $(SRC)GeneTreeAlgorithms.h ReconciliationTools.o
 	$(CC) $(INCLUDE) -c $(SRC)GeneTreeAlgorithms.cpp $(SRC)GeneTreeAlgorithms.h $(SRC)ReconciliationTools.h
-
-AugmentedTreeLikelihood.o : $(SRC)AugmentedTreeLikelihood.cpp $(SRC)AugmentedTreeLikelihood.h
-	$(CC) $(INCLUDE) -c $(SRC)AugmentedTreeLikelihood.cpp $(SRC)AugmentedTreeLikelihood.h
   
 SpeciesTreeLikelihood.o : $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
 	$(CC) $(INCLUDE) -c $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
