@@ -324,7 +324,6 @@ vector< vector<unsigned int> > getTotalCountsOfSubstitutionsPerBranch(
 }
 
 
-
 /******************************************************************************/
 // This function optimizes branch lengths in a gene tree using substitution mapping
 /******************************************************************************/
@@ -417,9 +416,6 @@ void optimizeBLMapping(
       tl->matchParametersValues(bls);
     }
   }*/
-    if (count) delete count;
-    if(reg) delete reg;
-
 }
 
 
@@ -428,8 +424,8 @@ void optimizeBLMapping(
 /******************************************************************************/
 
 void optimizeBLMappingForSPRs(
-                              NNIHomogeneousTreeLikelihood* tl,
-                              double precision, map<string, string> params)
+                       DRTreeLikelihood* tl,
+                       double precision, map<string, string> params)
 {    
     double currentValue = tl->getValue();
     double newValue = currentValue - 2* precision;
@@ -448,8 +444,8 @@ void optimizeBLMappingForSPRs(
   /*  tl = dynamic_cast<DRTreeLikelihood*>(PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<TreeLikelihood*>(tl), 
                                                                                            tl->getParameters(), 
                                                                                            params));*/
-   
-    SubstitutionCount *count = new UniformizationSubstitutionCount(tl->getSubstitutionModel(), reg);  //new SimpleSubstitutionCount( reg);   
+    
+    SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);   
    //We do the mapping based thing only once:
     /*while (currentValue > newValue + precision) {
         if (first)
@@ -458,40 +454,15 @@ void optimizeBLMappingForSPRs(
             currentValue = newValue;
         }*/
         //Perform the mapping:
-//        counts = getTotalCountsOfSubstitutionsPerBranch(*tl, ids, tl->getSubstitutionModel(0,0), *reg, count, -1);
-  /*  vector <double> lks;
-    vector<vector <double > > allBls;
-    vector <double> tempBls;*/
-    
-    /*
-    backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
-    {
-        params[ std::string("optimization.max_number_f_eval")] = 1;
-    }
-    PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = backup;
-lks.push_back(tl->getValue());
-    std::cout <<"Bls opt: "<<std::endl;
-    tempBls.clear();
-    ParameterList blsParam = tl->getBranchLengthsParameters();
-    for (unsigned int i = 0 ; i < blsParam.size() ; i ++) {
-        tempBls.push_back(blsParam[i].getValue());
-    }
-    VectorTools::print(tempBls);
-*/
-    
-    for (unsigned int j = 0 ; j < 3 ; j++)
-    {
-        counts = getTotalCountsOfSubstitutionsPerBranch(*tl, tl->getSubstitutionModel(), *reg, count, -1);
-    
+        counts = getTotalCountsOfSubstitutionsPerBranch(*tl, ids, tl->getSubstitutionModel(0,0), *reg, count, -1);
         double value;
         string name;
-       // tempBls.clear();
         for (unsigned int i = 0 ; i < counts.size() ; i ++) {
-           // value = double(VectorTools::sum(counts[i])) / (double)numberOfSites;
-             value = counts[i] / (double)numberOfSites;
-           // value = 1.5 * counts[i] / (double)numberOfSites;
-        //    tempBls.push_back(value);
+          //  if (abs(bls[i].getValue() - 0.1) < 0.000001) {
+            value = double(VectorTools::sum(counts[i])) / (double)numberOfSites;
+         /*   } else {
+                value = bls[i].getValue();
+            }*/
             name = "BrLen" + TextTools::toString(i);
             newBls.setParameterValue(name, newBls.getParameter(name).getConstraint()->getAcceptedLimit (value));
         }
@@ -499,8 +470,6 @@ lks.push_back(tl->getValue());
         tl->matchParametersValues(newBls);
         
         newValue = tl->getValue();
-      //  lks.push_back(tl->getValue());
-       // std::cout << "NEW VALUE after mapping number "<<j<<" : " << tl->getValue()<<std::endl;
         if (currentValue > newValue + precision) { //Significant improvement
             bls = newBls;
             tl->setParameters(bls);            
@@ -510,11 +479,8 @@ lks.push_back(tl->getValue());
              }*/
         }
         else { 
-            if (currentValue < newValue) { //new state worse, getting back to the former state
-               // std::cout << "Back to former state: " << currentValue<<std::endl;
+            if (currentValue < newValue) //new state worse, getting back to the former state
                 tl->matchParametersValues(bls);
-                tl->setParameters(bls);
-            }
         }
   //  }
     //Then, normal optimization.
@@ -527,41 +493,6 @@ lks.push_back(tl->getValue());
     }
     PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
     params[ std::string("optimization.max_number_f_eval")] = backup;
-         lks.push_back(tl->getValue());
-    }*/
-  /*  std::cout << "map1; map2; map3; map4; map5; op1; op2; op3; op4; op5; op6; op7; op8; op9; op10"<<std::endl;
-    VectorTools::print(lks);
-    */
-    
-    /*
-    backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
-    {
-        params[ std::string("optimization.max_number_f_eval")] = 1;
-    }
-    PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = backup; */
-    
-//    std::cout << "NEW VALUE after optimization: " << tl->getValue()<<std::endl;
- /*   lks.push_back(tl->getValue());
-   // std::cout << "map1; map2; map3; map4; map5; op1; op2; op3; op4; op5; op6; op7; op8; op9; op10; op11"<<std::endl;
-    std::cout << "op1; map1; map2; map3; map4; map5; op2"<<std::endl;
-    VectorTools::print(lks);
-    std::cout <<"Bls opt: "<<std::endl;
-    tempBls.clear();
-    blsParam = tl->getBranchLengthsParameters();
-    for (unsigned int i = 0 ; i < blsParam.size() ; i ++) {
-        tempBls.push_back(blsParam[i].getValue());
-    }
-    VectorTools::print(tempBls);*/
-    std::cout << "before delete"<<std::endl;
-    if (count) delete count;
-    std::cout << "before delete2"<<std::endl;
-
-//    if (reg) delete reg; 
-    std::cout << "after delete"<<std::endl;
-
-    return;
-
 }
 
 

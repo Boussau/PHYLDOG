@@ -75,8 +75,8 @@ mpi_time_order.o : $(SRC)mpi_time_order.cpp  $(SRC)DTL.h $(SRC)DTL_mpi.h
 ####DL model only
 
 
-phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o AugmentedTreeLikelihood.o GeneTreeAlgorithms.o 
-	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o AugmentedTreeLikelihood.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
+phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o 
+	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
 
 ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp SpeciesTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o
 	$(CC) $(INCLUDE) -c $(SRC)ReconcileDuplications.cpp $(SRC)ReconciliationTools.h 

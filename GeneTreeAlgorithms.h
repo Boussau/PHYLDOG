@@ -108,7 +108,7 @@ void optimizeBLMapping(
 // This function optimizes branch lengths in a gene tree using substitution mapping
 /******************************************************************************/
 void optimizeBLMappingForSPRs(
-                              NNIHomogeneousTreeLikelihood* tl,
+                              DRTreeLikelihood* tl,
                               double precision, map<string, string> params);
 
 
