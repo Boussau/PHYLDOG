@@ -111,6 +111,13 @@ void optimizeBLMappingForSPRs(
                               DRTreeLikelihood* tl,
                               double precision, map<string, string> params);
 
+/******************************************************************************/
+// This function optimizes branch lengths in a gene tree without substitution mapping
+/******************************************************************************/
+void optimizeBLForSPRs(
+                       DRTreeLikelihood* tl,
+                       double precision, map<string, string> params);
+
 
 /******************************************************************************/
 // This function builds a bionj tree

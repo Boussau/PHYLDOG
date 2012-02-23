@@ -65,16 +65,11 @@ namespace mpi = boost::mpi;
 
 using namespace bpp;
 
-
-void tryAllPossibleSPRsAndMakeBestOne(const mpi::communicator& world, TreeTemplate<Node> *& currentTree, TreeTemplate<Node> *& bestTree,int nodeForSPR, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, /*double averageDuplicationProbability, double averageLossProbability,*/ bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchProbaOptimization, std::map <std::string, int> genomeMissing);
-void tryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, TreeTemplate<Node> *& currentTree, TreeTemplate<Node> *& bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, /*double averageDuplicationProbability, double averageLossProbability,*/ bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchProbaOptimization, std::map <std::string, int> genomeMissing);
-void tryAndMakeNNIs(const mpi::communicator& world, TreeTemplate<Node> *& currentTree, TreeTemplate<Node> *& bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, /*double averageDuplicationProbability, double averageLossProbability,*/ bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchProbaOptimization, std::map <std::string, int> genomeMissing);
-
 void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world, 
                                             TreeTemplate<Node> *& tree, 
                                             TreeTemplate<Node> *& bestTree, 
-                                            int &index, 
-                                            int &bestIndex,  
+                                            unsigned int &index, 
+                                            unsigned int &bestIndex,  
                                             bool &stop, 
                                             int timeLimit, 
                                             double &logL, 
@@ -94,18 +89,18 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             double averageLossProbability,*/ 
                                             bool rearrange, 
                                             int &numIterationsWithoutImprovement, 
-                                            int server, 
+                                            unsigned int server, 
                                             int & nodeForNNI, 
                                             int & nodeForRooting, 
-                                            std::string & branchProbaOptimization, 
+                                            std::string & branchExpectedNumbersOptimization, 
                                             std::map <std::string, int> genomeMissing, 
                                             std::vector < double > & NNILks, 
-                                            std::vector<double> &rootLks);
+                                            std::vector<double> &rootLks, unsigned int currentStep);
 void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world, 
                                          TreeTemplate<Node> *& tree, 
                                          TreeTemplate<Node> *& bestTree, 
-                                         int &index, 
-                                         int &bestIndex,  
+                                         unsigned int &index, 
+                                         unsigned int &bestIndex,  
                                          bool &stop,
                                          int timeLimit,
                                          double &logL, 
@@ -125,16 +120,17 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
                                          double averageLossProbability,*/ 
                                          bool rearrange, 
                                          int &numIterationsWithoutImprovement, 
-                                         int server, 
+                                         unsigned int server, 
                                          int & nodeForNNI, 
                                          int & nodeForRooting, 
-                                         std::string & branchProbaOptimization, 
-                                         std::map <std::string, int> genomeMissing);
+                                         std::string & branchExpectedNumbersOptimization, 
+                                         std::map <std::string, int> genomeMissing,
+                                         unsigned int currentStep);
 void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, 
                                                 TreeTemplate<Node> *& currentTree, 
                                                 TreeTemplate<Node> *& bestTree, 
-                                                int &index, 
-                                                int &bestIndex,  
+                                                unsigned int &index, 
+                                                unsigned int &bestIndex,  
                                                 bool stop, 
                                                 int timeLimit,
                                                 double &logL, 
@@ -154,13 +150,14 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
                                                 double averageLossProbability,*/ 
                                                 bool rearrange, 
                                                 int &numIterationsWithoutImprovement, 
-                                                int server, 
-                                                std::string &branchProbaOptimization, 
-                                                std::map <std::string, int> genomeMissing);
+                                                unsigned int server, 
+                                                std::string &branchExpectedNumbersOptimization, 
+                                                std::map <std::string, int> genomeMissing, 
+                                                bool optimizeRates, unsigned int currentStep);
 void fastTryAllPossibleSPRs(const mpi::communicator& world, 
                             TreeTemplate<Node> *& currentTree, 
                             TreeTemplate<Node> *& bestTree, 
-                            int &index, int &bestIndex,  
+                            unsigned int &index, unsigned int &bestIndex,  
                             bool stop, 
                             int timeLimit, 
                             double &logL, 
@@ -189,15 +186,16 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world,
                             double averageLossProbability,*/ 
                             bool rearrange, 
                             int &numIterationsWithoutImprovement, 
-                            int server, 
-                            std::string &branchProbaOptimization, 
+                            unsigned int server, 
+                            std::string &branchExpectedNumbersOptimization, 
                             std::map <std::string, int> genomeMissing, 
-                            int sprLimit);
+                            int sprLimit, 
+                            bool optimizeRates, unsigned int currentStep);
 void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world, 
                                          TreeTemplate<Node> *& currentTree, 
                                          TreeTemplate<Node> *& bestTree, 
-                                         int &index, 
-                                         int &bestIndex,  
+                                         unsigned int &index, 
+                                         unsigned int &bestIndex,  
                                          bool stop, 
                                          int timeLimit,
                                          double &logL, 
@@ -217,23 +215,25 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                          double averageLossProbability,*/ 
                                          bool rearrange, 
                                          int &numIterationsWithoutImprovement, 
-                                         int server, 
-                                         std::string &branchProbaOptimization, 
+                                         unsigned int server, 
+                                         std::string &branchExpectedNumbersOptimization, 
                                          std::map <std::string, int> genomeMissing, 
                                          int sprLimit, 
-                                         bool optimizeRates);
+                                         bool optimizeRates, unsigned int currentStep);
 void broadcastsAllInformation(const mpi::communicator& world, 
-                              int server, bool stop, bool &rearrange, 
+                              unsigned int server, bool stop, bool &rearrange, 
                               std::vector<double> &lossExpectedNumbers, 
                               std::vector<double> &duplicationExpectedNumbers, 
-                              std::string & currentSpeciesTree);
+                              std::string & currentSpeciesTree, 
+                              unsigned int &currentStep);
 void broadcastsAllInformationButStop(const mpi::communicator& world, 
-                                     int server, bool &rearrange, 
+                                     unsigned int server, bool &rearrange, 
                                      std::vector<double> &lossExpectedNumbers, 
                                      std::vector<double> &duplicationExpectedNumbers, 
-                                     std::string & currentSpeciesTree);
+                                     std::string & currentSpeciesTree, 
+                                     unsigned int &currentStep);
 std::string computeSpeciesTreeLikelihood(const mpi::communicator& world, 
-                                         int &index, 
+                                         unsigned int &index, 
                                          bool stop, 
                                          double &logL, 
                                          std::vector<int> &num0Lineages, 
@@ -245,12 +245,13 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
                                          std::vector<double> &lossExpectedNumbers, 
                                          std::vector<double> &duplicationExpectedNumbers, 
                                          bool rearrange, 
-                                         int server, 
-                                         std::string &branchProbaOptimization, 
+                                         unsigned int server, 
+                                         std::string &branchExpectedNumbersOptimization, 
                                          std::map <std::string, int> genomeMissing, 
-                                         TreeTemplate<Node> &tree);
+                                         TreeTemplate<Node> &tree, 
+                                         unsigned int currentStep);
 std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::communicator& world, 
-                                                                   int &index, 
+                                                                   unsigned int &index, 
                                                                    bool stop, 
                                                                    double &logL, 
                                                                    std::vector<int> &num0Lineages, 
@@ -262,14 +263,15 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
                                                                    std::vector<double> &lossExpectedNumbers, 
                                                                    std::vector<double> &duplicationExpectedNumbers, 
                                                                    bool rearrange, 
-                                                                   int server, 
-                                                                   std::string &branchProbaOptimization, 
+                                                                   unsigned int server, 
+                                                                   std::string &branchExpectedNumbersOptimization, 
                                                                    std::map < std::string, int> genomeMissing, 
                                                                    TreeTemplate<Node> &tree, 
                                                                    std::string currentSpeciesTree, 
-                                                                   bool firstTime);
+                                                                   bool firstTime, 
+                                                                   unsigned int currentStep);
 void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mpi::communicator& world, 
-                                                                        int &index, bool stop, double &logL, 
+                                                                        unsigned int &index, bool stop, double &logL, 
 /*std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, */ 
                                                                         std::vector<int> &num0Lineages, 
                                                                         std::vector<int> &num1Lineages, 
@@ -279,12 +281,13 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                         std::vector<std::vector<int> > &allNum2Lineages, 
                                                                         std::vector<double> &lossExpectedNumbers, 
                                                                         std::vector<double> &duplicationExpectedNumbers, 
-                                                                        bool rearrange, int server, 
-                                                                        std::string &branchProbaOptimization, 
+                                                                        bool rearrange, unsigned int server, 
+                                                                        std::string &branchExpectedNumbersOptimization, 
                                                                         std::map <std::string, int> genomeMissing, 
-                                                                        TreeTemplate<Node> &tree, double & bestlogL);
+                                                                        TreeTemplate<Node> &tree, double & bestlogL, 
+                                                                        unsigned int currentStep);
 void firstCommunicationsServerClient (const mpi::communicator & world, 
-                                      int & server, std::vector <unsigned int>  & numbersOfGenesPerClient, 
+                                      unsigned int & server, std::vector <unsigned int>  & numbersOfGenesPerClient, 
                                       unsigned int & assignedNumberOfGenes, 
                                       std::vector<std::string> & assignedFilenames, 
                                       std::vector <std::vector<std::string> > & listOfOptionsPerClient, 
@@ -295,6 +298,50 @@ void firstCommunicationsServerClient (const mpi::communicator & world,
                                       std::vector <int> & num1Lineages, 
                                       std::vector <int> & num2Lineages, 
                                       std::string & currentSpeciesTree);
+/******************************************************************************/
+// This function runs the second communication between the server and the clients.
+// The clients send back how many families they deal with, 
+// and the server can then decide whether to stop or not.
+/******************************************************************************/
+void secondCommunicationsServerClient (const mpi::communicator & world , 
+                                       unsigned int & server, 
+                                       unsigned int & whoami, 
+                                       unsigned int & finalNumberOfGeneFamilies, 
+                                       vector<unsigned int> & finalNumbersOfGeneFamilies, 
+                                       std::vector <double> & lossExpectedNumbers, 
+                                       std::vector <double> & duplicationExpectedNumbers, 
+                                       std::string & currentSpeciesTree);
+/******************************************************************************/
+// This function runs the communication between the server and the clients for building a MRP species tree.
+// The clients send back gene trees with one gene per species, 
+// and the server can then build the MRP species tree.
+/******************************************************************************/
+void mrpCommunicationsServerClient (const mpi::communicator & world, 
+                                    unsigned int & server, 
+                                    unsigned int & whoami, 
+                                    string & trees1PerSpecies, 
+                                    std::vector<string> & allTrees1PerSpecies);
+/******************************************************************************/
+// This function runs the communication between the server and the clients to stop the program.
+// The server send stop and the index of the best tree found.
+/******************************************************************************/
+void lastCommunicationsServerClient (const mpi::communicator & world, 
+                                     unsigned int & server, 
+                                     bool & stop, 
+                                     unsigned int & bestIndex);
+/************************************************************************
+ * Gathers information from clients. 
+ ************************************************************************/
+void gathersInformationFromClients (const mpi::communicator & world, 
+                                    unsigned int & server,
+                                    unsigned int &whoami, 
+                                    double &logL, 
+                                    std::vector<int> &num0Lineages, 
+                                    std::vector<int> &num1Lineages, 
+                                    std::vector<int> &num2Lineages, 
+                                    std::vector< std::vector<int> > &allNum0Lineages, 
+                                    std::vector< std::vector<int> > &allNum1Lineages, 
+                                    std::vector< std::vector<int> > &allNum2Lineages);
 void inputNNIAndRootLks(std::vector <double> & NNILks, 
                         std::vector <double> & rootLks, 
                         std::map<std::string, std::string> & params, 
@@ -311,5 +358,13 @@ void outputNNIAndRootLks(std::vector <double> & NNILks,
 */
 
 
-/*void numericalOptimizationOfDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, bool rearrange, int server, std::string &branchProbaOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL);*/
+/*void numericalOptimizationOfDuplicationAndLossRates(const mpi::communicator& world, int &index, bool stop, double &logL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector< std::vector<int> > AllLosses, std::vector< std::vector<int> > AllDuplications, std::vector< std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, std::vector< std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, bool rearrange, int server, std::string &branchExpectedNumbersOptimization, std::map < std::string, int> genomeMissing, TreeTemplate<Node> &tree, double & bestlogL);*/
 #endif 
+
+
+
+/*void tryAllPossibleSPRsAndMakeBestOne(const mpi::communicator& world, TreeTemplate<Node> *& currentTree, TreeTemplate<Node> *& bestTree,int nodeForSPR, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers,  bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchExpectedNumbersOptimization, std::map <std::string, int> genomeMissing);
+void tryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world, TreeTemplate<Node> *& currentTree, TreeTemplate<Node> *& bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers,  bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchExpectedNumbersOptimization, std::map <std::string, int> genomeMissing);
+void tryAndMakeNNIs(const mpi::communicator& world, TreeTemplate<Node> *& currentTree, TreeTemplate<Node> *& bestTree, int &index, int &bestIndex,  bool stop, double &logL, double &bestlogL, std::vector<int> &lossNumbers, std::vector<int> &duplicationNumbers, std::vector<int> &branchNumbers, std::vector<int> &bestLossNumbers, std::vector<int> &bestDuplicationNumbers, std::vector<int> &bestBranchNumbers, std::vector<std::vector<int> > AllLosses, std::vector<std::vector<int> > AllDuplications, std::vector<std::vector<int> > AllBranches, std::vector<int> &num0Lineages, std::vector<int> &num1Lineages, std::vector<int> &num2Lineages, std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, std::vector<std::vector<int> > &allNum0Lineages, std::vector<std::vector<int> > &allNum1Lineages, std::vector<std::vector<int> > &allNum2Lineages, std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers,  bool rearrange, int &numIterationsWithoutImprovement, int server, std::string & branchExpectedNumbersOptimization, std::map <std::string, int> genomeMissing);*/
+
+

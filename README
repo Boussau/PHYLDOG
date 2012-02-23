@@ -65,8 +65,8 @@ time.limit=23 # Time limit for the job: beyond 23 hours, the job stops. Should b
 current.step=0 # This option is useful to restart a job that has been stopped due to time.limit. 
 output.file.suffix=_extension # An extension that will be added to all output files.
 alternate.topology.likelihoods=$(PATH)alternateLks.txt # A file where the likelihoods of alternate topologies encountered during the NNI search on the species tree are saved.
-species.duplication.tree.file=previousDuplicationTree.nwk # A file containing a species tree with branch lengths representing duplication parameters. These duplication parameters are then used as starting values for the algorithm.  
-species.loss.tree.file=previousDuplicationTree.nwk # A file containing a species tree with branch lengths representing loss parameters. These loss parameters are then used as starting values for the algorithm.
+species.duplication.tree.file=previousDuplicationTree.nwk # A file containing a species tree with branch lengths representing duplication parameters. These duplication parameters are then used as starting values for the algorithm. You don't have to give this option if you don't have good estimates for these parameters. 
+species.loss.tree.file=previousDuplicationTree.nwk # A file containing a species tree with branch lengths representing loss parameters. These loss parameters are then used as starting values for the algorithm. You don't have to give this option if you don't have good estimates for these parameters.
 
 This GeneralOptions.opt file contains options specific to the search for the best species tree. However, the options included in this file are also read by client processors in charge of gene families. Therefore, it is possible to include options that apply to the gene tree search for all gene families.
 
@@ -123,7 +123,7 @@ rearrangement.gene.tree = nni # Type of rearrangement: "nni" or "spr". "nni" is 
 SPR.limit.gene.tree = 4 # For SPR moves on the gene tree, gives the maximum distance between the position of the pruned subtree and its regrafting position.
 
 ######## Then, model options ########
-model=GTR(a=1.17322, b=0.27717, c=0.279888, d=0.41831, e=0.344783, useObservedFreqs=yes, useObservedFreqs.pseudoCount=1) # options of the model used. Should match the alphabet. Please see the bppsuite help for more details.
+model=GTR(a=1.17322, b=0.27717, c=0.279888, d=0.41831, e=0.344783, initFreqs=observed, initFreqs.observedPseudoCount=1) # options of the model used. Should match the alphabet. Please see the bppsuite help for more details.
 rate_distribution=Invariant(dist=Gamma(n=4,alpha=1.0), p=0.1) # Rate heterogeneity option. Here we assume a gamma law with 4 categories and a category of invariants to model rate heterogeneity among sites.
 optimization.ignore_parameter=InvariantMixed.dist_Gamma.alpha, InvariantMixed.p, GTR.a, GTR.b, GTR.c, GTR.d, GTR.e, GTR.theta, GTR.theta1, GTR.theta2 # We choose not to optimize these 10 parameters in order to save computing time, as we have provided reasonable input values. However, in cases where good input values are not available, it may be wise to leave this field empty and optimize these parameters.
 

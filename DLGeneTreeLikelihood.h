@@ -66,6 +66,7 @@ namespace bpp
         //  TreeTemplate<Node> * _tree;
         TreeTemplate<Node> * _spTree;
         TreeTemplate<Node> * _rootedTree;
+        TreeTemplate<Node> * _geneTreeWithSpNames;
         const std::map <std::string, std::string> _seqSp;
         std::map <std::string, int> _spId;
         std::vector <int> _duplicationNumbers;
@@ -135,6 +136,7 @@ namespace bpp
                                      DiscreteDistribution * rDist,
                                      TreeTemplate<Node> & spTree,  
                                      TreeTemplate<Node> & rootedTree, 
+                                     TreeTemplate<Node> & geneTreeWithSpNames,
                                      const std::map <std::string, std::string> seqSp,
                                      std::map <std::string,int> spId,
                                      //std::vector <int> & lossNumbers, 
@@ -190,6 +192,7 @@ namespace bpp
                                      DiscreteDistribution * rDist,
                                      TreeTemplate<Node> & spTree,  
                                      TreeTemplate<Node> & rootedTree,  
+                                     TreeTemplate<Node> & geneTreeWithSpNames,
                                      const std::map <std::string, std::string> seqSp,
                                      std::map <std::string,int> spId,
                                      //std::vector <int> & lossNumbers, 
@@ -253,7 +256,6 @@ namespace bpp
         
         void computeTreeLikelihood();
         
-        
         double getValue() const throw (Exception);
         
         void fireParameterChanged(const ParameterList & params);
@@ -283,6 +285,8 @@ namespace bpp
         
         TreeTemplate<Node> & getRootedTree() const {return *_rootedTree;}
         
+        TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *_geneTreeWithSpNames;}
+        
         std::map <std::string, std::string> getSeqSp() {return _seqSp;}
         
         void setProbabilities(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
@@ -310,14 +314,21 @@ namespace bpp
          * and executes the ones with the highest likelihood. 
          ************************************************************************/
         void refineGeneTreeSPRs(map<string, string> params);
+        
+        
+        void refineGeneTreeSPRs2(map<string, string> params);
+
 
         /************************************************************************
          * Tries all NNIs, and accepts NNIs that improve the likelihood as soon as
          * they have been tried.
          ************************************************************************/
-
         void refineGeneTreeNNIs(map<string, string> params, unsigned int verbose = 0);
 
+        /************************************************************************
+         * Tells if the gene family is single copy (1 gene per sp)
+         ************************************************************************/
+        bool isSingleCopy();
         
         
     };

@@ -81,6 +81,7 @@ void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool ver
     else {
       std::cout << " Node "<<newBrotherId<<"has no father"<< std::endl;
     }
+      MPI::COMM_WORLD.Abort(1);
     exit (-1);
   }
   
@@ -302,6 +303,8 @@ void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int n
     
   //std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)->getFather()));
     std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
+    int oldFatherId = tree.getNode(nodeForSPR)->getFather()->getId();
+    forbiddenIds.push_back(oldFatherId);
 
 /*
   std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
@@ -499,18 +502,14 @@ void makeDeterministicModifications(TreeTemplate<Node> &tree, int & nodeForNNI, 
  * Makes NNIs and root changings only.
  ************************************************************************/
 void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForRooting) {
-  if (nodeForNNI < tree.getNumberOfNodes()) {//Make a NNI or rerooting move
-    if (nodeForNNI <3) {
-      if (nodeForRooting<tree.getNumberOfNodes()) {//Make a rerooting move
+  if (nodeForNNI < tree.getNumberOfNodes() ) {//Make a NNI or rerooting move
+    if (nodeForNNI < 3) {
+      if (nodeForRooting < tree.getNumberOfNodes()) {//Make a rerooting move
         changeRoot(tree, nodeForRooting);
         nodeForRooting++;
       }
       else { //Make a NNI move
         nodeForNNI=3;
-        nodeForRooting = 4; //We don't want to root on nodes 1 or 2, 
-                            //the two sons of the root.
-                            //We do not want to root on node 3 either, 
-                            //as a NNI already provides this tree.
         makeNNI(tree, nodeForNNI);
         nodeForNNI++;
       }
@@ -521,9 +520,13 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nod
     }
   }
   else {//we reset the loop rooting-NNIs
-    nodeForNNI = 0;
-    changeRoot(tree, nodeForRooting);
-    nodeForRooting++;
+      nodeForNNI = 0;
+      nodeForRooting = 4; //We don't want to root on nodes 1 or 2, 
+      //the two sons of the root.
+      //We do not want to root on node 3 either, 
+      //as a NNI already provides this tree.
+      changeRoot(tree, nodeForRooting);
+      nodeForRooting++;
   }
 }
 
@@ -561,7 +564,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
             //   while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
             while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
               {
-              std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
+              //std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
               nodeForNNI = nodeForNNI+2;
               }
           }
@@ -571,7 +574,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
         //  while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))       
         while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
           {
-          std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
+          //std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
           nodeForNNI = nodeForNNI+2;
           }
         }
@@ -596,6 +599,36 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
 
 
 
+/************************************************************************
+ * Function to removes leaves from a tree.
+ ************************************************************************/
 
+void dropLeaves(TreeTemplate<Node> & tree, const std::vector<string> &spToDrop) {
+    for (unsigned int i = 0 ; i < spToDrop.size() ; i++) {
+        TreeTemplateTools::dropLeaf(tree, spToDrop[i]);
+    }
+    return;
+}
 
+/************************************************************************
+ * Function to build a MRP bionj tree from a collection of trees.
+ * Faster than TreeTools::MRP as we don't do the NNI exploration part.
+ ************************************************************************/
+Tree* MRP(const vector<Tree*>& vecTr)
+{
+    //matrix representation
+    VectorSiteContainer* sites = TreeTools::MRPEncode(vecTr);
+    
+    //starting bioNJ tree
+    const DNA* alphabet= dynamic_cast<const DNA*>(sites->getAlphabet());
+    JCnuc jc(alphabet);
+    ConstantDistribution constRate(1.);
+    DistanceEstimation distFunc(&jc, &constRate, sites, 0, true);
+    BioNJ bionjTreeBuilder;
+    bionjTreeBuilder.setDistanceMatrix(*(distFunc.getMatrix()));
+    bionjTreeBuilder.computeTree(false);
+    if (ApplicationTools::message) ApplicationTools::message->endLine();
+    TreeTemplate<Node>* tree = new TreeTemplate<Node>(*bionjTreeBuilder.getTree());
+    return tree;
+}
 

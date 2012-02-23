@@ -13,11 +13,20 @@
 #include <Bpp/Phyl/Tree.h>
 #include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
 #include <Bpp/Phyl/Node.h>
+#include <Bpp/Phyl/Model/JCnuc.h>
+#include <Bpp/Phyl/Distance/BioNJ.h>
+#include <Bpp/Phyl/Distance/DistanceEstimation.h>
 
 // From NumCalc:
 #include <Bpp/Numeric/VectorTools.h>
 #include <Bpp/Numeric/Random/RandomTools.h>
 #include <Bpp/Numeric/NumConstants.h>
+#include <Bpp/Numeric/Prob/ConstantDistribution.h>
+
+
+//From Seqlib:
+#include <Bpp/Seq/Alphabet/DNA.h>
+
 
 #include "ReconciliationTools.h"
 
@@ -42,5 +51,6 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nod
 bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, int & nodeForNNI, 
                                int & nodeForRooting, std::vector < double >  &NNILks, 
                                std::vector < double >  &rootLks);
-
+void dropLeaves(TreeTemplate<Node> & tree, const std::vector<string> &spToDrop);
+Tree* MRP(const vector<Tree*>& vecTr);
 #endif 

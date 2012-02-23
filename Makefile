@@ -117,3 +117,11 @@ phyldogarchive :
 	cp ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp Makefile INSTALL README PHYLDOGArchive
 	tar cfz PHYLDOGArchive.tgz PHYLDOGArchive
 #ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp Makefile
+
+examplearchive :
+	#rm example/*_5Mammals
+	#rm example/*_starting.tree
+	#rm example/*_starting.tree_sp_names
+	#rm example/Client_*
+	tar cfz example.tgz example
+

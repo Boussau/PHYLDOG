@@ -124,10 +124,10 @@ void DTLGeneTreeLikelihood::parseOptions() {
   std::string line;
   while(getline(inSpSeq,line)) {
     //We divide the line in 2 : first, the species name, second the sequence names
-    StringTokenizer st1 = StringTokenizer::StringTokenizer (line, ":", true);
+    StringTokenizer st1 (line, ":", true);
     //Then we divide the sequence names
     if (st1.numberOfRemainingTokens ()>1) {
-      StringTokenizer st2 = StringTokenizer::StringTokenizer (st1.getToken(1), ";", true);
+      StringTokenizer st2(st1.getToken(1), ";", true);
       if (spSeq.find(st1.getToken(0)) == spSeq.end())
         spSeq.insert( make_pair(st1.getToken(0),st2.getTokens()));
       else {

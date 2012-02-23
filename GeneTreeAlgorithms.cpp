@@ -125,8 +125,10 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
               }
           }
         }
-        if (f)
+          if (f) {
+              MPI::COMM_WORLD.Abort(1);
           exit(-1);
+          }
       }
       ApplicationTools::displayError("!!! Looking at each site:");
       for (unsigned int i = 0; i < sites->getNumberOfSites(); i++)
@@ -134,6 +136,7 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
         (*ApplicationTools::error << "Site " << sites->getSite(i).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(i)).endLine();
         }
       ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularily if datasets are big (>~500 sequences).");
+          MPI::COMM_WORLD.Abort(1);
       exit(-1);
       }
 
@@ -332,7 +335,7 @@ void optimizeBLMapping(
                        DRTreeLikelihood* tl,
                        double precision)
 {
-    std::cout<< "BEFORE: "<<TreeTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
+ //   std::cout<< "BEFORE: "<<TreeTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
 
   double currentValue = tl->getValue();
   double newValue = currentValue - 2* precision;
@@ -366,11 +369,11 @@ void optimizeBLMapping(
     tl->matchParametersValues(newBls);
     
     newValue = tl->getValue();
-   std::cout <<"before: "<< currentValue<<" AFTER: "<< newValue <<std::endl;
+  // std::cout <<"before: "<< currentValue<<" AFTER: "<< newValue <<std::endl;
       if (currentValue > newValue + precision) { //Significant improvement
       bls = newBls;
         tl->setParameters(bls);
-        std::cout<< "AFTER: "<<TreeTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
+ //       std::cout<< "AFTER: "<<TreeTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
 
       /*  TreeTemplate<Node *>* t = tl->getTree();
         for (unsigned int i = 0 ; i < counts.size() ; i ++) {
@@ -427,6 +430,9 @@ void optimizeBLMappingForSPRs(
                        DRTreeLikelihood* tl,
                        double precision, map<string, string> params)
 {    
+    if (!tl->isInitialized () ) {
+        tl->initialize();
+    }
     double currentValue = tl->getValue();
     double newValue = currentValue - 2* precision;
     ParameterList bls = tl->getBranchLengthsParameters () ;
@@ -436,6 +442,7 @@ void optimizeBLMappingForSPRs(
     vector<int> ids = tl->getTree().getNodesId();
     ids.pop_back(); //remove root id.
     SubstitutionRegister* reg = 0;  
+
     //Counting all substitutions
     reg = new TotalSubstitutionRegister(tl->getAlphabet());
     
@@ -454,7 +461,9 @@ void optimizeBLMappingForSPRs(
             currentValue = newValue;
         }*/
         //Perform the mapping:
+    
         counts = getTotalCountsOfSubstitutionsPerBranch(*tl, ids, tl->getSubstitutionModel(0,0), *reg, count, -1);
+
         double value;
         string name;
         for (unsigned int i = 0 ; i < counts.size() ; i ++) {
@@ -463,16 +472,20 @@ void optimizeBLMappingForSPRs(
          /*   } else {
                 value = bls[i].getValue();
             }*/
+            // LITTLE ATTEMPT TO TRY TO AVOID HUGE BRANCHES THAT MAY OCCUR FOR VERY BAD ALIGNMENTS
+            if (value > 1.0) value = 1.0;
             name = "BrLen" + TextTools::toString(i);
             newBls.setParameterValue(name, newBls.getParameter(name).getConstraint()->getAcceptedLimit (value));
         }
-        
-        tl->matchParametersValues(newBls);
-        
+
+       // tl->matchParametersValues(newBls);
+    tl->setParametersValues(newBls);
+    
         newValue = tl->getValue();
+
         if (currentValue > newValue + precision) { //Significant improvement
             bls = newBls;
-            tl->setParameters(bls);            
+            tl->setParametersValues(bls);     
             /*  TreeTemplate<Node *>* t = tl->getTree();
              for (unsigned int i = 0 ; i < counts.size() ; i ++) {
              t->getNode(i)->setDistanceToFather(bls[i]);
@@ -481,19 +494,46 @@ void optimizeBLMappingForSPRs(
         else { 
             if (currentValue < newValue) //new state worse, getting back to the former state
                 tl->matchParametersValues(bls);
+            // tl->getValue();
+
         }
+
   //  }
     //Then, normal optimization.
-    
+
 //ATTEMPT WITHOUT FULL OPTIMIZATION 16 10 2011   
+    //But with few rounds of optimization
+    
+    int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+    {
+        params[ std::string("optimization.max_number_f_eval")] = 10;
+    }
+        
+    PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
+    params[ std::string("optimization.max_number_f_eval")] = backup;
+     
+    
+}
+
+/******************************************************************************/
+// This function optimizes branch lengths in a gene tree without substitution mapping
+/******************************************************************************/
+
+void optimizeBLForSPRs(
+                              DRTreeLikelihood* tl,
+                              double precision, map<string, string> params)
+{    
     //But with few rounds of optimization
     int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
     {
         params[ std::string("optimization.max_number_f_eval")] = 10;
     }
+    
     PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = backup;
+    params[ std::string("optimization.max_number_f_eval")] = backup;    
+    
 }
+
 
 
 /******************************************************************************/
@@ -507,7 +547,11 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
                                       Alphabet *alphabet) {
   TreeTemplate<Node>  *unrootedGeneTree = 0;
   
-  DistanceEstimation distEstimation(model, rDist, sites, 1, false);
+    //We don't want to use rate heterogeneity across sites with bionj, it seems to behave weirdly (e.g. very long branches)
+    DiscreteDistribution*  rDist2 = new ConstantDistribution(1., true);
+    DistanceEstimation distEstimation(model, rDist2, sites, 1, false);
+   
+  //DistanceEstimation distEstimation(model, rDist, sites, 1, false);
   
   BioNJ * bionj = new BioNJ();     
   
@@ -520,7 +564,9 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
   else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
   // Should I ignore some parameters?
   ParameterList allParameters = model->getParameters();
-  allParameters.addParameters(rDist->getParameters());
+ // allParameters.addParameters(rDist->getParameters());
+    allParameters.addParameters(rDist2->getParameters());
+    
   ParameterList parametersToIgnore;
   std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
   bool ignoreBrLen = false;
@@ -555,8 +601,10 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
   
   for(unsigned int k = 0; k < nodes.size(); k++)
     {
-    if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
-    if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() >= 5) throw Exception("Found a very large branch length in a gene tree; will avoid this family.");
+        if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
+        if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() >= 5) throw Exception("Found a very large branch length in a gene tree; will avoid this family.");
+        //Remove long branches, in case it helps
+        //if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() > 0.5) nodes[k]->setDistanceToFather(0.05);        
     }
   
   delete bionj;  
@@ -618,8 +666,10 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
             }
         }
       }
-      if (f)
+        if (f) {
+            MPI::COMM_WORLD.Abort(1);
         exit(-1);
+        }
     }
     ApplicationTools::displayError("!!! Looking at each site:");
     for (unsigned int i = 0; i < sites->getNumberOfSites(); i++)
@@ -627,6 +677,7 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
       (*ApplicationTools::error << "Site " << sites->getSite(i).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(i)).endLine();
       }
     ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularily if datasets are big (>~500 sequences).");
+        MPI::COMM_WORLD.Abort(1);
     exit(-1);
     }
   
@@ -669,6 +720,7 @@ string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
     }
     else {
       std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+        MPI::COMM_WORLD.Abort(1);
       exit(-1);
     }
   }
@@ -691,6 +743,7 @@ string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
     }
     else {
       std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+      MPI::COMM_WORLD.Abort(1);
       exit(-1);
     }
   }
@@ -729,6 +782,7 @@ void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
     }
     else {
       std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+      MPI::COMM_WORLD.Abort(1);
       exit(-1);
     }
   }
@@ -765,7 +819,7 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
     double bestlogL;
     double logL;
     bool betterTree;
-    int numIterationsWithoutImprovement = 0;
+    unsigned int numIterationsWithoutImprovement = 0;
     double startingML = findMLReconciliationDR (spTree, 
                                                 currentTree, 
                                                 seqSp,
@@ -781,7 +835,7 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
     bestTree = currentTree->clone();
     bestlogL = startingML;
     
-    while (numIterationsWithoutImprovement < geneTree->getNumberOfNodes()-1) {
+    while (numIterationsWithoutImprovement + 1 < geneTree->getNumberOfNodes()) {
         for (unsigned int nodeForSPR=geneTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
             betterTree = false;
             tree = currentTree->clone();

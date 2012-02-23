@@ -647,6 +647,7 @@ double computeBranchProbabilityAtRoot (double duplicationProbability, double los
   }
   if (numberOfLineages==0) {
     std::cerr <<"Error in computeBranchProbabilityAtRoot: cannot compute P(0 lineage)!"<<std::endl;
+      MPI::COMM_WORLD.Abort(1);
     exit(-1);
 //    return (lossProbability*beta);
   }
@@ -1162,11 +1163,13 @@ int assignSpeciesIdToLeaf(Node * node,  const std::map<std::string, std::string 
     }
     else {
       std::cerr <<"Error in assignSpeciesIdToLeaf: "<< seqtosp->second <<" not found in std::map spID for sequence "<< seqtosp->first<<std::endl;
+        MPI::COMM_WORLD.Abort(1);
       exit(-1);
     }
   }
   else {
     std::cerr <<"Error in assignSpeciesIdToLeaf: "<< node->getName() <<" not found in std::map seqSp"<<std::endl;
+      MPI::COMM_WORLD.Abort(1);
     exit(-1);
   }
 }
@@ -1476,8 +1479,10 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
       speciesIDs[id][0]=speciesIDs[id][1]=speciesIDs[id][2]=assignSpeciesIdToLeaf(node, seqSp, spID);
       likelihoodData[id][0]=likelihoodData[id][1]=likelihoodData[id][2]=computeLogBranchProbability(duplicationRates[speciesIDs[id][0]], lossRates[speciesIDs[id][0]], 1);
       dupData[id][0] = dupData[id][1] = dupData[id][2] = 1;
-    // std::cout <<"leafLk "<<likelihoodData[id][0]<<std::endl;
-    }
+ 
+          //  std::cout <<"leafLk id "<< id << " lk: "<<likelihoodData[id][0]<<std::endl;
+    
+        }
   /*  std::cout <<"at leaf "<<node->getName()<<std::endl;
     std::cout <<"lk "<<likelihoodData[id][0]<<std::endl;*/
     return(likelihoodData[id][0]);
@@ -1485,7 +1490,11 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
   else {
     std::vector <Node *> sons = node->getSons();
     for (unsigned int i = 0; i< sons.size(); i++){
-      computeSubtreeLikelihoodPostorder(spTree, geneTree, sons[i], seqSp, spID, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData);
+      computeSubtreeLikelihoodPostorder(spTree, geneTree, 
+                                        sons[i], seqSp, 
+                                        spID, likelihoodData, 
+                                        lossRates, duplicationRates, 
+                                        speciesIDs, dupData);
     }
     
     int idSon0 = sons[0]->getId();
@@ -1521,14 +1530,27 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
     
     
     std::cout << "fatherDirection "<<directionFather<<std::endl;*/
-    
- /*  std::cout << "son 0 lk "<<likelihoodData[idSon0][directionSon0]<< " directionSon0 "<<  directionSon0<<std::endl;
+ /*   
+  std::cout << "son 0 lk "<<likelihoodData[idSon0][directionSon0]<< " directionSon0 "<<  directionSon0<<std::endl;
    std::cout << "son 1 lk "<<likelihoodData[idSon1][directionSon1]<<" directionSon1 "<<  directionSon1<<std::endl;
-    
     std::cout <<"node ID "<<id<<"isRoot? "<<TreeTemplateTools::isRoot(*node)<<std::endl;*/
-    computeConditionalLikelihoodAndAssignSpId(spTree, sons, likelihoodData[id][0], likelihoodData[idSon0][directionSon0], likelihoodData[idSon1][directionSon1], lossRates, duplicationRates, speciesIDs[id][0], speciesIDs[idSon0][directionSon0], speciesIDs[idSon1][directionSon1], dupData[id][0], dupData[idSon0][directionSon0], dupData[idSon1][directionSon1], TreeTemplateTools::isRoot(*node));
-//   std::cout <<"father lk "<< likelihoodData[id][0]<<std::endl;
-    return(likelihoodData[id][0]);
+      
+    computeConditionalLikelihoodAndAssignSpId(spTree, sons, 
+                                              likelihoodData[id][0], 
+                                              likelihoodData[idSon0][directionSon0], 
+                                              likelihoodData[idSon1][directionSon1], 
+                                              lossRates, duplicationRates, 
+                                              speciesIDs[id][0], 
+                                              speciesIDs[idSon0][directionSon0], 
+                                              speciesIDs[idSon1][directionSon1], 
+                                              dupData[id][0], 
+                                              dupData[idSon0][directionSon0], 
+                                              dupData[idSon1][directionSon1], 
+                                              TreeTemplateTools::isRoot(*node));
+
+     // std::cout <<"father lk "<< likelihoodData[id][0]<<std::endl;
+
+      return(likelihoodData[id][0]);
 	}
 	
 	
@@ -1584,7 +1606,17 @@ void computeRootingLikelihood(TreeTemplate<Node> & spTree,
   std::cout <<"likelihoodData[Father] "<< likelihoodData[idNode0][directionNode0]<<std::endl;
   std::cout <<"likelihoodData[Son] "<< likelihoodData[idNode1][directionNode1]<<std::endl;
 */
-  computeConditionalLikelihoodAndAssignSpId(spTree, nodes, likelihoodData[geneNodeId][sonNumber+1], likelihoodData[idNode0][directionNode0], likelihoodData[idNode1][directionNode1], lossRates, duplicationRates, speciesIDs[geneNodeId][sonNumber+1], speciesIDs[idNode0][directionNode0], speciesIDs[idNode1][directionNode1], dupData[geneNodeId][sonNumber+1], dupData[idNode0][directionNode0], dupData[idNode1][directionNode1], false);
+  computeConditionalLikelihoodAndAssignSpId(spTree, nodes, 
+                                            likelihoodData[geneNodeId][sonNumber+1], 
+                                            likelihoodData[idNode0][directionNode0], 
+                                            likelihoodData[idNode1][directionNode1], 
+                                            lossRates, duplicationRates, 
+                                            speciesIDs[geneNodeId][sonNumber+1], 
+                                            speciesIDs[idNode0][directionNode0], 
+                                            speciesIDs[idNode1][directionNode1], 
+                                            dupData[geneNodeId][sonNumber+1], 
+                                            dupData[idNode0][directionNode0], 
+                                            dupData[idNode1][directionNode1], false);
   //Now we have the conditional likelihood of the upper subtree, 
   //as well as the conditional likelihood of the lower subtree (which we already had)
   //We can thus compute the total likelihood of the rooting.
@@ -1603,7 +1635,15 @@ void computeRootingLikelihood(TreeTemplate<Node> & spTree,
   int rootSpId;
   int rootDupData = 0;
   
-  computeConditionalLikelihoodAndAssignSpId(spTree, sons, rootLikelihood, likelihoodData[idSon0][directionSon0], likelihoodData[idSon1][directionSon1], lossRates, duplicationRates, rootSpId, speciesIDs[idSon0][directionSon0], speciesIDs[idSon1][directionSon1], rootDupData, dupData[idSon0][directionSon0], dupData[idSon1][directionSon1], true);
+  computeConditionalLikelihoodAndAssignSpId(spTree, sons, 
+                                            rootLikelihood, 
+                                            likelihoodData[idSon0][directionSon0], 
+                                            likelihoodData[idSon1][directionSon1], 
+                                            lossRates, duplicationRates, 
+                                            rootSpId, speciesIDs[idSon0][directionSon0], 
+                                            speciesIDs[idSon1][directionSon1], 
+                                            rootDupData, dupData[idSon0][directionSon0], 
+                                            dupData[idSon1][directionSon1], true);
  // std::cout <<"LK FOUND "<<rootLikelihood<<std::endl;
   while (LksToNodes.find(rootLikelihood)!=LksToNodes.end()) {
    // std::cout <<"changing rootLikelihood !!!!!!!!!!!!!!!!!!!"<<std::endl;
@@ -1636,7 +1676,10 @@ void computeSubtreeLikelihoodPreorder(TreeTemplate<Node> & spTree,
                                       std::vector <std::vector<int> > & dupData,
                                       int sonNumber, 
                                       std::map <double, Node*> & LksToNodes) {
-  computeRootingLikelihood(spTree, node, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData, sonNumber, LksToNodes);
+  computeRootingLikelihood(spTree, node, 
+                           likelihoodData, lossRates, 
+                           duplicationRates, speciesIDs, 
+                           dupData, sonNumber, LksToNodes);
   if (node->isLeaf()) {
     return; 
   }
@@ -1649,7 +1692,11 @@ void computeSubtreeLikelihoodPreorder(TreeTemplate<Node> & spTree,
   }
 //  for (int i = 0; i< sons.size(); i++){
     for (unsigned int j =0; j<son->getNumberOfSons(); j++) {
-      computeSubtreeLikelihoodPreorder(spTree, geneTree, son, seqSp, spID, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData, j, LksToNodes);
+      computeSubtreeLikelihoodPreorder(spTree, geneTree, 
+                                       son, seqSp, spID, 
+                                       likelihoodData, 
+                                       lossRates, duplicationRates, 
+                                       speciesIDs, dupData, j, LksToNodes);
     }
 //  }
 	return;
@@ -1941,7 +1988,11 @@ void computeNumbersOfLineagesFromRoot(TreeTemplate<Node> * spTree,
   else {
     std::vector <Node *> sons = node->getSons();
     for (unsigned int i = 0; i< sons.size(); i++){
-      computeNumbersOfLineagesFromRoot(spTree, geneTree, sons[i], seqSp, spID, num0lineages, num1lineages, num2lineages, speciesIDs, dupData, branchesWithDuplications);
+      computeNumbersOfLineagesFromRoot(spTree, geneTree, sons[i], 
+                                       seqSp, spID, num0lineages, 
+                                       num1lineages, num2lineages, 
+                                       speciesIDs, dupData, 
+                                       branchesWithDuplications);
     }
     
     int idSon0 = sons[0]->getId();
@@ -1960,7 +2011,15 @@ void computeNumbersOfLineagesFromRoot(TreeTemplate<Node> * spTree,
       }
     }
 
-    computeNumbersOfLineagesInASubtree(*spTree, sons, speciesIDs[id][0], speciesIDs[idSon0][directionSon0], speciesIDs[idSon1][directionSon1], dupData[id][0], dupData[idSon0][directionSon0], dupData[idSon1][directionSon1], TreeTemplateTools::isRoot(*node), num0lineages, num1lineages, num2lineages, branchesWithDuplications);
+    computeNumbersOfLineagesInASubtree(*spTree, sons, 
+                                       speciesIDs[id][0], 
+                                       speciesIDs[idSon0][directionSon0], 
+                                       speciesIDs[idSon1][directionSon1], 
+                                       dupData[id][0], dupData[idSon0][directionSon0], 
+                                       dupData[idSon1][directionSon1], 
+                                       TreeTemplateTools::isRoot(*node), 
+                                       num0lineages, num1lineages, 
+                                       num2lineages, branchesWithDuplications);
       return;
 	}
   
@@ -2001,6 +2060,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
 	if (!geneTree->isRooted()) {
 		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
 		std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliationDR !!!!!!"<<std::endl;
+        MPI::COMM_WORLD.Abort(1);
 		exit(-1);
       }		
 	std::vector <double> nodeData(3, 0.0);
@@ -2021,7 +2081,14 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
 	Node * geneRoot = geneTree->getRootNode();
 /*  std::cout <<"root number :"<<geneRoot->getId()<<std::endl;
   std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
-  initialLikelihood = computeSubtreeLikelihoodPostorder(*spTree, *geneTree, geneRoot, seqSp, spID, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData);
+  initialLikelihood = computeSubtreeLikelihoodPostorder(*spTree, *geneTree, 
+                                                        geneRoot, seqSp, spID, 
+                                                        likelihoodData, lossRates, 
+                                                        duplicationRates, speciesIDs, dupData);
+/*    VectorTools::print(duplicationRates);
+    std::cout << TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
+    std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+    std::cout << "initialLikelihood: "<< initialLikelihood << std::endl;*/
  //  std::cout <<"CLOCKAFTERPOSTORDER "<<clock()<<std::endl;
 //std::cout <<"Postorder tree traversal over: Initial likelihood: "<<initialLikelihood<<std::endl;
 	//computeSubtreeLikelihoodPrefix then computes the other conditional likelihoods, and also returns the best rooting.
@@ -2051,18 +2118,24 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
 
   for (unsigned int i = 0; i< sons.size(); i++){
     for (unsigned int j =0; j<sons[i]->getNumberOfSons(); j++) {
-      computeSubtreeLikelihoodPreorder(*spTree, *geneTree, sons[i], seqSp, spID, likelihoodData, lossRates, duplicationRates, speciesIDs, dupData, j, LksToNodes);
+      computeSubtreeLikelihoodPreorder(*spTree, *geneTree, 
+                                       sons[i], seqSp, spID, 
+                                       likelihoodData, 
+                                       lossRates, duplicationRates, 
+                                       speciesIDs, dupData, j, LksToNodes);
     }
   }
 
   
- /*  
+  /* 
   std::cout <<"Printing all rooting likelihoods as found by the DR tree traversal"<<std::endl;
   std::map<double, Node*>::iterator it;
 
   for ( it=LksToNodes.begin() ; it != LksToNodes.end(); it++ )
     std::cout << (*it).second->getId() << " => " << (*it).first << std::endl;
    */
+    
+    
   geneTree->newOutGroup(LksToNodes.rbegin()->second->getId()); //uncomment that if you want to keep gene family trees fixed except for the root
   
   if (fillTables) {
@@ -2092,7 +2165,12 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
 // std::cout <<"HERE_rooted_tree "<<TreeTools::treeToParenthesis (*tree, true)<<std::endl;
 //  std::cout <<"HERE_rooted_tree2 "<<TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
 //  std::cout <<"HERE_SP_tree "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
-  computeNumbersOfLineagesFromRoot(spTree, tree, tree->getRootNode(), seqSp, spID, num0lineages, num1lineages, num2lineages, speciesIDs, dupData, nodesToTryInNNISearch);
+  computeNumbersOfLineagesFromRoot(spTree, tree, 
+                                   tree->getRootNode(), 
+                                   seqSp, spID, 
+                                   num0lineages, num1lineages, 
+                                   num2lineages, speciesIDs, 
+                                   dupData, nodesToTryInNNISearch);
   delete tree;
 
   }
@@ -2141,7 +2219,14 @@ double computeAverageLossProportion(std::vector <int> & num0lineages, std::vecto
 }
 
 
-void extractSubVectorsWithInternalLineages(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree, std::vector <int> & num0, std::vector <int> & num1, std::vector <int> & num2) {
+void extractSubVectorsWithInternalLineages(std::vector <int> & num0lineages, 
+                                           std::vector <int> & num1lineages, 
+                                           std::vector <int> & num2lineages, 
+                                           std::map <std::string, int> & genomeMissing, 
+                                           TreeTemplate<Node> & tree, 
+                                           std::vector <int> & num0, 
+                                           std::vector <int> & num1, 
+                                           std::vector <int> & num2) {
   std::vector <int> branchesToDiscard = tree.getLeavesId();
   //We also discard the root branch, which by definition does not have any loss
   branchesToDiscard.push_back(0);
@@ -2168,7 +2253,14 @@ void extractSubVectorsWithInternalLineages(std::vector <int> & num0lineages, std
 //We compute the average loss proportion observed among species tree branches that
 //are not found in "genomeMissing" to have missing data.
 
-void extractSubVectorsWithCompletelySequencedLineages(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree, std::vector <int> & num0, std::vector <int> & num1, std::vector <int> & num2) {
+void extractSubVectorsWithCompletelySequencedLineages(std::vector <int> & num0lineages, 
+                                                      std::vector <int> & num1lineages, 
+                                                      std::vector <int> & num2lineages, 
+                                                      std::map <std::string, int> & genomeMissing, 
+                                                      TreeTemplate<Node> & tree, 
+                                                      std::vector <int> & num0, 
+                                                      std::vector <int> & num1, 
+                                                      std::vector <int> & num2) {
   std::vector <int> branchesToDiscard;
   for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
     if (it->second != 0) {
@@ -2184,7 +2276,6 @@ void extractSubVectorsWithCompletelySequencedLineages(std::vector <int> & num0li
   num1 = num1lineages;
   num2 = num2lineages;
   
-  
   for(std::vector<int>::reverse_iterator it = branchesToDiscard.rbegin(); it != branchesToDiscard.rend(); it++){
     num0.erase(num0.begin()+*it);
     num1.erase(num1.begin()+*it);
@@ -2197,7 +2288,11 @@ void extractSubVectorsWithCompletelySequencedLineages(std::vector <int> & num0li
 
 
 
-double computeAverageLossProportionOnCompletelySequencedLineages(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
+double computeAverageLossProportionOnCompletelySequencedLineages(std::vector <int> & num0lineages, 
+                                                                 std::vector <int> & num1lineages, 
+                                                                 std::vector <int> & num2lineages, 
+                                                                 std::map <std::string, int> & genomeMissing, 
+                                                                 TreeTemplate<Node> & tree) {
    
   std::vector  <int> num0; 
   std::vector  <int> num1; 
@@ -2205,7 +2300,14 @@ double computeAverageLossProportionOnCompletelySequencedLineages(std::vector <in
   
   //sort (myvector.begin()+4, myvector.end()
   
-  extractSubVectorsWithCompletelySequencedLineages(num0lineages, num1lineages, num2lineages, genomeMissing, tree, num0, num1, num2);
+  extractSubVectorsWithCompletelySequencedLineages(num0lineages, 
+                                                   num1lineages, 
+                                                   num2lineages, 
+                                                   genomeMissing, 
+                                                   tree, 
+                                                   num0, 
+                                                   num1, 
+                                                   num2);
   
   double totNum0 = (double)VectorTools::sum(num0);
   double totNum1 = (double)VectorTools::sum(num1);
@@ -2286,16 +2388,20 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
 /**************************************************************************/
 //We increase num0lineages in some external branches to account for the low sequence coverage of some genomes. 
 //We also set num0Lineages in the root branch.
-void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree, bool average) {
-  
-  
+void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, 
+                                     std::vector <int> & num1lineages, 
+                                     std::vector <int> & num2lineages, 
+                                     std::map <std::string, int> & genomeMissing, 
+                                     TreeTemplate<Node> & tree, bool average) {
   std::vector  <int> num0; 
   std::vector  <int> num1; 
   std::vector  <int> num2; 
-  
-  
-  
- extractSubVectorsWithCompletelySequencedLineages(num0lineages, num1lineages, num2lineages, genomeMissing, tree, num0, num1, num2);
+  extractSubVectorsWithCompletelySequencedLineages(num0lineages, 
+                                                   num1lineages, 
+                                                   num2lineages, 
+                                                   genomeMissing, 
+                                                   tree, 
+                                                   num0, num1, num2);
   
   double avg0d = VectorTools::mean<int, double>(num0);
   double avg1d = VectorTools::mean<int, double>(num1);
@@ -2312,7 +2418,6 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
   if (propLoss > 0.99) {
     propLoss = 0.99;
   }
-  
   
   int avg0 = (int)avg0d;
   int avg1 = (int)avg1d;
@@ -2337,7 +2442,6 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
     }
   }
     
-  
   //  Now we apply corrections for poorly sequenced genomes
   for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
     int id = tree.getLeafId(it->first);
@@ -2362,8 +2466,6 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
       num0lineages[id] = (int)(totLoss * ((double)num1lineages[id]+(double)num2lineages[id]) / (1.0-totLoss));
     }
   }
-  
-  
 }
 
 /**************************************************************************/
@@ -2478,7 +2580,14 @@ std::map <std::string, int> computeSpeciesNamesToIdsMap (TreeTemplate<Node> & tr
 
 
 
-void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOptimization, std::vector <int> & num0Lineages, std::vector <int> & num1Lineages, std::vector <int> & num2Lineages, std::vector<double> & lossExpectedNumbers, std::vector<double> & duplicationExpectedNumbers, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
+void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOptimization, 
+                                                      std::vector <int> & num0Lineages, 
+                                                      std::vector <int> & num1Lineages, 
+                                                      std::vector <int> & num2Lineages, 
+                                                      std::vector<double> & lossExpectedNumbers, 
+                                                      std::vector<double> & duplicationExpectedNumbers, 
+                                                      std::map <std::string, int> & genomeMissing, 
+                                                      TreeTemplate<Node> & tree) {
   //outputting trees with branch lengths in numbers of events, before correction.
   computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossExpectedNumbers, duplicationExpectedNumbers);
   std::cout << "Species tree with expected numbers of duplications as branch lengths:"<<std::endl;
@@ -2516,7 +2625,14 @@ void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOp
 
 
 /**************************************************************************/
-void computeDuplicationAndLossRatesForTheSpeciesTreeInitially (std::string &branchProbaOptimization, std::vector <int> & num0Lineages, std::vector <int> & num1Lineages, std::vector <int> & num2Lineages, std::vector<double> & lossProbabilities, std::vector<double> & duplicationProbabilities, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
+void computeDuplicationAndLossRatesForTheSpeciesTreeInitially (std::string &branchProbaOptimization, 
+                                                               std::vector <int> & num0Lineages, 
+                                                               std::vector <int> & num1Lineages, 
+                                                               std::vector <int> & num2Lineages, 
+                                                               std::vector<double> & lossProbabilities, 
+                                                               std::vector<double> & duplicationProbabilities, 
+                                                               std::map <std::string, int> & genomeMissing, 
+                                                               TreeTemplate<Node> & tree) {
   std::cout <<"Computing Initial Rates"<<std::endl; 
   alterLineageCountsWithCoveragesInitially(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree);
   computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities);
@@ -2626,6 +2742,7 @@ void cleanVectorOfOptions (std::vector<std::string> & listOptions, bool sizeCons
     if(maxStrSize>MAXFILENAMESIZE) 
       {
       std::cout << "\nNames are too long, please abbreviate ! File names (including the path) need to be < "<< MAXFILENAMESIZE <<" letters long.\n"<<std::endl;
+          MPI::COMM_WORLD.Abort(1);
       exit(-1);
       }
     }
@@ -2674,7 +2791,7 @@ void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int s
     {
     std::vector <std::pair <std::string, double> > elements;
     for (unsigned int i = 0; i<listOptions.size() ; i++) {
-      StringTokenizer st1 = StringTokenizer::StringTokenizer (listOptions[i], ":", true);
+      StringTokenizer st1(listOptions[i], ":", true);
       elements.push_back(std::pair <std::string, double>(st1.getToken(0), TextTools::toDouble(st1.getToken(1))) );
     }
     

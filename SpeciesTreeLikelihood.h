@@ -17,6 +17,9 @@
 #include <Bpp/Numeric/AbstractParametrizable.h>
 #include <Bpp/Numeric/Function/Functions.h>
 
+// From core
+#include <Bpp/Text/StringTokenizer.h>
+
 // From PhylLib:
 #include <Bpp/Phyl/Tree.h>
 #include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
@@ -29,99 +32,103 @@
 
 #include "ReconciliationTools.h"
 #include "SpeciesTreeExploration.h"
-
+#include "GenericTreeExplorationAlgorithms.h"
 
 namespace mpi = boost::mpi;
 
 
 namespace bpp
 {
-  
+    
 	class SpeciesTreeLikelihood :
-  public Function, 
-  public AbstractParametrizable
-  {
-  private:
-  //For MPI communication:
-  mpi::communicator world_;
-  int server_;
-  int size_;
-  //Parameter list
-  std::map<std::string, std::string> params_;
-  //Information related to the clients
-  std::vector <unsigned int> numbersOfGenesPerClient_;
-  unsigned int assignedNumberOfGenes_;
-  std::vector<std::string> assignedFilenames_;
-  std::vector< std::vector<std::string> > listOfOptionsPerClient_;
-  //Vectors of expected numbers of events per branch
-  std::vector<double> duplicationExpectedNumbers_;
-  std::vector<double> lossExpectedNumbers_;
-  std::vector<double> backupDuplicationExpectedNumbers_;
-  std::vector<double> backupLossExpectedNumbers_;
-  //Species tree, and its string representation
-  TreeTemplate<Node> * tree_;
-  TreeTemplate<Node> * bestTree_;
-  TreeTemplate<Node> * currentTree_;
-  std::string currentSpeciesTree_;
-  //Index of the tree under study, and index of the most likely tree
-  int index_;
-  int bestIndex_;
-  //Whether we should rearrange the species tree
-  bool optimizeSpeciesTreeTopology_; 
-  //Whether we should stop tree search
-  bool stop_;
-  //logLk and best logLk
-  double logL_;
-  double bestlogL_;
-      //Vectors of counts of times 0, 1, 2+ lineages were found at the end of
-      //a species tree branch
-      std::vector <int> num0Lineages_;
-      std::vector <int> num1Lineages_; 
-      std::vector <int> num2Lineages_;
-      std::vector <int> bestNum0Lineages_; 
-      std::vector <int> bestNum1Lineages_; 
-      std::vector <int> bestNum2Lineages_; 
-      std::vector <std::vector<int> > allNum0Lineages_;
-      std::vector <std::vector<int> > allNum1Lineages_;
-      std::vector <std::vector<int> > allNum2Lineages_;
-  //Whether we should rearrange the gene trees
-  bool rearrange_;
-  //Number of iterations of the search algorithm without improvement
-  int numIterationsWithoutImprovement_;
-  //How far can we regraft subtrees when doing a spr
-  int sprLimit_;
-  //string giving the kind of optimization to perform
-  std::string branchExpectedNumbersOptimization_;
-  //Map giving the expected percentage of genes in genomes missing 
-  //because of poor sequencing
-  std::map <std::string, int> genomeMissing_;
-  //Node number in the species tree
-  int speciesTreeNodeNumber_;
-  //vectors to keep NNI and root likelihoods, for making aLRTs.
-  std::vector <double > NNILks_;
-  std::vector <double > rootLks_;
-  //Time limit: the program has to stop before this limit (in hours)
-  int timeLimit_;
-  //When the program stops, it knows at what step of the algorithm it is
-  int currentStep_;
-  //Suffix to add to all files output by the program
-  std::string suffix_;
+    public Function, 
+    public AbstractParametrizable
+    {
+    private:
+        //For MPI communication:
+        mpi::communicator world_;
+        unsigned int server_;
+        unsigned int size_;
+        unsigned int rank_;
+        //Parameter list
+        std::map<std::string, std::string> params_;
+        //Information related to the clients
+        std::vector <unsigned int> numbersOfGenesPerClient_;
+        unsigned int assignedNumberOfGenes_;
+        std::vector<std::string> assignedFilenames_;
+        std::vector< std::vector<std::string> > listOfOptionsPerClient_;
+        //Vectors of expected numbers of events per branch
+        std::vector<double> duplicationExpectedNumbers_;
+        std::vector<double> lossExpectedNumbers_;
+        std::vector<double> backupDuplicationExpectedNumbers_;
+        std::vector<double> backupLossExpectedNumbers_;
+        //Species tree, and its string representation
+        TreeTemplate<Node> * tree_;
+        TreeTemplate<Node> * bestTree_;
+        TreeTemplate<Node> * currentTree_;
+        std::string currentSpeciesTree_;
+        //Index of the tree under study, and index of the most likely tree
+        unsigned int index_;
+        unsigned int bestIndex_;
+        //Whether we should rearrange the species tree
+        bool optimizeSpeciesTreeTopology_; 
+        //Whether we should stop tree search
+        bool stop_;
+        //logLk and best logLk
+        double logL_;
+        double bestlogL_;
+        //Vectors of counts of times 0, 1, 2+ lineages were found at the end of
+        //a species tree branch
+        std::vector <int> num0Lineages_;
+        std::vector <int> num1Lineages_; 
+        std::vector <int> num2Lineages_;
+        std::vector <int> bestNum0Lineages_; 
+        std::vector <int> bestNum1Lineages_; 
+        std::vector <int> bestNum2Lineages_; 
+        std::vector <std::vector<int> > allNum0Lineages_;
+        std::vector <std::vector<int> > allNum1Lineages_;
+        std::vector <std::vector<int> > allNum2Lineages_;
+        //Whether we should rearrange the gene trees
+        bool rearrange_;
+        //Number of iterations of the search algorithm without improvement
+        int numIterationsWithoutImprovement_;
+        //How far can we regraft subtrees when doing a spr
+        int sprLimit_;
+        //string giving the kind of optimization to perform
+        std::string branchExpectedNumbersOptimization_;
+        //Map giving the expected percentage of genes in genomes missing 
+        //because of poor sequencing
+        std::map <std::string, int> genomeMissing_;
+        //Node number in the species tree
+        int speciesTreeNodeNumber_;
+        //vectors to keep NNI and root likelihoods, for making aLRTs.
+        std::vector <double > NNILks_;
+        std::vector <double > rootLks_;
+        //Time limit: the program has to stop before this limit (in hours)
+        int timeLimit_;
+        //When the program stops, it knows at what step of the algorithm it is
+        unsigned int currentStep_;
+        //Suffix to add to all files output by the program
+        std::string suffix_;
 
   public:
 
   //Simple constructor
   SpeciesTreeLikelihood(const mpi::communicator& world, 
-                        int & server,
-                        int & size, 
+                        unsigned int & server,
+                        unsigned int & size, 
                         std::map<std::string, std::string> & params) :
   AbstractParametrizable(""),
   world_(world), server_(server), size_(size), params_(params)
   {
-  parseOptions();
-  Parameter p("coefDup", 1, &Parameter::R_PLUS_STAR);
-  addParameter_(p);
-  Parameter p2("coefLoss", 1, &Parameter::R_PLUS_STAR);
-  addParameter_(p2);
+      tree_ = 0;
+      bestTree_ = 0;
+      currentTree_ = 0;
+      parseOptions();
+      Parameter p("coefDup", 1, &Parameter::R_PLUS_STAR);
+      addParameter_(p);
+      Parameter p2("coefLoss", 1, &Parameter::R_PLUS_STAR);
+      addParameter_(p2);
   }
   
   
@@ -238,9 +245,9 @@ namespace bpp
   //Destructor
   virtual ~SpeciesTreeLikelihood() 
   {			
-    delete currentTree_;
-    delete bestTree_;
-    delete tree_;
+    if (currentTree_) delete currentTree_;
+    if (bestTree_) delete bestTree_;
+    if (tree_) delete tree_;
   }
   
   //Clone function
@@ -272,8 +279,11 @@ namespace bpp
   
   //Does a ML search for the best species tree
   void MLSearch();
+
+  //Builds a MRP species tree by gathering single-copy genes from clients.
+  void buildMRPSpeciesTree();
   
-  protected:
+    protected:
   //Computes the loglk of the species tree
   void computeLogLikelihood();
   //Parses the options and builds the SpeciesTreeLikelihoodObject
