@@ -455,31 +455,33 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           //Going through the gene tree to see if leaves have branches that are too long.
           std::vector <Node*> leaves = geneTree->getLeaves();
           for (unsigned int j ; j < leaves.size() ; j++) {
-              if ( leaves[j] -> hasFather() && leaves[j]->getDistanceToFather() >= 0.2 ) {
-                  std::cout << "WARNING: Removing sequence "<< leaves[j]->getName() <<" from family "<<file<< " because its branch is unreasonably long (>=0.2)."<<std::endl;
+              if ( leaves[j] -> hasFather() && leaves[j]->getDistanceToFather() >= 2.0 ) {
+                  std::cout << "WARNING: Removing sequence "<< leaves[j]->getName() <<" from family "<<file<< " because its branch is unreasonably long (>=2.0)."<<std::endl;
                   seqsToRemove.push_back( leaves[j]->getName() );
                   //removing the corresponding sequence
                   sites->deleteSequence( leaves[j]->getName() );
               }
           }
-          //Pruning sequences from the gene tree
-          for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
-          {
-              std::vector <std::string> leafNames = geneTree->getLeavesNames();
-              if ( VectorTools::contains(leafNames, seqsToRemove[j]) )
+          if (sites->getNumberOfSequences() >1) {
+              //Pruning sequences from the gene tree
+              for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
               {
-                  removeLeaf(*geneTree, seqsToRemove[j]);
-                  unrootedGeneTree = geneTree->clone();
-                  if (!geneTree->isRooted()) {
-                      std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
+                  std::vector <std::string> leafNames = geneTree->getLeavesNames();
+                  if ( VectorTools::contains(leafNames, seqsToRemove[j]) )
+                  {
+                      removeLeaf(*geneTree, seqsToRemove[j]);
+                      unrootedGeneTree = geneTree->clone();
+                      if (!geneTree->isRooted()) {
+                          std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
+                      }
+                      unrootedGeneTree->unroot();
                   }
-                  unrootedGeneTree->unroot();
+                  else 
+                      std::cout<<"Sequence "<<seqsToRemove[j] <<" is not present in the gene tree."<<std::endl;
               }
-              else 
-                  std::cout<<"Sequence "<<seqsToRemove[j] <<" is not present in the gene tree."<<std::endl;
           }
-          //If we have only one sequence in the end, we do not make a tre
-          if (geneTree->getNumberOfLeaves() <= 1) {
+          //If we have only one sequence in the end, we do not make a tree
+          else {
               numDeletedFamilies = numDeletedFamilies+1;
               avoidFamily=true;
               std::cout <<"All or almost all sequences have been removed: avoiding family "<<assignedFilenames[i-numDeletedFamilies+1]<<std::endl;
