@@ -478,7 +478,17 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
               else 
                   std::cout<<"Sequence "<<seqsToRemove[j] <<" is not present in the gene tree."<<std::endl;
           }
-          
+          //If we have only one sequence in the end, we do not make a tre
+          if (geneTree->getNumberOfLeaves() <= 1) {
+              numDeletedFamilies = numDeletedFamilies+1;
+              avoidFamily=true;
+              std::cout <<"All or almost all sequences have been removed: avoiding family "<<assignedFilenames[i-numDeletedFamilies+1]<<std::endl;
+          }
+      }
+      
+      if (!avoidFamily) 
+      { //This family is phylogenetically informative
+
           /****************************************************************************
            //Then we initialize the losses and duplication numbers on this tree.
            *****************************************************************************/
@@ -554,7 +564,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           //printing the gene trees with the species names instead of the sequence names
           //This is useful to build an input for duptree for instance
           TreeTemplate<Node> * treeWithSpNames = unrootedGeneTree->clone();
-          leaves = treeWithSpNames->getLeaves();
+          std::vector <Node*> leaves = treeWithSpNames->getLeaves();
           for (unsigned int j =0; j<leaves.size() ; j++) 
           {
               leaves[j]->setName(seqSp[leaves[j]->getName()]);
