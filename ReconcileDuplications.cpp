@@ -282,6 +282,12 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       }
       ApplicationTools::displayResult("Sequences remaining after removal:", TextTools::toString(sites->getNumberOfSequences()));
 
+      if (sites->getNumberOfSequences() <= 1 ) {
+          std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
+          avoidFamily = true;
+          numDeletedFamilies = numDeletedFamilies+1;
+      }
+      
       //method to optimize the gene tree root; only useful if heuristics.level!=0.
       bool rootOptimization = false;
       
@@ -289,19 +295,20 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
        //Then we need to get the file containing links between sequences and species.
        *****************************************************************************/
       std::string taxaseqFile = ApplicationTools::getStringParameter("taxaseq.file",params,"none");
-      if (taxaseqFile=="none" ){
-          std::cout << "\n\nNo taxaseqfile was provided. Cannot compute a reconciliation between a species tree and a gene tree using sequences if the relation between the sequences and the species is not explicit !\n" << std::endl;
-          std::cout << "phyldog species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
-          MPI::COMM_WORLD.Abort(1);
-          exit(-1);
+      if (!avoidFamily) {
+          if (taxaseqFile=="none" ){
+              std::cout << "\n\nNo taxaseqfile was provided. Cannot compute a reconciliation between a species tree and a gene tree using sequences if the relation between the sequences and the species is not explicit !\n" << std::endl;
+              std::cout << "phyldog species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
+              MPI::COMM_WORLD.Abort(1);
+              exit(-1);
+          }
+          if(!FileTools::fileExists(taxaseqFile))
+          {
+              std::cerr << "Error: taxaseqfile "<< taxaseqFile <<" not found." << std::endl;
+              MPI::COMM_WORLD.Abort(1);
+              exit(-1);
+          }
       }
-      if(!FileTools::fileExists(taxaseqFile))
-      {
-          std::cerr << "Error: taxaseqfile "<< taxaseqFile <<" not found." << std::endl;
-          MPI::COMM_WORLD.Abort(1);
-          exit(-1);
-      }
-      
       //Getting the relations between species and sequence names
       //In this file, the format is expected to be as follows :
       /*
@@ -318,17 +325,19 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       
       std::ifstream inSpSeq (taxaseqFile.c_str());
       std::string line;
-      while(getline(inSpSeq,line)) {
-          //We divide the line in 2 : first, the species name, second the sequence names
-          StringTokenizer st1 (line, ":", true);
-          //Then we divide the sequence names
-          if (st1.numberOfRemainingTokens ()>1) {
-              StringTokenizer st2(st1.getToken(1), ";", true);
-              if (spSeq.find(st1.getToken(0)) == spSeq.end())
-                  spSeq.insert( make_pair(st1.getToken(0),st2.getTokens()));
-              else {
-                  for (unsigned int i = 0 ; i < (st2.getTokens()).size() ; i++)
-                      spSeq.find(st1.getToken(0))->second.push_back(st2.getTokens()[i]);
+      if (!avoidFamily) {
+          while(getline(inSpSeq,line)) {
+              //We divide the line in 2 : first, the species name, second the sequence names
+              StringTokenizer st1 (line, ":", true);
+              //Then we divide the sequence names
+              if (st1.numberOfRemainingTokens ()>1) {
+                  StringTokenizer st2(st1.getToken(1), ";", true);
+                  if (spSeq.find(st1.getToken(0)) == spSeq.end())
+                      spSeq.insert( make_pair(st1.getToken(0),st2.getTokens()));
+                  else {
+                      for (unsigned int i = 0 ; i < (st2.getTokens()).size() ; i++)
+                          spSeq.find(st1.getToken(0))->second.push_back(st2.getTokens()[i]);
+                  }
               }
           }
       }
@@ -337,25 +346,29 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       //alignment and from the gene tree
       std::vector <std::string> spNamesToTake = tree->getLeavesNames(); 
       std::vector <std::string> seqsToRemove;
-      for(std::map<std::string, std::deque<std::string> >::iterator it = spSeq.begin(); it != spSeq.end(); it++){
-          spNames.push_back(it->first);
-          for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
-              seqSp.insert(make_pair(*it2, it->first));
-          }
-          if (!VectorTools::contains(spNamesToTake,it->first)) {
+      if (!avoidFamily) {
+          for(std::map<std::string, std::deque<std::string> >::iterator it = spSeq.begin(); it != spSeq.end(); it++){
+              spNames.push_back(it->first);
               for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
-                  seqsToRemove.push_back(*it2);
+                  seqSp.insert(make_pair(*it2, it->first));
+              }
+              if (!VectorTools::contains(spNamesToTake,it->first)) {
+                  for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
+                      seqsToRemove.push_back(*it2);
+                  }
               }
           }
       }
       std::map <std::string, std::string> spSelSeq;
       
-      //If we need to remove all sequences or all sequences except one, 
-      //better remove the gene family
-      if (seqsToRemove.size()>=sites->getNumberOfSequences()-1) {
-          numDeletedFamilies = numDeletedFamilies+1;
-          avoidFamily=true;
-          std::cout <<"All or almost all sequences have been removed: avoiding family "<<assignedFilenames[i-numDeletedFamilies+1]<<std::endl;
+      if (!avoidFamily) {
+          //If we need to remove all sequences or all sequences except one, 
+          //better remove the gene family
+          if (seqsToRemove.size()>=sites->getNumberOfSequences()-1) {
+              numDeletedFamilies = numDeletedFamilies+1;
+              avoidFamily=true;
+              std::cout <<"All or almost all sequences have been removed: avoiding family "<<assignedFilenames[i-numDeletedFamilies+1]<<std::endl;
+          }
       }
       
       if (!avoidFamily) {
@@ -663,6 +676,13 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
     }
 
     
+    unsigned int numberOfGeneFamilies = assignedFilenames.size()-numDeletedFamilies;
+
+    numberOfFilteredFamiliesCommunicationsServerClient (world, server, 
+                                   rank, numberOfGeneFamilies);
+
+    
+    
     //Building a MRP species tree, if the options say so
     initTree = ApplicationTools::getStringParameter("init.species.tree", 
                                                     allParams[0], "user", 
@@ -684,7 +704,6 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                                        allTrees1PerSpecies);
 
     }
-    unsigned int numberOfGeneFamilies = assignedFilenames.size()-numDeletedFamilies;
     vector<unsigned int> numbersOfGeneFamilies;
     std::string currentSpeciesTree;
 

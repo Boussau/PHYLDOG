@@ -42,6 +42,15 @@ void SpeciesTreeLikelihood::initialize()
 
     std::vector<unsigned int> numbersOfGeneFamilies;
     unsigned int numberOfGeneFamilies = 0;
+    
+    
+    /****************************************************************************
+     * Check that we have enough gene families to proceed
+     *****************************************************************************/
+
+    numberOfFilteredFamiliesCommunicationsServerClient (world_, server_, 
+                                                        rank_, numberOfGeneFamilies );
+    
     /****************************************************************************
      * MRP construction of a starting species tree (if the options say so)
      *****************************************************************************/

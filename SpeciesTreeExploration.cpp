@@ -961,6 +961,44 @@ void mrpCommunicationsServerClient (const mpi::communicator & world,
 }
 
 /******************************************************************************/
+// This function runs the communication between the server and the clients for counting gene families after filtering.
+/******************************************************************************/
+
+void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator & world, unsigned int & server, 
+                                                    unsigned int & whoami, int numberOfGeneFamilies) {
+    
+    if (whoami == server) {
+        int allNumbersOfRemainingFamilies = 0.0;
+        reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<int> (), 0);
+        bool stop = false;
+        if (numberOfGeneFamilies == 0) {
+            std::cout << "0 gene families left after filtering. Exiting" <<std::endl;
+            stop = true;
+            broadcast(world, stop, server); 
+            //MPI::COMM_WORLD.Abort(0);
+            exit(0);
+        }
+        else {
+            std::cout << numberOfGeneFamilies <<" gene families left after filtering. Continuing" <<std::endl;
+
+        }
+    }
+    else {
+        reduce(world, numberOfGeneFamilies, std::plus<int> (), 0);
+        bool stop;
+        broadcast(world, stop, server); 
+        if (stop) {
+            exit(0);
+        }
+    }
+    
+    return;
+
+    
+}
+
+
+/******************************************************************************/
 // This function runs the communication between the server and the clients to stop the program.
 // The server send stop and the index of the best tree found.
 /******************************************************************************/
