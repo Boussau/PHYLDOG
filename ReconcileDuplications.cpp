@@ -46,6 +46,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Seq/Alphabet/Alphabet.h>
 #include <Bpp/Seq/Container/VectorSiteContainer.h>
 #include <Bpp/Seq/SiteTools.h>
+#include <Bpp/Seq/SequenceTools.h>
 #include <Bpp/Seq/App/SequenceApplicationTools.h>
 
 // From PhylLib:
@@ -264,10 +265,23 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
       delete allSites;   
       
+      unsigned int numSites = sites->getNumberOfSites();
       ApplicationTools::displayResult("Number of sequences", TextTools::toString(sites->getNumberOfSequences()));
-      ApplicationTools::displayResult("Number of sites", TextTools::toString(sites->getNumberOfSites()));
+      ApplicationTools::displayResult("Number of sites", TextTools::toString(numSites));
 
-      
+      unsigned int minPercentSequence = ApplicationTools::getIntParameter("sequence.removal.threshold",params,0);
+      unsigned int threshold = (int) ((double)minPercentSequence * (double)numSites / 100 );
+
+      if (minPercentSequence > 0) {
+          for ( int i = sites->getNumberOfSequences()-1 ; i >= 0 ; i--) {
+              if (SequenceTools::getNumberOfCompleteSites(sites->getSequence(i) ) < threshold ) {
+                  ApplicationTools::displayResult("Removing a short sequence:", sites->getSequence(i).getName()  );
+                  sites->removeSequence(i);
+              }
+          }
+      }
+      ApplicationTools::displayResult("Sequences remaining after removal:", TextTools::toString(sites->getNumberOfSequences()));
+
       //method to optimize the gene tree root; only useful if heuristics.level!=0.
       bool rootOptimization = false;
       
