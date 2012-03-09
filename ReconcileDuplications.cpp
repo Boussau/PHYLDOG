@@ -479,16 +479,20 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
 
       if (!avoidFamily) 
       { //This family is phylogenetically informative
+
           //Going through the gene tree to see if leaves have branches that are too long.
           std::vector <Node*> leaves = geneTree->getLeaves();
-          for (unsigned int j ; j < leaves.size() ; j++) {
+          std::cout << "leaves.size(): "<<leaves.size() <<std::endl;
+          for (unsigned int j = 0 ; j < leaves.size() ; j++) {
               if ( leaves[j] -> hasFather() && leaves[j]->getDistanceToFather() >= 2.0 ) {
                   std::cout << "WARNING: Removing sequence "<< leaves[j]->getName() <<" from family "<<file<< " because its branch is unreasonably long (>=2.0)."<<std::endl;
                   seqsToRemove.push_back( leaves[j]->getName() );
-                  //removing the corresponding sequence
-                  sites->deleteSequence( leaves[j]->getName() );
+                  //removing the corresponding sequence, if present
+                  if (sites->hasSequence(leaves[j]->getName() ) )
+                      sites->deleteSequence( leaves[j]->getName() );
               }
           }
+
           if (sites->getNumberOfSequences() >1) {
               //Pruning sequences from the gene tree
               for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
@@ -514,7 +518,6 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
               std::cout <<"All or almost all sequences have been removed: avoiding family "<<assignedFilenames[i-numDeletedFamilies+1]<<std::endl;
           }
       }
-      
       if (!avoidFamily) 
       { //This family is phylogenetically informative
 

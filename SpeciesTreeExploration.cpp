@@ -971,16 +971,21 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
         int allNumbersOfRemainingFamilies = 0.0;
         reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<int> (), 0);
         bool stop = false;
+
         if (numberOfGeneFamilies == 0) {
-            std::cout << "0 gene families left after filtering. Exiting" <<std::endl;
             stop = true;
             broadcast(world, stop, server); 
             //MPI::COMM_WORLD.Abort(0);
             exit(0);
         }
         else {
-            std::cout << numberOfGeneFamilies <<" gene families left after filtering. Continuing" <<std::endl;
-
+            broadcast(world, stop, server); 
+            if (numberOfGeneFamilies == 1) {
+                std::cout << numberOfGeneFamilies <<" gene family left after filtering. Continuing" <<std::endl;
+            }
+            else {
+                std::cout << numberOfGeneFamilies <<" gene families left after filtering. Continuing" <<std::endl;
+            }
         }
     }
     else {
