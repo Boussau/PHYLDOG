@@ -14,10 +14,10 @@ BOOST_LIBRARIES = /usr/local/lib
 SRC = ./
 
 #Debugging compilation options
-#CC = mpic++ -m64 -g -Wall -I $(BOOST_INCLUDE) 
+CC = mpic++ -m64 -g -Wall -I $(BOOST_INCLUDE) 
 
 #Efficient compilation options
-CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
+#CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
 
 
 #LL =  -L/usr/local/lib -lboost_serialization -lboost_mpi

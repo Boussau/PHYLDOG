@@ -326,7 +326,7 @@ void mrpCommunicationsServerClient (const mpi::communicator & world,
 /******************************************************************************/
 
 void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator & world, unsigned int & server, 
-                                                         unsigned int & whoami, int numberOfGeneFamilies);
+                                                         unsigned int & whoami, unsigned int & numberOfGeneFamilies);
 /******************************************************************************/
 // This function runs the communication between the server and the clients to stop the program.
 // The server send stop and the index of the best tree found.

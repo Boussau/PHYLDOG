@@ -965,11 +965,14 @@ void mrpCommunicationsServerClient (const mpi::communicator & world,
 /******************************************************************************/
 
 void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator & world, unsigned int & server, 
-                                                    unsigned int & whoami, int numberOfGeneFamilies) {
+                                                    unsigned int & whoami, unsigned int & numberOfGeneFamilies) {
     
     if (whoami == server) {
-        int allNumbersOfRemainingFamilies = 0.0;
-        reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<int> (), 0);
+        unsigned int allNumbersOfRemainingFamilies = 0;
+        std::cout << "numberOfGeneFamilies: "<< numberOfGeneFamilies<<std::endl;
+        reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
+        std::cout << "numberOfGeneFamilies2: "<< numberOfGeneFamilies<<std::endl;
+
         bool stop = false;
 
         if (numberOfGeneFamilies == 0) {
@@ -989,7 +992,11 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
         }
     }
     else {
+        std::cout << "CLIENT numberOfGeneFamilies: "<< numberOfGeneFamilies<<std::endl;
+
         reduce(world, numberOfGeneFamilies, std::plus<int> (), 0);
+        std::cout << "CLIENT numberOfGeneFamilies: "<< numberOfGeneFamilies<<std::endl;
+
         bool stop;
         broadcast(world, stop, server); 
         if (stop) {

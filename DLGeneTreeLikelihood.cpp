@@ -1061,7 +1061,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                             //  params[ std::string("optimization.topology")] = "false";
                                                         
                             /*TEMP18012012 */
-                            optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (drlk),
+                            optimizeBLMappingForSPRs(dynamic_cast<DRTreeLikelihood*> (drlk),
                                                      0.1, params);
                             /*                            optimizeBLForSPRs(dynamic_cast<DRTreeLikelihood*> (drlk),
                              0.1, params);

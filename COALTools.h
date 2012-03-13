@@ -9,6 +9,8 @@
 #ifndef COALTools_h
 #define COALTools_h
 #include "ReconciliationTools.h"
+#include <Bpp/Numeric/NumTools.h>
+#include <Bpp/Numeric/Function/BrentOneDimension.h>
 
 
 /*****************************************************************************
@@ -21,20 +23,181 @@
  * 
  ****************************************************************************/
 
-void computeSubtreeCoalPostorder(TreeTemplate<Node> & spTree, 
+void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree, 
                                  TreeTemplate<Node> & geneTree, 
                                  Node * node, 
-                                 const std::map<std::string, std::string > & seqSp, 
-                                 const std::map<std::string, int > & spID, 
-                                 std::vector < std::vector< std::vector<int> > > & coalCounts,
-                                 std::vector <std::vector<int> > & speciesIDs);
+                                  std::map<std::string, std::string > & seqSp, 
+                                  std::map<std::string, int > & spID, 
+                                 std::vector < std::vector< std::vector< std::vector<unsigned int > > > > & coalCounts,
+                                 std::vector <std::vector<unsigned int> > & speciesIDs);
 
 
 /*****************************************************************************
  * Utilitary functions to initialize vectors of counts at leaves.
  ****************************************************************************/
-void initializeCountVectors(std::vector< std::vector<int> > vec);
-void initializeCountVector(std::vector<int>  vec);
+void initializeCountVectors(std::vector< std::vector< std::vector<unsigned int> > > & vec) ;
+void initializeCountVector(std::vector<std::vector<unsigned int> >  & vec) ;
+
+/*****************************************************************************
+ * Utilitary functions to increment vectors of counts.
+ ****************************************************************************/
+void incrementOutCount(std::vector< std::vector<unsigned int> > & vec, const unsigned int pos);
+void incrementInCount(std::vector< std::vector<unsigned int> > & vec, const unsigned int pos);
+
+
+/*****************************************************************************
+ * Computes a vector of counts from two son vectors, and assigns species ID to the
+ * father node.
+ ****************************************************************************/
+
+void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> sons, 
+                                unsigned int & rootSpId, 
+                                const unsigned int & son0SpId,
+                                const unsigned int & son1SpId,
+                                std::vector< std::vector<unsigned int> > & coalCountsFather,
+                                std::vector< std::vector<unsigned int> > & coalCountsSon0,
+                                std::vector< std::vector<unsigned int> > & coalCountsSon1);
+
+
+/*****************************************************************************
+ * This function recovers ILS by comparing a subtree in a gene tree to
+ * a species tree.
+ ****************************************************************************/
+void recoverILS(Node & node, int & a, int & olda, 
+                std::vector <std::vector <unsigned int> > &vec);
+
+
+/*****************************************************************************
+ * Computes the likelihood using our coalescence model, 
+ * given a vector of vector giving, for each branch of the species tree,
+ * the number of incoming lineages, and the number of outgoing lineages.
+ * Formula from Degnan and Salter (2005), Evolution 59(1), pp. 24-37.
+ ****************************************************************************/
+
+double computeCOALLikelihood (std::vector < std::vector<unsigned int> > vec, std::vector < double > COALBl ) ;
+double computeCOALLikelihood ( std::vector<unsigned int>  vec, double COALBl ) ;
+
+
+/*****************************************************************************
+ * This function performs a preorder tree traversal in order to fill vectors of counts. 
+ * When used after the postorder tree traversal function, counts for all rootings are computed.
+ * coalCounts contains all lower conditional likelihoods for all nodes.
+ * speciesIDs contains all species IDs for all nodes.
+ * 
+ ****************************************************************************/
+
+void computeSubtreeCOALCountsPreorder(TreeTemplate<Node> & spTree, 
+                                      TreeTemplate<Node> & geneTree, 
+                                      Node * node, 
+                                      const std::map<std::string, std::string > & seqSp, 
+                                      const std::map<std::string, int > & spID, 
+                                      std::vector < std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts, 
+                                      std::vector<double> & bls, 
+                                      std::vector <std::vector<unsigned int> > & speciesIDs, 
+                                      int sonNumber, 
+                                      std::map <double, Node*> & LksToNodes);
+
+
+/*****************************************************************************
+ * This function computes the Coalescent counts of a rooting. 
+ * It is called by the preorder tree traversal.
+ * "direction" determines the branch we're on: it is the branch leading to the
+ * "direction"th son of node. direction = sonNumber+1
+ * 
+ ****************************************************************************/
+void computeRootingCOALCounts(TreeTemplate<Node> & spTree, 
+                              Node * node, 
+                              std::vector < std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts, 
+                              const std::vector< double> & bls, 
+                              std::vector <std::vector<unsigned int> > & speciesIDs, 
+                              int sonNumber, 
+                              std::map <double, Node*> & LksToNodes) ;
+
+
+/*****************************************************************************
+ * This class maximizes the Coalescent likelihood for a branch, by optimizing
+ * the branch length in coalescent units.
+ ****************************************************************************/
+
+class COALBranchLikelihood :
+public Function,
+public AbstractParametrizable
+{
+protected:
+    std::vector <std::vector <unsigned int> > vec_;
+    std::vector <std::vector <unsigned int> > compressedVec_;
+    std::vector <double> lks_;
+    std::map <string, unsigned int> patternToWeights_; 
+    double lnL_;
+    
+public:
+    COALBranchLikelihood(const std::vector <std::vector <unsigned int> >& vec) :
+    AbstractParametrizable(""),
+    vec_(vec), compressedVec_(0), lnL_(log(0.)), patternToWeights_(), lks_(0)
+    {
+        Parameter p("BrLen", 1, 0);
+        addParameter_(p);
+    }
+    
+    COALBranchLikelihood(const COALBranchLikelihood& bl) :
+    AbstractParametrizable(bl),
+    vec_(bl.vec_), compressedVec_(bl.compressedVec_), lnL_(bl.lnL_),
+    patternToWeights_(bl.patternToWeights_), lks_(0)
+    {}
+    
+    COALBranchLikelihood& operator=(const COALBranchLikelihood& bl)
+    {
+        AbstractParametrizable::operator=(bl);
+        vec_ = bl.vec_;
+        compressedVec_ = bl.compressedVec_;
+        lnL_ = bl.lnL_;
+        patternToWeights_ = bl.patternToWeights_;
+        lks_ = bl.lks_;
+        return *this;
+    }
+    
+    virtual ~COALBranchLikelihood() {}
+    
+    COALBranchLikelihood* clone() const { return new COALBranchLikelihood(*this); }
+    
+public:
+    void initModel();
+    
+    /**
+     * @warning No checking on alphabet size or number of rate classes is performed,
+     * use with care!
+     */
+/*
+ void initLikelihoods(const VVVdouble *array1, const VVVdouble *array2)
+    {
+        _array1 = array1;
+        _array2 = array2;
+    }
+    
+    void resetLikelihoods()
+    {
+        _array1 = 0;
+        _array2 = 0;
+    }
+    */
+    void setParameters(const ParameterList &parameters)
+    throw (ParameterNotFoundException, ConstraintException)
+    {
+        setParametersValues(parameters);
+    }
+    
+    double getValue() const throw (Exception) { return lnL_; }
+    
+    void fireParameterChanged(const ParameterList & parameters)
+    {
+       // computeAllTransitionProbabilities();
+        computeLogLikelihood();
+    }
+    
+protected:
+   // void computeAllTransitionProbabilities();
+    void computeLogLikelihood();
+};
 
 
 
