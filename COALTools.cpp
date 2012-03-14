@@ -15,10 +15,11 @@
 //Test main function
 int main(int args, char ** argv)
 {
-//    std::string spStr = "(((A,B),C),(D,E));";
+    std::string spStr = "(((A,B),C),(D,E));";
 //    std::string gStr = "((A,(B,C)),(D,E));";
-    //  TreeTemplate <Node>* spTree = TreeTemplateTools::parenthesisToTree(spStr);
-    //  TreeTemplate <Node>* geneTree = TreeTemplateTools::parenthesisToTree(gStr);
+    std::string gStr = "(((A,D), (B,C)),E);";
+    TreeTemplate <Node>* spTree = TreeTemplateTools::parenthesisToTree(spStr);
+      TreeTemplate <Node>* geneTree = TreeTemplateTools::parenthesisToTree(gStr);
     
     std::map<std::string, std::string > seqSp;
     seqSp.insert( pair<std::string, std::string >("A","A") );
@@ -30,6 +31,85 @@ int main(int args, char ** argv)
     seqSp.insert( pair<std::string, std::string >("G","G") );
     seqSp.insert( pair<std::string, std::string >("H","H") );
 
+
+    breadthFirstreNumber (*spTree);
+    std::map<std::string, int > spID = computeSpeciesNamesToIdsMap(*spTree);
+    
+    for(std::map<std::string, int >::iterator it = spID.begin(); it != spID.end(); it++){
+        std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
+    }
+
+    
+    
+    
+    
+    //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
+    std::vector < std::vector< std::vector< std::vector< unsigned int > > > > coalCounts;
+    std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
+    std::vector< std::vector<unsigned int> > coalCounts3;
+    std::vector< unsigned int > coalCounts4;
+    //speciesIDs: vector of genetreenbnodes vectors of 3 (3 directions) ints
+    std::vector <std::vector<unsigned int> > speciesIDs;
+    std::vector < unsigned int > speciesIDs2;
+    for (unsigned int i = 0 ; i < 2 ; i++ ) {
+        coalCounts4.push_back(0);
+    }
+    for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+        coalCounts3.push_back(coalCounts4);
+    }
+    for (unsigned int i = 0 ; i < 3 ; i++ ) {
+        coalCounts2.push_back(coalCounts3);
+        speciesIDs2.push_back(0);
+    }
+    for (unsigned int i = 0 ; i < geneTree->getNumberOfNodes() ; i++ ) {
+        coalCounts.push_back(coalCounts2);
+        speciesIDs.push_back(speciesIDs2);
+    }
+    
+    computeSubtreeCoalCountsPostorder(*spTree, 
+                                      *geneTree, 
+                                      geneTree->getRootNode(), 
+                                      seqSp, 
+                                      spID, 
+                                      coalCounts,
+                                      speciesIDs);
+    //Add the starting lineage at the root
+    for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+        if (coalCounts[geneTree->getRootNode()->getId()][0][i][0]==0 && coalCounts[geneTree->getRootNode()->getId()][0][i][1] !=0)
+        {
+            //coalCounts[geneTree->getRootNode()->getId()][0][0][0] = 1;
+            coalCounts[geneTree->getRootNode()->getId()][0][i][0]=1; 
+            break;
+            
+        }
+    }
+
+    
+      for (unsigned int i = 0 ; i < coalCounts[geneTree->getRootNode()->getId()][0].size() ; i++) {
+     std::cout << "Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][0] << " Num coal out: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][1]<<std::endl;
+     }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     Newick *treeReader = new Newick(true);
     vector<Tree *> gTrees;
     //treeReader->read("testGeneTrees", gTrees);
@@ -43,17 +123,32 @@ treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
     
     
     delete treeReader;
-    TreeTemplate <Node>* spTree = dynamic_cast<TreeTemplate<Node>*>(spTrees[0]);
+ //TEMP   TreeTemplate <Node>* spTree = dynamic_cast<TreeTemplate<Node>*>(spTrees[0]);
     
+    /* Checking the likelihood computation against results from Rosenberg 2002: it works.
+    //11
+    vector<unsigned int > vec(2, 1);
+    double loglk = computeCOALLikelihood ( vec, 1.0 ) ;
+    std::cout << "11: "<< loglk<< std::endl;
     
-    
+    vec[1] = 2;
+     loglk = computeCOALLikelihood ( vec, 1.0 ) ;
+    std::cout << "12: "<<loglk<< std::endl;
 
-    breadthFirstreNumber (*spTree);
-    std::map<std::string, int > spID = computeSpeciesNamesToIdsMap(*spTree);
+    vec[0] = 2;
+     loglk = computeCOALLikelihood ( vec, 1.0 ) ;
+    std::cout << "22: "<<loglk<< std::endl;
+
+    vec[1] = 3;
+     loglk = computeCOALLikelihood ( vec, 1.0 ) ;
+    std::cout << "23: "<<loglk<< std::endl;
+
+    vec[0] = 3;
+     loglk = computeCOALLikelihood ( vec, 1.0 ) ;
+    std::cout << "33: "<<loglk<< std::endl;
+*/
     
-    for(std::map<std::string, int >::iterator it = spID.begin(); it != spID.end(); it++){
-        std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
-    }
+    
     
     
     std::vector<double> bls (spTree->getNumberOfNodes(), 2.0);
@@ -63,7 +158,7 @@ treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
     }
   */  
     std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
-    TreeTemplate <Node>* geneTree = 0;
+ //TEMP   TreeTemplate <Node>* geneTree = 0;
     
     //allGeneCounts: nbSpeciesBranches vectors of gTrees.size() vectors of 2 ints
     std::vector < std::vector < std::vector<unsigned int> > >  allGeneCounts;

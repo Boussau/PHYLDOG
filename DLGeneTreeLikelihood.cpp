@@ -1042,6 +1042,9 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                              drlk->matchParametersValues(bls);
                              */
                             drlk->initialize();
+                            /*std::cout << "TEST getValue: "<< drlk->getValue() <<std::endl;
+                            std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
+                           
                             //  std::cout << "Good SPR; Sequence lk before optimization: "<< -drlk->getValue() << std::endl;
                             //  _rootedTree = treeForSPR->clone();
                             // makeSPR(*tree_, nodeForSPR, nodeIdsToRegraft[i]);
@@ -1061,11 +1064,26 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                             //  params[ std::string("optimization.topology")] = "false";
                                                         
                             /*TEMP18012012 */
+                            /*optimizeBLMappingForSPRs does not work for some families...
                             optimizeBLMappingForSPRs(dynamic_cast<DRTreeLikelihood*> (drlk),
-                                                     0.1, params);
+                                                     0.1, params);*/
                             /*                            optimizeBLForSPRs(dynamic_cast<DRTreeLikelihood*> (drlk),
                              0.1, params);
                              */  
+                           /* std::cout << "before norm opt: " <<std::endl;
+                            std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
+                            
+                            //TEST 13 03 2012
+                            int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+                            {
+                                params[ std::string("optimization.max_number_f_eval")] = 100;
+                            }
+                            
+                            PhylogeneticsApplicationTools::optimizeParameters(drlk, drlk->getParameters(), params, "", true, false);
+                            params[ std::string("optimization.max_number_f_eval")] = backup;
+
+                           /* std::cout << "TEST getValue2: "<< drlk->getValue() <<std::endl;
+                            std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
                             
                             /*std::cout << "Good SPR; Sequence lk after optimization: "<< -drlk->getValue() << std::endl;
                              std::cout<<"Good SPR; optimized tree: "<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
