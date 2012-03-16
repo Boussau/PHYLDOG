@@ -852,7 +852,8 @@ double DLGeneTreeLikelihood::getSequenceLikelihood() {
 /*******************************************************************************/
 
 void DLGeneTreeLikelihood::initialize() {
-    return nniLk_->initialize(); 
+    nniLk_->initialize();
+    return;
 }
 
 
@@ -913,9 +914,25 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
      }
      nniLk_->matchParametersValues(bls);*/
     //  std::cout << "logL before mapping 2: " <<getSequenceLikelihood()<<std::endl;    
+    //TEST 14 03 2012, if it works, it's inefficient
+
+    NNIHomogeneousTreeLikelihood * drlk = 0;
+    drlk = nniLk_->clone();
+   // optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (nniLk_), 0.1, params);
     
-    optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (nniLk_),
-                             0.1, params);
+    int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+    {
+        params[ std::string("optimization.max_number_f_eval")] = 100;
+    }
+    PhylogeneticsApplicationTools::optimizeParameters(drlk, drlk->getParameters(), params, "", true, false);
+    params[ std::string("optimization.max_number_f_eval")] = backup;
+    
+    delete nniLk_;
+    nniLk_ = drlk->clone();
+    
+    delete drlk;
+    drlk = 0;
+    
     /*  optimizeBLForSPRs(dynamic_cast<DRTreeLikelihood*> (nniLk_),
      0.1, params);*/
         
@@ -939,7 +956,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     double bestScenarioLk = getScenarioLikelihood();
     // std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
     int numIterationsWithoutImprovement = 0;
-    NNIHomogeneousTreeLikelihood * drlk = 0;
     NNIHomogeneousTreeLikelihood * bestDrlk = 0;
     breadthFirstreNumber (*_rootedTree);
     

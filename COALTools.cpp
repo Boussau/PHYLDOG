@@ -15,14 +15,26 @@
 //Test main function
 int main(int args, char ** argv)
 {
-    std::string spStr = "(((A,B),C),(D,E));";
+//    std::string spStr = "(((A,B),C),(D,E));";
 //    std::string gStr = "((A,(B,C)),(D,E));";
-    std::string gStr = "(((A,D), (B,C)),E);";
-    TreeTemplate <Node>* spTree = TreeTemplateTools::parenthesisToTree(spStr);
+//    std::string gStr = "(((A,D), (B,C)),E);";
+/*    TreeTemplate <Node>* spTree = TreeTemplateTools::parenthesisToTree(spStr);
       TreeTemplate <Node>* geneTree = TreeTemplateTools::parenthesisToTree(gStr);
-    
+  */  
     std::map<std::string, std::string > seqSp;
-    seqSp.insert( pair<std::string, std::string >("A","A") );
+    
+  /*  seqSp.insert( pair<std::string, std::string >("taxon1","taxon1") );
+    seqSp.insert( pair<std::string, std::string >("taxon2","taxon2") );
+    seqSp.insert( pair<std::string, std::string >("taxon3","taxon3") );
+    seqSp.insert( pair<std::string, std::string >("taxon4","taxon4") );
+    seqSp.insert( pair<std::string, std::string >("taxon5","taxon5") );
+    seqSp.insert( pair<std::string, std::string >("taxon6","taxon6") );
+    seqSp.insert( pair<std::string, std::string >("taxon7","taxon7") );
+    seqSp.insert( pair<std::string, std::string >("taxon8","taxon8") );*/
+
+    
+    
+ /*   seqSp.insert( pair<std::string, std::string >("A","A") );
     seqSp.insert( pair<std::string, std::string >("B","B") );
     seqSp.insert( pair<std::string, std::string >("C","C") );
     seqSp.insert( pair<std::string, std::string >("D","D") );
@@ -30,17 +42,9 @@ int main(int args, char ** argv)
     seqSp.insert( pair<std::string, std::string >("F","F") );
     seqSp.insert( pair<std::string, std::string >("G","G") );
     seqSp.insert( pair<std::string, std::string >("H","H") );
-
-
-    breadthFirstreNumber (*spTree);
-    std::map<std::string, int > spID = computeSpeciesNamesToIdsMap(*spTree);
+*/
     
-    for(std::map<std::string, int >::iterator it = spID.begin(); it != spID.end(); it++){
-        std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
-    }
-
-    
-    
+    /*
     
     
     //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
@@ -88,7 +92,7 @@ int main(int args, char ** argv)
       for (unsigned int i = 0 ; i < coalCounts[geneTree->getRootNode()->getId()][0].size() ; i++) {
      std::cout << "Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][0] << " Num coal out: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][1]<<std::endl;
      }
-
+*/
     
     
     
@@ -114,16 +118,35 @@ int main(int args, char ** argv)
     vector<Tree *> gTrees;
     //treeReader->read("testGeneTrees", gTrees);
 //   treeReader->read("geneTrees7", gTrees);
-treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
+//treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
+   // treeReader->read("mesquite500SimCoalTreesNe10000_Depth100000.proj.phy", gTrees);
+  //  treeReader->read("mesquite500SimCoalTreesNe10000_Depth100000.proj.phy", gTrees);
+    treeReader->read("40Sp_500GeneTrees.phy", gTrees);
+
+    
     vector<Tree *> spTrees;
 //    treeReader->read("spTree", spTrees);
 //    treeReader->read("spTree2.0", spTrees);
 //    treeReader->read("spTree7", spTrees);
-    treeReader->read("SpTree8.tree", spTrees);
-    
+  //  treeReader->read("SpTree8.tree", spTrees);
+//    treeReader->read("1SimulatedSpTree8Taxa_Depth100000.tree", spTrees);
+  treeReader->read("40Sp_First.phy", spTrees);
     
     delete treeReader;
- //TEMP   TreeTemplate <Node>* spTree = dynamic_cast<TreeTemplate<Node>*>(spTrees[0]);
+    TreeTemplate <Node>* spTree = dynamic_cast<TreeTemplate<Node>*>(spTrees[0]);
+    vector<string> leaves = spTree->getLeavesNames();
+    for (unsigned int i = 0 ; i < leaves.size() ; i++) {
+        seqSp.insert( pair<std::string, std::string >(leaves[i],leaves[i]) );
+    }
+    
+    breadthFirstreNumber (*spTree);
+    std::map<std::string, int > spID = computeSpeciesNamesToIdsMap(*spTree);
+    
+    for(std::map<std::string, int >::iterator it = spID.begin(); it != spID.end(); it++){
+        std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
+    }
+
+    
     
     /* Checking the likelihood computation against results from Rosenberg 2002: it works.
     //11
@@ -158,7 +181,7 @@ treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
     }
   */  
     std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
- //TEMP   TreeTemplate <Node>* geneTree = 0;
+   TreeTemplate <Node>* geneTree = 0;
     
     //allGeneCounts: nbSpeciesBranches vectors of gTrees.size() vectors of 2 ints
     std::vector < std::vector < std::vector<unsigned int> > >  allGeneCounts;
@@ -231,10 +254,12 @@ treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
     }
     
     BrentOneDimension *brentOptimizer = new BrentOneDimension();
+    vector<double> blAnalytical = bls;
     for (unsigned int i = 0 ; i < allGeneCounts.size() ; i++) {
         COALBranchLikelihood *brLikFunction = new COALBranchLikelihood(allGeneCounts[i]);
         //Initialize BranchLikelihood:
-        brLikFunction->initModel();
+        blAnalytical[i] = brLikFunction->initModel();
+        
         ParameterList parameters;
         Parameter brLen = Parameter("BrLen", 10.0);//, ExcludingPositiveReal (0) );
         parameters.addParameter(brLen);
@@ -247,11 +272,24 @@ treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
         brentOptimizer->setInitialInterval(0, brLen.getValue()+2);
         brentOptimizer->init(parameters);
         brentOptimizer->optimize();
-        std::cout <<"Value for Sp branch "<<i<<": "<< brentOptimizer->getParameters().getParameter("BrLen").getValue() << std::endl;
-        
+        bls[i] =brentOptimizer->getParameters().getParameter("BrLen").getValue();
+        std::cout <<"Value for Sp branch "<<i<<": "<< bls[i] << std::endl;
         
     }
-    
+    for (unsigned int i = 0 ; i < bls.size() ; i++) {
+        if ( spTree->getNode(i)->hasFather() )
+            spTree->getNode(i)->setDistanceToFather(bls[i]);
+    }
+    std::cout <<"Species Tree optimized: \n" << TreeTools::treeToParenthesis(*spTree, true) << std::endl;
+    std::cout <<"Species Tree optimized: \n" << TreeTools::treeToParenthesis(*spTree, false) << std::endl;
+
+    for (unsigned int i = 0 ; i < bls.size() ; i++) {
+        if ( spTree->getNode(i)->hasFather() )
+            spTree->getNode(i)->setDistanceToFather(blAnalytical[i]);
+    }
+    std::cout <<"Species Tree analytical: \n" << TreeTools::treeToParenthesis(*spTree, true) << std::endl;
+    std::cout <<"Species Tree analytical: \n" << TreeTools::treeToParenthesis(*spTree, false) << std::endl;
+
     return 0;
 
 }
@@ -659,7 +697,7 @@ void computeRootingCOALCounts(TreeTemplate<Node> & spTree,
 /*******************************************************************************/
 
 //Creating the compressed vector, and the map giving the weights for the "site" patterns
-void COALBranchLikelihood::initModel()
+double COALBranchLikelihood::initModel()
 {
     string pattern = "";
     compressedVec_.clear();
@@ -678,11 +716,23 @@ void COALBranchLikelihood::initModel()
     }
     lks_.resize(compressedVec_.size(), 0.0);
     for(std::map<std::string, unsigned int >::iterator it = patternToWeights_.begin(); it != patternToWeights_.end(); it++){
-        std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
+        std::cout <<"\t\tit->first: "<< it->first << " : "<< it->second <<std::endl;
     }
-
+    double n12 = (double) patternToWeights_["12"];
+    double n22 = (double) patternToWeights_["22"];
+    double estimate;
+    std::cout <<"n12 "<< n12 <<" n22 "<< n22 <<std::endl;
+    if (n22 ==0) {
+        n22 = 1;
+    }
+    if (n12 ==0) {
+        n12 = 1;
+    }
+    estimate = log((n12+n22)/n22);
     
-    return;
+    std::cout <<"\t\tAnalytical estimate: "<< estimate<<std::endl;
+    
+    return estimate;
 }
 
 /*******************************************************************************/

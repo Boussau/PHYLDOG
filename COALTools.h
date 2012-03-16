@@ -161,7 +161,7 @@ public:
     COALBranchLikelihood* clone() const { return new COALBranchLikelihood(*this); }
     
 public:
-    void initModel();
+    double initModel();
     
     /**
      * @warning No checking on alphabet size or number of rate classes is performed,

@@ -118,7 +118,7 @@ void SpeciesTreeLikelihood::initialize()
                                       lossExpectedNumbers_, 
                                       duplicationExpectedNumbers_, 
                                       currentSpeciesTree_);
-     numberOfGeneFamilies = VectorTools::sum(numbersOfGeneFamilies);
+    // numberOfGeneFamilies = VectorTools::sum(numbersOfGeneFamilies);
     if (numberOfGeneFamilies == 0)
     {
         std::cout << "After filtering, no gene family is left for tree reconstruction. Exiting." <<std::endl;

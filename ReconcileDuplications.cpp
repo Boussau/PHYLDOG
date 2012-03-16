@@ -262,31 +262,49 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           exit(-1);
       }
       VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params);       
-      VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
-      delete allSites;   
       
-      unsigned int numSites = sites->getNumberOfSites();
-      ApplicationTools::displayResult("Number of sequences", TextTools::toString(sites->getNumberOfSequences()));
+      unsigned int numSites = allSites->getNumberOfSites();
+      ApplicationTools::displayResult("Number of sequences", TextTools::toString(allSites->getNumberOfSequences()));
       ApplicationTools::displayResult("Number of sites", TextTools::toString(numSites));
 
       unsigned int minPercentSequence = ApplicationTools::getIntParameter("sequence.removal.threshold",params,0);
       unsigned int threshold = (int) ((double)minPercentSequence * (double)numSites / 100 );
 
+      std::vector <std::string> seqsToRemove;
+
       if (minPercentSequence > 0) {
-          for ( int i = sites->getNumberOfSequences()-1 ; i >= 0 ; i--) {
-              if (SequenceTools::getNumberOfCompleteSites(sites->getSequence(i) ) < threshold ) {
-                  ApplicationTools::displayResult("Removing a short sequence:", sites->getSequence(i).getName()  );
-                  sites->removeSequence(i);
+          for ( int i = allSites->getNumberOfSequences()-1 ; i >= 0 ; i--) {
+              if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(i) ) < threshold ) {
+                  ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(i).getName()  );
+                 // allSites->deleteSequence(i);
+                  seqsToRemove.push_back(allSites->getSequence(i).getName());
               }
           }
       }
-      ApplicationTools::displayResult("Sequences remaining after removal:", TextTools::toString(sites->getNumberOfSequences()));
+      
+      for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
+      {
+          std::vector <std::string> seqNames = allSites->getSequencesNames();
+          if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
+          {
+              allSites->deleteSequence(seqsToRemove[j]);
+          }
+          else 
+              std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
+      }
 
-      if (sites->getNumberOfSequences() <= 1 ) {
+      
+      ApplicationTools::displayResult("Sequences remaining after removal:", TextTools::toString(allSites->getNumberOfSequences()));
+      seqsToRemove.clear();
+      
+      if (allSites->getNumberOfSequences() <= 1 ) {
           std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
           avoidFamily = true;
           numDeletedFamilies = numDeletedFamilies+1;
       }
+      VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
+      delete allSites;   
+      
       
       //method to optimize the gene tree root; only useful if heuristics.level!=0.
       bool rootOptimization = false;
@@ -345,7 +363,6 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       //At the same time, we gather sequences we will have to remove from the 
       //alignment and from the gene tree
       std::vector <std::string> spNamesToTake = tree->getLeavesNames(); 
-      std::vector <std::string> seqsToRemove;
       if (!avoidFamily) {
           for(std::map<std::string, std::deque<std::string> >::iterator it = spSeq.begin(); it != spSeq.end(); it++){
               spNames.push_back(it->first);
@@ -482,7 +499,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
 
           //Going through the gene tree to see if leaves have branches that are too long.
           std::vector <Node*> leaves = geneTree->getLeaves();
-          std::cout << "leaves.size(): "<<leaves.size() <<std::endl;
+         // std::cout << "leaves.size(): "<<leaves.size() <<std::endl;
           for (unsigned int j = 0 ; j < leaves.size() ; j++) {
               if ( leaves[j] -> hasFather() && leaves[j]->getDistanceToFather() >= 2.0 ) {
                   std::cout << "WARNING: Removing sequence "<< leaves[j]->getName() <<" from family "<<file<< " because its branch is unreasonably long (>=2.0)."<<std::endl;
