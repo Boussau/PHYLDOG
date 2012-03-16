@@ -1,0 +1,41 @@
+######## First, data files ########
+PATH= /panhome/penel/programmes/phyldog/essai4/familles/ #path to the directory where the input files are, and the output files are left.
+DATA= HBG000009 # Variable used to give the name of the data files.
+alphabet=DNA # Could also be "RNA", "protein", or Codon. Please see the bppsuite help for more details.
+taxaseq.file=$(PATH)$(DATA).link # File giving the link between species and sequence names (more on this below)
+input.sequence.file=$(PATH)$(DATA).fasta # file giving the input sequence alignment for the gene family
+input.sequence.format=Fasta # Format of the sequence alignment. Could be Fasta, Phylip, Clustal, Mase, Nexus... Please see the bppsuite help for more details.
+output.reconciled.tree.file=$(PATH)$(DATA)_Reconciled.tree # File where to store the output improved and reconciled gene tree, in NHX format. Duplication and speciation nodes are annotated, with the tag "Ev=D" or "Ev=S" respectively.
+output.duplications.tree.file=$(PATH)$(DATA)_Duplications.tree # File where the species tree topology is saved, annotated with numbers of duplications for this gene family.
+output.losses.tree.file=$(PATH)$(DATA)_Losses.tree # File where the species tree topology is saved, annotated with numbers of losses for this gene family.
+output.numbered.tree.file=$(PATH)$(DATA)_Numbered.tree # File where the species tree topology is saved, annotated with node indices.
+input.sequence.sites_to_use=all # tells whether we should use all sites in the alignment or not. Could be "all", "nogap", or "complete". Please see the bppsuite help for more details.
+input.sequence.max_gap_allowed=100% # Maximum number of gaps tolerated for including a site in the analysis.
+init.gene.tree=bionj # Starting gene tree. Could be "user", "bionj" or "phyml". "user" requires that a user-input tree is given with the "gene.tree.file" option, whereas the options "bionj" and "phyml" have phyldog use these algorithms to create starting gene trees.
+gene.tree.file=$(PATH)$(DATA).tree # File containing the input starting gene tree in newick format. Useful if "init.gene.tree=user".
+output.starting.gene.tree.file=$(PATH)$(DATA)_starting.tree # File where the starting gene tree is saved.
+sequence.removal.threshold=20
+######## Then, algorithm options ########
+rearrangement.gene.tree = spr # Type of rearrangement: "nni" or "spr". "nni" is much faster but less exhaustive than "spr". If the species tree topology is fixed, we advise spr, which provides better gene trees. Otherwise, we advise the use of nnis.
+SPR.limit.gene.tree = 2 # For SPR moves on the gene tree, gives the maximum distance between the position of the pruned subtree and its regrafting position.
+
+######## Then, model options ########
+model=GTR(a=1.17322, b=0.27717, c=0.279888, d=0.41831, e=0.344783, initFreqs=observed, initFreqs.observedPseudoCount=1) # options of the model used. Should match the alphabet. Please see the bppsuite help for more details.
+#model=GTR(a=1.17322, b=0.27717, c=0.279888, d=0.41831, e=0.344783, useObservedFreqs=yes, useObservedFreqs.pseudoCount=1) # options of the model used. Should match the alphabet. Please see the bppsuite help for more details.
+#rate_distribution=Invariant(dist=Gamma(n=4,alpha=1.0), p=0.1) # Rate heterogeneity option. Here we assume a gamma law with 4 categories and a category of invariants to model rate heterogeneity among sites.
+optimization.ignore_parameter=InvariantMixed.dist_Gamma.alpha, InvariantMixed.p, GTR.a, GTR.b, GTR.c, GTR.d, GTR.e, GTR.theta, GTR.theta1, GTR.theta2 # We choose not to optimize these 10 parameters in order to save computing time, as we have provided reasonable input values. However, in cases where good input values are not available, it may be wise to leave this field empty and optimize these parameters.
+
+######## Finally, optimization options ########
+optimization.topology=yes # We choose to optimize the topology.
+optimization.tolerance=0.01 # We have a large optimization tolerance to speed up the computations.
+# The options below are also tuned to speed up the computations, and may be left untouched. More details on what they mean may be found in the bppsuite help.
+optimization.method_DB.nstep=0
+optimization.topology.numfirst=false
+optimization.topology.tolerance.before=100
+optimization.topology.tolerance.during=100
+optimization.max_number_f_eval=1000000
+optimization.final=none
+optimization.verbose=0
+optimization.message_handler=none
+optimization.profiler=none
+optimization.reparametrization=no
