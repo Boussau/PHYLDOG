@@ -1,13 +1,13 @@
 //
-//  COALTools.h
+//  CoalTools.h
 //  phyldog
 //
 //  Created by Bastien Boussau on 07/03/12.
 //  Copyright 2012 UC Berkeley. All rights reserved.
 //
 
-#ifndef COALTools_h
-#define COALTools_h
+#ifndef CoalTools_h
+#define CoalTools_h
 #include "ReconciliationTools.h"
 #include <Bpp/Numeric/NumTools.h>
 #include <Bpp/Numeric/Function/BrentOneDimension.h>
@@ -72,10 +72,15 @@ void recoverILS(Node & node, int & a, int & olda,
  * given a vector of vector giving, for each branch of the species tree,
  * the number of incoming lineages, and the number of outgoing lineages.
  * Formula from Degnan and Salter (2005), Evolution 59(1), pp. 24-37.
+ * 3 versions of the function:
+ * - working for lots of gene families at once
+ * - working for one gene family
+ * - working for one branch of one gene family
  ****************************************************************************/
 
-double computeCOALLikelihood (std::vector < std::vector<unsigned int> > vec, std::vector < double > COALBl ) ;
-double computeCOALLikelihood ( std::vector<unsigned int>  vec, double COALBl ) ;
+double computeCoalLikelihood (std::vector < std::vector<std::vector<unsigned int> > > vec, std::vector < double > CoalBl ) ;
+double computeCoalLikelihood (std::vector < std::vector<unsigned int> > vec, std::vector < double > CoalBl ) ;
+double computeCoalLikelihood ( std::vector<unsigned int>  vec, double CoalBl ) ;
 
 
 /*****************************************************************************
@@ -86,7 +91,7 @@ double computeCOALLikelihood ( std::vector<unsigned int>  vec, double COALBl ) ;
  * 
  ****************************************************************************/
 
-void computeSubtreeCOALCountsPreorder(TreeTemplate<Node> & spTree, 
+void computeSubtreeCoalCountsPreorder(TreeTemplate<Node> & spTree, 
                                       TreeTemplate<Node> & geneTree, 
                                       Node * node, 
                                       const std::map<std::string, std::string > & seqSp, 
@@ -105,7 +110,7 @@ void computeSubtreeCOALCountsPreorder(TreeTemplate<Node> & spTree,
  * "direction"th son of node. direction = sonNumber+1
  * 
  ****************************************************************************/
-void computeRootingCOALCounts(TreeTemplate<Node> & spTree, 
+void computeRootingCoalCounts(TreeTemplate<Node> & spTree, 
                               Node * node, 
                               std::vector < std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts, 
                               const std::vector< double> & bls, 
@@ -119,7 +124,7 @@ void computeRootingCOALCounts(TreeTemplate<Node> & spTree,
  * the branch length in coalescent units.
  ****************************************************************************/
 
-class COALBranchLikelihood :
+class CoalBranchLikelihood :
 public Function,
 public AbstractParametrizable
 {
@@ -131,7 +136,7 @@ protected:
     double lnL_;
     
 public:
-    COALBranchLikelihood(const std::vector <std::vector <unsigned int> >& vec) :
+    CoalBranchLikelihood(const std::vector <std::vector <unsigned int> >& vec) :
     AbstractParametrizable(""),
     vec_(vec), compressedVec_(0), lnL_(log(0.)), patternToWeights_(), lks_(0)
     {
@@ -139,13 +144,13 @@ public:
         addParameter_(p);
     }
     
-    COALBranchLikelihood(const COALBranchLikelihood& bl) :
+    CoalBranchLikelihood(const CoalBranchLikelihood& bl) :
     AbstractParametrizable(bl),
     vec_(bl.vec_), compressedVec_(bl.compressedVec_), lnL_(bl.lnL_),
     patternToWeights_(bl.patternToWeights_), lks_(0)
     {}
     
-    COALBranchLikelihood& operator=(const COALBranchLikelihood& bl)
+    CoalBranchLikelihood& operator=(const CoalBranchLikelihood& bl)
     {
         AbstractParametrizable::operator=(bl);
         vec_ = bl.vec_;
@@ -156,9 +161,9 @@ public:
         return *this;
     }
     
-    virtual ~COALBranchLikelihood() {}
+    virtual ~CoalBranchLikelihood() {}
     
-    COALBranchLikelihood* clone() const { return new COALBranchLikelihood(*this); }
+    CoalBranchLikelihood* clone() const { return new CoalBranchLikelihood(*this); }
     
 public:
     double initModel();

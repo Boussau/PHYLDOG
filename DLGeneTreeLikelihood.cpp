@@ -1018,6 +1018,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                         treeForSPR = 0;
                     }
                     treeForSPR = _rootedTree->clone();
+                   // treeForSPR->getRootNode()->getSon(0)->setName("outgroupNode");
                     
                     makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false);
                                         
@@ -1046,7 +1047,11 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                                 drlk = 0;
                             }
                            // std::cout << "COMPUTING SEQLK: " << TreeTools::treeToParenthesis(*treeForSPR, true) <<std::endl;
-                            drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
+                            drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, 
+                                                                      *(nniLk_->getData()), 
+                                                                      nniLk_->getSubstitutionModel(), 
+                                                                      nniLk_->getRateDistribution(), 
+                                                                      true, false);
                             //  drlk  = new DRTreeLikelihood (*treeForSPR, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
                             
                             
@@ -1135,7 +1140,46 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                             bestTree = 0;
                         }
                         
+                        bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(bestDrlk->getTree()))->clone();
+                        //Rooting bestTree as in TreeForSPR:
+                        vector<Node*> drlkNodes = bestTree->getNodes();
+                      //  std::cout << "BEFORE NEWOUTGROUP: "<<TreeTools::treeToParenthesis(*bestTree, true)<< std::endl;
+                        for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
+                            if (drlkNodes[j]->hasNodeProperty("outgroupNode")) {
+                                if (bestTree->getRootNode() == drlkNodes[j]) {
+                                    if (j < drlkNodes.size()-1) 
+                                    {
+                                        bestTree->rootAt(drlkNodes[drlkNodes.size()-1]);   
+                                    }
+                                    else {
+                                        bestTree->rootAt(drlkNodes[drlkNodes.size()-2]);
+                                    }
+                                };
+                                bestTree->newOutGroup( drlkNodes[j] );
+                              //  std::cout << "FOUND"<<std::endl;
+                                break;
+                            }
+                        }
+                     //   std::cout << "AFTER NEWOUTGROUP: "<<TreeTools::treeToParenthesis(*bestTree, true)<< std::endl;
+
+                        /*
                         bestTree = treeForSPR->clone();
+                        //                        bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();                                                                             
+                        
+                        //Putting optimized branch lengths onto bestTree                                                                                                                                           
+                        vector<int> drlkNodes = bestTree->getNodesId();
+                        for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
+                            if ((dynamic_cast<const TreeTemplate<Node> *> (&(bestDrlk->getTree()))->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather()))
+                                bestTree->getNode(drlkNodes[j])->setDistanceToFather(dynamic_cast<const TreeTemplate<Node> *> (&(bestDrlk->getTree()))->getNode(drlkNodes[j])->getDistanceToFather());
+                        }
+*/
+                        
+                        
+//                        bestTree = drlk->getTree().clone();
+                     /*   bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(bestDrlk->getTree()))->clone();
+                        int id = treeForSPR->getRootNode()->getSon(0)->getId();
+                        bestTree->newOutGroup(id);*/
+                        
                         /*  std::cout << "\t\t\tSPRs: Better candidate tree likelihood : "<<bestlogL<< std::endl;
                          std::cout << "\t\t\tTotal likelihood: "<<logL <<"; Reconciliation likelihood: "<< bestScenarioLk << ", Sequence likelihood: "<< bestSequenceLogL <<", for tree: "<< std::endl;*/
                         /*TreeTools::treeToParenthesis(bestTreeLogLk->getRootedTree()) << */
@@ -1235,7 +1279,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
         delete drlk;
         drlk = 0;
     }
-
+/*Do we need this extra lk optimization?
     bestTree = _rootedTree->clone();
 
     drlk = new NNIHomogeneousTreeLikelihood (*bestTree, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
@@ -1260,7 +1304,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
         if (_rootedTree->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
             _rootedTree->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
     }
-    
+    */
     //One more reconciliation, to update the "_num*Lineages" vectors.
     computeReconciliationLikelihood();
         

@@ -2134,10 +2134,24 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   for ( it=LksToNodes.begin() ; it != LksToNodes.end(); it++ )
     std::cout << (*it).second->getId() << " => " << (*it).first << std::endl;
    */
+  //  std::cout << "IN findMLReconciliationDR: "<<TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
+
+    vector<Node*> nodes = geneTree->getNodes();
+    for (unsigned int i = 0 ; i < nodes.size() ; i++ ) {
+        if (nodes[i]->hasNodeProperty("outgroupNode") ) {
+            nodes[i]->removeNodeProperty("outgroupNode");
+            break;
+        }
+    }
+//    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
+
+    LksToNodes.rbegin()->second->setNodeProperty("outgroupNode", BppString("here") );
+//    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
+
+    geneTree->newOutGroup(LksToNodes.rbegin()->second); //uncomment that if you want to keep gene family trees fixed except for the root
+//    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
+
     
-    
-  geneTree->newOutGroup(LksToNodes.rbegin()->second->getId()); //uncomment that if you want to keep gene family trees fixed except for the root
-  
   if (fillTables) {
   
 	//Now the best root has been found. I can thus run a function with this best root to fill all the needed tables. This additional tree traversal could be avoided.
