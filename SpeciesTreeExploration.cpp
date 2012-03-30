@@ -105,6 +105,7 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
               if (bestTree)
               {
                   delete bestTree;
+                  bestTree = 0;
               }
               bestTree = tree->clone();  
               bestDupProba=duplicationExpectedNumbers;
@@ -208,6 +209,10 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
                                                                      server, branchExpectedNumbersOptimization, 
                                                                      genomeMissing, *tree, bestlogL, currentStep);
   bestIndex = index;
+    if (bestTree) {
+        delete bestTree;
+        bestTree=0;
+    }
   bestTree = tree->clone();
   bestNum0Lineages = num0Lineages;
   bestNum1Lineages = num1Lineages;
@@ -286,9 +291,10 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
         numIterationsWithoutImprovement = 0;
         betterTree = true;
         bestlogL =logL;
-        if (bestTree) {
-          delete bestTree;
-        }
+          if (bestTree) {
+              delete bestTree;
+              bestTree=0;
+          }
         bestTree = tree->clone();   
         bestDupProba=duplicationExpectedNumbers;
         bestLossProba=lossExpectedNumbers;
@@ -438,7 +444,10 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
       if (logL+0.01<bestlogL) {
         betterTree = true;
         bestlogL =logL;
-        if (bestTree) delete bestTree;
+          if (bestTree) {
+              delete bestTree;
+              bestTree=0;
+          }
         bestTree = tree->clone();  
         bestDupProba=duplicationExpectedNumbers;
         bestLossProba=lossExpectedNumbers;

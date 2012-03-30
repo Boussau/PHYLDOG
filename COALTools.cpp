@@ -479,7 +479,10 @@ void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> 
         for (unsigned int j= 0 ; j < 2 ; j++) { //for incoming and outgoing counts
             coalCountsFather[i][j] = coalCountsSon0[i][j] + coalCountsSon1[i][j];
         }
+        std::cout << "coalCountsFather[i][j] For Sp branch "<<i<<" Num coal in: "<< coalCountsFather[i][0] << " Num coal out: "<< coalCountsFather[i][1]<<std::endl;
     }
+    
+    
     
     Node temp0 = *(tree.getNode(son0SpId));
     Node temp1 = *(tree.getNode(son1SpId));
@@ -501,6 +504,7 @@ void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> 
 /*****************************************************************************
  * This function recovers ILS by comparing a subtree in a gene tree to
  * a species tree.
+ * WARNING: MAY NEED TO CHANGE: NEED TO TAKE THE LOWEST POSSIBLE BRANCH FOR DOING THE COALESCENCE
  ****************************************************************************/
 void recoverILS(Node & node, int & a, int & olda, 
                 std::vector <std::vector < unsigned int > > &vec) {
@@ -514,8 +518,12 @@ void recoverILS(Node & node, int & a, int & olda,
     }
     a = nodeA->getId();
     node = *nodeA;
+
     incrementInCount(vec, olda);
     incrementOutCount(vec, a);
+    
+
+    
     
     return;
 }
@@ -618,7 +626,7 @@ void computeSubtreeCoalCountsPreorder(TreeTemplate<Node> & spTree,
                                       std::vector <std::vector<unsigned int> > & speciesIDs, 
                                       int sonNumber, 
                                       std::map <double, Node*> & LksToNodes) {
-    std::cout <<"computeSubtreeCoalCountsPreorder "<<std::endl;
+    std::cout <<"computeSubtreeCoalCountsPreorder node: "<< node->getId()<<std::endl;
     computeRootingCoalCounts(spTree, node, 
                              coalCounts, bls, speciesIDs, 
                              sonNumber, LksToNodes);
@@ -632,7 +640,7 @@ void computeSubtreeCoalCountsPreorder(TreeTemplate<Node> & spTree,
     else {
         son= node->getSon(0);
     }
-    std::cout <<"computeSubtreeCoalCountsPreorder 2"<<std::endl;
+    std::cout <<"computeSubtreeCoalCountsPreorder 2; son ="<< son->getId()<<std::endl;
 
     //  for (int i = 0; i< sons.size(); i++){
     for (unsigned int j =0; j<son->getNumberOfSons(); j++) {
@@ -763,7 +771,7 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
     std::cout << "computeRootingCoalCounts 9"<<std::endl;
 
     //What to put?
-    rootLikelihood = computeCoalLikelihood ( coalCounts[geneNodeId][directionSon0], bls ) ;
+    rootLikelihood = computeCoalLikelihood ( rootCounts, bls ) ;
 
     std::cout << "computeRootingCoalCounts 10"<< rootLikelihood <<std::endl;
 

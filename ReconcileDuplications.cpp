@@ -214,7 +214,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                                std::vector <DLGeneTreeLikelihood *> & treeLikelihoods,
                                std::vector <DLGeneTreeLikelihood *> & backupTreeLikelihoods,
                                std::vector <std::map<std::string, std::string> > & allParams, 
-                               std::vector <Alphabet *> allAlphabets, 
+                               std::vector <Alphabet *> & allAlphabets, 
                                std::vector <VectorSiteContainer *> & allDatasets, 
                                std::vector <SubstitutionModel *> & allModels, 
                                std::vector <DiscreteDistribution *> & allDistributions, 
@@ -294,7 +294,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       }
 
       
-      ApplicationTools::displayResult("Sequences remaining after removal:", TextTools::toString(allSites->getNumberOfSequences()));
+      ApplicationTools::displayResult("Sequences remaining after length-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
       seqsToRemove.clear();
       
       if (allSites->getNumberOfSequences() <= 1 ) {
@@ -371,6 +371,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
               }
               if (!VectorTools::contains(spNamesToTake,it->first)) {
                   for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
+                      std::cout<<"Removing sequence of species not considered"<<std::endl;
                       seqsToRemove.push_back(*it2);
                   }
               }
@@ -447,22 +448,36 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                       if (geneTree) 
                       {
                           delete geneTree;
+                          geneTree =0;
                       }            
                       geneTree = unrootedGeneTree->clone();
                       geneTree->newOutGroup(0); 
                       //exit(-1);
                   }
                   else {
+                      if (geneTree) 
+                      {
+                          delete geneTree;
+                          geneTree =0;
+                      }            
                       geneTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTreeFile));
                   }
                   if (!geneTree->isRooted()) 
                   {
+                      if (unrootedGeneTree) {
+                          delete unrootedGeneTree;
+                          unrootedGeneTree = 0;
+                      }
                       unrootedGeneTree = geneTree->clone();
                       //std::cout << "The gene tree is not rooted ; the root will be searched."<<std::endl;
                       geneTree->newOutGroup(0);
                   }
                   else 
                   {
+                      if (unrootedGeneTree) {
+                          delete unrootedGeneTree;
+                          unrootedGeneTree = 0;
+                      }
                       unrootedGeneTree = geneTree->clone();
                       unrootedGeneTree->unroot();
                   }
@@ -480,6 +495,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                   if (geneTree) 
                   {
                       delete geneTree;
+                      geneTree = 0;
                   }        
                   geneTree = unrootedGeneTree->clone(); 
                   geneTree->newOutGroup(0); 
@@ -518,6 +534,10 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                   if ( VectorTools::contains(leafNames, seqsToRemove[j]) )
                   {
                       removeLeaf(*geneTree, seqsToRemove[j]);
+                      if (unrootedGeneTree) {
+                          delete unrootedGeneTree;
+                          unrootedGeneTree = 0;
+                      }
                       unrootedGeneTree = geneTree->clone();
                       if (!geneTree->isRooted()) {
                           std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
@@ -600,9 +620,10 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                                     allNum1Lineages[i-numDeletedFamilies], 
                                     allNum2Lineages[i-numDeletedFamilies], 
                                     nodesToTryInNNISearch);
-              
-              if (unrootedGeneTree)
+              if (unrootedGeneTree) {
                   delete unrootedGeneTree;
+                  unrootedGeneTree = 0;
+              }
               unrootedGeneTree = geneTree->clone();
               unrootedGeneTree->unroot();
               
@@ -628,7 +649,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
               }
               if (nodes[j]->hasBootstrapValue()) 
               {
-                  nodes[j]->removeBranchProperty(TreeTools::BOOTSTRAP); 
+                  nodes[j]->deleteBranchProperty(TreeTools::BOOTSTRAP); 
               }
           }
           
@@ -674,8 +695,19 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           allDatasets.push_back(sites);
           allModels.push_back(model);
           allDistributions.push_back(rDist);
-          allGeneTrees.push_back(geneTree);
-          allUnrootedGeneTrees.push_back(unrootedGeneTree);
+          allGeneTrees.push_back(geneTree->clone());
+          allUnrootedGeneTrees.push_back(unrootedGeneTree->clone());
+/*          if (tl)
+          delete tl;
+          if (params)
+          delete params;
+          if (alphabet)
+          delete alphabet;
+          delete sites;
+          delete model;
+          delete rDist;
+          delete geneTree;
+          delete unrootedGeneTree;*/
       }
       else 
       {
@@ -686,6 +718,15 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       }
       double familyTime = ApplicationTools::getTime() - startingFamilyTime ;  
       std::cout <<"Examined family "<<assignedFilenames[i] << " in "<<familyTime<<" seconds."<<std::endl;
+      if (unrootedGeneTree) {
+          delete unrootedGeneTree;
+          unrootedGeneTree = 0;
+      }
+      if (geneTree) {
+          delete geneTree;
+          geneTree = 0;
+      }
+
   }//End for each file
     
     
@@ -802,37 +843,40 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
   int rightIndex = bestIndex-startRecordingTreesFrom ;
   for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
     {
-      suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
-      reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
-
-      reconcTree = reconcTree + suffix;
-      Nhx *nhx = new Nhx();
-      string temp = reconciledTrees[i][rightIndex];
-
-      TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
-      temp = duplicationTrees[i][rightIndex];
-      TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);
+        suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
+        reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
+        
+        reconcTree = reconcTree + suffix;
+        Nhx *nhx = new Nhx();
+        string temp = reconciledTrees[i][rightIndex];
+        
+        TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
+        temp = duplicationTrees[i][rightIndex];
+        TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);
         breadthFirstreNumber (*spTree);        
-      std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*spTree);
-      std::map <std::string, std::string> seqSp = treeLikelihoods[i]->getSeqSp();
-      annotateGeneTreeWithDuplicationEvents (*spTree, 
-                                             *geneTree, 
-                                             geneTree->getRootNode(), 
-                                             treeLikelihoods[i]->getSeqSp(),
-                                             spId); 
-    out.open (reconcTree.c_str(), std::ios::out);
-    nhx->write(*geneTree, out);
-    out.close();
-    dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
-    dupTree = dupTree + suffix;
-    out.open (dupTree.c_str(), std::ios::out);
-    out << duplicationTrees[i][rightIndex]<<std::endl;
-    out.close();
-    lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", allParams[i], "losses.tree", "", false, false);
-    lossTree = lossTree + suffix;
-    out.open (lossTree.c_str(), std::ios::out);
-    out << lossTrees[i][rightIndex]<<std::endl;
-    out.close();
+        std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*spTree);
+        std::map <std::string, std::string> seqSp = treeLikelihoods[i]->getSeqSp();
+        annotateGeneTreeWithDuplicationEvents (*spTree, 
+                                               *geneTree, 
+                                               geneTree->getRootNode(), 
+                                               treeLikelihoods[i]->getSeqSp(),
+                                               spId); 
+        out.open (reconcTree.c_str(), std::ios::out);
+        nhx->write(*geneTree, out);
+        out.close();
+        dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
+        dupTree = dupTree + suffix;
+        out.open (dupTree.c_str(), std::ios::out);
+        out << duplicationTrees[i][rightIndex]<<std::endl;
+        out.close();
+        lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", allParams[i], "losses.tree", "", false, false);
+        lossTree = lossTree + suffix;
+        out.open (lossTree.c_str(), std::ios::out);
+        out << lossTrees[i][rightIndex]<<std::endl;
+        out.close();
+        delete nhx;
+        delete geneTree;
+        delete spTree;
     }
   return;
 }
@@ -921,8 +965,7 @@ int main(int args, char ** argv)
             spTL.initialize();
 
             spTL.MLSearch();
-            
-            
+                        
 			std::cout << "PHYLDOG's done. Bye." << std::endl;
 			ApplicationTools::displayTime("Total execution time:");
             MPI_Barrier(world);  
@@ -1003,8 +1046,16 @@ int main(int args, char ** argv)
             std::string initTree;
             std::string allFileNames;
             
+            //TEST:
+            /*
+             currentSpeciesTree =    "((((((((((((((((((Macaca_mulatta,((((Homo_sapiens,Pan_troglodytes),Gorilla_gorilla),Pongo_abelii),Nomascus_leucogenys)),Callithrix_jacchus),Tarsius_syrichta),(Microcebus_murinus,Otolemur_garnettii)),Tupaia_belangeri),(((((Mus_musculus,Rattus_norvegicus),Dipodomys_ordii),Cavia_porcellus),Spermophilus_tridecemlineatus),(Oryctolagus_cuniculus,Ochotona_princeps))),((((Vicugna_pacos,(Tursiops_truncatus,Bos_taurus)),Sus_scrofa),((Equus_caballus,(Felis_catus,(Ailuropoda_melanoleuca,Canis_lupus_familiaris))),(Myotis_lucifugus,Pteropus_vampyrus))),(Erinaceus_europaeus,Sorex_araneus))),(((Loxodonta_africana,Procavia_capensis),Echinops_telfairi),(Dasypus_novemcinctus,Choloepus_hoffmanni))),(Monodelphis_domestica,(Macropus_eugenii,Sarcophilus_harrisii))),Ornithorhynchus_anatinus),(((Gallus_gallus,Meleagris_gallopavo),Taeniopygia_guttata),Anolis_carolinensis)),Xenopus_tropicalis),(((Tetraodon_nigroviridis,Takifugu_rubripes),(Gasterosteus_aculeatus,Oryzias_latipes)),Danio_rerio)),Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster),Caenorhabditis_elegans),Saccharomyces_cerevisiae);";
+            */
+            
             //First we read the species tree from the char[] sent by the server
             tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
+         //TEST
+        //    breadthFirstreNumber (*tree);        
+
             resetLossesAndDuplications(*tree, lossExpectedNumbers, duplicationExpectedNumbers);
             //To make the correspondance between species name and id:
             std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*tree);
@@ -1181,7 +1232,11 @@ int main(int args, char ** argv)
                             totalTime = ApplicationTools::getTime() - startingTime;
                             std::cout << "Family "<< assignedFilenames[i] <<"; Time for SPR exploration: "<<  totalTime << " seconds." <<std::endl;
                         }
-                    }               
+                    }     
+                    if (geneTree) {
+                        delete geneTree;
+                        geneTree = 0;
+                    }
                     geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getRootedTree());
                     
                     ///LIKELIHOOD OPTIMIZED
@@ -1212,6 +1267,7 @@ int main(int args, char ** argv)
                     if (geneTree) 
                     {
                         delete geneTree;
+                        geneTree = 0;
                     }
                 }//end for each filename
                /* if (firstTimeImprovingGeneTrees) 
@@ -1285,7 +1341,7 @@ int main(int args, char ** argv)
                         treeLikelihoods[i]->setProbabilities(duplicationExpectedNumbers, lossExpectedNumbers);
                       //  treeLikelihoods[i]->computeTreeLikelihood();
                     }
-                   // if (tree) delete tree;
+                    //if (tree) delete tree;
                 }
                 else 
                 { 
@@ -1303,13 +1359,32 @@ int main(int args, char ** argv)
                     break;
                 }
             }//End while, END OF MAIN LOOP
-            /*		for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
-             {  
-             delete allAlphabets[i];
-             delete allDatasets[i];
-             delete allModels[i];
-             delete allDistributions[i];
-             }*/
+            	for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
+                {  
+                    if (allAlphabets[i])
+                        delete allAlphabets[i];
+                    if (allDatasets[i])
+                        delete allDatasets[i];
+                    if (allModels[i])
+                        delete allModels[i];
+                    if (allDistributions[i])
+                        delete allDistributions[i];
+                    if (allGeneTrees[i])
+                        delete allGeneTrees[i];
+                    if (backupTreeLikelihoods[i])
+                        delete backupTreeLikelihoods[i];
+                    if (treeLikelihoods[i])
+                        delete treeLikelihoods[i];
+                    if (allUnrootedGeneTrees[i])
+                        delete allUnrootedGeneTrees[i];
+                    
+                }
+            delete nhx;
+            if (geneTree) 
+            {
+                delete geneTree;
+            }
+            if (tree) delete tree;
             if (!debug) {
                 cerr.rdbuf(backupcerr);    // restore cerr's original streambuf
                 cout.rdbuf(backup);        // restore cout's original streambuf                                                                                                                                                  

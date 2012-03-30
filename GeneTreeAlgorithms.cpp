@@ -545,70 +545,70 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
                                       SubstitutionModel* model, 
                                       DiscreteDistribution* rDist, 
                                       Alphabet *alphabet) {
-  TreeTemplate<Node>  *unrootedGeneTree = 0;
-  
+    TreeTemplate<Node>  *unrootedGeneTree = 0;
+    
     //We don't want to use rate heterogeneity across sites with bionj, it seems to behave weirdly (e.g. very long branches)
     DiscreteDistribution*  rDist2 = new ConstantDistribution(1., true);
     DistanceEstimation distEstimation(model, rDist2, sites, 1, false);
-   
-  //DistanceEstimation distEstimation(model, rDist, sites, 1, false);
-  
-  BioNJ * bionj = new BioNJ();     
-  
-  bionj->outputPositiveLengths(true);  
-  
-  std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
-  if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
-  else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
-  else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
-  else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
-  // Should I ignore some parameters?
-  ParameterList allParameters = model->getParameters();
- // allParameters.addParameters(rDist->getParameters());
+    
+    //DistanceEstimation distEstimation(model, rDist, sites, 1, false);
+    
+    BioNJ * bionj = new BioNJ();     
+    
+    bionj->outputPositiveLengths(true);  
+    
+    std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
+    if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
+    else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
+    else if(type == "iterations") type = OptimizationTools::DISTANCEMETHOD_ITERATIONS;
+    else throw Exception("Unknown parameter estimation procedure '" + type + "'.");
+    // Should I ignore some parameters?
+    ParameterList allParameters = model->getParameters();
+    // allParameters.addParameters(rDist->getParameters());
     allParameters.addParameters(rDist2->getParameters());
     
-  ParameterList parametersToIgnore;
-  std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
-  bool ignoreBrLen = false;
-  StringTokenizer st(paramListDesc, ",");
-  
-  while(st.hasMoreToken())
+    ParameterList parametersToIgnore;
+    std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
+    bool ignoreBrLen = false;
+    StringTokenizer st(paramListDesc, ",");
+    
+    while(st.hasMoreToken())
     {
-    try
-      {
-      std::string param = st.nextToken();
-      if(param == "BrLen")
-        ignoreBrLen = true;
-      else
+        try
         {
-        if (allParameters.hasParameter(param))
-          {
-          Parameter* p = &allParameters.getParameter(param);
-          parametersToIgnore.addParameter(*p);
-          }
-        else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
+            std::string param = st.nextToken();
+            if(param == "BrLen")
+                ignoreBrLen = true;
+            else
+            {
+                if (allParameters.hasParameter(param))
+                {
+                    Parameter* p = &allParameters.getParameter(param);
+                    parametersToIgnore.addParameter(*p);
+                }
+                else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
+            }
+        } 
+        catch(ParameterNotFoundException pnfe)
+        {
+            ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
         }
-      } 
-    catch(ParameterNotFoundException pnfe)
-      {
-      ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
-      }
     }
-  double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
-  
-  unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
-  std::vector<Node*> nodes = unrootedGeneTree->getNodes();
-  
-  for(unsigned int k = 0; k < nodes.size(); k++)
+    double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
+    
+    unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
+    std::vector<Node*> nodes = unrootedGeneTree->getNodes();
+    
+    for(unsigned int k = 0; k < nodes.size(); k++)
     {
         if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
         if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() >= 5) throw Exception("Found a very large branch length in a gene tree; will avoid this family.");
         //Remove long branches, in case it helps
         //if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() > 0.5) nodes[k]->setDistanceToFather(0.05);        
     }
-  
-  delete bionj;  
-  return unrootedGeneTree;
+    delete rDist2;
+    delete bionj;  
+    return unrootedGeneTree;
 }
 
 

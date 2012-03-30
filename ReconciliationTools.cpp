@@ -2139,7 +2139,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
     vector<Node*> nodes = geneTree->getNodes();
     for (unsigned int i = 0 ; i < nodes.size() ; i++ ) {
         if (nodes[i]->hasNodeProperty("outgroupNode") ) {
-            nodes[i]->removeNodeProperty("outgroupNode");
+            nodes[i]->deleteNodeProperty("outgroupNode");
             break;
         }
     }
@@ -2800,7 +2800,7 @@ bool sortMinFunction (std::pair <std::vector<std::string>, double> i, std::pair 
 void generateListOfOptionsPerClient(std::vector <std::string> listOptions, int size, std::vector <std::vector<std::string> > &listOfOptionsPerClient, std::vector <unsigned int> &numbersOfGenesPerClient) 
 {
   //Here, two alternatives: either we do have information regarding the gene family sizes, or we don't.
-  //Is there size information?==Is there a ":" in the first line?
+  //Is there size information? == Is there a ":" in the first line?
   if (TextTools::hasSubstring(listOptions[0],":")) 
     {
     std::vector <std::pair <std::string, double> > elements;
