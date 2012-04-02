@@ -119,6 +119,44 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
                               std::map <double, Node*> & LksToNodes) ;
 
 
+
+/*****************************************************************************
+ * This function aims at finding the most likely coalescent reconciliation, 
+ * using a double recursive tree traversal. 
+ * The first traversal is post-order, and then the second traversal is pre-order.
+ * This is a modification of an algorithm quickly explained in 
+ * Chen, Durand, Farach-Colton, J. Comp. Biol. pp429-447, 2000.
+ * Conditional likelihoods are recorded in a table. 
+ * This table has (number of nodes) elements, and for each node, 
+ * contains three conditional likelihoods. 
+ * The table is thus (number of nodes)*3 cells. For each node i, 
+ * likelihoodData[i][j] contains the conditional likelihood of the subtree 
+ * having its root in subtree opposite neighbour j of node i.
+ * Node species IDs are also recorded in a (number of nodes)*3 cells table.
+ * The boolean "fillTables" is here to tell whether we want to update the vectors num*lineages.
+ ****************************************************************************/
+
+double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree, 
+                                   TreeTemplate<Node> * geneTree, 
+                                   std::map<std::string, std::string > seqSp,
+                                   std::map<std::string, int > spID,
+                                   std::vector< double> coalBl, 
+                                   int & MLindex, 
+                                   std::vector < std::vector<std::vector<unsigned int> > > coalCounts,
+                                   std::set <int> &nodesToTryInNNISearch, 
+                                   bool fillTables);
+
+
+/*****************************************************************************
+ *****************************************************************************
+ *****************************************************************************
+ *****************************************************************************
+ *****************************************************************************
+ *****************************************************************************
+ *****************************************************************************
+ ****************************************************************************/
+
+
 /*****************************************************************************
  * This class maximizes the Coalescent likelihood for a branch, by optimizing
  * the branch length in coalescent units.

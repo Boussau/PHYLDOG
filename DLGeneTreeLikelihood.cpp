@@ -920,14 +920,24 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     drlk = nniLk_->clone();
    // optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (nniLk_), 0.1, params);
     
-    
+    /*
     int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
     bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
     params[ std::string("optimization.max_number_f_eval")] = 100;
     params[ std::string("optimization.topology")] = "false";
     PhylogeneticsApplicationTools::optimizeParameters(drlk, drlk->getParameters(), params, "", true, false);
     params[ std::string("optimization.max_number_f_eval")] = backup;
-    params[ std::string("optimization.topology")] = backupOpt;
+    params[ std::string("optimization.topology")] = backupOpt;*/
+    
+    
+    auto_ptr<BackupListener> backupListener;
+    unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", params, 1, "", true, false);
+    double tolerance = 0.1;
+    unsigned int tlEvalMax = 1000000;
+    OutputStream* messageHandler = 0 ; 
+    OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (drlk), drlk->getParameters(), backupListener.get(), tolerance, tlEvalMax, messageHandler, messageHandler, 0);
+
+    
     
     delete nniLk_;
     nniLk_ = drlk->clone();
@@ -1097,7 +1107,9 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                             std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
                             
                             //TEST 13 03 2012
+                            OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (drlk), drlk->getParameters(), backupListener.get(), tolerance, tlEvalMax, messageHandler, messageHandler, 0);
                             
+                            /*
                             int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
                             bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
                             params[ std::string("optimization.max_number_f_eval")] = 100;
@@ -1105,7 +1117,9 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                             PhylogeneticsApplicationTools::optimizeParameters(drlk, drlk->getParameters(), params, "", true, false);
                             params[ std::string("optimization.max_number_f_eval")] = backup;
                             params[ std::string("optimization.topology")] = backupOpt;
-
+                             */
+                            
+                            
                             /* std::cout << "TEST getValue2: "<< drlk->getValue() <<std::endl;
                             std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
                             

@@ -1,5 +1,5 @@
 //
-// File: DLGeneTreeLikelihood.h
+// File: COALGeneTreeLikelihood.h
 // Created by: Bastien Boussau 
 // Created on: Tue October 04 14:16 2011
 //
@@ -38,8 +38,8 @@
  */
 
 
-#ifndef DLGeneTreeLikelihood_h
-#define DLGeneTreeLikelihood_h
+#ifndef COALGeneTreeLikelihood_h
+#define COALGeneTreeLikelihood_h
 
 
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
@@ -51,6 +51,8 @@
 #include <Bpp/Numeric/Parametrizable.h>
 
 #include "ReconciliationTools.h"
+#include "COALTools.h"
+
 #include "GeneTreeAlgorithms.h"
 #include "mpi.h" 
 
@@ -58,9 +60,9 @@ namespace bpp
 {
     
     /**
-     * @brief This class adds support for reconciliation to a species tree to the NNIHomogeneousTreeLikelihood class.
+     * @brief This class adds support for coalescence-based reconciliation to a species tree to the NNIHomogeneousTreeLikelihood class.
      */
-    class DLGeneTreeLikelihood
+    class COALGeneTreeLikelihood
     {
         NNIHomogeneousTreeLikelihood * nniLk_;
         //  TreeTemplate<Node> * _tree;
@@ -69,26 +71,35 @@ namespace bpp
         TreeTemplate<Node> * _geneTreeWithSpNames;
         const std::map <std::string, std::string> _seqSp;
         std::map <std::string, int> _spId;
+ 
+        //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
+        std::vector < std::vector<std::vector<unsigned int> > > coalCounts;
+        //coalBl: length of a branch of the species tree, in coalescent units (1 coalescent unit = N generations)
+        std::vector < double > coalBl;
+        
+        /*
         std::vector <int> _duplicationNumbers;
         std::vector <int> _lossNumbers;
         std::vector <int>  _branchNumbers;
-        
         std::vector <double> _duplicationProbabilities;
         std::vector <double> _lossProbabilities; 
         std::vector <int> _num0Lineages;
         std::vector <int> _num1Lineages;
         std::vector <int> _num2Lineages;
-        std::set <int> _nodesToTryInNNISearch;
-        double _scenarioLikelihood;
-      //  mutable double _sequenceLikelihood;
-        int _MLindex;
-        bool _rootOptimization;
         mutable std::vector <int> _tentativeDuplicationNumbers;
         mutable std::vector <int> _tentativeLossNumbers; 
         mutable std::vector <int> _tentativeBranchNumbers; 
         mutable std::vector <int> _tentativeNum0Lineages;
         mutable std::vector <int> _tentativeNum1Lineages; 
         mutable std::vector <int> _tentativeNum2Lineages;
+        mutable bool _DLStartingGeneTree;
+         */
+        
+        std::set <int> _nodesToTryInNNISearch;
+        double _scenarioLikelihood;
+        //  mutable double _sequenceLikelihood;
+        int _MLindex;
+        bool _rootOptimization;
         mutable std::set <int> _tentativeNodesToTryInNNISearch;
         mutable int _tentativeMLindex;
         mutable double _tentativeScenarioLikelihood;
@@ -100,7 +111,6 @@ namespace bpp
         mutable bool _optimizeSequenceLikelihood;
         mutable bool _optimizeReconciliationLikelihood;
         mutable bool _considerSequenceLikelihood;
-        mutable bool _DLStartingGeneTree;
         unsigned int sprLimit_;
         
     public:
@@ -114,14 +124,8 @@ namespace bpp
          * @param rootedTree rooted version of the gene tree
          * @param seqSp link between sequence and species names
          * @param spId link between species name and species ID
-         * @param lossNumbers vector to store loss numbers per branch
-         * @param lossProbabilities vector to store expected numbers of losses per branch
-         * @param duplicationNumbers vector to store duplication numbers per branch
-         * @param duplicationProbabilities vector to store expected numbers of duplications per branch
-         * @param branchNumbers vector to store branch numbers in the tree
-         * @param num0Lineages vectors to store numbers of branches ending with a loss
-         * @param num1Lineages vectors to store numbers of branches ending with 1 gene
-         * @param num2Lineages vectors to store numbers of branches ending with 2 genes
+         * @param coalCounts vector to store coalescent numbers per branch
+         * @param coalBl vector to give number of coalescent units per branch of the species tree
          * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
          * @param heuristicsLevel type of heuristics used
          * @param MLindex ML rooting position
@@ -130,32 +134,25 @@ namespace bpp
          * @param verbose Should I display some info?
          * @throw Exception in an error occured.
          */
-        DLGeneTreeLikelihood(
-                                     const Tree & tree,
-                                     SubstitutionModel * model,
-                                     DiscreteDistribution * rDist,
-                                     TreeTemplate<Node> & spTree,  
-                                     TreeTemplate<Node> & rootedTree, 
-                                     TreeTemplate<Node> & geneTreeWithSpNames,
-                                     const std::map <std::string, std::string> seqSp,
-                                     std::map <std::string,int> spId,
-                                     //std::vector <int> & lossNumbers, 
-                                     std::vector <double> & lossProbabilities, 
-                                     //std::vector <int> & duplicationNumbers, 
-                                     std::vector <double> & duplicationProbabilities, 
-                                     //std::vector <int> & branchNumbers,
-                                     std::vector <int> & num0Lineages,
-                                     std::vector <int> & num1Lineages,
-                                     std::vector <int> & num2Lineages, 
-                                     int speciesIdLimitForRootPosition,
-                                     int heuristicsLevel,
-                                     int & MLindex, 
-                                     bool checkRooted = true,
-                                     bool verbose = false,
-                                     bool rootOptimization = false, 
-                                     bool considerSequenceLikelihood = true, 
-                                     bool DLStartingGeneTree = false, 
-                                     unsigned int sprLimit = 2)
+        COALGeneTreeLikelihood(
+                               const Tree & tree,
+                               SubstitutionModel * model,
+                               DiscreteDistribution * rDist,
+                               TreeTemplate<Node> & spTree,  
+                               TreeTemplate<Node> & rootedTree, 
+                               TreeTemplate<Node> & geneTreeWithSpNames,
+                               const std::map <std::string, std::string> seqSp,
+                               std::map <std::string,int> spId,
+                               std::vector < std::vector<std::vector<unsigned int> > > coalCounts,
+                               std::vector < double > coalBl,
+                               int speciesIdLimitForRootPosition,
+                               int heuristicsLevel,
+                               int & MLindex, 
+                               bool checkRooted = true,
+                               bool verbose = false,
+                               bool rootOptimization = false, 
+                               bool considerSequenceLikelihood = true, 
+                               unsigned int sprLimit = 2)
         throw (Exception);
         
         /**
@@ -169,14 +166,8 @@ namespace bpp
          * @param rootedTree rooted version of the gene tree
          * @param seqSp link between sequence and species names
          * @param spId link between species name and species ID
-         * @param lossNumbers vector to store loss numbers per branch
-         * @param lossProbabilities vector to store expected numbers of losses per branch
-         * @param duplicationNumbers vector to store duplication numbers per branch
-         * @param duplicationProbabilities vector to store expected numbers of duplications per branch
-         * @param branchNumbers vector to store branch numbers in the tree
-         * @param num0Lineages vectors to store numbers of branches ending with a loss
-         * @param num1Lineages vectors to store numbers of branches ending with 1 gene
-         * @param num2Lineages vectors to store numbers of branches ending with 2 genes
+         * @param coalCounts vector to store coalescent numbers per branch
+         * @param coalBl vector to give number of coalescent units per branch of the species tree
          * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
          * @param heuristicsLevel type of heuristics used
          * @param MLindex ML rooting position     
@@ -185,52 +176,45 @@ namespace bpp
          * @param verbose Should I display some info?
          * @throw Exception in an error occured.
          */
-        DLGeneTreeLikelihood(
-                                     const Tree & tree,
-                                     const SiteContainer & data,
-                                     SubstitutionModel * model,
-                                     DiscreteDistribution * rDist,
-                                     TreeTemplate<Node> & spTree,  
-                                     TreeTemplate<Node> & rootedTree,  
-                                     TreeTemplate<Node> & geneTreeWithSpNames,
-                                     const std::map <std::string, std::string> seqSp,
-                                     std::map <std::string,int> spId,
-                                     //std::vector <int> & lossNumbers, 
-                                     std::vector <double> & lossProbabilities, 
-                                     //std::vector <int> & duplicationNumbers, 
-                                     std::vector <double> & duplicationProbabilities, 
-                                     //std::vector <int> & branchNumbers, 
-                                     std::vector <int> & num0Lineages,
-                                     std::vector <int> & num1Lineages,
-                                     std::vector <int> & num2Lineages,  
-                                     int speciesIdLimitForRootPosition,  
-                                     int heuristicsLevel,
-                                     int & MLindex, 
-                                     bool checkRooted = true,
-                                     bool verbose = false, 
-                                     bool rootOptimization = false, 
-                                     bool considerSequenceLikelihood = true, 
-                                     bool DLStartingGeneTree = false, 
-                                     unsigned int sprLimit = 2)
+        COALGeneTreeLikelihood(
+                               const Tree & tree,
+                               const SiteContainer & data,
+                               SubstitutionModel * model,
+                               DiscreteDistribution * rDist,
+                               TreeTemplate<Node> & spTree,  
+                               TreeTemplate<Node> & rootedTree,  
+                               TreeTemplate<Node> & geneTreeWithSpNames,
+                               const std::map <std::string, std::string> seqSp,
+                               std::map <std::string,int> spId,
+                               std::vector < std::vector<std::vector<unsigned int> > > coalCounts,
+                               std::vector < double > coalBl,
+                               int speciesIdLimitForRootPosition,  
+                               int heuristicsLevel,
+                               int & MLindex, 
+                               bool checkRooted = true,
+                               bool verbose = false, 
+                               bool rootOptimization = false, 
+                               bool considerSequenceLikelihood = true, 
+                               unsigned int sprLimit = 2)
         throw (Exception);
         
         /**
          * @brief Copy constructor.
          */ 
-        DLGeneTreeLikelihood(const DLGeneTreeLikelihood & lik);
+        COALGeneTreeLikelihood(const COALGeneTreeLikelihood & lik);
         
-        DLGeneTreeLikelihood & operator=(const DLGeneTreeLikelihood & lik);
+        COALGeneTreeLikelihood & operator=(const COALGeneTreeLikelihood & lik);
         
-        virtual ~DLGeneTreeLikelihood();
+        virtual ~COALGeneTreeLikelihood();
         
         
         
 #ifndef NO_VIRTUAL_COV
-        DLGeneTreeLikelihood*
+        COALGeneTreeLikelihood*
 #else
         Clonable*
 #endif
-        clone() const { return new DLGeneTreeLikelihood(*this); }
+        clone() const { return new COALGeneTreeLikelihood(*this); }
         
         void initParameters();
         void resetMLindex() ;
@@ -272,12 +256,7 @@ namespace bpp
         
         void doNNI(int nodeId) throw (NodeException);
         
-        std::vector <int> getDuplicationNumbers();
-        std::vector <int> getLossNumbers();
-        std::vector <int> getBranchNumbers();
-        std::vector <int> get0LineagesNumbers() const;
-        std::vector <int> get1LineagesNumbers() const;
-        std::vector <int> get2LineagesNumbers() const;
+        std::vector < std::vector<std::vector<unsigned int> > > getCoalNumbers() const;
         
         ParameterList getParameters() {return nniLk_->getParameters();}
         
@@ -289,7 +268,7 @@ namespace bpp
         
         std::map <std::string, std::string> getSeqSp() {return _seqSp;}
         
-        void setProbabilities(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
+        void setCoalBl (std::vector < double > coalBl);
         
         int getRootNodeindex();
         
@@ -305,23 +284,6 @@ namespace bpp
             _optimizeReconciliationLikelihood = yesOrNo;
         }
         
-        void optimizeNumericalParameters(map<string, string> params) {
-
-            int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
-            bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
-            params[ std::string("optimization.max_number_f_eval")] = 100;
-            params[ std::string("optimization.topology")] = "false";
-            PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(nniLk_), nniLk_->getParameters(), params, "", true, false);
-            params[ std::string("optimization.max_number_f_eval")] = backup;
-            params[ std::string("optimization.topology")] = backupOpt;
-
-            
-
-            /* auto_ptr<BackupListener> backupListener;
-            unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", optArgs, 1, "", true, false);
-            OptimizationTools::optimizeNumericalParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(nniLk_), nniLk_->getParameters(), backupListener.get(), nstep, );*/
-        };
-        
         void initialize();
         
         void print() const;
@@ -334,14 +296,14 @@ namespace bpp
         
         
         void refineGeneTreeSPRs2(map<string, string> params);
-
-
+        
+        
         /************************************************************************
          * Tries all NNIs, and accepts NNIs that improve the likelihood as soon as
          * they have been tried.
          ************************************************************************/
         void refineGeneTreeNNIs(map<string, string> params, unsigned int verbose = 0);
-
+        
         /************************************************************************
          * Tells if the gene family is single copy (1 gene per sp)
          ************************************************************************/

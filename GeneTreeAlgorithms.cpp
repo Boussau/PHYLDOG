@@ -535,6 +535,28 @@ void optimizeBLForSPRs(
 }
 
 
+/******************************************************************************/
+// This function optimizes branch lengths in a gene tree without substitution mapping
+/******************************************************************************/
+
+void optimizeBranchLengthsFast( DiscreteRatesAcrossSitesTreeLikelihood* tl,
+                               const ParameterList& parameters,
+                               OptimizationListener* listener,
+                               double tolerance,
+                               unsigned int tlEvalMax,
+                               OutputStream* messageHandler,
+                               OutputStream* profiler,
+                               unsigned int verbose,
+                               const std::string& optMethodDeriv)
+throw (Exception)
+{
+     Optimizer* optimizer = 0;
+    
+    
+    
+    
+}
+
 
 /******************************************************************************/
 // This function builds a bionj tree

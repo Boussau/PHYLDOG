@@ -685,7 +685,6 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                                             speciesIdLimitForRootPosition, 
                                             heuristicsLevel, MLindex, 
                                             true, true, rootOptimization, true, DLStartingGeneTree, sprLimitGeneTree);
-
           }
           else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
           delete treeWithSpNames;
@@ -787,6 +786,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
     {
         DLGeneTreeLikelihood* tl = treeLikelihoods[i];
         tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+        tl->optimizeNumericalParameters(params); //Initial optimization of all numerical parameters
         tl->initParameters();
         allLogLs.push_back(tl->getValue());
         if(std::isinf(allLogLs[i]))
