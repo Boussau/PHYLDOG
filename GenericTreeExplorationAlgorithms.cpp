@@ -62,16 +62,18 @@ std::string nodeToParenthesisBIS(const Tree & tree, int nodeId, bool bootstrap) 
  * Make a SPR between two nodes. A subtree is cut at node with Id cutNodeId, 
  * and pasted beneath node with Id newFatherId.
  ************************************************************************/
-void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool verbose) {
+std::vector<Node*> makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool verbose, bool returnNodesToUpdate) {
   
   Node *cutNode, *newBrother, *oldFather, *oldGrandFather, *brother, *newBrothersFather, *N;
+    std::vector<Node*> nodesToUpdate;
   double dist = 0.1;  
   
   if (verbose)
     std::cout <<"\t\t\tMaking a SPR, moving node "<<cutNodeId<< " as brother of node "<< newBrotherId<< std::endl;
   newBrother = tree.getNode(newBrotherId);
   cutNode = tree.getNode(cutNodeId); 
-  std::vector <int> nodeIds =tree.getNodesId();
+
+    std::vector <int> nodeIds =tree.getNodesId();
   
   if ((!(cutNode->hasFather()))||(!(newBrother->hasFather()))) {
     std::cout <<"Error in makeSPR"<< std::endl;
@@ -92,7 +94,7 @@ void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool ver
   newBrothersFather = newBrother->getFather();
   
   if (newBrothersFather == oldFather) {
-    return;
+    return nodesToUpdate;
   }
   
   if (!(oldFather->hasFather())) {//we displace the outgroup, need to reroot the tree
@@ -126,7 +128,6 @@ void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool ver
     //We renumber the nodes
     brother->setId(id0);
     N->setId(idBrother);
-    return;   
   }
   else  {  
     int id0 = oldFather->getId();
@@ -149,11 +150,12 @@ void makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBrotherId, bool ver
     brother->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
     delete oldFather;
     N->setId(id0);
-    return;
   }
-  
-  
-  
+    if (returnNodesToUpdate) {
+    std::vector<Node*> nodesToUpdate = TreeTemplateTools::getPathBetweenAnyTwoNodes (*brother, *cutNode, true);
+    nodesToUpdate.push_back(newBrother);
+    }
+    return nodesToUpdate;
   
 }
 

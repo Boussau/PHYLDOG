@@ -21,8 +21,8 @@
 #include <Bpp/Text/StringTokenizer.h>
 
 // From PhylLib:
-#include <Bpp/Phyl/Tree.h>
-#include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
+//#include <Bpp/Phyl/Tree.h>
+//#include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
 
 
 //From the BOOST library 
@@ -32,7 +32,7 @@
 
 #include "ReconciliationTools.h"
 #include "SpeciesTreeExploration.h"
-#include "GenericTreeExplorationAlgorithms.h"
+//#include "GenericTreeExplorationAlgorithms.h"
 
 namespace mpi = boost::mpi;
 

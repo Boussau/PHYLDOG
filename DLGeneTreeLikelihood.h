@@ -43,16 +43,21 @@
 
 
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
+#include <Bpp/Phyl/OptimizationTools.h>
+#include <Bpp/Phyl/Io/Nhx.h>
+
 
 // From NumCalc:
-#include <Bpp/Numeric/VectorTools.h>
+//#include <Bpp/Numeric/VectorTools.h>
 #include <Bpp/Numeric/Prob/DiscreteDistribution.h>
 #include <Bpp/Numeric/Function/BrentOneDimension.h>
 #include <Bpp/Numeric/Parametrizable.h>
+#include <Bpp/Numeric/AutoParameter.h>
 
+#include "FastRHomogeneousTreeLikelihood.h"
 #include "ReconciliationTools.h"
 #include "GeneTreeAlgorithms.h"
-#include "mpi.h" 
+//#include "mpi.h" 
 
 namespace bpp 
 {
@@ -332,7 +337,15 @@ namespace bpp
          ************************************************************************/
         void refineGeneTreeSPRs(map<string, string> params);
         
+        /************************************************************************
+         * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
+         * and executes the ones with the highest likelihood. 
+         * To do all this as fast as possible, we optimize opnly a few branch lengths on the SPR tree, 
+         * and we use a simple recursion for that.
+         ************************************************************************/
+        void refineGeneTreeSPRsFast(map<string, string> params);
         
+        //Not up to date anymore, do not use without checking the code.
         void refineGeneTreeSPRs2(map<string, string> params);
 
 

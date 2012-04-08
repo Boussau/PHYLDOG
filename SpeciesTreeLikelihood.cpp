@@ -8,7 +8,7 @@
  */
 
 #include "SpeciesTreeLikelihood.h"
-#include "SpeciesTreeExploration.h"
+//#include "SpeciesTreeExploration.h"
 
 using namespace bpp;
 

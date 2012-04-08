@@ -161,6 +161,56 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
   return DepthToIds;
 }
 
+//There we do not update probabilities, and we reset "toComp" node properties
+std::map <int, std::vector <int> > breadthFirstreNumberAndResetProperties (TreeTemplate<Node> & tree) {
+    int index = 0;
+    std::map<Node *, int> color ;
+    std::map <int, std::vector <int> > DepthToIds; //A std::map where we store the correspondence between the depth of a node (number of branches between the root and the node) and the node id.
+    std::map <int, int > IdsToDepths;
+    std::vector <Node * > nodes = tree.getNodes();
+    //All nodes white
+    for (unsigned int i = 0; i< nodes.size() ; i++) {
+        color.insert(std::pair <Node *,int>(nodes[i],0));
+        if (nodes[i]->hasNodeProperty("toComp")) {
+            nodes[i]->setNodeProperty("toComp", BppString( "y" ) );
+        }
+    }
+    std::queue <Node *> toDo;
+    toDo.push(tree.getRootNode());
+    color[tree.getRootNode()] = 1;
+    tree.getRootNode()->setId(index);
+    std::vector <int> v;
+    DepthToIds.insert(std::pair <int, std::vector<int> > (0,v));
+    DepthToIds[0].push_back(index);
+    IdsToDepths[index] = 0;
+    index++;
+    Node * u;
+    while(!toDo.empty()) {
+        u = toDo.front();
+        toDo.pop();
+        int fatherDepth = IdsToDepths[u->getId()];
+        std::vector <Node *> sons;
+        for (unsigned int j = 0 ; j< u->getNumberOfSons() ; j++) {
+            sons.push_back(u->getSon(j));
+        }
+        for (unsigned int j = 0; j< sons.size() ; j++) {
+            if (color[sons[j]]==0) {
+                color[sons[j]]=1;
+                sons[j]->setId(index);
+                if (DepthToIds.count(fatherDepth+1)==0) {
+                    DepthToIds.insert(std::pair <int, std::vector<int> > (fatherDepth+1,v));
+                }
+                DepthToIds[fatherDepth+1].push_back(index); 
+                IdsToDepths[index] = fatherDepth+1;
+                index++;
+                toDo.push(sons[j]);
+            }
+        }
+        color[u]=2;
+    }
+    return DepthToIds;
+}
+
 
 
 

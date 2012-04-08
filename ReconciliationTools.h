@@ -20,11 +20,14 @@
 #include <Bpp/Utils/AttributesTools.h>
 #include <Bpp/App/ApplicationTools.h>
 #include <Bpp/Io/FileTools.h>
-#include <Bpp/Text/TextTools.h>
 #include <Bpp/Clonable.h>
 #include <Bpp/Numeric/Number.h>
+//#include <Bpp/Clonable.h>
+
 #include <Bpp/BppString.h>
+//#include <Bpp/BppBoolean.h>
 #include <Bpp/Text/KeyvalTools.h>
+#include <Bpp/Text/TextTools.h>
 
 #include "mpi.h" 
 using namespace bpp;
@@ -49,6 +52,8 @@ void reNumber (TreeTemplate<Node> & tree, Node * noeud, int & index);
 void reNumber (TreeTemplate<Node> & tree);
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree);
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector<double> & duplicationProbabilities, std::vector <double> & lossProbabilities);
+std::map <int, std::vector <int> > breadthFirstreNumberAndResetProperties (TreeTemplate<Node> & tree);
+
 void printVector(std::vector<int> & v);
 void resetLossesAndDuplications(TreeTemplate<Node> & tree, /*std::vector <int> &lossNumbers, */std::vector <double> &lossProbabilities, /*std::vector <int> &duplicationNumbers, */std::vector <double> &duplicationProbabilities);
 void resetLossesDuplicationsSpeciations(TreeTemplate<Node> & tree, std::vector <int> &lossNumbers, std::vector <double> &lossProbabilities, std::vector <int> &duplicationNumbers, std::vector <double> &duplicationProbabilities, std::vector <int> &branchNumbers);

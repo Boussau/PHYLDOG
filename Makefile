@@ -73,11 +73,15 @@ mpi_time_order.o : $(SRC)mpi_time_order.cpp  $(SRC)DTL.h $(SRC)DTL_mpi.h
 ####DL model only
 
 #phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o
-phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o                                                                                                                                                                                                              
+phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o FastRHomogeneousTreeLikelihood.o 
+
+#phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o 
 
 #	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
 
-	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
+#	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
+
+	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o FastRHomogeneousTreeLikelihood.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
 
 ReconcileDuplications.o : $(SRC)ReconcileDuplications.cpp SpeciesTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o
 	$(CC) $(INCLUDE) -c $(SRC)ReconcileDuplications.cpp $(SRC)ReconciliationTools.h 
@@ -88,8 +92,8 @@ GeneTreeAlgorithms.o : $(SRC)GeneTreeAlgorithms.cpp $(SRC)GeneTreeAlgorithms.h R
 SpeciesTreeLikelihood.o : $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
 	$(CC) $(INCLUDE) -c $(SRC)SpeciesTreeLikelihood.cpp $(SRC)SpeciesTreeLikelihood.h $(SRC)SpeciesTreeExploration.h $(SRC)ReconciliationTools.h
 
-DLGeneTreeLikelihood.o : $(SRC)DLGeneTreeLikelihood.cpp $(SRC)DLGeneTreeLikelihood.h ReconciliationTools.o $(SRC)GenericTreeExplorationAlgorithms.h
-	$(CC) $(INCLUDE) -c $(SRC)DLGeneTreeLikelihood.cpp $(SRC)DLGeneTreeLikelihood.h $(SRC)ReconciliationTools.h 
+DLGeneTreeLikelihood.o : $(SRC)DLGeneTreeLikelihood.cpp $(SRC)DLGeneTreeLikelihood.h ReconciliationTools.o $(SRC)GenericTreeExplorationAlgorithms.h $(SRC)FastRHomogeneousTreeLikelihood.o
+	$(CC) $(INCLUDE) -c $(SRC)DLGeneTreeLikelihood.cpp $(SRC)DLGeneTreeLikelihood.h $(SRC)ReconciliationTools.h $(SRC)FastRHomogeneousTreeLikelihood.h
 
 
 #ReconciliationTreeLikelihood.o : $(SRC)ReconciliationTreeLikelihood.cpp $(SRC)ReconciliationTreeLikelihood.h ReconciliationTools.o $(SRC)GenericTreeExplorationAlgorithms.h
@@ -103,6 +107,9 @@ GenericTreeExplorationAlgorithms.o : $(SRC)GenericTreeExplorationAlgorithms.cpp 
 
 ReconciliationTools.o : $(SRC)ReconciliationTools.cpp $(SRC)ReconciliationTools.h 
 	$(CC) $(INCLUDE) -c $(SRC)ReconciliationTools.cpp $(SRC)ReconciliationTools.h 
+
+FastRHomogeneousTreeLikelihood.o : $(SRC)FastRHomogeneousTreeLikelihood.cpp $(SRC)FastRHomogeneousTreeLikelihood.h
+	$(CC) $(INCLUDE) -c $(SRC)FastRHomogeneousTreeLikelihood.cpp $(SRC)FastRHomogeneousTreeLikelihood.h
 
 
 ### Other useful commands

@@ -50,7 +50,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Seq/App/SequenceApplicationTools.h>
 
 // From PhylLib:
-#include <Bpp/Phyl/Tree.h>
+/*#include <Bpp/Phyl/Tree.h>
 #include <Bpp/Phyl/Likelihood/DiscreteRatesAcrossSitesTreeLikelihood.h>
 #include <Bpp/Phyl/Likelihood/HomogeneousTreeLikelihood.h>
 #include <Bpp/Phyl/Likelihood/DRHomogeneousTreeLikelihood.h>
@@ -62,14 +62,15 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Phyl/OptimizationTools.h>
 #include <Bpp/Phyl/Likelihood/RASTools.h>
 #include <Bpp/Phyl/Io/Newick.h>
-#include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Phyl/TreeTools.h>
 #include <Bpp/Phyl/Distance/BioNJ.h>
 #include <Bpp/Phyl/OptimizationTools.h>
+*/
+#include <Bpp/Phyl/Io/Nhx.h>
 
 
 // From NumCalc:
-#include <Bpp/Numeric/Prob/DiscreteDistribution.h>
+/*#include <Bpp/Numeric/Prob/DiscreteDistribution.h>
 #include <Bpp/Numeric/Prob/ConstantDistribution.h>
 #include <Bpp/Numeric/DataTable.h>
 #include <Bpp/Numeric/Matrix/MatrixTools.h>
@@ -78,26 +79,26 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Numeric/Random/RandomTools.h>
 #include <Bpp/Numeric/NumConstants.h>
 #include <Bpp/Numeric/Function/PowellMultiDimensions.h>
-
+*/
 // From Utils:
-#include <Bpp/Utils/AttributesTools.h>
+/*#include <Bpp/Utils/AttributesTools.h>
 #include <Bpp/App/ApplicationTools.h>
 #include <Bpp/Io/FileTools.h>
-#include <Bpp/Text/TextTools.h>
 #include <Bpp/Clonable.h>
 #include <Bpp/Numeric/Number.h>
 #include <Bpp/BppString.h>
 #include <Bpp/Text/KeyvalTools.h>
-
+#include <Bpp/Text/TextTools.h>
+*/
 
 //#include <Phyl/SAHomogeneousTreeLikelihood.h>
-#include "ReconciliationTools.h"
+//#include "ReconciliationTools.h"
 //#include "ReconciliationTreeLikelihood.h"
 #include "DLGeneTreeLikelihood.h"
 
-#include "SpeciesTreeExploration.h"
+//#include "SpeciesTreeExploration.h"
 #include "SpeciesTreeLikelihood.h"
-#include "GeneTreeAlgorithms.h"
+//#include "GeneTreeAlgorithms.h"
 
 
 
@@ -108,7 +109,7 @@ namespace mpi = boost::mpi;
 
 //#include "mpi.h" 
 //using namespace std;
-using namespace bpp;
+//using namespace bpp;
 
 
 
@@ -1224,7 +1225,9 @@ int main(int args, char ** argv)
                             startingTime = ApplicationTools::getTime();
                         //SPR optimization:    
                         //std::cout <<"Before optimization: "<<TreeTools::treeToParenthesis(treeLikelihoods[i]->getRootedTree(), true)<<std::endl;
-                       treeLikelihoods[i]->refineGeneTreeSPRs(allParams[i]);
+                      treeLikelihoods[i]->refineGeneTreeSPRsFast(allParams[i]);
+
+                    //   treeLikelihoods[i]->refineGeneTreeSPRs(allParams[i]);
                      //  treeLikelihoods[i]->refineGeneTreeSPRs2(allParams[i]);
 
                         if (timing) 

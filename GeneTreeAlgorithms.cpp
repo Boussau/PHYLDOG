@@ -539,19 +539,75 @@ void optimizeBLForSPRs(
 // This function optimizes branch lengths in a gene tree without substitution mapping
 /******************************************************************************/
 
-void optimizeBranchLengthsFast( DiscreteRatesAcrossSitesTreeLikelihood* tl,
+void optimizeBranchLengthsFast( DRHomogeneousTreeLikelihood* tl,
                                const ParameterList& parameters,
-                               OptimizationListener* listener,
-                               double tolerance,
-                               unsigned int tlEvalMax,
-                               OutputStream* messageHandler,
-                               OutputStream* profiler,
-                               unsigned int verbose,
-                               const std::string& optMethodDeriv)
+                               double tolerance)
 throw (Exception)
 {
-     Optimizer* optimizer = 0;
-    
+    TreeTemplate<Node> tree (tl->getTree());
+    std::vector<Node*> nodes = TreeTemplateTools::getNodes(*(tree.getRootNode()) );
+    double oldLk = tl->getValue();
+    double Lk = oldLk / 2;
+    const DRASDRTreeLikelihoodNodeData* fatherData;
+    const DRASDRTreeLikelihoodNodeData* sonData;
+     VVVdouble                   fatherArray ;
+     VVVdouble                   sonArray ;
+    BranchLikelihood * brLikFunction= new BranchLikelihood(tl->getLikelihoodData()->getWeights());
+    BrentOneDimension * brentOptimizer = new BrentOneDimension();
+
+    while (oldLk - Lk > tolerance) {
+        for (unsigned int i = 0 ; i < nodes.size(); i++) {
+            if (nodes[i]->hasFather() ) {
+                //Retrieving arrays of interest:
+                 fatherData = &(tl->getLikelihoodData()->getNodeData(nodes[i]->getFather()->getId()));
+                sonData = &(tl->getLikelihoodData()->getNodeData(nodes[i]->getId()));
+                fatherArray   = fatherData->getLikelihoodArrayForNeighbor(nodes[i]->getId());
+                if (nodes[i]->getFather() == tree.getRootNode() ) {
+                    //This is the root node, we have to account for the ancestral frequencies:
+                    for(unsigned int i = 0; i < fatherArray.size(); i++) //Nb of sites
+                    {
+                        for(unsigned int j = 0; j < tl->getNumberOfClasses(); j++)
+                        {
+                            vector<double> rootFreqs = tl->getRootFrequencies(0);
+                            for(unsigned int x = 0; x < tl->getNumberOfStates(); x++)
+                                fatherArray[i][j][x] *= rootFreqs[x];
+                        }
+                    }
+                }
+                sonArray   = sonData->getLikelihoodArrayForNeighbor(nodes[i]->getFather()->getId());
+                //Now we have the two arrays, we can build a branch likelihood object.
+                
+                //Initialize BranchLikelihood:
+                brLikFunction->initModel(tl->getSubstitutionModel(), tl->getRateDistribution());
+                brLikFunction->initLikelihoods(&fatherArray, &sonArray);
+                ParameterList parameters;
+                tl->getParameters().printParameters(std::cout);
+                std::string name = "BrLen" + TextTools::toString(nodes[i]->getId());
+                Parameter brLen = tl->getParameter(name);
+                brLen.setName(name);
+                parameters.addParameter(brLen);
+                brLikFunction->setParameters(parameters);
+                
+                //Re-estimate branch length:
+                brentOptimizer->setFunction(brLikFunction);
+                brentOptimizer->getStopCondition()->setTolerance(0.1);
+                brentOptimizer->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
+                brentOptimizer->init(parameters);
+                brentOptimizer->optimize();
+                //brLenNNIValues_[nodeId] = brLikFunction_->getParameterValue("BrLen");
+                double length = brentOptimizer->getParameters().getParameter(name).getValue();
+                //brLenParameters_.setParameterValue(name, length);
+                tl->setParameterValue(name, length);
+                nodes[i]->setDistanceToFather(length);
+
+                brLikFunction->resetLikelihoods(); //Array1 and Array2 will be destroyed after this function call.
+                //We should not keep pointers towards them...
+
+                
+                
+            }
+        }
+    }
     
     
     

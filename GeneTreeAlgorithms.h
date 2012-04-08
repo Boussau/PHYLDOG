@@ -12,25 +12,33 @@
 
 
 // From SeqLib:
-#include <Bpp/Seq/Alphabet/Alphabet.h>
+/*#include <Bpp/Seq/Alphabet/Alphabet.h>
 #include <Bpp/Seq/Container/VectorSiteContainer.h>
 #include <Bpp/Seq/SiteTools.h>
 #include <Bpp/Seq/App/SequenceApplicationTools.h>
+*/
 
 // From PhylLib:
-#include <Bpp/Phyl/Tree.h>
+/*#include <Bpp/Phyl/Tree.h>
 #include <Bpp/Phyl/Likelihood.all>
 #include <Bpp/Phyl/PatternTools.h>
 #include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
 #include <Bpp/Phyl/Likelihood/MarginalAncestralStateReconstruction.h>
-#include <Bpp/Phyl/OptimizationTools.h>
 #include <Bpp/Phyl/Likelihood/RASTools.h>
 #include <Bpp/Phyl/Io/Newick.h>
-#include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Phyl/TreeTools.h>
 #include <Bpp/Phyl/Distance/BioNJ.h>
 #include <Bpp/Phyl/OptimizationTools.h>
+#include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
+*/
+
+//#include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Phyl/Mapping.all>
+#include <Bpp/Phyl/Likelihood/DRTreeLikelihoodTools.h>
+#include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
+#include <Bpp/Phyl/OptimizationTools.h>
+
+//#include <Bpp/Phyl/OptimizationTools.h>
 
 
 // From NumCalc:
