@@ -295,7 +295,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       }
 
       
-      ApplicationTools::displayResult("Sequences remaining after length-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
+      ApplicationTools::displayResult("# sequences post size-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
       seqsToRemove.clear();
       
       if (allSites->getNumberOfSequences() <= 1 ) {

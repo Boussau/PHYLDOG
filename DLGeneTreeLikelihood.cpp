@@ -931,7 +931,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     
     
     auto_ptr<BackupListener> backupListener;
-    unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", params, 1, "", true, false);
+    //unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", params, 1, "", true, false);
     double tolerance = 0.1;
     unsigned int tlEvalMax = 1000000;
     OutputStream* messageHandler = 0 ; 
@@ -969,7 +969,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     double bestSequenceLogL = getSequenceLikelihood();
     double bestScenarioLk = getScenarioLikelihood();
     // std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
-    int numIterationsWithoutImprovement = 0;
+    unsigned int numIterationsWithoutImprovement = 0;
     NNIHomogeneousTreeLikelihood * bestDrlk = 0;
     breadthFirstreNumber (*_rootedTree);
     
@@ -1387,10 +1387,13 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params) {
                                               nniLk_->getSubstitutionModel(), 
                                               nniLk_->getRateDistribution(), 
                                               true, false);
-    rlk->initialize();
 
+    rlk->initialize();
+    rlk->initializeLikelihoodData();
+
+    
     auto_ptr<BackupListener> backupListener;
-    unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", params, 1, "", true, false);
+    //unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", params, 1, "", true, false);
     double tolerance = 0.1;
     unsigned int tlEvalMax = 1000000;
     OutputStream* messageHandler = 0 ; 
@@ -1421,7 +1424,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params) {
     double bestSequenceLogL = getSequenceLikelihood();
     double bestScenarioLk = getScenarioLikelihood();
     // std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
-    int numIterationsWithoutImprovement = 0;
+    unsigned int numIterationsWithoutImprovement = 0;
     FastRHomogeneousTreeLikelihood * bestRlk = 0;
     breadthFirstreNumber (*_rootedTree);
     
@@ -1490,14 +1493,20 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params) {
                            //  std::cout << "COMPUTING SEQLK: " << TreeTools::treeToParenthesis(*treeForSPR, true) <<std::endl;
                             ParameterList pl ;//= rlk->getBranchLengthsParameters();
                             std::auto_ptr<Constraint> brLenConstraint;
+                            brLenConstraint.reset(new IncludingInterval(0.000001, 10000));
                             //Only optimizes branch lengths likely to have changed because of the SPR
-                            for (unsigned int i = 0 ; i < nodesToUpdate.size() ; i++) {
-                                    for (unsigned int j = 0 ; j < nodesToUpdate[i]->getNumberOfSons() ; j++) {
-                                        if (! (VectorTools::contains (nodesToUpdate, nodesToUpdate[i]->getSon(j) ) ) ) {
-                                            nodesToUpdate[i]->getSon(j)->setNodeProperty("toComp", BppString("N"));
+                            for (unsigned int k = 0 ; k < nodesToUpdate.size() ; k++) {
+                                    for (unsigned int j = 0 ; j < nodesToUpdate[k]->getNumberOfSons() ; j++) {
+                                        if (! (VectorTools::contains (nodesToUpdate, nodesToUpdate[k]->getSon(j) ) ) ) {
+                                            nodesToUpdate[k]->getSon(j)->setNodeProperty("toComp", BppString("N"));
                                         }
                                     }
-                                pl.addParameter(Parameter("BrLen" + TextTools::toString(nodesToUpdate[i]->getId()), nodesToUpdate[i]->getDistanceToFather(), brLenConstraint->clone(), true));
+                                if (nodesToUpdate[k]->hasDistanceToFather()) {
+                                    brLenConstraint->clone();
+
+                                    pl.addParameter(Parameter("BrLen" + TextTools::toString(nodesToUpdate[k]->getId()), nodesToUpdate[k]->getDistanceToFather(), brLenConstraint->clone(), true));
+
+                                }
                             }
 
                             rlk  = new FastRHomogeneousTreeLikelihood (*treeForSPR, 
@@ -1505,9 +1514,10 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params) {
                                                                       nniLk_->getSubstitutionModel(), 
                                                                       nniLk_->getRateDistribution(), 
                                                                       true, false);
- 
+
                             rlk->initialize();
-                            
+                            rlk->initializeLikelihoodData();
+
                             
                             OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (rlk), 
                                                                                pl, backupListener.get(), 
@@ -1717,7 +1727,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
     double bestSequenceLogL = getSequenceLikelihood();
     double bestScenarioLk = getScenarioLikelihood();
     // std::cout << "bestLogL: "<< bestlogL << "bestScenarioLK: "<< bestScenarioLk <<"; bestSequenceLK: "<<bestSequenceLogL << std::endl;
-    int numIterationsWithoutImprovement = 0;
+    unsigned int numIterationsWithoutImprovement = 0;
     NNIHomogeneousTreeLikelihood * drlk = 0;
     NNIHomogeneousTreeLikelihood * bestDrlk = 0;
     breadthFirstreNumber (*_rootedTree);
@@ -1794,7 +1804,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
             }
         } //End for (int nodeForSPR=_rootedTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--)
         
-        int numberOfTopologiesToTry = 3;
+        unsigned int numberOfTopologiesToTry = 3;
         
         vector <int> treeIndicesToTry;
         vector <double> scenarioLksToTry;

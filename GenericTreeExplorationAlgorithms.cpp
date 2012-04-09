@@ -152,8 +152,13 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree, int cutNodeId, int newBroth
     N->setId(id0);
   }
     if (returnNodesToUpdate) {
-    std::vector<Node*> nodesToUpdate = TreeTemplateTools::getPathBetweenAnyTwoNodes (*brother, *cutNode, true);
-    nodesToUpdate.push_back(newBrother);
+        nodesToUpdate = TreeTemplateTools::getPathBetweenAnyTwoNodes (*brother, *cutNode, true);
+   // nodesToUpdate.push_back(newBrother);
+        //We also need to add the path to the root, if the root is not included already
+        if ( ! VectorTools::contains(nodesToUpdate, tree.getRootNode()) ) {
+            std::vector<Node*> nodesToUpdate2 = TreeTemplateTools::getPathBetweenAnyTwoNodes (*brother, *(tree.getRootNode()), true);
+            nodesToUpdate = VectorTools::vectorUnion (nodesToUpdate, nodesToUpdate2);
+        }
     }
     return nodesToUpdate;
   

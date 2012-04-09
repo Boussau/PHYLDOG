@@ -282,6 +282,7 @@ void FastRHomogeneousTreeLikelihood::fireParameterChanged(const ParameterList& p
   computeTreeLikelihood();
 
   minusLogLik_ = -getLogLikelihood();
+
 }
 
 /******************************************************************************/
@@ -807,9 +808,10 @@ void FastRHomogeneousTreeLikelihood::computeTreeLikelihood()
 void FastRHomogeneousTreeLikelihood::computeSubtreeLikelihood(const Node* node)
 {
     if (node->isLeaf()) return;
-    
-    if ( !(node->hasNodeProperty("toComp") && ( (dynamic_cast<const BppString *>(node->getNodeProperty("toComp") ))->toSTL() == "N" ) ) )
+   
+    if ( (! (node->hasNodeProperty("toComp") && ( (dynamic_cast<const BppString *>(node->getNodeProperty("toComp") ))->toSTL() == "N" ) ) ) )
     {
+
         unsigned int nbSites = likelihoodData_->getLikelihoodArray(node->getId()).size();
         unsigned int nbNodes = node->getNumberOfSons();
         
@@ -838,6 +840,86 @@ void FastRHomogeneousTreeLikelihood::computeSubtreeLikelihood(const Node* node)
             const Node* son = node->getSon(l);
             
             computeSubtreeLikelihood(son); //Recursive method:
+            VVVdouble* pxy__son = &pxy_[son->getId()];
+            vector<unsigned int> * _patternLinks_node_son = &likelihoodData_->getArrayPositions(node->getId(), son->getId());
+            VVVdouble* _likelihoods_son = &likelihoodData_->getLikelihoodArray(son->getId());
+            
+            for (unsigned int i = 0; i < nbSites; i++)
+            {
+                //For each site in the sequence,
+                VVdouble* _likelihoods_son_i = &(*_likelihoods_son)[(*_patternLinks_node_son)[i]];
+                VVdouble* _likelihoods_node_i = &(*_likelihoods_node)[i];
+                for (unsigned int c = 0; c < nbClasses_; c++)
+                {
+                    //For each rate classe,
+                    Vdouble* _likelihoods_son_i_c = &(*_likelihoods_son_i)[c];
+                    Vdouble* _likelihoods_node_i_c = &(*_likelihoods_node_i)[c];
+                    VVdouble* pxy__son_c = &(*pxy__son)[c];
+                    for (unsigned int x = 0; x < nbStates_; x++)
+                    {
+                        //For each initial state,
+                        Vdouble* pxy__son_c_x = &(*pxy__son_c)[x];
+                        double likelihood = 0;
+                        for (unsigned int y = 0; y < nbStates_; y++)
+                        {
+                           /* if ( ( (node->hasNodeProperty("toComp") && ( (dynamic_cast<const BppString *>(node->getNodeProperty("toComp") ))->toSTL() == "N" ) ) ) )
+                            {
+                            std::cout << "(*_likelihoods_son_i_c)[y]: "<< (*_likelihoods_son_i_c)[y]<<std::endl;
+                            }*/
+                            likelihood += (*pxy__son_c_x)[y] * (*_likelihoods_son_i_c)[y];
+                        }
+                        (*_likelihoods_node_i_c)[x] *= likelihood;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/******************************************************************************/
+
+void FastRHomogeneousTreeLikelihood::displayLikelihood(const Node* node)
+{
+  cout << "Likelihoods at node " << node->getName() << ": " << endl;
+  displayLikelihoodArray(likelihoodData_->getLikelihoodArray(node->getId()));
+  cout << "                                         ***" << endl;
+}
+
+/*******************************************************************************/
+
+
+void FastRHomogeneousTreeLikelihood::initializeLikelihoodData(const Node* node)
+{
+    if (node->isLeaf()) return;
+        
+        unsigned int nbSites = likelihoodData_->getLikelihoodArray(node->getId()).size();
+        unsigned int nbNodes = node->getNumberOfSons();
+        
+        // Must reset the likelihood array first (i.e. set all of them to 1):
+        VVVdouble* _likelihoods_node = &likelihoodData_->getLikelihoodArray(node->getId());
+        for (unsigned int i = 0; i < nbSites; i++)
+        {
+            //For each site in the sequence,
+            VVdouble* _likelihoods_node_i = &(*_likelihoods_node)[i];
+            for (unsigned int c = 0; c < nbClasses_; c++)
+            {
+                //For each rate classe,
+                Vdouble* _likelihoods_node_i_c = &(*_likelihoods_node_i)[c];
+                for (unsigned int x = 0; x < nbStates_; x++)
+                {
+                    //For each initial state,
+                    (*_likelihoods_node_i_c)[x] = 1.;
+                }
+            }
+        }
+        
+        for (unsigned int l = 0; l < nbNodes; l++)
+        {
+            //For each son node,
+            
+            const Node* son = node->getSon(l);
+            
+            initializeLikelihoodData(son); //Recursive method:
             
             VVVdouble* pxy__son = &pxy_[son->getId()];
             vector<unsigned int> * _patternLinks_node_son = &likelihoodData_->getArrayPositions(node->getId(), son->getId());
@@ -868,17 +950,13 @@ void FastRHomogeneousTreeLikelihood::computeSubtreeLikelihood(const Node* node)
                 }
             }
         }
-    }
-}
-
-/******************************************************************************/
-
-void FastRHomogeneousTreeLikelihood::displayLikelihood(const Node* node)
-{
-  cout << "Likelihoods at node " << node->getName() << ": " << endl;
-  displayLikelihoodArray(likelihoodData_->getLikelihoodArray(node->getId()));
-  cout << "                                         ***" << endl;
 }
 
 /*******************************************************************************/
+
+
+void FastRHomogeneousTreeLikelihood::initializeLikelihoodData() {
+    initializeLikelihoodData(tree_->getRootNode());
+    minusLogLik_ = -getLogLikelihood();
+}
 

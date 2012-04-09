@@ -978,9 +978,7 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
     
     if (whoami == server) {
         unsigned int allNumbersOfRemainingFamilies = 0;
-        std::cout << "numberOfGeneFamilies: "<< numberOfGeneFamilies<<std::endl;
         reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
-        std::cout << "numberOfGeneFamilies2: "<< numberOfGeneFamilies<<std::endl;
 
         bool stop = false;
 

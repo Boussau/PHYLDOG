@@ -247,6 +247,8 @@ using namespace bpp;
 		
     virtual void computeTreeD2Likelihood(const std::string& variable);
 
+      void initializeLikelihoodData();
+
 	
   protected:
 			
@@ -268,6 +270,9 @@ using namespace bpp;
      * @param node The node at which likelihood values must be displayed.
      */
     virtual void displayLikelihood(const Node* node);
+      
+      void initializeLikelihoodData(const Node* node);
+
 
     friend class RHomogeneousMixedTreeLikelihood;
   };
