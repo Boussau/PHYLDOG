@@ -31,8 +31,12 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             std::vector< std::vector<int> > &allNum2Lineages, 
                                             std::vector<double> &lossExpectedNumbers, 
                                             std::vector<double> &duplicationExpectedNumbers, 
-                                            /*double averageDuplicationProbability, 
-                                            double averageLossProbability,*/ 
+                                            std::vector<unsigned int> &num12Lineages, 
+                                            std::vector<unsigned int> &num22Lineages,
+                                            std::vector<unsigned int> &bestNum12Lineages, 
+                                            std::vector<unsigned int> &bestNum22Lineages, 
+                                            std::vector<double> &coalBls,
+                                            std::string &reconciliationModel,
                                             bool rearrange, 
                                             int &numIterationsWithoutImprovement, 
                                             unsigned int server, 
@@ -43,10 +47,19 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             std::vector < double >  &NNILks, 
                                             std::vector<double> &rootLks, unsigned int currentStep) 
 {
-  breadthFirstreNumber (*tree, duplicationExpectedNumbers, lossExpectedNumbers);
+    std::vector <double> bestDupProba;
+    std::vector<double> bestLossProba;
+    std::vector <double> bestCoalBls;
+    if (reconciliationModel == "DL") {
+        breadthFirstreNumber (*tree, duplicationExpectedNumbers, lossExpectedNumbers);
+        bestDupProba=duplicationExpectedNumbers;
+        bestLossProba=lossExpectedNumbers;        
+    }
+    else if (reconciliationModel == "COAL") {
+        breadthFirstreNumber (*tree, coalBls);
+        bestCoalBls=coalBls;
+    }
 
-  std::vector <double> bestDupProba=duplicationExpectedNumbers;
-  std::vector<double> bestLossProba=lossExpectedNumbers;
   std::string currentSpeciesTree;
   while (!stop) 
     {
@@ -63,7 +76,9 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                                                          num1Lineages,num2Lineages, 
                                                                          allNum0Lineages, allNum1Lineages, 
                                                                          allNum2Lineages, lossExpectedNumbers, 
-                                                                         duplicationExpectedNumbers, rearrange, 
+                                                                         duplicationExpectedNumbers, 
+                                                                         num12Lineages, num22Lineages, coalBls, 
+                                                                         reconciliationModel, rearrange, 
                                                                          server, branchExpectedNumbersOptimization, 
                                                                          genomeMissing, *tree, bestlogL, currentStep);
       
@@ -108,11 +123,18 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                   bestTree = 0;
               }
               bestTree = tree->clone();  
-              bestDupProba=duplicationExpectedNumbers;
-              bestLossProba=lossExpectedNumbers;
-              bestNum0Lineages = num0Lineages;
-              bestNum1Lineages = num1Lineages;
-              bestNum2Lineages = num2Lineages;
+              if (reconciliationModel == "DL") {
+                  bestDupProba=duplicationExpectedNumbers;
+                  bestLossProba=lossExpectedNumbers;
+                  bestNum0Lineages = num0Lineages;
+                  bestNum1Lineages = num1Lineages;
+                  bestNum2Lineages = num2Lineages;
+              }
+              else if (reconciliationModel == "COAL") {
+                  bestCoalBls=coalBls;
+                  bestNum12Lineages = num12Lineages;
+                  bestNum22Lineages = num22Lineages;
+              }
               bestIndex = index;
               for (unsigned int i = 0 ; i< NNILks.size() ; i++ ) 
               {
@@ -134,8 +156,13 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
             std::cout <<"\t\tNNIs or Root changes: Number of iterations without improvement: "<<numIterationsWithoutImprovement<< std::endl;
             if (tree) delete tree;
             tree = bestTree->clone();
+            if (reconciliationModel == "DL") {
             duplicationExpectedNumbers = bestDupProba;
             lossExpectedNumbers = bestLossProba;
+            }
+            else if (reconciliationModel == "COAL") {
+                coalBls = bestCoalBls;
+            }
             if ( (numIterationsWithoutImprovement>2*tree->getNumberOfNodes()) || (ApplicationTools::getTime() >= timeLimit) ) 
             {          
                 stop = true; 
@@ -156,8 +183,10 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                      num1Lineages,num2Lineages, 
                                      allNum0Lineages, allNum1Lineages, 
                                      allNum2Lineages, lossExpectedNumbers, 
-                                     duplicationExpectedNumbers, rearrange, 
-                                     server, branchExpectedNumbersOptimization, 
+                                     duplicationExpectedNumbers, 
+                                     num12Lineages, num22Lineages,
+                                     coalBls, reconciliationModel,
+                                     rearrange, server, branchExpectedNumbersOptimization, 
                                      genomeMissing, *bestTree, currentStep);
     /*    stop = true;
         broadcast(world, stop, server); 
@@ -190,8 +219,10 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
                                          std::vector< std::vector<int> > &allNum2Lineages, 
                                          std::vector<double> &lossExpectedNumbers, 
                                          std::vector<double> &duplicationExpectedNumbers, 
-                                         /*double averageDuplicationProbability, 
-                                         double averageLossProbability,*/ 
+                                         std::vector<unsigned int> &num12Lineages, 
+                                         std::vector<unsigned int> &num22Lineages,
+                                         std::vector<double> &coalBls,
+                                         std::string &reconciliationModel,
                                          bool rearrange, 
                                          int &numIterationsWithoutImprovement, 
                                          unsigned int server, 
@@ -205,7 +236,9 @@ void optimizeOnlyDuplicationAndLossRates(const mpi::communicator& world,
                                                                      num1Lineages,num2Lineages, 
                                                                      allNum0Lineages, allNum1Lineages, 
                                                                      allNum2Lineages, lossExpectedNumbers, 
-                                                                     duplicationExpectedNumbers, rearrange, 
+                                                                     duplicationExpectedNumbers, 
+                                                                     num12Lineages, num22Lineages, 
+                                                                     coalBls, reconciliationModel, rearrange, 
                                                                      server, branchExpectedNumbersOptimization, 
                                                                      genomeMissing, *tree, bestlogL, currentStep);
   bestIndex = index;
@@ -249,16 +282,34 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
                                                 std::vector< std::vector<int> > &allNum2Lineages, 
                                                 std::vector<double> &lossExpectedNumbers, 
                                                 std::vector<double> &duplicationExpectedNumbers, 
-                                                /*double averageDuplicationProbability, double averageLossProbability,*/ 
+                                                std::vector<unsigned int> &num12Lineages, 
+                                                std::vector<unsigned int> &num22Lineages,
+                                                std::vector<unsigned int> &bestNum12Lineages, 
+                                                std::vector<unsigned int> &bestNum22Lineages, 
+                                                std::vector<double> &coalBls,
+                                                std::string &reconciliationModel,
                                                 bool rearrange, int &numIterationsWithoutImprovement, 
                                                 unsigned int server, std::string &branchExpectedNumbersOptimization, 
                                                 std::map < std::string, int> genomeMissing, 
                                                 bool optimizeRates, unsigned int currentStep) {  
-  breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
-  std::vector <double> backupDupProba=duplicationExpectedNumbers;
-  std::vector<double> backupLossProba=lossExpectedNumbers;
-  std::vector <double> bestDupProba=duplicationExpectedNumbers;
-  std::vector<double> bestLossProba=lossExpectedNumbers;
+    std::vector <double> backupDupProba;
+    std::vector <double> backupLossProba;
+    std::vector <double> bestDupProba;
+    std::vector <double> bestLossProba;
+    std::vector <double> backupCoalBls;
+    std::vector <double> bestCoalBls;
+    if (reconciliationModel == "DL") {
+        breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
+        backupDupProba=duplicationExpectedNumbers;
+        backupLossProba=lossExpectedNumbers;
+        bestDupProba=duplicationExpectedNumbers;
+        bestLossProba=lossExpectedNumbers;
+    }
+    else if (reconciliationModel == "COAL") {
+        breadthFirstreNumber (*currentTree, coalBls);
+        backupCoalBls=coalBls;
+        bestCoalBls=coalBls;
+    }
   TreeTemplate<Node> *tree;
   tree = currentTree->clone();
   bool betterTree = false;
@@ -278,6 +329,8 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
                                                                                allNum0Lineages, allNum1Lineages, 
                                                                                allNum2Lineages, lossExpectedNumbers, 
                                                                                duplicationExpectedNumbers, 
+                                                                               num12Lineages, num22Lineages,
+                                                                               coalBls, reconciliationModel,
                                                                                rearrange, server, 
                                                                                branchExpectedNumbersOptimization, 
                                                                                genomeMissing, *tree, 
@@ -296,11 +349,19 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
               bestTree=0;
           }
         bestTree = tree->clone();   
-        bestDupProba=duplicationExpectedNumbers;
-        bestLossProba=lossExpectedNumbers;
-        bestNum0Lineages = num0Lineages;
-        bestNum1Lineages = num1Lineages;
-        bestNum2Lineages = num2Lineages;
+          if (reconciliationModel == "DL") {
+              bestDupProba=duplicationExpectedNumbers;
+              bestLossProba=lossExpectedNumbers;
+              bestNum0Lineages = num0Lineages;
+              bestNum1Lineages = num1Lineages;
+              bestNum2Lineages = num2Lineages;
+          }
+          else if (reconciliationModel == "COAL") {
+              bestCoalBls=coalBls;
+              bestNum12Lineages = num12Lineages;
+              bestNum22Lineages = num22Lineages;
+          }
+          
         bestIndex = index;
        std::cout <<"ReRooting: Improvement! : "<<numIterationsWithoutImprovement<< " logLk: "<<logL<< std::endl;
        std::cout << "Better candidate tree likelihood : "<<bestlogL<< std::endl; 
@@ -324,11 +385,18 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
   
   if (betterTree) {
     logL = bestlogL;  
-    duplicationExpectedNumbers = bestDupProba;
-    lossExpectedNumbers = bestLossProba;
-    num0Lineages = bestNum0Lineages;
-    num1Lineages = bestNum1Lineages;
-    num2Lineages = bestNum2Lineages;
+      if (reconciliationModel == "DL") {
+          duplicationExpectedNumbers = bestDupProba;
+          lossExpectedNumbers = bestLossProba;
+          num0Lineages = bestNum0Lineages;
+          num1Lineages = bestNum1Lineages;
+          num2Lineages = bestNum2Lineages;
+      }
+      else if (reconciliationModel == "COAL") {
+          coalBls = bestCoalBls;
+          num12Lineages = bestNum12Lineages;
+          num22Lineages = bestNum22Lineages;
+      }
     if (currentTree) delete currentTree;
     currentTree = bestTree->clone(); 
    std::cout << "\t\tServer: tryAllPossibleReRootingsAndMakeBestOne: new total Likelihood value "<<logL<< std::endl;
@@ -370,12 +438,19 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
   else {
    std::cout<< "No improvement in fastTryAllPossibleReRootingsAndMakeBestOne"<< std::endl;
     logL = bestlogL;  
-    duplicationExpectedNumbers = bestDupProba;
-    lossExpectedNumbers = bestLossProba;
-    num0Lineages = bestNum0Lineages;
-    num1Lineages = bestNum1Lineages;
-    num2Lineages = bestNum2Lineages;
-    if (currentTree) delete currentTree;
+      if (reconciliationModel == "DL") {
+          duplicationExpectedNumbers = bestDupProba;
+          lossExpectedNumbers = bestLossProba;
+          num0Lineages = bestNum0Lineages;
+          num1Lineages = bestNum1Lineages;
+          num2Lineages = bestNum2Lineages;
+      }
+      else if (reconciliationModel == "COAL") {
+          coalBls = bestCoalBls;
+          num12Lineages = bestNum12Lineages;
+          num22Lineages = bestNum22Lineages;
+      }
+      if (currentTree) delete currentTree;
     currentTree = bestTree->clone(); 
   }
 
@@ -394,17 +469,30 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                             std::vector<int> &bestNum0Lineages, std::vector<int> &bestNum1Lineages, std::vector<int> &bestNum2Lineages, 
                             std::vector< std::vector<int> > &allNum0Lineages, std::vector< std::vector<int> > &allNum1Lineages, 
                             std::vector< std::vector<int> > &allNum2Lineages, 
-                            std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers, 
-                            /*double averageDuplicationProbability, double averageLossProbability,*/ 
+                            std::vector<double> &lossExpectedNumbers, std::vector<double> &duplicationExpectedNumbers,
+                            std::vector<unsigned int> &num12Lineages, 
+                            std::vector<unsigned int> &num22Lineages,
+                            std::vector<unsigned int> &bestNum12Lineages, 
+                            std::vector<unsigned int> &bestNum22Lineages, 
+                            std::vector<double> &coalBls,
+                            std::string &reconciliationModel,
                             bool rearrange, int &numIterationsWithoutImprovement, unsigned int server, 
                             std::string &branchExpectedNumbersOptimization, std::map < std::string, int> genomeMissing, 
                             int sprLimit, bool optimizeRates, unsigned int currentStep) {
-/* std::cout <<"in fastTryAllPossibleSPRs : currentTree : "<< std::endl;
- std::cout<< TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;*/
-  breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
-  std::vector <double> bestDupProba=duplicationExpectedNumbers;
-  std::vector<double> bestLossProba=lossExpectedNumbers;
-  std::vector <int> nodeIdsToRegraft;
+
+    std::vector <double> bestDupProba;
+    std::vector <double> bestLossProba;
+    std::vector <double> bestCoalBls;
+    if (reconciliationModel == "DL") {
+        breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
+        bestDupProba=duplicationExpectedNumbers;
+        bestLossProba=lossExpectedNumbers;
+    }
+    else if (reconciliationModel == "COAL") {
+        breadthFirstreNumber (*currentTree, coalBls);
+        bestCoalBls=coalBls;
+    }
+    std::vector <int> nodeIdsToRegraft;
   bool betterTree;
   TreeTemplate<Node> *tree = 0;
   for (unsigned int nodeForSPR=currentTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
@@ -426,6 +514,8 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                                                                              num0Lineages, num1Lineages,num2Lineages, 
                                                                              allNum0Lineages, allNum1Lineages, allNum2Lineages, 
                                                                              lossExpectedNumbers, duplicationExpectedNumbers, 
+                                                                             num12Lineages, num22Lineages,
+                                                                             coalBls, reconciliationModel, 
                                                                              rearrange, server, branchExpectedNumbersOptimization, 
                                                                              genomeMissing, *tree, bestlogL, currentStep);
 
@@ -449,14 +539,21 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
               bestTree=0;
           }
         bestTree = tree->clone();  
-        bestDupProba=duplicationExpectedNumbers;
-        bestLossProba=lossExpectedNumbers;
-        bestNum0Lineages = num0Lineages;
-        bestNum1Lineages = num1Lineages;
-        bestNum2Lineages = num2Lineages;
+          if (reconciliationModel == "DL" ) {
+              bestDupProba = duplicationExpectedNumbers;
+              bestLossProba = lossExpectedNumbers;
+              bestNum0Lineages = num0Lineages;
+              bestNum1Lineages = num1Lineages;
+              bestNum2Lineages = num2Lineages;
+              /* VectorTools::print(duplicationExpectedNumbers);
+               VectorTools::print(lossExpectedNumbers);*/
+          }
+          else if (reconciliationModel == "COAL" ) {
+              bestCoalBls = coalBls;
+              bestNum12Lineages = num12Lineages;
+              bestNum22Lineages = num22Lineages;
+          }
         bestIndex = index;
-          VectorTools::print(duplicationExpectedNumbers);
-          VectorTools::print(lossExpectedNumbers);
 
        std::cout << "SPRs: Better candidate tree likelihood : "<<bestlogL<< std::endl;
        std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;
@@ -472,13 +569,20 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
         }
     }
     if (betterTree) {
-      logL = bestlogL; 
-      duplicationExpectedNumbers = bestDupProba;
-      lossExpectedNumbers = bestLossProba;
-      numIterationsWithoutImprovement = 0;
-      num0Lineages = bestNum0Lineages;
-      num1Lineages = bestNum1Lineages;
-      num2Lineages = bestNum2Lineages;
+      logL = bestlogL;
+        numIterationsWithoutImprovement = 0;
+        if ( reconciliationModel == "DL" ) {
+            duplicationExpectedNumbers = bestDupProba;
+            lossExpectedNumbers = bestLossProba;
+            num0Lineages = bestNum0Lineages;
+            num1Lineages = bestNum1Lineages;
+            num2Lineages = bestNum2Lineages;
+        }
+        else if ( reconciliationModel == "COAL" ) {
+            coalBls = bestCoalBls;
+            num12Lineages = bestNum12Lineages;
+            num22Lineages = bestNum22Lineages;
+        }
      // deleteTreeProperties(*currentTree);
       if (currentTree) delete currentTree;
       currentTree = bestTree->clone(); 
@@ -490,16 +594,19 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
       if (ApplicationTools::getTime() < timeLimit)
         {
             
-            /* TEST08022012
-            
+                       
         //Send the new std::vectors to compute the new likelihood of the best tree
         std::string currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
-        broadcastsAllInformation(world, server, stop, rearrange, lossExpectedNumbers, duplicationExpectedNumbers, currentSpeciesTree, currentStep);
+        broadcastsAllInformation(world, server, stop, 
+                                 rearrange, 
+                                 lossExpectedNumbers, duplicationExpectedNumbers, 
+                                 coalBls,
+                                 currentSpeciesTree, currentStep, 
+                                 reconciliationModel);
         //COMPUTATION IN CLIENTS
         index++;  
         bestIndex = index;
         std::cout <<"\t\tNumber of species trees tried : "<<index<< std::endl;
-            
             gathersInformationFromClients (world, 
                                            server,
                                            server, 
@@ -509,11 +616,11 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                                            num2Lineages, 
                                            allNum0Lineages, 
                                            allNum1Lineages, 
-                                           allNum2Lineages);
-*/
-            
-            
-            
+                                           allNum2Lineages, 
+                                           num12Lineages, 
+                                           num22Lineages, 
+                                           reconciliationModel);
+     
         }
       else 
         {
@@ -527,11 +634,18 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
     }
     else {
         logL = bestlogL;  
-        duplicationExpectedNumbers = bestDupProba;
-        lossExpectedNumbers = bestLossProba;
-        num0Lineages = bestNum0Lineages;
-        num1Lineages = bestNum1Lineages;
-        num2Lineages = bestNum2Lineages;
+        if ( reconciliationModel == "DL" ) {
+            duplicationExpectedNumbers = bestDupProba;
+            lossExpectedNumbers = bestLossProba;
+            num0Lineages = bestNum0Lineages;
+            num1Lineages = bestNum1Lineages;
+            num2Lineages = bestNum2Lineages;
+        }
+        else if ( reconciliationModel == "COAL" ) {
+            coalBls = bestCoalBls;
+            num12Lineages = bestNum12Lineages;
+            num22Lineages = bestNum22Lineages;
+        }
         if (currentTree) delete currentTree;
         currentTree = bestTree->clone(); 
         numIterationsWithoutImprovement++;
@@ -577,9 +691,13 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                          std::vector< std::vector<int> > &allNum1Lineages, 
                                          std::vector< std::vector<int> > &allNum2Lineages, 
                                          std::vector<double> &lossExpectedNumbers, 
-                                         std::vector<double> &duplicationExpectedNumbers, 
-                                         /*double averageDuplicationProbability, 
-                                         double averageLossProbability,*/ 
+                                         std::vector<double> &duplicationExpectedNumbers,
+                                         std::vector<unsigned int> &num12Lineages, 
+                                         std::vector<unsigned int> &num22Lineages,
+                                         std::vector<unsigned int> &bestNum12Lineages, 
+                                         std::vector<unsigned int> &bestNum22Lineages, 
+                                         std::vector<double> &coalBls,
+                                         std::string &reconciliationModel,
                                          bool rearrange, 
                                          int &numIterationsWithoutImprovement, 
                                          unsigned int server, 
@@ -599,7 +717,7 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
   numIterationsWithoutImprovement=0;
   
   while (numIterationsWithoutImprovement<2*currentTree->getNumberOfNodes()) {
-  /*  fastTryAllPossibleSPRs(world, currentTree, bestTree, 
+    fastTryAllPossibleSPRs(world, currentTree, bestTree, 
                            index, bestIndex,  
                            stop, timeLimit, 
                            logL, bestlogL, 
@@ -607,9 +725,12 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                            bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
                            allNum0Lineages, allNum1Lineages, allNum2Lineages, 
                            lossExpectedNumbers, duplicationExpectedNumbers, 
+                           num12Lineages, num22Lineages,
+                           bestNum12Lineages, bestNum12Lineages, 
+                           coalBls, reconciliationModel,
                            rearrange, numIterationsWithoutImprovement, 
                            server, branchExpectedNumbersOptimization, genomeMissing, 
-                           sprLimit, optimizeRates, currentStep);*/
+                           sprLimit, optimizeRates, currentStep);
 
     if (ApplicationTools::getTime() >= timeLimit) 
       {	
@@ -633,6 +754,9 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                                bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
                                                allNum0Lineages, allNum1Lineages, allNum2Lineages, 
                                                lossExpectedNumbers, duplicationExpectedNumbers, 
+                                               num12Lineages, num22Lineages,
+                                               bestNum12Lineages, bestNum12Lineages, 
+                                               coalBls, reconciliationModel,
                                                rearrange, numIterationsWithoutImprovement, 
                                                server, branchExpectedNumbersOptimization, 
                                                genomeMissing, optimizeRates, currentStep);
@@ -667,7 +791,11 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
                                          std::vector< std::vector<int> > &allNum1Lineages, 
                                          std::vector< std::vector<int> > &allNum2Lineages, 
                                          std::vector<double> &lossExpectedNumbers, 
-                                         std::vector<double> &duplicationExpectedNumbers, 
+                                         std::vector<double> &duplicationExpectedNumbers,
+                                         std::vector<unsigned int> &num12Lineages, 
+                                         std::vector<unsigned int> &num22Lineages,
+                                         std::vector<double> &coalBls,
+                                         std::string &reconciliationModel,
                                          bool rearrange, 
                                          unsigned int server, 
                                          std::string &branchExpectedNumbersOptimization, 
@@ -681,7 +809,9 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
                                                          num0Lineages, num1Lineages, 
                                                          num2Lineages, allNum0Lineages, 
                                                          allNum1Lineages, allNum2Lineages, 
-                                                         lossExpectedNumbers, duplicationExpectedNumbers, 
+                                                         lossExpectedNumbers, duplicationExpectedNumbers,
+                                                         num12Lineages, num22Lineages,
+                                                         coalBls, reconciliationModel,
                                                          rearrange, server, 
                                                          branchExpectedNumbersOptimization, genomeMissing, 
                                                          tree, currentSpeciesTree, false, currentStep);
@@ -696,35 +826,45 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
  * Computes the likelihood of a species tree, only once. 
  ************************************************************************/
 std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::communicator& world, 
-                                         unsigned int &index, 
-                                         bool stop, 
-                                         double &logL, 
-                                         std::vector<int> &num0Lineages, 
-                                         std::vector<int> &num1Lineages, 
-                                         std::vector<int> &num2Lineages, 
-                                         std::vector< std::vector<int> > &allNum0Lineages, 
-                                         std::vector< std::vector<int> > &allNum1Lineages, 
-                                         std::vector< std::vector<int> > &allNum2Lineages, 
-                                         std::vector<double> &lossExpectedNumbers, 
-                                         std::vector<double> &duplicationExpectedNumbers, 
-                                         bool rearrange, 
-                                         unsigned int server, 
-                                         std::string &branchExpectedNumbersOptimization, 
-                                         std::map < std::string, int> genomeMissing, 
-                                         TreeTemplate<Node> &tree, 
-                                         std::string currentSpeciesTree,
-                                         bool firstTime, 
-                                         unsigned int currentStep) 
+                                                                   unsigned int &index, 
+                                                                   bool stop, 
+                                                                   double &logL, 
+                                                                   std::vector<int> &num0Lineages, 
+                                                                   std::vector<int> &num1Lineages, 
+                                                                   std::vector<int> &num2Lineages, 
+                                                                   std::vector< std::vector<int> > &allNum0Lineages, 
+                                                                   std::vector< std::vector<int> > &allNum1Lineages, 
+                                                                   std::vector< std::vector<int> > &allNum2Lineages, 
+                                                                   std::vector<double> &lossExpectedNumbers, 
+                                                                   std::vector<double> &duplicationExpectedNumbers, 
+                                                                   std::vector<unsigned int> &num12Lineages, 
+                                                                   std::vector<unsigned int> &num22Lineages,
+                                                                   std::vector<double> &coalBls,
+                                                                   std::string &reconciliationModel,
+                                                                   bool rearrange, 
+                                                                   unsigned int server, 
+                                                                   std::string &branchExpectedNumbersOptimization, 
+                                                                   std::map < std::string, int> genomeMissing, 
+                                                                   TreeTemplate<Node> &tree, 
+                                                                   std::string currentSpeciesTree,
+                                                                   bool firstTime, 
+                                                                   unsigned int currentStep) 
 {
  /* if (!firstTime) 
     {*/
+    std::cout << "computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree SERVER BEFORE: "<< std::endl;
     broadcastsAllInformation(world, server, stop, 
                              rearrange, lossExpectedNumbers, 
                              duplicationExpectedNumbers, 
-                             currentSpeciesTree, currentStep);
+                             coalBls,
+                             currentSpeciesTree, currentStep,
+                             reconciliationModel);
+    std::cout << "computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree SERVER AFTER: "<< std::endl;
+
     index++;  
  //   }
-
+    
+    std::cout << "computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree SERVER BEFORE gather: "<< std::endl;
     gathersInformationFromClients (world, 
                                    server,
                                    server, 
@@ -734,8 +874,12 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
                                    num2Lineages, 
                                    allNum0Lineages, 
                                    allNum1Lineages, 
-                                   allNum2Lineages);
-    
+                                   allNum2Lineages, 
+                                   num12Lineages, 
+                                   num22Lineages, 
+                                   reconciliationModel);
+    std::cout << "computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree SERVER AFTER gather: "<< std::endl;
+
   /*  
   //COMPUTATION IN CLIENTS
   logL = 0.0;
@@ -775,6 +919,10 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                         std::vector< std::vector<int> > &allNum2Lineages, 
                                                                         std::vector<double> &lossExpectedNumbers, 
                                                                         std::vector<double> &duplicationExpectedNumbers, 
+                                                                        std::vector<unsigned int> &num12Lineages, 
+                                                                        std::vector<unsigned int> &num22Lineages,
+                                                                        std::vector<double> &coalBls,
+                                                                        std::string &reconciliationModel,
                                                                         bool rearrange, unsigned int server, 
                                                                         std::string &branchExpectedNumbersOptimization, 
                                                                         std::map < std::string, int> genomeMissing, 
@@ -800,6 +948,8 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                 allNum2Lineages, 
                                                                 lossExpectedNumbers, 
                                                                 duplicationExpectedNumbers, 
+                                                                num12Lineages, num22Lineages,
+                                                                coalBls, reconciliationModel,
                                                                 rearrange, server, 
                                                                 branchExpectedNumbersOptimization, 
                                                                 genomeMissing, tree, currentStep);
@@ -816,11 +966,18 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
         { 
             currentlogL = logL;
             i++;
+            if (reconciliationModel == "DL") {
             computeDuplicationAndLossRatesForTheSpeciesTree (branchExpectedNumbersOptimization, 
                                                              num0Lineages, num1Lineages, 
                                                              num2Lineages, lossExpectedNumbers, 
                                                              duplicationExpectedNumbers, 
                                                              genomeMissing, tree);
+            }
+            else if (reconciliationModel == "COAL") {
+                computeCoalBls (num12Lineages, 
+                                     num22Lineages, 
+                                     coalBls) ;
+            }
             computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, 
                                                                    stop, logL, 
                                                                    num0Lineages, 
@@ -831,6 +988,8 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                    allNum2Lineages, 
                                                                    lossExpectedNumbers, 
                                                                    duplicationExpectedNumbers, 
+                                                                   num12Lineages, num22Lineages,
+                                                                   coalBls, reconciliationModel,
                                                                    false, server, 
                                                                    branchExpectedNumbersOptimization, 
                                                                    genomeMissing, tree, 
@@ -854,22 +1013,41 @@ void broadcastsAllInformation(const mpi::communicator& world, unsigned int serve
                               bool stop, bool &rearrange, 
                               std::vector<double> &lossExpectedNumbers, 
                               std::vector<double> &duplicationExpectedNumbers, 
+                              std::vector<double> &coalBls,
                               std::string & currentSpeciesTree, 
-                              unsigned int &currentStep) {
+                              unsigned int &currentStep, 
+                              std::string &reconciliationModel) {
+  //  MPI_Barrier(world);
 
     broadcast(world, stop, server);
-    broadcastsAllInformationButStop(world,server, rearrange, lossExpectedNumbers, duplicationExpectedNumbers, currentSpeciesTree, currentStep);
+
+    broadcastsAllInformationButStop(world,server, rearrange, 
+                                    lossExpectedNumbers, 
+                                    duplicationExpectedNumbers, 
+                                    coalBls, currentSpeciesTree, 
+                                    currentStep, reconciliationModel);
 }
+
 void broadcastsAllInformationButStop(const mpi::communicator& world, unsigned int server, 
                                      bool &rearrange, 
                                      std::vector<double> &lossExpectedNumbers, 
                                      std::vector<double> &duplicationExpectedNumbers, 
-                                     std::string & currentSpeciesTree, 
-                                     unsigned int &currentStep) {
- //   MPI_Barrier(world); 
-    broadcast(world, rearrange, server); 
-    broadcast(world, lossExpectedNumbers, server);
-    broadcast(world, duplicationExpectedNumbers, server); 
+                                     std::vector<double> &coalBls, 
+                                     std::string &currentSpeciesTree, 
+                                     unsigned int &currentStep, 
+                                     std::string &reconciliationModel) {
+
+    broadcast(world, rearrange, server);
+    if (reconciliationModel == "DL") 
+    {
+        broadcast(world, lossExpectedNumbers, server);
+        broadcast(world, duplicationExpectedNumbers, server); 
+    }
+    else if (reconciliationModel == "COAL") 
+    {
+        broadcast(world, coalBls, server); 
+    }
+
     broadcast(world, currentSpeciesTree, server);
     broadcast(world, currentStep, server);
  /*  double t = MPI_Wtime();
@@ -878,7 +1056,7 @@ void broadcastsAllInformationButStop(const mpi::communicator& world, unsigned in
     if (currentStep == 4 ) {
         std::cout << "CURRENT STEP = 4 "<< std::endl;
     }*/
-//    MPI_Barrier(world); 
+  //  MPI_Barrier(world); 
 }
 
 
@@ -897,28 +1075,35 @@ void firstCommunicationsServerClient (const mpi::communicator & world,
                                       std::vector <double> & duplicationExpectedNumbers, 
                                       std::vector <int> & num0Lineages, 
                                       std::vector <int> & num1Lineages, 
-                                      std::vector <int> & num2Lineages, 
+                                      std::vector <int> & num2Lineages,
+                                      std::vector <unsigned int> & num12Lineages, 
+                                      std::vector <unsigned int> & num22Lineages,
+                                      std::vector < double >& coalBls,
                                       std::string & currentSpeciesTree)
 {
- //   MPI_Barrier(world);  
-
-  //The server sends the number of genes assigned to each client
-  scatter(world , numbersOfGenesPerClient, assignedNumberOfGenes, server);
-  //Then the server sends each client the std::vector of filenames it is in charge of
-  scatter(world , listOfOptionsPerClient, assignedFilenames, server);
-  //Now the server sends to all clients the same information.
-  broadcast(world, optimizeSpeciesTreeTopology, server);
-  broadcast(world, SpeciesNodeNumber, server);
-  broadcast(world, lossExpectedNumbers, server); 
-  broadcast(world, duplicationExpectedNumbers, server); 
-  broadcast(world, num0Lineages, server);
-  broadcast(world, num1Lineages, server);
-  broadcast(world, num2Lineages, server);
-  broadcast(world, currentSpeciesTree, server);
-  MPI_Barrier(world);  
-
+    //   MPI_Barrier(world);  
+    
+    //The server sends the number of genes assigned to each client
+    scatter(world , numbersOfGenesPerClient, assignedNumberOfGenes, server);
+    //Then the server sends each client the std::vector of filenames it is in charge of
+    scatter(world , listOfOptionsPerClient, assignedFilenames, server);
+    //Now the server sends to all clients the same information.
+    broadcast(world, optimizeSpeciesTreeTopology, server);
+    broadcast(world, SpeciesNodeNumber, server);
+    broadcast(world, lossExpectedNumbers, server); 
+    broadcast(world, duplicationExpectedNumbers, server); 
+    broadcast(world, num0Lineages, server);
+    broadcast(world, num1Lineages, server);
+    broadcast(world, num2Lineages, server);
+    broadcast(world, num12Lineages, server);
+    broadcast(world, num22Lineages, server);
+    broadcast(world, coalBls, server);
+    
+    broadcast(world, currentSpeciesTree, server);
+    MPI_Barrier(world);  
+    
     //Then the clients will send back how many families they are going to work with.
-  return;  
+    return;  
 }
 
 /******************************************************************************/
@@ -933,6 +1118,7 @@ void secondCommunicationsServerClient (const mpi::communicator & world ,
                                        vector<unsigned int> & finalNumbersOfGeneFamilies,
                                        vector <double> & lossExpectedNumbers, 
                                        vector <double> & duplicationExpectedNumbers, 
+                                       std::vector<double> &coalBls,
                                        std::string & currentSpeciesTree) {
 //    MPI_Barrier(world);  
 
@@ -941,8 +1127,11 @@ void secondCommunicationsServerClient (const mpi::communicator & world ,
     else {
         gather(world, finalNumberOfGeneFamilies, server); 
     }
+    
     broadcast(world, lossExpectedNumbers, server); 
-    broadcast(world, duplicationExpectedNumbers, server); 
+    broadcast(world, duplicationExpectedNumbers, server);
+    broadcast(world, coalBls, server);
+
     broadcast(world, currentSpeciesTree, server);
  //   MPI_Barrier(world);  
     return;
@@ -1055,6 +1244,19 @@ struct plus_vec {
     }
 };
 
+
+
+struct plus_vec_unsigned {
+    std::vector< unsigned int > operator()(std::vector< unsigned int > i, std::vector< unsigned int > j) const { 
+        for (unsigned int k =0; k<i.size() ; k++ ) {
+            i[k] = i[k]+j[k];
+        }
+        return i; 
+    }
+};
+
+
+
 /*
 namespace boost { namespace mpi {
     
@@ -1073,9 +1275,13 @@ void gathersInformationFromClients (const mpi::communicator & world,
                                     std::vector<int> &num2Lineages, 
                                     std::vector< std::vector<int> > &allNum0Lineages, 
                                     std::vector< std::vector<int> > &allNum1Lineages, 
-                                    std::vector< std::vector<int> > &allNum2Lineages) 
+                                    std::vector< std::vector<int> > &allNum2Lineages, 
+                                    std::vector<unsigned int> &num12Lineages,
+                                    std::vector<unsigned int> &num22Lineages, 
+                                    std::string &reconciliationModel) 
 {
   //  MPI_Barrier(world);  
+    std::cout << "gathersInformationFromClients: "<< logL <<std::endl;
 
     if (whoami == server) {
         //AFTER COMPUTATION IN CLIENTS
@@ -1085,12 +1291,20 @@ void gathersInformationFromClients (const mpi::communicator & world,
         resetVector(num0Lineages);
         resetVector(num1Lineages);
         resetVector(num2Lineages);
+        resetVector(num12Lineages);
+        resetVector(num22Lineages);
   //      gather(world, logL, logLs, server);
 //        logL =  VectorTools::sum(logLs);
         reduce(world, logLVal, logL, std::plus<double> (), 0);
-        reduce(world, num0Lineages, num0Lineages, plus_vec(), 0);
-        reduce(world, num1Lineages, num1Lineages, plus_vec(), 0);
-        reduce(world, num2Lineages, num2Lineages, plus_vec(), 0);
+        if (reconciliationModel == "DL") {
+            reduce(world, num0Lineages, num0Lineages, plus_vec(), 0);
+            reduce(world, num1Lineages, num1Lineages, plus_vec(), 0);
+            reduce(world, num2Lineages, num2Lineages, plus_vec(), 0);
+        }
+        else if (reconciliationModel == "COAL") {
+            reduce(world, num12Lineages, num12Lineages, plus_vec_unsigned(), 0);
+            reduce(world, num22Lineages, num22Lineages, plus_vec_unsigned(), 0);
+        }
        /* std::cout <<"LOOK HERE:"<<std::endl;
         VectorTools::print(num0Lineages);
         VectorTools::print(num1Lineages);
@@ -1115,11 +1329,18 @@ void gathersInformationFromClients (const mpi::communicator & world,
     }
     else {
         //Clients send back stuff to the server.
-//        gather(world, logL, server);         
+//        gather(world, logL, server);     
+        std::cout << "CLIENT: "<< logL <<std::endl;
         reduce(world, logL, std::plus<double> (), 0);
-        reduce(world, num0Lineages, plus_vec(), 0);
-        reduce(world, num1Lineages, plus_vec(), 0);
-        reduce(world, num2Lineages, plus_vec(), 0);
+        if (reconciliationModel == "DL") {
+            reduce(world, num0Lineages, plus_vec(), 0);
+            reduce(world, num1Lineages, plus_vec(), 0);
+            reduce(world, num2Lineages, plus_vec(), 0);
+        }
+        else if (reconciliationModel == "COAL") {
+            reduce(world, num12Lineages, plus_vec_unsigned(), 0);
+            reduce(world, num22Lineages, plus_vec_unsigned(), 0);
+        }
 /*      gather(world, num0Lineages, allNum0Lineages, server); 
         gather(world, num1Lineages, allNum1Lineages, server);   
         gather(world, num2Lineages, allNum2Lineages, server);*/

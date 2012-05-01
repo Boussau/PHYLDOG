@@ -57,60 +57,42 @@
 #include "FastRHomogeneousTreeLikelihood.h"
 #include "ReconciliationTools.h"
 #include "GeneTreeAlgorithms.h"
+#include "GeneTreeLikelihood.h"
+
 //#include "mpi.h" 
 
-namespace bpp 
-{
+
+using namespace bpp;
+
+/*namespace bpp 
+{*/
     
     /**
      * @brief This class adds support for reconciliation to a species tree to the NNIHomogeneousTreeLikelihood class.
      */
-    class DLGeneTreeLikelihood
+    class DLGeneTreeLikelihood:
+    public GeneTreeLikelihood
     {
-        NNIHomogeneousTreeLikelihood * nniLk_;
-        //  TreeTemplate<Node> * _tree;
-        TreeTemplate<Node> * _spTree;
-        TreeTemplate<Node> * _rootedTree;
-        TreeTemplate<Node> * _geneTreeWithSpNames;
-        const std::map <std::string, std::string> _seqSp;
-        std::map <std::string, int> _spId;
+       // NNIHomogeneousTreeLikelihood * nniLk_;
         std::vector <int> _duplicationNumbers;
         std::vector <int> _lossNumbers;
-        std::vector <int>  _branchNumbers;
-        
+        std::vector <int>  _branchNumbers;        
         std::vector <double> _duplicationProbabilities;
         std::vector <double> _lossProbabilities; 
         std::vector <int> _num0Lineages;
         std::vector <int> _num1Lineages;
         std::vector <int> _num2Lineages;
-        std::set <int> _nodesToTryInNNISearch;
-        double _scenarioLikelihood;
-      //  mutable double _sequenceLikelihood;
-        int _MLindex;
-        bool _rootOptimization;
         mutable std::vector <int> _tentativeDuplicationNumbers;
         mutable std::vector <int> _tentativeLossNumbers; 
         mutable std::vector <int> _tentativeBranchNumbers; 
         mutable std::vector <int> _tentativeNum0Lineages;
         mutable std::vector <int> _tentativeNum1Lineages; 
         mutable std::vector <int> _tentativeNum2Lineages;
-        mutable std::set <int> _tentativeNodesToTryInNNISearch;
-        mutable int _tentativeMLindex;
-        mutable double _tentativeScenarioLikelihood;
-        mutable int _totalIterations;
-        mutable int _counter;
-        mutable std::vector <int> _listOfPreviousRoots;
-        int _speciesIdLimitForRootPosition;
-        int _heuristicsLevel;
-        mutable bool _optimizeSequenceLikelihood;
-        mutable bool _optimizeReconciliationLikelihood;
-        mutable bool _considerSequenceLikelihood;
         mutable bool _DLStartingGeneTree;
-        unsigned int sprLimit_;
         
     public:
         /**
-         * @brief Build a new ReconciliationTreeLikelihood object.
+         * @brief Build a new DLGeneTreeLikelihood object.
          *
          * @param tree The tree to use.
          * @param model The substitution model to use.
@@ -144,11 +126,8 @@ namespace bpp
                                      TreeTemplate<Node> & geneTreeWithSpNames,
                                      const std::map <std::string, std::string> seqSp,
                                      std::map <std::string,int> spId,
-                                     //std::vector <int> & lossNumbers, 
                                      std::vector <double> & lossProbabilities, 
-                                     //std::vector <int> & duplicationNumbers, 
                                      std::vector <double> & duplicationProbabilities, 
-                                     //std::vector <int> & branchNumbers,
                                      std::vector <int> & num0Lineages,
                                      std::vector <int> & num1Lineages,
                                      std::vector <int> & num2Lineages, 
@@ -294,7 +273,7 @@ namespace bpp
         
         std::map <std::string, std::string> getSeqSp() {return _seqSp;}
         
-        void setProbabilities(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
+        void setExpectedNumbers(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
         
         int getRootNodeindex();
         
@@ -340,7 +319,7 @@ namespace bpp
         /************************************************************************
          * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
          * and executes the ones with the highest likelihood. 
-         * To do all this as fast as possible, we optimize opnly a few branch lengths on the SPR tree, 
+         * To do all this as fast as possible, we optimize only a few branch lengths on the SPR tree, 
          * and we use a simple recursion for that.
          ************************************************************************/
         void refineGeneTreeSPRsFast(map<string, string> params);
@@ -364,7 +343,7 @@ namespace bpp
     };
     
     
-} //end of namespace bpp.
+//} //end of namespace bpp.
 
 
 

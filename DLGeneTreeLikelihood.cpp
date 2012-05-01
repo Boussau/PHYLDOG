@@ -81,42 +81,34 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
                                                            bool DLStartingGeneTree, 
                                                            unsigned int sprLimit)
 throw (Exception):
-nniLk_(0), _spTree(0), _rootedTree(0), _geneTreeWithSpNames(0), _seqSp(seqSp), _spId(spId)
+GeneTreeLikelihood(tree,
+                   model,
+                   rDist,
+                   spTree,  
+                   rootedTree, 
+                   geneTreeWithSpNames,
+                   seqSp,
+                   spId,
+                   speciesIdLimitForRootPosition,
+                   heuristicsLevel,
+                   MLindex, 
+                   checkRooted,
+                   verbose,
+                   rootOptimization, 
+                   considerSequenceLikelihood, 
+                   sprLimit)
+
 {
-    
-    nniLk_ = new NNIHomogeneousTreeLikelihood(tree, model, rDist, checkRooted, verbose); 
-    _spTree = spTree.clone();
-    _rootedTree = rootedTree.clone();
-    _geneTreeWithSpNames = geneTreeWithSpNames.clone();
-    //_lossNumbers = lossNumbers;
     _lossProbabilities = lossProbabilities;
-    //_duplicationNumbers = duplicationNumbers;
     _duplicationProbabilities = duplicationProbabilities;
-    //_branchNumbers = branchNumbers;
     _num0Lineages=num0Lineages;
     _num1Lineages=num1Lineages;
     _num2Lineages=num2Lineages;
-    _scenarioLikelihood = UNLIKELY;
-   // _sequenceLikelihood = UNLIKELY;
-    _MLindex = MLindex;
-    _rootOptimization = rootOptimization; 
-    /*_tentativeDuplicationNumbers = duplicationNumbers;
-     _tentativeLossNumbers = lossNumbers; 
-     _tentativeBranchNumbers = branchNumbers;*/
     _tentativeNum0Lineages =num0Lineages;
     _tentativeNum1Lineages =num1Lineages; 
     _tentativeNum2Lineages =num2Lineages;
     _tentativeMLindex = MLindex;
-    _totalIterations = 0;
-    _counter = 0;
-    _speciesIdLimitForRootPosition = speciesIdLimitForRootPosition;
-    _heuristicsLevel = heuristicsLevel;
-    _optimizeSequenceLikelihood = true;
-    _optimizeReconciliationLikelihood = true;
-    _considerSequenceLikelihood = considerSequenceLikelihood;
     _DLStartingGeneTree = DLStartingGeneTree;
-    sprLimit_ = sprLimit;
-    // _listOfPreviousRoots = new std::vector <int> ();
 }
 
 /******************************************************************************/
@@ -131,11 +123,8 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
                                                            TreeTemplate<Node> & geneTreeWithSpNames,
                                                            const std::map <std::string, std::string> seqSp,
                                                            std::map <std::string,int> spId,
-                                                           //std::vector <int> & lossNumbers, 
                                                            std::vector <double> & lossProbabilities, 
-                                                           //std::vector <int> & duplicationNumbers, 
                                                            std::vector <double> & duplicationProbabilities, 
-                                                           //std::vector <int> & branchNumbers, 
                                                            std::vector <int> & num0Lineages,
                                                            std::vector <int> & num1Lineages,
                                                            std::vector <int> & num2Lineages, 
@@ -149,110 +138,65 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
                                                            bool DLStartingGeneTree,
                                                            unsigned int sprLimit)
 throw (Exception):
-nniLk_(0), _spTree(0), _rootedTree(0), _geneTreeWithSpNames(0), _seqSp (seqSp), _spId(spId)
+GeneTreeLikelihood(tree,
+                   data,
+                   model,
+                   rDist,
+                   spTree,  
+                   rootedTree, 
+                   geneTreeWithSpNames,
+                   seqSp,
+                   spId,
+                   speciesIdLimitForRootPosition,
+                   heuristicsLevel,
+                   MLindex, 
+                   checkRooted,
+                   verbose,
+                   rootOptimization, 
+                   considerSequenceLikelihood, 
+                   sprLimit)
 {
-    nniLk_ = new NNIHomogeneousTreeLikelihood(tree, data, model, rDist, checkRooted, verbose);
-    _spTree = spTree.clone();
-    _rootedTree = rootedTree.clone();
-    _geneTreeWithSpNames = geneTreeWithSpNames.clone();
     _lossProbabilities = lossProbabilities;
     _duplicationProbabilities = duplicationProbabilities; 
     _num0Lineages=num0Lineages;
     _num1Lineages=num1Lineages;
     _num2Lineages=num2Lineages;
-    _scenarioLikelihood = UNLIKELY;
-  //  _sequenceLikelihood = UNLIKELY;
-    _MLindex = MLindex;
-    _rootOptimization = rootOptimization; 
     _tentativeNum0Lineages =num0Lineages;
     _tentativeNum1Lineages =num1Lineages; 
     _tentativeNum2Lineages =num2Lineages;
-    _tentativeMLindex = MLindex;
-    _totalIterations = 0; 
-    _counter = 0;
-    _speciesIdLimitForRootPosition = speciesIdLimitForRootPosition;
-    _heuristicsLevel = heuristicsLevel;
-    _optimizeSequenceLikelihood = true;
-    _optimizeReconciliationLikelihood = true;
-    _considerSequenceLikelihood = considerSequenceLikelihood;
     _DLStartingGeneTree = DLStartingGeneTree;
-    sprLimit_ = sprLimit;
-    
 }
 
 /******************************************************************************/
 
 DLGeneTreeLikelihood::DLGeneTreeLikelihood(const DLGeneTreeLikelihood & lik):
-nniLk_(0), _spTree(0), _rootedTree(0), _geneTreeWithSpNames(0), _seqSp (lik._seqSp), _spId(lik._spId)
+GeneTreeLikelihood(lik)
 {
-    nniLk_ = lik.nniLk_->clone(); 
-    _spTree = dynamic_cast<TreeTemplate<Node> *> (lik._spTree->clone()) ;
-    _rootedTree = dynamic_cast<TreeTemplate<Node> *> (lik._rootedTree->clone()) ;
-    _geneTreeWithSpNames = dynamic_cast<TreeTemplate<Node> *> (lik._geneTreeWithSpNames->clone()) ;
     _lossProbabilities = lik._lossProbabilities;
     _duplicationProbabilities = lik._duplicationProbabilities; 
     _num0Lineages=lik._num0Lineages;
     _num1Lineages=lik._num1Lineages;
     _num2Lineages=lik._num2Lineages;
-    _scenarioLikelihood = lik._scenarioLikelihood;
-   // _sequenceLikelihood = lik._sequenceLikelihood;
-    _MLindex = lik._MLindex;
-    _rootOptimization = lik._rootOptimization; 
     _tentativeNum0Lineages =lik._tentativeNum0Lineages;
     _tentativeNum1Lineages =lik._tentativeNum1Lineages;
     _tentativeNum2Lineages =lik._tentativeNum2Lineages;
-    _tentativeMLindex = lik._MLindex;
-    _totalIterations = lik._totalIterations;
-    _counter = lik._counter;
-    _speciesIdLimitForRootPosition = lik._speciesIdLimitForRootPosition;
-    _heuristicsLevel = lik._heuristicsLevel;
-    _nodesToTryInNNISearch = lik._nodesToTryInNNISearch;
-    _tentativeNodesToTryInNNISearch = lik._tentativeNodesToTryInNNISearch;
-    _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
-    _optimizeReconciliationLikelihood = lik._optimizeReconciliationLikelihood ;
-    _considerSequenceLikelihood = lik._considerSequenceLikelihood;
     _DLStartingGeneTree = lik._DLStartingGeneTree;
-    sprLimit_ = lik.sprLimit_;
 }
 
 /******************************************************************************/
 
 DLGeneTreeLikelihood & DLGeneTreeLikelihood::operator=(const DLGeneTreeLikelihood & lik)
 {
-    if (nniLk_) delete nniLk_;
-    nniLk_ = lik.nniLk_->clone(); 
-    //NNIHomogeneousTreeLikelihood::operator=(lik);
-    if (_spTree) delete _spTree;
-    _spTree = dynamic_cast<TreeTemplate<Node> *> (lik._spTree->clone());
-    if (_rootedTree) delete _rootedTree;
-    _rootedTree= dynamic_cast<TreeTemplate<Node> *> (lik._rootedTree->clone());
-    if (_geneTreeWithSpNames) delete _geneTreeWithSpNames;
-    _geneTreeWithSpNames = dynamic_cast<TreeTemplate<Node> *> (lik._geneTreeWithSpNames->clone()) ;
-    _spId = lik._spId;
+    GeneTreeLikelihood::operator=(lik);
     _lossProbabilities = lik._lossProbabilities;
     _duplicationProbabilities = lik._duplicationProbabilities;
     _num0Lineages=lik._num0Lineages;
     _num1Lineages=lik._num1Lineages;
     _num2Lineages=lik._num2Lineages;
-    _scenarioLikelihood = lik._scenarioLikelihood;
-   // _sequenceLikelihood = lik._sequenceLikelihood;
-    _MLindex = lik._MLindex;
-    _rootOptimization = lik._rootOptimization;
     _tentativeNum0Lineages =lik._tentativeNum0Lineages;
     _tentativeNum1Lineages =lik._tentativeNum1Lineages;
     _tentativeNum2Lineages =lik._tentativeNum2Lineages;
-    _tentativeMLindex = lik._MLindex;
-    _totalIterations = lik._totalIterations;
-    _counter = lik._counter;
-    _speciesIdLimitForRootPosition = lik._speciesIdLimitForRootPosition;
-    _heuristicsLevel = lik._heuristicsLevel;
-    _nodesToTryInNNISearch = lik._nodesToTryInNNISearch;
-    _tentativeNodesToTryInNNISearch = lik._tentativeNodesToTryInNNISearch;
-    _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
-    _optimizeReconciliationLikelihood = lik._optimizeReconciliationLikelihood ;
-    _considerSequenceLikelihood = lik._considerSequenceLikelihood;
     _DLStartingGeneTree = lik._DLStartingGeneTree;
-    sprLimit_ = lik.sprLimit_;
     return *this;
 }
 
@@ -754,9 +698,6 @@ void DLGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     //but we do not need the constraint info here...).
     
     _MLindex = _tentativeMLindex;
-    _duplicationNumbers = _tentativeDuplicationNumbers;
-    _lossNumbers = _tentativeLossNumbers;
-    _branchNumbers = _tentativeBranchNumbers;
     
     _nodesToTryInNNISearch = _tentativeNodesToTryInNNISearch;
     
@@ -826,7 +767,7 @@ std::vector <int> DLGeneTreeLikelihood::get2LineagesNumbers() const {
 
 /*******************************************************************************/
 
-void DLGeneTreeLikelihood::setProbabilities(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities){
+void DLGeneTreeLikelihood::setExpectedNumbers(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities){
     
     _lossProbabilities = lossProbabilities;
     _duplicationProbabilities = duplicationProbabilities; 

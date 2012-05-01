@@ -10,348 +10,6 @@
 #include "CoalTools.h"
 
 
-//mpic++ -g -lbpp-core -lbpp-seq -lbpp-phyl -lboost_serialization -lboost_mpi CoalTools.cpp ReconciliationTools.cpp -o CoalTools
-
-//Test main function
-int main(int args, char ** argv)
-{
-   std::string spStr = "(((A,B),C),(D,E));";
-   std::string gStr = "((A,(B,C)),(D,E));";
-//    std::string gStr = "(((A,D), (B,C)),E);";
-   TreeTemplate <Node>* spTree = TreeTemplateTools::parenthesisToTree(spStr);
-      TreeTemplate <Node>* geneTree = TreeTemplateTools::parenthesisToTree(gStr);
-   
-    std::map<std::string, std::string > seqSp;
-    
-  /*  seqSp.insert( pair<std::string, std::string >("taxon1","taxon1") );
-    seqSp.insert( pair<std::string, std::string >("taxon2","taxon2") );
-    seqSp.insert( pair<std::string, std::string >("taxon3","taxon3") );
-    seqSp.insert( pair<std::string, std::string >("taxon4","taxon4") );
-    seqSp.insert( pair<std::string, std::string >("taxon5","taxon5") );
-    seqSp.insert( pair<std::string, std::string >("taxon6","taxon6") );
-    seqSp.insert( pair<std::string, std::string >("taxon7","taxon7") );
-    seqSp.insert( pair<std::string, std::string >("taxon8","taxon8") );*/
-
-    
-    
-   seqSp.insert( pair<std::string, std::string >("A","A") );
-    seqSp.insert( pair<std::string, std::string >("B","B") );
-    seqSp.insert( pair<std::string, std::string >("C","C") );
-    seqSp.insert( pair<std::string, std::string >("D","D") );
-    seqSp.insert( pair<std::string, std::string >("E","E") );/*
-    seqSp.insert( pair<std::string, std::string >("F","F") );
-    seqSp.insert( pair<std::string, std::string >("G","G") );
-    seqSp.insert( pair<std::string, std::string >("H","H") );
-*/
-    
-    
-    
-    
-    //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
-    std::vector < std::vector< std::vector< std::vector< unsigned int > > > > coalCounts;
-    std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
-    std::vector< std::vector<unsigned int> > coalCounts3;
-    std::vector< unsigned int > coalCounts4;
-    //speciesIDs: vector of genetreenbnodes vectors of 3 (3 directions) ints
-    std::vector <std::vector<unsigned int> > speciesIDs;
-    std::vector < unsigned int > speciesIDs2;
-    for (unsigned int i = 0 ; i < 2 ; i++ ) {
-        coalCounts4.push_back(0);
-    }
-    for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
-        coalCounts3.push_back(coalCounts4);
-    }
-    for (unsigned int i = 0 ; i < 3 ; i++ ) {
-        coalCounts2.push_back(coalCounts3);
-        speciesIDs2.push_back(0);
-    }
-    for (unsigned int i = 0 ; i < geneTree->getNumberOfNodes() ; i++ ) {
-        coalCounts.push_back(coalCounts2);
-        speciesIDs.push_back(speciesIDs2);
-    }
-    
-    breadthFirstreNumber (*spTree);
-    std::map<std::string, int > spID = computeSpeciesNamesToIdsMap(*spTree);
-    
-    for(std::map<std::string, int >::iterator it = spID.begin(); it != spID.end(); it++){
-        std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
-    }
-
-    computeSubtreeCoalCountsPostorder(*spTree, 
-                                      *geneTree, 
-                                      geneTree->getRootNode(), 
-                                      seqSp, 
-                                      spID, 
-                                      coalCounts,
-                                      speciesIDs);
-    //Add the starting lineage at the root
-    for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
-        if (coalCounts[geneTree->getRootNode()->getId()][0][i][0]==0 && coalCounts[geneTree->getRootNode()->getId()][0][i][1] !=0)
-        {
-            //coalCounts[geneTree->getRootNode()->getId()][0][0][0] = 1;
-            coalCounts[geneTree->getRootNode()->getId()][0][i][0]=1; 
-            break;
-            
-        }
-    }
-
-    std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
-    std::cout <<"Gene Tree: \n" <<    TreeTools::treeToParenthesis(*geneTree, true) << std::endl;
-
-      for (unsigned int i = 0 ; i < coalCounts[geneTree->getRootNode()->getId()][0].size() ; i++) {
-          std::cout << "Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][0] << " Num coal out: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][1]<<std::endl;
-     }
-    
-    std::vector<double> bls (spTree->getNumberOfNodes(), 2.0);
-
-    double initialLikelihood = computeCoalLikelihood ( coalCounts[geneTree->getRootNode()->getId()][0], bls ) ;
-    
-    std::cout << "Initial Likelihood: "<< initialLikelihood <<std::endl;
-    
-    std::map <double, Node*> LksToNodes;
-    //Now doing the preorder tree traversal
-    Node * geneRoot = geneTree->getRootNode();
-    std::vector <Node *> sons = geneRoot->getSons();
-    if (sons.size()!=2) {
-        std::cerr <<"Error: "<<sons.size()<< "sons at the root!"<<std::endl; 
-    }
-
-    LksToNodes[initialLikelihood]=sons[0];
-    //We fill the likelihood and species ID data for the root node.
-    //We use "directions" 1 and 2 and leave "direction" 0 empty for coherence
-    //with other nodes.
-    coalCounts[geneRoot->getId()][1] = coalCounts[geneRoot->getSon(1)->getId()][0];
-    coalCounts[geneRoot->getId()][2] = coalCounts[geneRoot->getSon(0)->getId()][0];
-    speciesIDs[geneRoot->getId()][1] = speciesIDs[geneRoot->getSon(1)->getId()][0];
-    speciesIDs[geneRoot->getId()][2] = speciesIDs[geneRoot->getSon(0)->getId()][0];
-
-    
-    
-    
-    for (unsigned int i = 0; i< sons.size(); i++){
-        for (unsigned int j =0; j<sons[i]->getNumberOfSons(); j++) {
-            computeSubtreeCoalCountsPreorder(*spTree, 
-                                             *geneTree, 
-                                             sons[i], 
-                                             seqSp, 
-                                             spID, 
-                                             coalCounts,
-                                             bls, 
-                                             speciesIDs, j, LksToNodes);
-        }
-    }
-    for (unsigned int j = 0 ; j < geneTree->getNumberOfNodes() ; j++) {
-        std::cout << "Node j: " <<std::endl;
-        for (unsigned int i = 0 ; i < coalCounts[j][0].size() ; i++) {
-            std::cout << "\tSp Branch "<<i<<" Num coal in: "<< coalCounts[j][0][i][0] << " Num coal out: "<< coalCounts[j][0][i][1]<<std::endl;
-            std::cout << "\tSp Branch "<<i<<" Num coal in: "<< coalCounts[j][1][i][0] << " Num coal out: "<< coalCounts[j][1][i][1]<<std::endl;
-            std::cout << "\tSp Branch "<<i<<" Num coal in: "<< coalCounts[j][2][i][0] << " Num coal out: "<< coalCounts[j][2][i][1]<<std::endl;
-                                                                                                            
-        }
-    }
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    Newick *treeReader = new Newick(true);
-    vector<Tree *> gTrees;
-    //treeReader->read("testGeneTrees", gTrees);
-//   treeReader->read("geneTrees7", gTrees);
-//treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
-   // treeReader->read("mesquite500SimCoalTreesNe10000_Depth100000.proj.phy", gTrees);
-  //  treeReader->read("mesquite500SimCoalTreesNe10000_Depth100000.proj.phy", gTrees);
-    treeReader->read("40Sp_500GeneTrees.phy", gTrees);
-
-    
-    vector<Tree *> spTrees;
-//    treeReader->read("spTree", spTrees);
-//    treeReader->read("spTree2.0", spTrees);
-//    treeReader->read("spTree7", spTrees);
-  //  treeReader->read("SpTree8.tree", spTrees);
-//    treeReader->read("1SimulatedSpTree8Taxa_Depth100000.tree", spTrees);
-  treeReader->read("40Sp_First.phy", spTrees);
-    
-    delete treeReader;
-//TEMP    TreeTemplate <Node>* spTree = dynamic_cast<TreeTemplate<Node>*>(spTrees[0]);
-    vector<string> leaves = spTree->getLeavesNames();
-    for (unsigned int i = 0 ; i < leaves.size() ; i++) {
-        seqSp.insert( pair<std::string, std::string >(leaves[i],leaves[i]) );
-    }
-    
-    breadthFirstreNumber (*spTree);
- //TEMP   std::map<std::string, int > spID = computeSpeciesNamesToIdsMap(*spTree);
-    
-    for(std::map<std::string, int >::iterator it = spID.begin(); it != spID.end(); it++){
-        std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
-    }
-
-    
-    
-    /* Checking the likelihood computation against results from Rosenberg 2002: it works.
-    //11
-    vector<unsigned int > vec(2, 1);
-    double loglk = computeCoalLikelihood ( vec, 1.0 ) ;
-    std::cout << "11: "<< loglk<< std::endl;
-    
-    vec[1] = 2;
-     loglk = computeCoalLikelihood ( vec, 1.0 ) ;
-    std::cout << "12: "<<loglk<< std::endl;
-
-    vec[0] = 2;
-     loglk = computeCoalLikelihood ( vec, 1.0 ) ;
-    std::cout << "22: "<<loglk<< std::endl;
-
-    vec[1] = 3;
-     loglk = computeCoalLikelihood ( vec, 1.0 ) ;
-    std::cout << "23: "<<loglk<< std::endl;
-
-    vec[0] = 3;
-     loglk = computeCoalLikelihood ( vec, 1.0 ) ;
-    std::cout << "33: "<<loglk<< std::endl;
-*/
-    
-    
-    
-    
-  //TEMP  std::vector<double> bls (spTree->getNumberOfNodes(), 2.0);
-/*    for (unsigned int i = 0 ; i < bls.size() ; i++) {
-        if ( spTree->getNode(i)->hasFather() )
-            bls[i] = spTree->getNode(i)->getDistanceToFather();
-    }
-  */  
-    std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
-//TEMP   TreeTemplate <Node>* geneTree = 0;
-    
-    //allGeneCounts: nbSpeciesBranches vectors of gTrees.size() vectors of 2 ints
-    std::vector < std::vector < std::vector<unsigned int> > >  allGeneCounts;
-    std::vector< std::vector< unsigned int > > allGeneCounts2;
-    std::vector< unsigned int > allGeneCounts3;
-    for (unsigned int i = 0 ; i < 2 ; i++ ) {
-        allGeneCounts3.push_back(0);
-    }
-    for (unsigned int i = 0 ; i < gTrees.size() ; i++ ) {
-        allGeneCounts2.push_back(allGeneCounts3);
-    }
-    for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
-        allGeneCounts.push_back(allGeneCounts2);
-    }
-    
-    
-    
-    for (unsigned int j = 0 ; j < gTrees.size() ; j++) {
-        geneTree= dynamic_cast<TreeTemplate<Node>*>(gTrees[j]);
-        //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
-        std::vector < std::vector< std::vector< std::vector< unsigned int > > > > coalCounts;
-        std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
-        std::vector< std::vector<unsigned int> > coalCounts3;
-        std::vector< unsigned int > coalCounts4;
-        //speciesIDs: vector of genetreenbnodes vectors of 3 (3 directions) ints
-        std::vector <std::vector<unsigned int> > speciesIDs;
-        std::vector < unsigned int > speciesIDs2;
-        for (unsigned int i = 0 ; i < 2 ; i++ ) {
-            coalCounts4.push_back(0);
-        }
-        for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
-            coalCounts3.push_back(coalCounts4);
-        }
-        for (unsigned int i = 0 ; i < 3 ; i++ ) {
-            coalCounts2.push_back(coalCounts3);
-            speciesIDs2.push_back(0);
-        }
-        for (unsigned int i = 0 ; i < geneTree->getNumberOfNodes() ; i++ ) {
-            coalCounts.push_back(coalCounts2);
-            speciesIDs.push_back(speciesIDs2);
-        }
-        
-        computeSubtreeCoalCountsPostorder(*spTree, 
-                                          *geneTree, 
-                                          geneTree->getRootNode(), 
-                                          seqSp, 
-                                          spID, 
-                                          coalCounts,
-                                          speciesIDs);
-        //Add the starting lineage at the root
-        for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
-            if (coalCounts[geneTree->getRootNode()->getId()][0][i][0]==0 && coalCounts[geneTree->getRootNode()->getId()][0][i][1] !=0)
-            {
-        //coalCounts[geneTree->getRootNode()->getId()][0][0][0] = 1;
-                coalCounts[geneTree->getRootNode()->getId()][0][i][0]=1; 
-                break;
-
-            }
-        }
-
-         /*   for (unsigned int i = 0 ; i < coalCounts[geneTree->getRootNode()->getId()][0].size() ; i++) {
-         std::cout << "Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][0] << " Num coal out: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][1]<<std::endl;
-         }*/
-        //Now we compute the likelihood of the rooted gene tree:
-        double loglk = computeCoalLikelihood ( coalCounts[geneTree->getRootNode()->getId()][0], bls ) ;
-      //  std::cout << "lk: "<<exp(loglk)<<std::endl;
-        for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
-            allGeneCounts[i][j] = coalCounts[geneTree->getRootNode()->getId()][0][i];
-        }
-    }
-   
-    //If we want to do numerical optimization
-    // BrentOneDimension *brentOptimizer = new BrentOneDimension();
-    vector<double> blAnalytical = bls;
-    for (unsigned int i = 0 ; i < allGeneCounts.size() ; i++) {
-        CoalBranchLikelihood *brLikFunction = new CoalBranchLikelihood(allGeneCounts[i]);
-        //Initialize BranchLikelihood:
-        blAnalytical[i] = brLikFunction->initModel();
-
-        //If we want to do numerical optimization
-        /*
-        ParameterList parameters;
-        Parameter brLen = Parameter("BrLen", blAnalytical[i]);//, ExcludingPositiveReal (0) );
-        parameters.addParameter(brLen);
-        brLikFunction->setParameters(parameters);
-        
-        //Re-estimate branch length:
-        brentOptimizer->setVerbose(0);
-        brentOptimizer->setFunction(brLikFunction);
-        brentOptimizer->getStopCondition()->setTolerance(0.000001);
-        brentOptimizer->setInitialInterval(0, brLen.getValue()+2);
-        brentOptimizer->init(parameters);
-        brentOptimizer->optimize();
-        bls[i] =brentOptimizer->getParameters().getParameter("BrLen").getValue();
-        std::cout <<"Value for Sp branch "<<i<<": "<< bls[i] << std::endl;
-        */
-    }
-    for (unsigned int i = 0 ; i < bls.size() ; i++) {
-        if ( spTree->getNode(i)->hasFather() )
-            spTree->getNode(i)->setDistanceToFather(bls[i]);
-    }
-    std::cout <<"Species Tree optimized: \n" << TreeTools::treeToParenthesis(*spTree, true) << std::endl;
-    std::cout <<"Species Tree optimized: \n" << TreeTools::treeToParenthesis(*spTree, false) << std::endl;
-
-    for (unsigned int i = 0 ; i < bls.size() ; i++) {
-        if ( spTree->getNode(i)->hasFather() )
-            spTree->getNode(i)->setDistanceToFather(blAnalytical[i]);
-    }
-    std::cout <<"Species Tree analytical: \n" << TreeTools::treeToParenthesis(*spTree, true) << std::endl;
-    std::cout <<"Species Tree analytical: \n" << TreeTools::treeToParenthesis(*spTree, false) << std::endl;
-
-    return 0;
-
-}
-
-
-
 
 /*****************************************************************************
  * This function performs a postorder tree traversal in order to  
@@ -492,6 +150,52 @@ void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> 
             recoverILS(temp0, a, olda, coalCountsFather);
         }
         else {
+            recoverILS(temp1, b, oldb, coalCountsFather);
+        }
+    }
+    rootSpId = a;
+    
+    return;    
+}
+
+/*****************************************************************************
+ * Computes a vector of counts from two son vectors, and assigns species ID to the
+ * father node.
+ ****************************************************************************/
+
+void computeCoalCountsFromSonsAndFillTables (TreeTemplate<Node> & tree, std::vector <Node *> sons, 
+                                             unsigned int & rootSpId, 
+                                             const unsigned int & son0SpId,
+                                             const unsigned int & son1SpId,
+                                             std::vector< std::vector<unsigned int> > & coalCountsFather,
+                                             std::vector< std::vector<unsigned int> > & coalCountsSon0,
+                                             std::vector< std::vector<unsigned int> > & coalCountsSon1, 
+                                             std::set<int> & nodesToTryInNNISearch)
+{
+    
+    int a, a0, olda;
+    int b, b0, oldb;
+    a = a0 = olda = son0SpId;
+    b = b0 = oldb = son1SpId;
+    for (unsigned int i= 0 ; i < coalCountsFather.size() ; i++) { //for each branch of the sp tree
+        for (unsigned int j= 0 ; j < 2 ; j++) { //for incoming and outgoing counts
+            coalCountsFather[i][j] = coalCountsSon0[i][j] + coalCountsSon1[i][j];
+        }
+        //std::cout << "coalCountsFather[i][j] For Sp branch "<<i<<" Num coal in: "<< coalCountsFather[i][0] << " Num coal out: "<< coalCountsFather[i][1]<<std::endl;
+    }
+    
+    
+    
+    Node temp0 = *(tree.getNode(son0SpId));
+    Node temp1 = *(tree.getNode(son1SpId));
+    
+    while (a!=b) { //There is ILS!
+        if (a>b) {
+            nodesToTryInNNISearch.insert(sons[0]->getId());
+            recoverILS(temp0, a, olda, coalCountsFather);
+        }
+        else {
+            nodesToTryInNNISearch.insert(sons[1]->getId());
             recoverILS(temp1, b, oldb, coalCountsFather);
         }
     }
@@ -785,6 +489,77 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
 
 
 
+/*****************************************************************************
+ * This function performs a postorder tree traversal in order to  
+ * fill up vectors of counts of coalescence events for rootings. 
+ * For each branch of the species tree, we need to record how many lineages got in,
+ * and how many lineages got out.
+ * Thus, for each branch of the species tree, we have 2 ints: 
+ * vec[0]: number of incoming lineages
+ * vec[1]: number of outgoing lineages
+ * When followed by the preorder tree traversal function, 
+ * vectors of counts for all rootings are computed.
+ * coalCounts contains all lower counts for all nodes.
+ * speciesIDs contains all species IDs for all nodes.
+ * 
+ ****************************************************************************/
+
+void computeSubtreeCoalCountsPostorderAndFillTables(TreeTemplate<Node> & spTree, 
+                                                    TreeTemplate<Node> & geneTree, 
+                                                    Node * node, 
+                                                    std::map<std::string, std::string > & seqSp, 
+                                                    std::map<std::string, int > & spID, 
+                                                    std::vector< std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts,
+                                                    std::vector <std::vector<unsigned int> > & speciesIDs, 
+                                                    std::set<int> &      nodesToTryInNNISearch      ) {
+	int id=node->getId();
+ 	if (node->isLeaf()) { //In principle this should be done only once at the beginning of the algorithm, if node ids are kept
+        //Fill all leaf count vectors with 0s
+        initializeCountVectors(coalCounts[id]);
+        speciesIDs[id][0] = assignSpeciesIdToLeaf(node, seqSp, spID);
+        //        int i = spID[ seqSp[ node->getName()] ];
+        incrementOutCount(coalCounts[id][0], speciesIDs[id][0]);
+        return;
+    }
+    else {
+        std::vector <Node *> sons = node->getSons();
+        for (unsigned int i = 0; i< sons.size(); i++){
+            computeSubtreeCoalCountsPostorderAndFillTables(spTree, geneTree, 
+                                              sons[i], seqSp, 
+                                              spID, coalCounts, 
+                                              speciesIDs, nodesToTryInNNISearch);
+        }
+        
+        int idSon0 = sons[0]->getId();
+        int idSon1 = sons[1]->getId();
+        unsigned int directionSon0, directionSon1;
+        std::vector <Node *> neighbors = sons[0]->getNeighbors();
+        for (unsigned int i=0; i<neighbors.size(); i++) {
+            if (neighbors[i]==node) {
+                directionSon0 = i;
+            }
+        }
+        neighbors = sons[1]->getNeighbors();
+        for (unsigned int i=0; i<neighbors.size(); i++) {
+            if (neighbors[i]==node) {
+                directionSon1 = i;
+            }
+        }
+        computeCoalCountsFromSonsAndFillTables (spTree, sons, 
+                                                speciesIDs[id][0], 
+                                                speciesIDs[idSon0][directionSon0], 
+                                                speciesIDs[idSon1][directionSon1],
+                                                coalCounts[id][0],
+                                                coalCounts[idSon0][directionSon0], 
+                                                coalCounts[idSon1][directionSon1], 
+                                                nodesToTryInNNISearch
+                                                );                
+        return;
+	}	
+}
+
+
+
 
 
 
@@ -811,88 +586,79 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
                                std::map<std::string, int > spID,
                                std::vector< double> coalBl, 
                                int & MLindex, 
-                               std::vector < std::vector<std::vector<unsigned int> > > coalCounts,
+                               std::vector < std::vector < std::vector<std::vector<unsigned int> > > > coalCounts,
                                std::set <int> &nodesToTryInNNISearch, 
                                bool fillTables)
 {
 	if (!geneTree->isRooted()) {
 		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
-		std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliationDR !!!!!!"<<std::endl;
+		std::cout <<"!!!!!!gene tree is not rooted in findMLCoalReconciliationDR !!!!!!"<<std::endl;
         MPI::COMM_WORLD.Abort(1);
 		exit(-1);
     }		
-	std::vector <double> nodeData(3, 0.0);
-	std::vector <std::vector<double> > likelihoodData(geneTree->getNumberOfNodes(), nodeData);
     
-    std::vector <int> nodeSpId(3, 0);
-    std::vector <std::vector<int> > speciesIDs(geneTree->getNumberOfNodes(), nodeSpId);
-    std::vector <std::vector<int> > dupData = speciesIDs;
+    std::vector <unsigned int> nodeSpId(3, 0);
+
+    std::vector <std::vector< unsigned int> > speciesIDs(geneTree->getNumberOfNodes(), nodeSpId);
+
     
-    double initialLikelihood;
+    computeSubtreeCoalCountsPostorder(*spTree, 
+                                      *geneTree, 
+                                      geneTree->getRootNode(), 
+                                      seqSp, 
+                                      spID, 
+                                      coalCounts,
+                                      speciesIDs);
+
+    //Add the starting lineage at the root
+    for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+        if (coalCounts[geneTree->getRootNode()->getId()][0][i][0]==0 && coalCounts[geneTree->getRootNode()->getId()][0][i][1] !=0)
+        {
+            coalCounts[geneTree->getRootNode()->getId()][0][i][0]=1; 
+            break;
+            
+        }
+    }
+    
+ //   std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
+ //   std::cout <<"Gene Tree: \n" <<    TreeTools::treeToParenthesis(*geneTree, true) << std::endl;
+        
+    double initialLikelihood = computeCoalLikelihood ( coalCounts[geneTree->getRootNode()->getId()][0], coalBl ) ;
+    
+ //   std::cout << "Initial Likelihood: "<< initialLikelihood <<std::endl;
+   
     //This std::map keeps rootings likelihoods. The key is the likelihood value, and the value is the node to put as outgroup.
     std::map <double, Node*> LksToNodes;
-    
-    /* std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
-    //  std::cout << "IN findMLReconciliationDR "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
-    
-    //	std::cout <<"CLOCKBEFOREPOSTORDER "<<clock()<<std::endl;
-	Node * geneRoot = geneTree->getRootNode();
-    /*  std::cout <<"root number :"<<geneRoot->getId()<<std::endl;
-     std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
-    initialLikelihood = computeSubtreeLikelihoodPostorder(*spTree, *geneTree, 
-                                                          geneRoot, seqSp, spID, 
-                                                          likelihoodData, lossRates, 
-                                                          duplicationRates, speciesIDs, dupData);
-    /*    VectorTools::print(duplicationRates);
-     std::cout << TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
-     std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
-     std::cout << "initialLikelihood: "<< initialLikelihood << std::endl;*/
-    //  std::cout <<"CLOCKAFTERPOSTORDER "<<clock()<<std::endl;
-    //std::cout <<"Postorder tree traversal over: Initial likelihood: "<<initialLikelihood<<std::endl;
-	//computeSubtreeLikelihoodPrefix then computes the other conditional likelihoods, and also returns the best rooting.
+    //Now doing the preorder tree traversal
+    Node * geneRoot = geneTree->getRootNode();
     std::vector <Node *> sons = geneRoot->getSons();
-    
     if (sons.size()!=2) {
         std::cerr <<"Error: "<<sons.size()<< "sons at the root!"<<std::endl; 
     }
+    
     LksToNodes[initialLikelihood]=sons[0];
     //We fill the likelihood and species ID data for the root node.
     //We use "directions" 1 and 2 and leave "direction" 0 empty for coherence
     //with other nodes.
-    likelihoodData[geneRoot->getId()][1] = likelihoodData[geneRoot->getSon(1)->getId()][0];
-    likelihoodData[geneRoot->getId()][2] = likelihoodData[geneRoot->getSon(0)->getId()][0];
+    coalCounts[geneRoot->getId()][1] = coalCounts[geneRoot->getSon(1)->getId()][0];
+    coalCounts[geneRoot->getId()][2] = coalCounts[geneRoot->getSon(0)->getId()][0];
     speciesIDs[geneRoot->getId()][1] = speciesIDs[geneRoot->getSon(1)->getId()][0];
     speciesIDs[geneRoot->getId()][2] = speciesIDs[geneRoot->getSon(0)->getId()][0];
-    dupData[geneRoot->getId()][1] = dupData[geneRoot->getSon(1)->getId()][0];
-    dupData[geneRoot->getId()][2] = dupData[geneRoot->getSon(0)->getId()][0];
-    
-    /*  std::cout <<"likelihoodData[geneRoot->getId()][1]"<<likelihoodData[geneRoot->getId()][1]<<std::endl;
-     std::cout <<"likelihoodData[geneRoot->getId()][2]"<<likelihoodData[geneRoot->getId()][2]<<std::endl;
-     
-     for (int i=0 ; i<geneTree->getNumberOfNodes(); i++) {
-     std::cout <<"ID "<<i<<"likelihoodData[ID][0]"<<likelihoodData[i][0]<<std::endl;
-     }
-     */
     
     for (unsigned int i = 0; i< sons.size(); i++){
         for (unsigned int j =0; j<sons[i]->getNumberOfSons(); j++) {
-            computeSubtreeLikelihoodPreorder(*spTree, *geneTree, 
-                                             sons[i], seqSp, spID, 
-                                             likelihoodData, 
-                                             lossRates, duplicationRates, 
-                                             speciesIDs, dupData, j, LksToNodes);
+            computeSubtreeCoalCountsPreorder(*spTree, 
+                                             *geneTree, 
+                                             sons[i], 
+                                             seqSp, 
+                                             spID, 
+                                             coalCounts,
+                                             coalBl, 
+                                             speciesIDs, j, LksToNodes);
         }
     }
+
     
-    
-    /* 
-     std::cout <<"Printing all rooting likelihoods as found by the DR tree traversal"<<std::endl;
-     std::map<double, Node*>::iterator it;
-     
-     for ( it=LksToNodes.begin() ; it != LksToNodes.end(); it++ )
-     std::cout << (*it).second->getId() << " => " << (*it).first << std::endl;
-     */
-    //  std::cout << "IN findMLReconciliationDR: "<<TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
     
     vector<Node*> nodes = geneTree->getNodes();
     for (unsigned int i = 0 ; i < nodes.size() ; i++ ) {
@@ -901,13 +667,11 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
             break;
         }
     }
-    //    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
     
     LksToNodes.rbegin()->second->setNodeProperty("outgroupNode", BppString("here") );
-    //    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
     
-    geneTree->newOutGroup(LksToNodes.rbegin()->second); //uncomment that if you want to keep gene family trees fixed except for the root
-    //    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
+    geneTree->newOutGroup(LksToNodes.rbegin()->second);     
+    
     
     
     if (fillTables) {
@@ -915,9 +679,8 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
         //Now the best root has been found. I can thus run a function with this best root to fill all the needed tables. This additional tree traversal could be avoided.
         //To this end, the needed tables should be filled by the postfix and prefix traversals. This has not been done yet.
         //resetting
-        speciesIDs = std::vector<std::vector<int> > (geneTree->getNumberOfNodes(), nodeSpId);
+        speciesIDs = std::vector<std::vector<unsigned int> > (geneTree->getNumberOfNodes(), nodeSpId);
         
-        dupData = speciesIDs;
         // Getting a well-rooted tree
         TreeTemplate<Node > * tree = geneTree->clone();
         
@@ -928,21 +691,17 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
         
         nodesToTryInNNISearch.clear();
         
-        //Resetting numLineages std::vectors
-        resetVector(num0lineages);
-        resetVector(num1lineages);
-        resetVector(num2lineages);
+        computeSubtreeCoalCountsPostorderAndFillTables (*spTree, *tree, 
+                                                        tree->getRootNode(), 
+                                                        seqSp, spID, 
+                                                        coalCounts, speciesIDs, 
+                                                        nodesToTryInNNISearch);
         
-        
-        // std::cout <<"HERE_rooted_tree "<<TreeTools::treeToParenthesis (*tree, true)<<std::endl;
-        //  std::cout <<"HERE_rooted_tree2 "<<TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
-        //  std::cout <<"HERE_SP_tree "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
-        computeNumbersOfLineagesFromRoot(spTree, tree, 
+       /* computeNumbersOfLineagesFromRoot(spTree, tree, 
                                          tree->getRootNode(), 
                                          seqSp, spID, 
-                                         num0lineages, num1lineages, 
-                                         num2lineages, speciesIDs, 
-                                         dupData, nodesToTryInNNISearch);
+                                         coalCounts, speciesIDs, 
+                                         nodesToTryInNNISearch);*/
         delete tree;
         
     }
@@ -961,6 +720,28 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
 
 
 
+void computeCoalBls (std::vector< unsigned int > &  num12Lineages, 
+                     std::vector< unsigned int > &  num22Lineages, 
+                     std::vector<double> &coalBls) 
+{
+    double n12;
+    double n22;
+    for (unsigned int i = 0 ; i < num12Lineages.size() ; i++) {
+        n12 = num12Lineages[i];
+        n22 = num22Lineages[i];
+        if (n22 ==0) {
+            n22 = 1;
+        }
+        if (n12 ==0) {
+            n12 = 1;
+        }
+       // estimate = log((n12+n22)/n22);        
+        //std::cout <<"\t\tAnalytical estimate: "<< estimate<<std::endl;
+        coalBls[i] = log((n12+n22)/n22);
+    }
+    return;
+    
+}
 
 
 
@@ -968,13 +749,15 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
 
 
 
-
-
-
-
-
-
-
+void computeCoalBls (std::vector < std::vector < std::vector< unsigned int > > >&  allGeneCounts , std::vector<double> &coalBls) 
+{
+    for (unsigned int i = 0 ; i < allGeneCounts.size() ; i++) {
+        CoalBranchLikelihood *brLikFunction = new CoalBranchLikelihood(allGeneCounts[i]);
+        //Initialize BranchLikelihood:
+        coalBls[i] = brLikFunction->estimateBl();
+    }
+    return;
+}
 
 
 
@@ -984,12 +767,18 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
 
 /*******************************************************************************/
 
-//Creating the compressed vector, and the map giving the weights for the "site" patterns
+//Creating the compressed vector, and the map giving the weights for the "site" patterns.
+//The compressed vector is like the compressed alignment in sequence likelihood:
+//it gives the weights (=number of occurences) for different patterns.
+//Finally it givs an estimate of the branch length in coalescent units, and does so by using the counts
+//n12 and n22. One could simply use these counts instead of counting all patterns.
 double CoalBranchLikelihood::initModel()
 {
     string pattern = "";
     compressedVec_.clear();
     std::vector <unsigned int> v (2, 1);
+    //We fill the map that associates patterns to weights.
+    //If we want to count everything:
     for (unsigned int i = 0 ; i < vec_.size() ; i++) {
         pattern = TextTools::toString(vec_[i][0]) + TextTools::toString(vec_[i][1]);
         if ( patternToWeights_.find(pattern)!= patternToWeights_.end() ) {
@@ -1017,34 +806,38 @@ double CoalBranchLikelihood::initModel()
         n12 = 1;
     }
     estimate = log((n12+n22)/n22);
+}
+
+//Just returning the analytical estimate of the branch length, 
+//in coalescent units, using the input vector.
+double CoalBranchLikelihood::estimateBl()
+{
+    //We just count n12 and n22
+    double n12;
+    double n22;
+    for (unsigned int i = 0 ; i < vec_.size() ; i++) {
+        if ( vec_[i][0]  == 1 && vec_[i][1] == 2) {
+            n12 += 1; 
+        }
+        else if (vec_[i][0]  == 2 && vec_[i][1] == 2) {
+            n22 += 1; 
+        }
+    }    
+    double estimate;
+    std::cout <<"n12 "<< n12 <<" n22 "<< n22 <<std::endl;
+    if (n22 ==0) {
+        n22 = 1;
+    }
+    if (n12 ==0) {
+        n12 = 1;
+    }
+    estimate = log((n12+n22)/n22);
     
     std::cout <<"\t\tAnalytical estimate: "<< estimate<<std::endl;
     
     return estimate;
 }
 
-/*******************************************************************************/
-/*
-void CoalBranchLikelihood::computeAllTransitionProbabilities()
-{
-    double l = getParameterValue("BrLen"); 
-    
-    //Computes all pxy once for all:
-    for(unsigned int c = 0; c < nbClasses_; c++)
-    {
-        VVdouble * pxy__c = & pxy_[c];
-        RowMatrix<double> Q = _model->getPij_t(l * _rDist->getCategory(c));
-        for(unsigned int x = 0; x < nbStates_; x++)
-        {
-            Vdouble * pxy__c_x = & (* pxy__c)[x];
-            for(unsigned int y = 0; y < nbStates_; y++)
-            {
-                (* pxy__c_x)[y] = Q(x, y);
-            }
-        }
-    } 
-}
-*/
 /*******************************************************************************/
 
 void CoalBranchLikelihood::computeLogLikelihood()
@@ -1059,57 +852,358 @@ void CoalBranchLikelihood::computeLogLikelihood()
     }
 
     return;
-    /*
-    _arrayTmp = *_array1;
-    lnL_ = 0;
-    for(unsigned int i = 0; i < _array1->size(); i++)
-    {
-        VVdouble * arrayTmp_i = & _arrayTmp[i];
-        const VVdouble * array2_i = & (*_array2)[i];
-        for(unsigned int c = 0; c < nbClasses_; c++)
-        {
-            Vdouble * arrayTmp_i_c = & (*arrayTmp_i)[c];
-            const Vdouble * array2_i_c = & (*array2_i)[c];
-            VVdouble *pxy__c = & pxy_[c];
-            for(unsigned int x = 0; x < nbStates_; x++)
-            {
-                Vdouble *pxy__c_x = & (*pxy__c)[x];
-                double likelihood = 0;
-                for(unsigned int y = 0; y < nbStates_; y++)
-                {
-                    likelihood += (*pxy__c_x)[y] * (*array2_i_c)[y];
-                }
-                (*arrayTmp_i_c)[x] *= likelihood;
-            }
-        }
-    }
-    
-    vector<double> la(_array1->size());
-    for(unsigned int i = 0; i < _array1->size(); i++)
-    {
-        VVdouble * arrayTmp_i = & _arrayTmp[i];
-        double Li = 0;
-        for(unsigned int c = 0; c < nbClasses_; c++)
-        {
-            Vdouble * arrayTmp_i_c = & (*arrayTmp_i)[c];
-            double rc = _rDist->getProbability(c);
-            for(unsigned int x = 0; x < nbStates_; x++)
-            {
-                //Li += rc * _model->freq(x) * (* arrayTmp_i_c)[x];
-                //freq is already accounted in the array
-                Li += rc * (* arrayTmp_i_c)[x];
-            }
-        }
-        la[i] = _weights[i] * log(Li);
-    }
-    sort(la.begin(), la.end());
-    for(unsigned int i = _array1->size(); i > 0; i--)
-        lnL_ -= la[i-1];*/
     
 }
 
 
 /*******************************************************************************/
+
+
+
+
+
+//mpic++ -g -lbpp-core -lbpp-seq -lbpp-phyl -lboost_serialization -lboost_mpi CoalTools.cpp ReconciliationTools.cpp -o CoalTools
+
+/*
+ //Test main function
+ int main(int args, char ** argv)
+ {
+ std::string spStr = "(((A,B),C),(D,E));";
+ std::string gStr = "((A,(B,C)),(D,E));";
+ //    std::string gStr = "(((A,D), (B,C)),E);";
+ TreeTemplate <Node>* spTree = TreeTemplateTools::parenthesisToTree(spStr);
+ TreeTemplate <Node>* geneTree = TreeTemplateTools::parenthesisToTree(gStr);
+ 
+ std::map<std::string, std::string > seqSp;
+ 
+ //    seqSp.insert( pair<std::string, std::string >("taxon1","taxon1") );
+ //    seqSp.insert( pair<std::string, std::string >("taxon2","taxon2") );
+ //    seqSp.insert( pair<std::string, std::string >("taxon3","taxon3") );
+ //    seqSp.insert( pair<std::string, std::string >("taxon4","taxon4") );
+ //    seqSp.insert( pair<std::string, std::string >("taxon5","taxon5") );
+ //    seqSp.insert( pair<std::string, std::string >("taxon6","taxon6") );
+ //    seqSp.insert( pair<std::string, std::string >("taxon7","taxon7") );
+ //    seqSp.insert( pair<std::string, std::string >("taxon8","taxon8") );
+ 
+ 
+ 
+ seqSp.insert( pair<std::string, std::string >("A","A") );
+ seqSp.insert( pair<std::string, std::string >("B","B") );
+ seqSp.insert( pair<std::string, std::string >("C","C") );
+ seqSp.insert( pair<std::string, std::string >("D","D") );
+ seqSp.insert( pair<std::string, std::string >("E","E") );
+ 
+ //    seqSp.insert( pair<std::string, std::string >("F","F") );
+ //    seqSp.insert( pair<std::string, std::string >("G","G") );
+ //    seqSp.insert( pair<std::string, std::string >("H","H") );
+ 
+ 
+ 
+ 
+ 
+ //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
+ std::vector < std::vector< std::vector< std::vector< unsigned int > > > > coalCounts;
+ std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
+ std::vector< std::vector<unsigned int> > coalCounts3;
+ std::vector< unsigned int > coalCounts4;
+ //speciesIDs: vector of genetreenbnodes vectors of 3 (3 directions) ints
+ std::vector <std::vector<unsigned int> > speciesIDs;
+ std::vector < unsigned int > speciesIDs2;
+ for (unsigned int i = 0 ; i < 2 ; i++ ) {
+ coalCounts4.push_back(0);
+ }
+ for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+ coalCounts3.push_back(coalCounts4);
+ }
+ for (unsigned int i = 0 ; i < 3 ; i++ ) {
+ coalCounts2.push_back(coalCounts3);
+ speciesIDs2.push_back(0);
+ }
+ for (unsigned int i = 0 ; i < geneTree->getNumberOfNodes() ; i++ ) {
+ coalCounts.push_back(coalCounts2);
+ speciesIDs.push_back(speciesIDs2);
+ }
+ 
+ breadthFirstreNumber (*spTree);
+ std::map<std::string, int > spID = computeSpeciesNamesToIdsMap(*spTree);
+ 
+ for(std::map<std::string, int >::iterator it = spID.begin(); it != spID.end(); it++){
+ std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
+ }
+ 
+ computeSubtreeCoalCountsPostorder(*spTree, 
+ *geneTree, 
+ geneTree->getRootNode(), 
+ seqSp, 
+ spID, 
+ coalCounts,
+ speciesIDs);
+ //Add the starting lineage at the root
+ for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+ if (coalCounts[geneTree->getRootNode()->getId()][0][i][0]==0 && coalCounts[geneTree->getRootNode()->getId()][0][i][1] !=0)
+ {
+ //coalCounts[geneTree->getRootNode()->getId()][0][0][0] = 1;
+ coalCounts[geneTree->getRootNode()->getId()][0][i][0]=1; 
+ break;
+ 
+ }
+ }
+ 
+ std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
+ std::cout <<"Gene Tree: \n" <<    TreeTools::treeToParenthesis(*geneTree, true) << std::endl;
+ 
+ for (unsigned int i = 0 ; i < coalCounts[geneTree->getRootNode()->getId()][0].size() ; i++) {
+ std::cout << "Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][0] << " Num coal out: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][1]<<std::endl;
+ }
+ 
+ std::vector<double> bls (spTree->getNumberOfNodes(), 2.0);
+ 
+ double initialLikelihood = computeCoalLikelihood ( coalCounts[geneTree->getRootNode()->getId()][0], bls ) ;
+ 
+ std::cout << "Initial Likelihood: "<< initialLikelihood <<std::endl;
+ 
+ std::map <double, Node*> LksToNodes;
+ //Now doing the preorder tree traversal
+ Node * geneRoot = geneTree->getRootNode();
+ std::vector <Node *> sons = geneRoot->getSons();
+ if (sons.size()!=2) {
+ std::cerr <<"Error: "<<sons.size()<< "sons at the root!"<<std::endl; 
+ }
+ 
+ LksToNodes[initialLikelihood]=sons[0];
+ //We fill the likelihood and species ID data for the root node.
+ //We use "directions" 1 and 2 and leave "direction" 0 empty for coherence
+ //with other nodes.
+ coalCounts[geneRoot->getId()][1] = coalCounts[geneRoot->getSon(1)->getId()][0];
+ coalCounts[geneRoot->getId()][2] = coalCounts[geneRoot->getSon(0)->getId()][0];
+ speciesIDs[geneRoot->getId()][1] = speciesIDs[geneRoot->getSon(1)->getId()][0];
+ speciesIDs[geneRoot->getId()][2] = speciesIDs[geneRoot->getSon(0)->getId()][0];
+ 
+ 
+ 
+ 
+ for (unsigned int i = 0; i< sons.size(); i++){
+ for (unsigned int j =0; j<sons[i]->getNumberOfSons(); j++) {
+ computeSubtreeCoalCountsPreorder(*spTree, 
+ *geneTree, 
+ sons[i], 
+ seqSp, 
+ spID, 
+ coalCounts,
+ bls, 
+ speciesIDs, j, LksToNodes);
+ }
+ }
+ for (unsigned int j = 0 ; j < geneTree->getNumberOfNodes() ; j++) {
+ std::cout << "Node j: " <<std::endl;
+ for (unsigned int i = 0 ; i < coalCounts[j][0].size() ; i++) {
+ std::cout << "\tSp Branch "<<i<<" Num coal in: "<< coalCounts[j][0][i][0] << " Num coal out: "<< coalCounts[j][0][i][1]<<std::endl;
+ std::cout << "\tSp Branch "<<i<<" Num coal in: "<< coalCounts[j][1][i][0] << " Num coal out: "<< coalCounts[j][1][i][1]<<std::endl;
+ std::cout << "\tSp Branch "<<i<<" Num coal in: "<< coalCounts[j][2][i][0] << " Num coal out: "<< coalCounts[j][2][i][1]<<std::endl;
+ 
+ }
+ }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Newick *treeReader = new Newick(true);
+ vector<Tree *> gTrees;
+ //treeReader->read("testGeneTrees", gTrees);
+ //   treeReader->read("geneTrees7", gTrees);
+ //treeReader->read("5000SimulatedTrees8Taxa.trees", gTrees);
+ // treeReader->read("mesquite500SimCoalTreesNe10000_Depth100000.proj.phy", gTrees);
+ //  treeReader->read("mesquite500SimCoalTreesNe10000_Depth100000.proj.phy", gTrees);
+ treeReader->read("40Sp_500GeneTrees.phy", gTrees);
+ 
+ 
+ vector<Tree *> spTrees;
+ //    treeReader->read("spTree", spTrees);
+ //    treeReader->read("spTree2.0", spTrees);
+ //    treeReader->read("spTree7", spTrees);
+ //  treeReader->read("SpTree8.tree", spTrees);
+ //    treeReader->read("1SimulatedSpTree8Taxa_Depth100000.tree", spTrees);
+ treeReader->read("40Sp_First.phy", spTrees);
+ 
+ delete treeReader;
+ //TEMP    TreeTemplate <Node>* spTree = dynamic_cast<TreeTemplate<Node>*>(spTrees[0]);
+ vector<string> leaves = spTree->getLeavesNames();
+ for (unsigned int i = 0 ; i < leaves.size() ; i++) {
+ seqSp.insert( pair<std::string, std::string >(leaves[i],leaves[i]) );
+ }
+ 
+ breadthFirstreNumber (*spTree);
+ //TEMP   std::map<std::string, int > spID = computeSpeciesNamesToIdsMap(*spTree);
+ 
+ for(std::map<std::string, int >::iterator it = spID.begin(); it != spID.end(); it++){
+ std::cout <<"it->first: "<< it->first << " : "<< it->second <<std::endl;
+ }
+ 
+ 
+ 
+ //     Checking the likelihood computation against results from Rosenberg 2002: it works.
+ //    //11
+ //    vector<unsigned int > vec(2, 1);
+ //    double loglk = computeCoalLikelihood ( vec, 1.0 ) ;
+ //    std::cout << "11: "<< loglk<< std::endl;
+ //    
+ //    vec[1] = 2;
+ //     loglk = computeCoalLikelihood ( vec, 1.0 ) ;
+ //    std::cout << "12: "<<loglk<< std::endl;
+ //
+ //    vec[0] = 2;
+ //     loglk = computeCoalLikelihood ( vec, 1.0 ) ;
+ //    std::cout << "22: "<<loglk<< std::endl;
+ //
+ //    vec[1] = 3;
+ //     loglk = computeCoalLikelihood ( vec, 1.0 ) ;
+ //    std::cout << "23: "<<loglk<< std::endl;
+ //
+ //    vec[0] = 3;
+ //     loglk = computeCoalLikelihood ( vec, 1.0 ) ;
+ //    std::cout << "33: "<<loglk<< std::endl;
+ 
+ 
+ 
+ 
+ 
+ //TEMP  std::vector<double> bls (spTree->getNumberOfNodes(), 2.0);
+ //    for (unsigned int i = 0 ; i < bls.size() ; i++) {
+ //        if ( spTree->getNode(i)->hasFather() )
+ //            bls[i] = spTree->getNode(i)->getDistanceToFather();
+ //    }
+ 
+ std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
+ //TEMP   TreeTemplate <Node>* geneTree = 0;
+ 
+ //allGeneCounts: nbSpeciesBranches vectors of gTrees.size() vectors of 2 ints
+ std::vector < std::vector < std::vector<unsigned int> > >  allGeneCounts;
+ std::vector< std::vector< unsigned int > > allGeneCounts2;
+ std::vector< unsigned int > allGeneCounts3;
+ for (unsigned int i = 0 ; i < 2 ; i++ ) {
+ allGeneCounts3.push_back(0);
+ }
+ for (unsigned int i = 0 ; i < gTrees.size() ; i++ ) {
+ allGeneCounts2.push_back(allGeneCounts3);
+ }
+ for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+ allGeneCounts.push_back(allGeneCounts2);
+ }
+ 
+ 
+ 
+ for (unsigned int j = 0 ; j < gTrees.size() ; j++) {
+ geneTree= dynamic_cast<TreeTemplate<Node>*>(gTrees[j]);
+ //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
+ std::vector < std::vector< std::vector< std::vector< unsigned int > > > > coalCounts;
+ std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
+ std::vector< std::vector<unsigned int> > coalCounts3;
+ std::vector< unsigned int > coalCounts4;
+ //speciesIDs: vector of genetreenbnodes vectors of 3 (3 directions) ints
+ std::vector <std::vector<unsigned int> > speciesIDs;
+ std::vector < unsigned int > speciesIDs2;
+ for (unsigned int i = 0 ; i < 2 ; i++ ) {
+ coalCounts4.push_back(0);
+ }
+ for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+ coalCounts3.push_back(coalCounts4);
+ }
+ for (unsigned int i = 0 ; i < 3 ; i++ ) {
+ coalCounts2.push_back(coalCounts3);
+ speciesIDs2.push_back(0);
+ }
+ for (unsigned int i = 0 ; i < geneTree->getNumberOfNodes() ; i++ ) {
+ coalCounts.push_back(coalCounts2);
+ speciesIDs.push_back(speciesIDs2);
+ }
+ 
+ computeSubtreeCoalCountsPostorder(*spTree, 
+ *geneTree, 
+ geneTree->getRootNode(), 
+ seqSp, 
+ spID, 
+ coalCounts,
+ speciesIDs);
+ //Add the starting lineage at the root
+ for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+ if (coalCounts[geneTree->getRootNode()->getId()][0][i][0]==0 && coalCounts[geneTree->getRootNode()->getId()][0][i][1] !=0)
+ {
+ //coalCounts[geneTree->getRootNode()->getId()][0][0][0] = 1;
+ coalCounts[geneTree->getRootNode()->getId()][0][i][0]=1; 
+ break;
+ 
+ }
+ }
+ 
+ //            for (unsigned int i = 0 ; i < coalCounts[geneTree->getRootNode()->getId()][0].size() ; i++) {
+ //         std::cout << "Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][0] << " Num coal out: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][1]<<std::endl;
+ //         }
+ //Now we compute the likelihood of the rooted gene tree:
+ double loglk = computeCoalLikelihood ( coalCounts[geneTree->getRootNode()->getId()][0], bls ) ;
+ //  std::cout << "lk: "<<exp(loglk)<<std::endl;
+ for (unsigned int i = 0 ; i < spTree->getNumberOfNodes() ; i++ ) {
+ allGeneCounts[i][j] = coalCounts[geneTree->getRootNode()->getId()][0][i];
+ }
+ }
+ 
+ //If we want to do numerical optimization
+ // BrentOneDimension *brentOptimizer = new BrentOneDimension();
+ vector<double> blAnalytical = bls;
+ for (unsigned int i = 0 ; i < allGeneCounts.size() ; i++) {
+ CoalBranchLikelihood *brLikFunction = new CoalBranchLikelihood(allGeneCounts[i]);
+ //Initialize BranchLikelihood:
+ blAnalytical[i] = brLikFunction->initModel();
+ 
+ //If we want to do numerical optimization
+ 
+ //        ParameterList parameters;
+ //        Parameter brLen = Parameter("BrLen", blAnalytical[i]);//, ExcludingPositiveReal (0) );
+ //        parameters.addParameter(brLen);
+ //        brLikFunction->setParameters(parameters);
+ //        
+ //        //Re-estimate branch length:
+ //        brentOptimizer->setVerbose(0);
+ //        brentOptimizer->setFunction(brLikFunction);
+ //        brentOptimizer->getStopCondition()->setTolerance(0.000001);
+ //        brentOptimizer->setInitialInterval(0, brLen.getValue()+2);
+ //        brentOptimizer->init(parameters);
+ //        brentOptimizer->optimize();
+ //        bls[i] =brentOptimizer->getParameters().getParameter("BrLen").getValue();
+ //        std::cout <<"Value for Sp branch "<<i<<": "<< bls[i] << std::endl;
+ 
+ }
+ for (unsigned int i = 0 ; i < bls.size() ; i++) {
+ if ( spTree->getNode(i)->hasFather() )
+ spTree->getNode(i)->setDistanceToFather(bls[i]);
+ }
+ std::cout <<"Species Tree optimized: \n" << TreeTools::treeToParenthesis(*spTree, true) << std::endl;
+ std::cout <<"Species Tree optimized: \n" << TreeTools::treeToParenthesis(*spTree, false) << std::endl;
+ 
+ for (unsigned int i = 0 ; i < bls.size() ; i++) {
+ if ( spTree->getNode(i)->hasFather() )
+ spTree->getNode(i)->setDistanceToFather(blAnalytical[i]);
+ }
+ std::cout <<"Species Tree analytical: \n" << TreeTools::treeToParenthesis(*spTree, true) << std::endl;
+ std::cout <<"Species Tree analytical: \n" << TreeTools::treeToParenthesis(*spTree, false) << std::endl;
+ 
+ return 0;
+ 
+ }
+ */
 
 
 

@@ -113,6 +113,136 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
   return DepthToIds;
 }
 
+/**************************************************************************
+ * This function re-numbers nodes with a breadth-first traversal.
+ * 0 =white, 1 = grey, 2 = black
+ * It also updates std::vectors of duplication and loss probabilities and of coalescent branch lengths.
+ * It should also return a std::map giving the correspondence between depth levels and node Ids
+ **************************************************************************/
+std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector<double> & duplicationProbabilities, std::vector <double> & lossProbabilities, std::vector <double> & coalBl) {
+    int index = 0;
+    std::map<Node *, int> color ;
+    std::map <int, std::vector <int> > DepthToIds; //A std::map where we store the correspondence between the depth of a node (number of branches between the root and the node) and the node id.
+    std::map <int, int > IdsToDepths;
+    std::vector <double> dupProba=duplicationProbabilities;
+    std::vector <double> lossProba=lossProbabilities;
+    std::vector <double> cBl=coalBl;
+    std::vector <Node * > nodes = tree.getNodes();
+    //All nodes white
+    for (unsigned int i = 0; i< nodes.size() ; i++) {
+        color.insert(std::pair <Node *,int>(nodes[i],0));
+    }
+    std::queue <Node *> toDo;
+    toDo.push(tree.getRootNode());
+    color[tree.getRootNode()] = 1;
+    double dupValue=duplicationProbabilities[tree.getRootNode()->getId()];
+    double lossValue=lossProbabilities[tree.getRootNode()->getId()];
+    double cValue = coalBl[tree.getRootNode()->getId()];
+    dupProba[index]=dupValue;
+    lossProba[index]=lossValue;
+    cBl[index] = cValue;
+    tree.getRootNode()->setId(index);
+    std::vector <int> v;
+    DepthToIds.insert(std::pair <int, std::vector<int> > (0,v));
+    DepthToIds[0].push_back(index);
+    IdsToDepths[index] = 0;
+    index++;
+    Node * u;
+    while(!toDo.empty()) {
+        u = toDo.front();
+        toDo.pop();
+        int fatherDepth = IdsToDepths[u->getId()];
+        std::vector <Node *> sons;
+        for (unsigned int j = 0 ; j< u->getNumberOfSons() ; j++) {
+            sons.push_back(u->getSon(j));
+        }
+        for (unsigned int j = 0; j< sons.size() ; j++) {
+            if (color[sons[j]]==0) {
+                color[sons[j]]=1;
+                dupValue=duplicationProbabilities[sons[j]->getId()];
+                lossValue=lossProbabilities[sons[j]->getId()];
+                cValue = coalBl[sons[j]->getId()];
+                dupProba[index]=dupValue;
+                lossProba[index]=lossValue;
+                cBl[index] = cValue;
+                sons[j]->setId(index);
+                if (DepthToIds.count(fatherDepth+1)==0) {
+                    DepthToIds.insert(std::pair <int, std::vector<int> > (fatherDepth+1,v));
+                }
+                DepthToIds[fatherDepth+1].push_back(index); 
+                IdsToDepths[index] = fatherDepth+1;
+                index++;
+                toDo.push(sons[j]);
+            }
+        }
+        color[u]=2;
+    }
+    duplicationProbabilities=dupProba;
+    lossProbabilities=lossProba;
+    coalBl = cBl;
+    return DepthToIds;
+}
+
+
+/**************************************************************************
+ * This function re-numbers nodes with a breadth-first traversal.
+ * 0 =white, 1 = grey, 2 = black
+ * It also updates a std::vector of coalescent branch lengths.
+ * It should also return a std::map giving the correspondence between depth levels and node Ids
+ **************************************************************************/
+std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector <double> & coalBl) {
+    int index = 0;
+    std::map<Node *, int> color ;
+    std::map <int, std::vector <int> > DepthToIds; //A std::map where we store the correspondence between the depth of a node (number of branches between the root and the node) and the node id.
+    std::map <int, int > IdsToDepths;
+    std::vector <double> cBl=coalBl;
+    std::vector <Node * > nodes = tree.getNodes();
+    //All nodes white
+    for (unsigned int i = 0; i< nodes.size() ; i++) {
+        color.insert(std::pair <Node *,int>(nodes[i],0));
+    }
+    std::queue <Node *> toDo;
+    toDo.push(tree.getRootNode());
+    color[tree.getRootNode()] = 1;
+    double cValue = coalBl[tree.getRootNode()->getId()];
+    cBl[index] = cValue;
+    tree.getRootNode()->setId(index);
+    std::vector <int> v;
+    DepthToIds.insert(std::pair <int, std::vector<int> > (0,v));
+    DepthToIds[0].push_back(index);
+    IdsToDepths[index] = 0;
+    index++;
+    Node * u;
+    while(!toDo.empty()) {
+        u = toDo.front();
+        toDo.pop();
+        int fatherDepth = IdsToDepths[u->getId()];
+        std::vector <Node *> sons;
+        for (unsigned int j = 0 ; j< u->getNumberOfSons() ; j++) {
+            sons.push_back(u->getSon(j));
+        }
+        for (unsigned int j = 0; j< sons.size() ; j++) {
+            if (color[sons[j]]==0) {
+                color[sons[j]]=1;
+                cValue = coalBl[sons[j]->getId()];
+                cBl[index] = cValue;
+                sons[j]->setId(index);
+                if (DepthToIds.count(fatherDepth+1)==0) {
+                    DepthToIds.insert(std::pair <int, std::vector<int> > (fatherDepth+1,v));
+                }
+                DepthToIds[fatherDepth+1].push_back(index); 
+                IdsToDepths[index] = fatherDepth+1;
+                index++;
+                toDo.push(sons[j]);
+            }
+        }
+        color[u]=2;
+    }
+    coalBl = cBl;
+    return DepthToIds;
+}
+
+
 //There we do not update probabilities
 
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree) {
@@ -306,6 +436,13 @@ void printVectorLine(std::vector<int> & v) {
     std::cout <<  "i : "<<i<< " vi : "<< v[i]<<" ";
   }
   std::cout <<std::endl;
+}
+
+void resetVector(std::vector<unsigned int> & v) {
+    unsigned int temp=v.size();
+    for (unsigned int i=0;i<temp ; i++) {
+        v[i]=0;
+    }
 }
 
 void resetVector(std::vector<int> & v) {

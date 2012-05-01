@@ -54,64 +54,33 @@
 #include "COALTools.h"
 
 #include "GeneTreeAlgorithms.h"
+#include "GeneTreeLikelihood.h"
+
 #include "mpi.h" 
 
-namespace bpp 
+using namespace bpp;
+
+
+/*namespace bpp 
 {
-    
+  */  
     /**
      * @brief This class adds support for coalescence-based reconciliation to a species tree to the NNIHomogeneousTreeLikelihood class.
      */
-    class COALGeneTreeLikelihood
+    class COALGeneTreeLikelihood:
+    public GeneTreeLikelihood
     {
-        NNIHomogeneousTreeLikelihood * nniLk_;
-        //  TreeTemplate<Node> * _tree;
-        TreeTemplate<Node> * _spTree;
-        TreeTemplate<Node> * _rootedTree;
-        TreeTemplate<Node> * _geneTreeWithSpNames;
-        const std::map <std::string, std::string> _seqSp;
-        std::map <std::string, int> _spId;
- 
         //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
-        std::vector < std::vector<std::vector<unsigned int> > > coalCounts;
+        std::vector < std::vector < std::vector < std::vector< unsigned int > > > > _coalCounts;
+        mutable std::vector < std::vector < std::vector < std::vector < unsigned int > > > > _tentativeCoalCounts;
+
         //coalBl: length of a branch of the species tree, in coalescent units (1 coalescent unit = N generations)
-        std::vector < double > coalBl;
+        std::vector < double > _coalBl;
         
-        /*
-        std::vector <int> _duplicationNumbers;
-        std::vector <int> _lossNumbers;
-        std::vector <int>  _branchNumbers;
-        std::vector <double> _duplicationProbabilities;
-        std::vector <double> _lossProbabilities; 
-        std::vector <int> _num0Lineages;
-        std::vector <int> _num1Lineages;
-        std::vector <int> _num2Lineages;
-        mutable std::vector <int> _tentativeDuplicationNumbers;
-        mutable std::vector <int> _tentativeLossNumbers; 
-        mutable std::vector <int> _tentativeBranchNumbers; 
-        mutable std::vector <int> _tentativeNum0Lineages;
-        mutable std::vector <int> _tentativeNum1Lineages; 
-        mutable std::vector <int> _tentativeNum2Lineages;
-        mutable bool _DLStartingGeneTree;
-         */
-        
-        std::set <int> _nodesToTryInNNISearch;
-        double _scenarioLikelihood;
-        //  mutable double _sequenceLikelihood;
-        int _MLindex;
-        bool _rootOptimization;
-        mutable std::set <int> _tentativeNodesToTryInNNISearch;
-        mutable int _tentativeMLindex;
-        mutable double _tentativeScenarioLikelihood;
-        mutable int _totalIterations;
-        mutable int _counter;
-        mutable std::vector <int> _listOfPreviousRoots;
-        int _speciesIdLimitForRootPosition;
-        int _heuristicsLevel;
-        mutable bool _optimizeSequenceLikelihood;
-        mutable bool _optimizeReconciliationLikelihood;
-        mutable bool _considerSequenceLikelihood;
-        unsigned int sprLimit_;
+        //num12Lineages_ and num22Lineages_: counts of these particular patterns for each branch of the species tree.
+        std::vector< unsigned int > num12Lineages_;
+        std::vector< unsigned int > num22Lineages_;
+
         
     public:
         /**
@@ -143,7 +112,7 @@ namespace bpp
                                TreeTemplate<Node> & geneTreeWithSpNames,
                                const std::map <std::string, std::string> seqSp,
                                std::map <std::string,int> spId,
-                               std::vector < std::vector<std::vector<unsigned int> > > coalCounts,
+                               std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
                                std::vector < double > coalBl,
                                int speciesIdLimitForRootPosition,
                                int heuristicsLevel,
@@ -186,7 +155,7 @@ namespace bpp
                                TreeTemplate<Node> & geneTreeWithSpNames,
                                const std::map <std::string, std::string> seqSp,
                                std::map <std::string,int> spId,
-                               std::vector < std::vector<std::vector<unsigned int> > > coalCounts,
+                               std::vector < std::vector < std::vector < std::vector <unsigned int> > > > coalCounts,
                                std::vector < double > coalBl,
                                int speciesIdLimitForRootPosition,  
                                int heuristicsLevel,
@@ -256,7 +225,15 @@ namespace bpp
         
         void doNNI(int nodeId) throw (NodeException);
         
-        std::vector < std::vector<std::vector<unsigned int> > > getCoalNumbers() const;
+        std::vector < std::vector < std::vector<std::vector< unsigned int > > > > getCoalCounts() const;
+        
+        void computeNumLineagesFromCoalCounts () ;
+        
+        std::vector< unsigned int > getNum12Lineages() const;
+        
+        std::vector< unsigned int > getNum22Lineages() const;
+
+        std::vector <double> getCoalBranchLengths() const;
         
         ParameterList getParameters() {return nniLk_->getParameters();}
         
@@ -268,7 +245,7 @@ namespace bpp
         
         std::map <std::string, std::string> getSeqSp() {return _seqSp;}
         
-        void setCoalBl (std::vector < double > coalBl);
+        void setCoalBranchLengths (std::vector < double > coalBl);
         
         int getRootNodeindex();
         
@@ -293,7 +270,8 @@ namespace bpp
          * and executes the ones with the highest likelihood. 
          ************************************************************************/
         void refineGeneTreeSPRs(map<string, string> params);
-        
+
+        void refineGeneTreeSPRsFast(map<string, string> params);
         
         void refineGeneTreeSPRs2(map<string, string> params);
         
@@ -313,7 +291,7 @@ namespace bpp
     };
     
     
-} //end of namespace bpp.
+//} //end of namespace bpp.
 
 
 

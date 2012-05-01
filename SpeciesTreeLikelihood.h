@@ -31,6 +31,7 @@
 #include <boost/mpi/communicator.hpp>
 
 #include "ReconciliationTools.h"
+#include "COALTools.h"
 #include "SpeciesTreeExploration.h"
 //#include "GenericTreeExplorationAlgorithms.h"
 
@@ -85,9 +86,20 @@ namespace bpp
         std::vector <int> bestNum0Lineages_; 
         std::vector <int> bestNum1Lineages_; 
         std::vector <int> bestNum2Lineages_; 
+        //These 3 ones have become obsolete:
         std::vector <std::vector<int> > allNum0Lineages_;
         std::vector <std::vector<int> > allNum1Lineages_;
         std::vector <std::vector<int> > allNum2Lineages_;
+        //For coalescent model:
+        std::vector< unsigned int > num12Lineages_;
+        std::vector< unsigned int > num22Lineages_;
+        std::vector< unsigned int > bestNum12Lineages_;
+        std::vector< unsigned int > bestNum22Lineages_;
+
+       // std::vector < std::vector < std::vector < std::vector< unsigned int > > > > backupCoalCounts_;
+        std::vector < double > coalBls_;
+        std::vector < double > backupCoalBls_;
+
         //Whether we should rearrange the gene trees
         bool rearrange_;
         //Number of iterations of the search algorithm without improvement
@@ -110,7 +122,9 @@ namespace bpp
         unsigned int currentStep_;
         //Suffix to add to all files output by the program
         std::string suffix_;
-
+        //String giving the model to use for gene tree/species tree reconciliation
+        std::string reconciliationModel_;
+        
   public:
 
   //Simple constructor
@@ -184,63 +198,73 @@ namespace bpp
   */
   
   //Copy constructor
-  SpeciesTreeLikelihood(const SpeciesTreeLikelihood& stl) :
-  AbstractParametrizable(stl),
-  world_(stl.world_), server_(stl.server_), tree_(stl.tree_), index_(stl.index_),
-  bestIndex_(stl.bestIndex_), stop_(stl.stop_),
-  logL_(stl.logL_), bestlogL_(stl.bestlogL_),
-  num0Lineages_(stl.num0Lineages_), num1Lineages_(stl.num1Lineages_), 
-  num2Lineages_(stl.num2Lineages_), 
-  allNum0Lineages_(stl.allNum0Lineages_), allNum1Lineages_(stl.allNum1Lineages_), 
-  allNum2Lineages_(stl.allNum2Lineages_),
-  lossExpectedNumbers_(stl.lossExpectedNumbers_), 
-  duplicationExpectedNumbers_(stl.duplicationExpectedNumbers_),
-  backupDuplicationExpectedNumbers_(stl.backupDuplicationExpectedNumbers_),
-  backupLossExpectedNumbers_(stl.backupLossExpectedNumbers_), 
-  rearrange_(stl.rearrange_), 
-  numIterationsWithoutImprovement_(stl.numIterationsWithoutImprovement_), 
-  branchExpectedNumbersOptimization_(stl.branchExpectedNumbersOptimization_), 
-  genomeMissing_(stl.genomeMissing_), 
-  speciesTreeNodeNumber_(stl.speciesTreeNodeNumber_), NNILks_(stl.NNILks_),
-  rootLks_(stl.rootLks_), timeLimit_(stl.timeLimit_), currentStep_(stl.currentStep_),
-  suffix_(stl.suffix_)
-  {}
+        SpeciesTreeLikelihood(const SpeciesTreeLikelihood& stl) :
+        AbstractParametrizable(stl),
+        world_(stl.world_), server_(stl.server_), tree_(stl.tree_), index_(stl.index_),
+        bestIndex_(stl.bestIndex_), stop_(stl.stop_),
+        logL_(stl.logL_), bestlogL_(stl.bestlogL_),
+        num0Lineages_(stl.num0Lineages_), num1Lineages_(stl.num1Lineages_), 
+        num2Lineages_(stl.num2Lineages_), 
+        allNum0Lineages_(stl.allNum0Lineages_), allNum1Lineages_(stl.allNum1Lineages_), 
+        allNum2Lineages_(stl.allNum2Lineages_),
+        lossExpectedNumbers_(stl.lossExpectedNumbers_), 
+        duplicationExpectedNumbers_(stl.duplicationExpectedNumbers_),
+        backupDuplicationExpectedNumbers_(stl.backupDuplicationExpectedNumbers_),
+        backupLossExpectedNumbers_(stl.backupLossExpectedNumbers_), 
+        num12Lineages_(stl.num12Lineages_), num22Lineages_(stl.num22Lineages_),
+        bestNum12Lineages_(stl.bestNum12Lineages_), bestNum22Lineages_(stl.bestNum22Lineages_),
+        coalBls_(stl.coalBls_), backupCoalBls_(stl.backupCoalBls_), 
+        rearrange_(stl.rearrange_), 
+        numIterationsWithoutImprovement_(stl.numIterationsWithoutImprovement_), 
+        branchExpectedNumbersOptimization_(stl.branchExpectedNumbersOptimization_), 
+        genomeMissing_(stl.genomeMissing_), 
+        speciesTreeNodeNumber_(stl.speciesTreeNodeNumber_), NNILks_(stl.NNILks_),
+        rootLks_(stl.rootLks_), timeLimit_(stl.timeLimit_), currentStep_(stl.currentStep_),
+        suffix_(stl.suffix_), reconciliationModel_(stl.reconciliationModel_)
+        {}
   
   
   //= operator
-  SpeciesTreeLikelihood& operator=(const SpeciesTreeLikelihood& stl)
-  {
-  AbstractParametrizable::operator=(stl);
-  world_ = stl.world_;
-  server_ = stl.server_;
-  tree_ = stl.tree_;
-  index_ = stl.index_;
-  bestIndex_ = stl.bestIndex_;
-  stop_ = stl.stop_;
-  logL_ = stl.logL_;
-  bestlogL_ = stl.bestlogL_;
-  num0Lineages_ = stl.num0Lineages_;
-  num1Lineages_ = stl.num1Lineages_;
-  num2Lineages_ = stl.num2Lineages_;
-  allNum0Lineages_ = stl.allNum0Lineages_;
-  allNum1Lineages_ = stl.allNum1Lineages_;
-  allNum2Lineages_ = stl.allNum2Lineages_;
-  lossExpectedNumbers_ = stl.lossExpectedNumbers_;
-  duplicationExpectedNumbers_ =stl.duplicationExpectedNumbers_;
-  backupLossExpectedNumbers_ = stl.backupLossExpectedNumbers_;
-  backupDuplicationExpectedNumbers_ =stl.backupDuplicationExpectedNumbers_;
-  rearrange_ = stl.rearrange_;
-  numIterationsWithoutImprovement_ = stl.numIterationsWithoutImprovement_;
-  branchExpectedNumbersOptimization_ = stl.branchExpectedNumbersOptimization_;
-  genomeMissing_ = stl.genomeMissing_;
-  speciesTreeNodeNumber_ = stl.speciesTreeNodeNumber_;
-  NNILks_ = stl.NNILks_;
-  rootLks_ = stl.rootLks_;
-  timeLimit_ = stl.timeLimit_;
-  currentStep_ = stl.currentStep_;
-  suffix_ = stl.suffix_;
-  return *this;
-  }
+        SpeciesTreeLikelihood& operator=(const SpeciesTreeLikelihood& stl)
+        {
+            AbstractParametrizable::operator=(stl);
+            world_ = stl.world_;
+            server_ = stl.server_;
+            tree_ = stl.tree_;
+            index_ = stl.index_;
+            bestIndex_ = stl.bestIndex_;
+            stop_ = stl.stop_;
+            logL_ = stl.logL_;
+            bestlogL_ = stl.bestlogL_;
+            num0Lineages_ = stl.num0Lineages_;
+            num1Lineages_ = stl.num1Lineages_;
+            num2Lineages_ = stl.num2Lineages_;
+            allNum0Lineages_ = stl.allNum0Lineages_;
+            allNum1Lineages_ = stl.allNum1Lineages_;
+            allNum2Lineages_ = stl.allNum2Lineages_;
+            lossExpectedNumbers_ = stl.lossExpectedNumbers_;
+            duplicationExpectedNumbers_ =stl.duplicationExpectedNumbers_;
+            backupLossExpectedNumbers_ = stl.backupLossExpectedNumbers_;
+            backupDuplicationExpectedNumbers_ =stl.backupDuplicationExpectedNumbers_;
+            num12Lineages_ = stl.num12Lineages_;
+            num22Lineages_ = stl.num22Lineages_;
+            bestNum12Lineages_ = stl.bestNum12Lineages_; 
+            bestNum22Lineages_ = stl.bestNum22Lineages_;
+            coalBls_ = stl.coalBls_; 
+            backupCoalBls_ = stl.backupCoalBls_;
+            rearrange_ = stl.rearrange_;
+            numIterationsWithoutImprovement_ = stl.numIterationsWithoutImprovement_;
+            branchExpectedNumbersOptimization_ = stl.branchExpectedNumbersOptimization_;
+            genomeMissing_ = stl.genomeMissing_;
+            speciesTreeNodeNumber_ = stl.speciesTreeNodeNumber_;
+            NNILks_ = stl.NNILks_;
+            rootLks_ = stl.rootLks_;
+            timeLimit_ = stl.timeLimit_;
+            currentStep_ = stl.currentStep_;
+            suffix_ = stl.suffix_;
+            reconciliationModel_ = stl.reconciliationModel_;
+            return *this;
+        }
   
   //Destructor
   virtual ~SpeciesTreeLikelihood() 
@@ -264,16 +288,26 @@ namespace bpp
   //Get the logL of the species tree
   double getValue() const throw (Exception) { return logL_; }
   
-  //If a parameter has changed
-  void fireParameterChanged(const ParameterList & parameters)
-  {
-  updateDuplicationAndLossExpectedNumbers();
-  computeLogLikelihood();
-  }
+        //If a parameter has changed
+        void fireParameterChanged(const ParameterList & parameters)
+        {
+            if (reconciliationModel_ == "DL") {
+                updateDuplicationAndLossExpectedNumbers();
+            }      
+            else if (reconciliationModel_ == "COAL") {
+                updateCoalBls();
+            }
+            
+            computeLogLikelihood();
+        }
   
   //Updates the parameters of the DL process.
   void updateDuplicationAndLossExpectedNumbers();
-  
+        
+        //Updates the parameters of the COAL process.
+        void updateCoalBls();
+        
+        
   //Initializes various fields in the species tree
   void initialize();
   

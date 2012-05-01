@@ -8,7 +8,7 @@
  */
 
 #include "SpeciesTreeLikelihood.h"
-//#include "SpeciesTreeExploration.h"
+#include "SpeciesTreeExploration.h"
 
 using namespace bpp;
 
@@ -25,6 +25,13 @@ void SpeciesTreeLikelihood::updateDuplicationAndLossExpectedNumbers()
 }
 
 /*******************************************************************************/
+
+void SpeciesTreeLikelihood::updateCoalBls() 
+{
+    coalBls_ = backupCoalBls_;
+}
+
+/*******************************************************************************/
 void SpeciesTreeLikelihood::initialize() 
 {
   rearrange_ = false;
@@ -38,11 +45,15 @@ void SpeciesTreeLikelihood::initialize()
                                      assignedFilenames_, listOfOptionsPerClient_, 
                                      optimizeSpeciesTreeTopology_, speciesTreeNodeNumber_, 
                                      lossExpectedNumbers_, duplicationExpectedNumbers_, num0Lineages_, 
-                                     num1Lineages_, num2Lineages_, currentSpeciesTree_);
+                                     num1Lineages_, num2Lineages_, num12Lineages_, num22Lineages_, coalBls_, currentSpeciesTree_);
 
     std::vector<unsigned int> numbersOfGeneFamilies;
     unsigned int numberOfGeneFamilies = 0;
     
+    
+    //COAL or DL?
+    reconciliationModel_ = ApplicationTools::getStringParameter("reconciliation.model", params_, "DL", "", true, false);
+
     
     /****************************************************************************
      * Check that we have enough gene families to proceed
@@ -63,7 +74,7 @@ void SpeciesTreeLikelihood::initialize()
      breadthFirstreNumber (*tree_, lossExpectedNumbers_, duplicationExpectedNumbers_);*/
     std::string spTreeDupFile =ApplicationTools::getStringParameter("species.duplication.tree.file",params_,"none");
     std::string spTreeLossFile =ApplicationTools::getStringParameter("species.loss.tree.file",params_,"none");
-    if ( (spTreeDupFile == "none") && (spTreeLossFile == "none") ) {
+    if ( (reconciliationModel_ == "DL") && (spTreeDupFile == "none") && (spTreeLossFile == "none") ) {
         //We set preliminary loss and duplication rates, correcting for genome coverage
         computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization_, 
                                                                  num0Lineages_, 
@@ -75,7 +86,7 @@ void SpeciesTreeLikelihood::initialize()
                                                                  *tree_);
         
     }
-    else {
+    else if (reconciliationModel_ == "DL") {
         if ( (spTreeDupFile == "none") || (spTreeLossFile == "none") ) {
             std::cout <<"Sorry, you have to input both loss and duplication rates, or none of them."<<std::endl;
             MPI::COMM_WORLD.Abort(1);
@@ -99,11 +110,13 @@ void SpeciesTreeLikelihood::initialize()
         }
         backupDuplicationExpectedNumbers_ = duplicationExpectedNumbers_;
         backupLossExpectedNumbers_ = lossExpectedNumbers_;
+        breadthFirstreNumber (*tree_, duplicationExpectedNumbers_, lossExpectedNumbers_);
     }
-    
+    else if (reconciliationModel_ == "COAL") {
+        breadthFirstreNumber (*tree_, coalBls_);
+    }
     //We write the starting species tree to a file
     std::string file = ApplicationTools::getStringParameter("starting.tree.file", params_, "starting.tree");
-    breadthFirstreNumber (*tree_, duplicationExpectedNumbers_, lossExpectedNumbers_);
     bestTree_ = tree_->clone();
     currentTree_ = tree_->clone();
     currentSpeciesTree_ = TreeTools::treeToParenthesis(*tree_, true);
@@ -117,6 +130,7 @@ void SpeciesTreeLikelihood::initialize()
                                       numbersOfGeneFamilies, 
                                       lossExpectedNumbers_, 
                                       duplicationExpectedNumbers_, 
+                                      coalBls_,
                                       currentSpeciesTree_);
     // numberOfGeneFamilies = VectorTools::sum(numbersOfGeneFamilies);
     if (numberOfGeneFamilies == 0)
@@ -149,7 +163,11 @@ void SpeciesTreeLikelihood::initialize()
                                                            allNum1Lineages_, 
                                                            allNum2Lineages_, 
                                                            lossExpectedNumbers_, 
-                                                           duplicationExpectedNumbers_, 
+                                                           duplicationExpectedNumbers_,
+                                                           num12Lineages_, 
+                                                           num22Lineages_,
+                                                           coalBls_,
+                                                           reconciliationModel_,
                                                            rearrange_, 
                                                            server_, 
                                                            branchExpectedNumbersOptimization_, 
@@ -166,6 +184,8 @@ void SpeciesTreeLikelihood::initialize()
     bestNum0Lineages_ = num0Lineages_;
     bestNum1Lineages_ = num1Lineages_;
     bestNum2Lineages_ = num2Lineages_;
+    bestNum12Lineages_ = num12Lineages_;
+    bestNum22Lineages_ = num22Lineages_;
     return;    
 }
 
@@ -178,7 +198,9 @@ void SpeciesTreeLikelihood::computeLogLikelihood()
                                num1Lineages_, num2Lineages_, 
                                allNum0Lineages_, allNum1Lineages_, 
                                allNum2Lineages_, lossExpectedNumbers_, 
-                               duplicationExpectedNumbers_, rearrange_, server_, 
+                               duplicationExpectedNumbers_, num12Lineages_, 
+                               num22Lineages_, coalBls_, reconciliationModel_,
+                               rearrange_, server_, 
                                branchExpectedNumbersOptimization_, genomeMissing_, *tree_, currentStep_);
 }
 
@@ -384,12 +406,17 @@ void SpeciesTreeLikelihood::parseOptions()
       
   for (int i=0; i<speciesTreeNodeNumber_; i++) 
     {
-    //We fill the vectors with 0.1s until they are the right sizes.
-    lossExpectedNumbers_.push_back(0.1);
-    duplicationExpectedNumbers_.push_back(0.11);
-    num0Lineages_.push_back(0);
-    num1Lineages_.push_back(0);
-    num2Lineages_.push_back(0);
+        //We fill the vectors with 0.1s until they are the right sizes.
+        //DL model:
+        lossExpectedNumbers_.push_back(0.1);
+        duplicationExpectedNumbers_.push_back(0.11);
+        num0Lineages_.push_back(0);
+        num1Lineages_.push_back(0);
+        num2Lineages_.push_back(0);
+        //Colescent model:
+        coalBls_.push_back(1.0);
+        num12Lineages_.push_back(0);
+        num22Lineages_.push_back(0);
     }
   
 
@@ -518,6 +545,9 @@ void SpeciesTreeLikelihood::MLSearch()
                                                         bestNum2Lineages_, 
                                                         allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
                                                         lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                        num12Lineages_, num22Lineages_,
+                                                        bestNum12Lineages_, bestNum22Lineages_, 
+                                                        coalBls_, reconciliationModel_, 
                                                         rearrange_, numIterationsWithoutImprovement_, 
                                                         server_, branchExpectedNumbersOptimization_, 
                                                         genomeMissing_, sprLimit_, false, currentStep_);
@@ -563,6 +593,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                                                    num0Lineages_, num1Lineages_, num2Lineages_, 
                                                                                    allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
                                                                                    lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                                                   num12Lineages_, num22Lineages_,
+                                                                                   coalBls_, reconciliationModel_,
                                                                                    rearrange_, server_, 
                                                                                    branchExpectedNumbersOptimization_, genomeMissing_, 
                                                                                    *currentTree_, bestlogL_, currentStep_);
@@ -606,6 +638,9 @@ void SpeciesTreeLikelihood::MLSearch()
                                                     bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
                                                     allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
                                                     lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                    num12Lineages_, num22Lineages_,
+                                                    bestNum12Lineages_, bestNum22Lineages_,
+                                                    coalBls_, reconciliationModel_,
                                                     rearrange_, numIterationsWithoutImprovement_, 
                                                     server_, branchExpectedNumbersOptimization_, 
                                                     genomeMissing_, sprLimit_, true, currentStep_);
@@ -663,7 +698,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                                                    num0Lineages_, num1Lineages_, num2Lineages_, 
                                                                                    allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
                                                                                    lossExpectedNumbers_, duplicationExpectedNumbers_, 
-                                                                                   rearrange_, server_, 
+                                                                                   num12Lineages_, num22Lineages_, coalBls_, 
+                                                                                   reconciliationModel_, rearrange_, server_, 
                                                                                    branchExpectedNumbersOptimization_, genomeMissing_, 
                                                                                    *currentTree_, bestlogL_, currentStep_);
                 if (branchExpectedNumbersOptimization_ != "no") {
@@ -692,6 +728,9 @@ void SpeciesTreeLikelihood::MLSearch()
                                                            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
                                                            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
                                                            lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                           num12Lineages_, num22Lineages_,
+                                                           bestNum12Lineages_, bestNum22Lineages_,
+                                                           coalBls_, reconciliationModel_,
                                                            rearrange_, numIterationsWithoutImprovement_, 
                                                            server_, nodeForNNI, nodeForRooting, 
                                                            branchExpectedNumbersOptimization_, genomeMissing_, 
@@ -725,6 +764,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                                                            num0Lineages_, num1Lineages_, num2Lineages_, 
                                                                                            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
                                                                                            lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                                                           num12Lineages_, num22Lineages_,
+                                                                                           coalBls_, reconciliationModel_,
                                                                                            rearrange_, server_, 
                                                                                            branchExpectedNumbersOptimization_, genomeMissing_, 
                                                                                            *currentTree_, bestlogL_, currentStep_);
@@ -750,6 +791,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                      num0Lineages_, num1Lineages_, num2Lineages_, 
                                                      allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
                                                      lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                     num12Lineages_, num22Lineages_,
+                                                     coalBls_, reconciliationModel_,
                                                      rearrange_, server_, 
                                                      branchExpectedNumbersOptimization_, genomeMissing_, 
                                                      *currentTree_, currentStep_);
@@ -816,6 +859,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                             bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
                                                             allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
                                                             lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                                            num12Lineages_, num22Lineages_,
+                                                            coalBls_, reconciliationModel_,
                                                             rearrange_, numIterationsWithoutImprovement_, 
                                                             server_, nodeForNNI, nodeForRooting, 
                                                             branchExpectedNumbersOptimization_, genomeMissing_, currentStep_);

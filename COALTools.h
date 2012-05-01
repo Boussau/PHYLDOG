@@ -58,6 +58,15 @@ void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> 
                                 std::vector< std::vector<unsigned int> > & coalCountsSon0,
                                 std::vector< std::vector<unsigned int> > & coalCountsSon1);
 
+void computeCoalCountsFromSonsAndFillTables (TreeTemplate<Node> & tree, std::vector <Node *> sons, 
+                                             unsigned int & rootSpId, 
+                                             const unsigned int & son0SpId,
+                                             const unsigned int & son1SpId,
+                                             std::vector< std::vector<unsigned int> > & coalCountsFather,
+                                             std::vector< std::vector<unsigned int> > & coalCountsSon0,
+                                             std::vector< std::vector<unsigned int> > & coalCountsSon1, 
+                                             std::set<int> & nodesToTryInNNISearch);
+
 
 /*****************************************************************************
  * This function recovers ILS by comparing a subtree in a gene tree to
@@ -118,6 +127,14 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
                               int sonNumber, 
                               std::map <double, Node*> & LksToNodes) ;
 
+void computeSubtreeCoalCountsPostorderAndFillTables(TreeTemplate<Node> & spTree, 
+                                                    TreeTemplate<Node> & geneTree, 
+                                                    Node * node, 
+                                                    std::map<std::string, std::string > & seqSp, 
+                                                    std::map<std::string, int > & spID, 
+                                                    std::vector< std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts,
+                                                    std::vector <std::vector<unsigned int> > & speciesIDs, 
+                                                    std::set<int> &      nodesToTryInNNISearch      );
 
 
 /*****************************************************************************
@@ -142,9 +159,22 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
                                    std::map<std::string, int > spID,
                                    std::vector< double> coalBl, 
                                    int & MLindex, 
-                                   std::vector < std::vector<std::vector<unsigned int> > > coalCounts,
+                                   std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
                                    std::set <int> &nodesToTryInNNISearch, 
-                                   bool fillTables);
+                                   bool fillTables = true);
+
+
+/*****************************************************************************
+ * This function analytically estimates branch lengths in coalescent units, 
+ * given counts. 
+ * allGeneCounts: nbSpeciesBranches vectors of gTrees.size() vectors of 2 ints
+ ****************************************************************************/
+
+void computeCoalBls (std::vector < std::vector < std::vector< unsigned int > > >&  allGeneCounts , std::vector<double> &coalBls) ;
+
+void computeCoalBls (std::vector< unsigned int > &  num12Lineages, 
+                     std::vector< unsigned int > &  num22Lineages, 
+                     std::vector<double> &coalBls) ;
 
 
 /*****************************************************************************
@@ -167,9 +197,12 @@ public Function,
 public AbstractParametrizable
 {
 protected:
+    //vec_: vector of pairs of ints, with number of in-lineages, and number of out-lineages
     std::vector <std::vector <unsigned int> > vec_;
+    //compressedVec_: same as vec above, but compressed to have one entry per pattern
     std::vector <std::vector <unsigned int> > compressedVec_;
     std::vector <double> lks_;
+    //Weights (= number of occurences) of the patterns
     std::map <string, unsigned int> patternToWeights_; 
     double lnL_;
     
@@ -205,7 +238,7 @@ public:
     
 public:
     double initModel();
-    
+    double estimateBl();
     /**
      * @warning No checking on alphabet size or number of rate classes is performed,
      * use with care!
