@@ -119,7 +119,7 @@ void SpeciesTreeLikelihood::initialize()
     std::string file = ApplicationTools::getStringParameter("starting.tree.file", params_, "starting.tree");
     bestTree_ = tree_->clone();
     currentTree_ = tree_->clone();
-    currentSpeciesTree_ = TreeTools::treeToParenthesis(*tree_, true);
+    currentSpeciesTree_ = TreeTemplateTools::treeToParenthesis(*tree_, true);
     ApplicationTools::displayMessage("Starting Species Tree: ");
     std::cout << currentSpeciesTree_ <<std::endl;
 
@@ -292,7 +292,7 @@ void SpeciesTreeLikelihood::parseOptions()
         TreeTools::midpointRooting(*tree_);
         if (initTree == "random") {
             std::cout <<"Initial random species tree"<<std::endl;
-            std::cout <<TreeTools::treeToParenthesis(*tree_, false)<<std::endl;
+            std::cout <<TreeTemplateTools::treeToParenthesis(*tree_, false)<<std::endl;
         }
     }
     else throw Exception("Unknown init.species.tree method.");
@@ -420,7 +420,7 @@ void SpeciesTreeLikelihood::parseOptions()
     }
   
 
-  currentSpeciesTree_ = TreeTools::treeToParenthesis(*tree_, true);
+  currentSpeciesTree_ = TreeTemplateTools::treeToParenthesis(*tree_, true);
   bestlogL_ = -UNLIKELY;
   numIterationsWithoutImprovement_ = 0;
   bestIndex_ = 0;
@@ -607,7 +607,7 @@ void SpeciesTreeLikelihood::MLSearch()
                     bestNum2Lineages_ = num2Lineages_;
                     bestIndex_ = index_;
                     std::cout << "Updating duplication and loss expected numbers yields a better candidate tree likelihood : "<<bestlogL_<<std::endl;
-                    std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
+                    std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, true)<<std::endl;
                 } 
                 else 
                 {
@@ -675,9 +675,10 @@ void SpeciesTreeLikelihood::MLSearch()
             if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) )
             { 
                 std::cout << "\n\n\t\t\tNow entering the fully joint optimization step: NNIs on the species tree and gene trees, and optimization of DL expected numbers\n\n"<<std::endl;
-                std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
+                std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, true)<<std::endl;
                 numIterationsWithoutImprovement_ = 0;
                 rearrange_ = true; //Now we rearrange gene trees
+
                 if (currentTree_)
                     delete currentTree_;
                 currentTree_ = bestTree_->clone();  
@@ -692,6 +693,7 @@ void SpeciesTreeLikelihood::MLSearch()
                                              *currentTree_, currentStep_);
                 
                 std::cout<<"Species tree likelihood without gene tree rearrangement: "<< - logL_<<std::endl;*/
+
                 //Now gene trees are really rearranged.
                 computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
                                                                                    stop_, logL_, 
@@ -702,12 +704,14 @@ void SpeciesTreeLikelihood::MLSearch()
                                                                                    reconciliationModel_, rearrange_, server_, 
                                                                                    branchExpectedNumbersOptimization_, genomeMissing_, 
                                                                                    *currentTree_, bestlogL_, currentStep_);
+
                 if (branchExpectedNumbersOptimization_ != "no") {
                     std::cout << "\t\tSpecies tree likelihood with gene tree optimization and new branch parameters: "<< - logL_<<" compared to the former log-likelihood : "<< - bestlogL_<<std::endl;
                 }
                 else {
                     std::cout << "\t\tSpecies tree likelihood with gene tree optimization: "<< - logL_<<" compared to the former log-likelihood : "<< - bestlogL_<<std::endl;
                 }
+
                 numIterationsWithoutImprovement_ = 0;
                 bestlogL_ =logL_;
                 bestIndex_ = index_;
@@ -717,6 +721,7 @@ void SpeciesTreeLikelihood::MLSearch()
                 /*              }
                  if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) || (!optimizeSpeciesTreeTopology_))
                  {*/
+
                 if (optimizeSpeciesTreeTopology_ && (ApplicationTools::getTime() < timeLimit_) ) //We optimize the species tree topology
                 {
                     std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
@@ -752,7 +757,6 @@ void SpeciesTreeLikelihood::MLSearch()
                                                             bestIndex_);                    
                         }
                     }
-                    
                 }
                 else if (ApplicationTools::getTime() < timeLimit_) //We do not optimize the species tree topology
                 {
@@ -833,7 +837,6 @@ void SpeciesTreeLikelihood::MLSearch()
                     }
                     
                 }
-                
             }
                 /*              }
                 else*/ 
@@ -843,7 +846,7 @@ void SpeciesTreeLikelihood::MLSearch()
                             delete currentTree_;
                         currentTree_ = bestTree_->clone();  
 
-                        std::string currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree_, true);
+                        std::string currentSpeciesTree = TreeTemplateTools::treeToParenthesis(*currentTree_, true);
                                                                                                       
                         
                      // broadcastsAllInformation(world_, server_, stop_, rearrange_, lossExpectedNumbers_, duplicationExpectedNumbers_, currentSpeciesTree_, currentStep_);
@@ -899,7 +902,7 @@ void SpeciesTreeLikelihood::MLSearch()
                             bestNum2Lineages_ = num2Lineages_;
                             bestIndex_ = index_;
                             std::cout << "Rearranging gene trees using SPRs yields a better logLk : "<<bestlogL_<<std::endl;
-                            std::cout << TreeTools::treeToParenthesis(*currentTree_, true)<<std::endl;
+                            std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, true)<<std::endl;
                         } 
                         else 
                         {
@@ -980,7 +983,7 @@ void SpeciesTreeLikelihood::MLSearch()
     std::string tempSpTree = ApplicationTools::getStringParameter("output.temporary.tree.file", params_, "CurrentSpeciesTree.tree", "", false, false);
     tempSpTree = tempSpTree + suffix_;
     std::ofstream out (tempSpTree.c_str(), std::ios::out);
-    out << TreeTools::treeToParenthesis(*bestTree_, false)<<std::endl;
+    out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
     out.close();  
     std::cout<<"\n\n\t\t\tAdd:\ninit.species.tree=user\nspecies.tree.file="<<tempSpTree<<"\ncurrent.step="<<currentStep_<<"\nto your options.\n"<<std::endl;
     }
@@ -1016,7 +1019,7 @@ void SpeciesTreeLikelihood::MLSearch()
         }
       }
     std::cout <<"\n\n\t\tBest Species Tree found, with node Ids: "<<std::endl;
-    std::cout << TreeTools::treeToParenthesis (*bestTree_, true)<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
     std::cout <<"\n\n\t\tBest Species Tree found, with aLRTs: "<<std::endl;
     std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "ALRT")<<std::endl;
     //Here we output the species tree with rates of duplication and loss
@@ -1055,7 +1058,7 @@ void SpeciesTreeLikelihood::MLSearch()
     std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params_, "ServerNumbered.tree", "", false, false);
     numTree = numTree + suffix_;
     out.open (numTree.c_str(), std::ios::out);
-    out << TreeTools::treeToParenthesis (*bestTree_, true)<<std::endl;
+    out << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
     out.close();
 
     //Here we output the species tree with numbers of times 
@@ -1068,7 +1071,7 @@ void SpeciesTreeLikelihood::MLSearch()
     std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params_, "lineageNumbers.tree", "", false, false); 
     lineagesTree = lineagesTree + suffix_;
     out.open (lineagesTree.c_str(), std::ios::out);
-    out << TreeTools::treeToParenthesis(*bestTree_, false, NUMLINEAGES)<<std::endl;
+    out << TreeTemplateTools::treeToParenthesis(*bestTree_, false, NUMLINEAGES)<<std::endl;
     out.close();
 
     std::cout <<"Number of species trees tried : "<<index_<<std::endl;

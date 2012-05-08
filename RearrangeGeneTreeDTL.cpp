@@ -111,7 +111,7 @@ double refineGeneTreeDTL (Species_tree * scoringTree,
             delete bestTree;
           bestTree = tree->clone();  
           //std::cout << "Gene tree SPR: Better candidate tree likelihood : "<<bestlogL<< std::endl;
-          //std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;
+          //std::cout << TreeTemplateTools::treeToParenthesis(*tree, true)<< std::endl;
         }
       }
       if (betterTree) {
@@ -120,7 +120,7 @@ double refineGeneTreeDTL (Species_tree * scoringTree,
           delete currentTree;
         currentTree = bestTree->clone();
         breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
-                                            //std::cout <<"NEW BETTER TREE: \n"<< TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
+                                            //std::cout <<"NEW BETTER TREE: \n"<< TreeTemplateTools::treeToParenthesis(*currentTree, true)<< std::endl;
         numIterationsWithoutImprovement = 0;
       }
       else {

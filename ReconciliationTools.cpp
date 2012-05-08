@@ -1374,7 +1374,6 @@ void recoverLosses(Node & node, int & a, const int & b, int & olda, int & a0,
                    const std::vector< double> & duplicationRates, 
                    int & dupData) {
  // const Node* const node = tree.getNode(a);
- //  std::cout <<"node id"<<node.getId()<<std::endl;
   olda=a;
   Node* nodeA;
   if (node.hasFather()) {
@@ -1401,9 +1400,10 @@ void recoverLosses(Node & node, int & a, const int & b, int & olda, int & a0,
   }
 
   std::cout <<"hereheh\n"<<std::endl;*/
-  std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, nodeA->getSon(0)->getId());
+
+  std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(*(nodeA->getSon(0)));
   nodesIds0.push_back(nodeA->getSon(0)->getId());
-  std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, nodeA->getSon(1)->getId());
+  std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(*(nodeA->getSon(1)));
   nodesIds1.push_back(nodeA->getSon(1)->getId());
   int lostNodeId = -1;
  // std::cout <<"here 9"<<std::endl;
@@ -1411,7 +1411,6 @@ void recoverLosses(Node & node, int & a, const int & b, int & olda, int & a0,
   if ((nodeA->getSon(0)->getId()==olda)&&(!(VectorTools::contains(nodesIds1, b)))&&(b!=a))
     {
     //  std::cout <<"here 8"<<std::endl;
-
       lostNodeId=nodeA->getSon(1)->getId();
       //UNDONE TEST 1009
     //  if (!nodeA->getSon(1)->isLeaf()) {
@@ -1442,6 +1441,7 @@ void recoverLosses(Node & node, int & a, const int & b, int & olda, int & a0,
   else {*/
   if ((olda!=a0)) {
     likelihoodCell += computeLogBranchProbability(duplicationRates[olda], lossRates[olda], 1);
+
    // std::cout <<"1 I genes on branch "<<olda<<std::endl;
   }
  // std::cout << "likelihoodCell "<< likelihoodCell <<std::endl;
@@ -1523,22 +1523,24 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
     }
     */
     
-    
     Node temp0 = *(tree.getNode(son0SpId));
     Node temp1 = *(tree.getNode(son1SpId));
-       
+
     while (a!=b) { //There have been losses !
       if (a>b) {
+
       //  std::cout <<"before recoverLosses temp0id: "<<temp0.getId()<<std::endl;
         recoverLosses(temp0, a, b, olda, a0, tree, rootLikelihood, lossRates, duplicationRates, son0DupData);
       /*  std::cout <<"HERE"<<std::endl;
         std::cout <<"after recoverLosses temp0id: "<<temp0.getId()<<std::endl;*/
       }
       else {
+
 /*         std::cout <<"before recoverLosses temp1id: "<<temp1.getId()<<std::endl;
         std::cout <<"HEHEHEEHEH\n\n"<<std::endl;*/
         recoverLosses(temp1, b, a, oldb, b0, tree, rootLikelihood, lossRates, duplicationRates, son1DupData);
         // std::cout <<"after recoverLosses temp1id: "<<temp1.getId()<<std::endl;
+
       }
     }
     rootSpId = a;
@@ -1549,7 +1551,6 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
           rootDupData += son0DupData+son1DupData;
           rootLikelihood-=(computeLogBranchProbability(duplicationRates[a0], lossRates[a0], son0DupData) + 
                            computeLogBranchProbability(duplicationRates[b0], lossRates[b0], son1DupData));
-
         }//there has been no loss, here
         else if (b==b0) { //The loss has occured before a0
           rootDupData += son1DupData+1;
@@ -1562,10 +1563,10 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
          // }
         }
         else { //The loss has occured before b0
+
           rootDupData += son0DupData+1;
           rootLikelihood-=computeLogBranchProbability(duplicationRates[a0], lossRates[a0], son0DupData);
           recoverLossesWithDuplication(temp1, b, oldb, tree, rootLikelihood, lossRates, duplicationRates);
-
         //  if (son1DupData>0) {
           /*  std::cout <<"D On branch "<<b0<< "number of genes :"<<son1DupData<<std::endl;
             son1Likelihood += computeLogBranchProbability(duplicationRates[b0], lossRates[b0], son1DupData);*/
@@ -1598,7 +1599,6 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
           rootLikelihood += computeLogBranchProbability(duplicationRates[a], lossRates[a], rootDupData);
          // std::cout<<"rootLikelihood5: "<< rootLikelihood<<std::endl;  
 
-
         }
       //  }
       }
@@ -1623,6 +1623,7 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
         }else {
           rootLikelihood += computeLogBranchProbability(duplicationRates[a], lossRates[a], rootDupData);
         }
+
        // }
       }
     //Setting the lower conditional likelihood for the node of interest.
@@ -1662,6 +1663,7 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
                                          std::vector <std::vector<int> > & dupData) {
 	int id=node->getId();
  	if (node->isLeaf()) {
+
 		if (likelihoodData[id][0]==0.0) {
       speciesIDs[id][0]=speciesIDs[id][1]=speciesIDs[id][2]=assignSpeciesIdToLeaf(node, seqSp, spID);
       likelihoodData[id][0]=likelihoodData[id][1]=likelihoodData[id][2]=computeLogBranchProbability(duplicationRates[speciesIDs[id][0]], lossRates[speciesIDs[id][0]], 1);
@@ -1672,9 +1674,11 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
         }
   /*  std::cout <<"at leaf "<<node->getName()<<std::endl;
     std::cout <<"lk "<<likelihoodData[id][0]<<std::endl;*/
+
     return(likelihoodData[id][0]);
   }
   else {
+
     std::vector <Node *> sons = node->getSons();
     for (unsigned int i = 0; i< sons.size(); i++){
       computeSubtreeLikelihoodPostorder(spTree, geneTree, 
@@ -1682,6 +1686,7 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
                                         spID, likelihoodData, 
                                         lossRates, duplicationRates, 
                                         speciesIDs, dupData);
+
     }
     
     int idSon0 = sons[0]->getId();
@@ -1699,6 +1704,7 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
         directionSon1 = i;
       }
     }
+
   /*  neighbors = node->getNeighbors();
     for (unsigned int i=0; i<neighbors.size(); i++) {
       if (neighbors[i]==node) {
@@ -1918,9 +1924,9 @@ void recoverLossesAndLineages(Node & node, int & a, const int & b, int & olda, i
   }
   a = nodeA->getId();
   node = *nodeA;
-  std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, nodeA->getSon(0)->getId());
+  std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(*(nodeA->getSon(0)));
   nodesIds0.push_back(nodeA->getSon(0)->getId());
-  std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, nodeA->getSon(1)->getId());
+  std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(*(nodeA->getSon(1)));
   nodesIds1.push_back(nodeA->getSon(1)->getId());
   int lostNodeId = -1;
     
@@ -2244,8 +2250,12 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
                                std::set <int> &nodesToTryInNNISearch, 
                                bool fillTables)
 {
+/*    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
+  */  
+    
 	if (!geneTree->isRooted()) {
-		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+		std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
 		std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliationDR !!!!!!"<<std::endl;
         MPI::COMM_WORLD.Abort(1);
 		exit(-1);
@@ -2261,20 +2271,21 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   //This std::map keeps rootings likelihoods. The key is the likelihood value, and the value is the node to put as outgroup.
   std::map <double, Node*> LksToNodes;
   
- /* std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
-//  std::cout << "IN findMLReconciliationDR "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
+// std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
+//  std::cout << "IN findMLReconciliationDR "<<TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
   
 //	std::cout <<"CLOCKBEFOREPOSTORDER "<<clock()<<std::endl;
 	Node * geneRoot = geneTree->getRootNode();
+    
 /*  std::cout <<"root number :"<<geneRoot->getId()<<std::endl;
-  std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
+  std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
   initialLikelihood = computeSubtreeLikelihoodPostorder(*spTree, *geneTree, 
                                                         geneRoot, seqSp, spID, 
                                                         likelihoodData, lossRates, 
                                                         duplicationRates, speciesIDs, dupData);
 /*    VectorTools::print(duplicationRates);
-    std::cout << TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
-    std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
     std::cout << "initialLikelihood: "<< initialLikelihood << std::endl;*/
  //  std::cout <<"CLOCKAFTERPOSTORDER "<<clock()<<std::endl;
 //std::cout <<"Postorder tree traversal over: Initial likelihood: "<<initialLikelihood<<std::endl;
@@ -2295,6 +2306,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   dupData[geneRoot->getId()][1] = dupData[geneRoot->getSon(1)->getId()][0];
   dupData[geneRoot->getId()][2] = dupData[geneRoot->getSon(0)->getId()][0];
 
+    
 /*  std::cout <<"likelihoodData[geneRoot->getId()][1]"<<likelihoodData[geneRoot->getId()][1]<<std::endl;
   std::cout <<"likelihoodData[geneRoot->getId()][2]"<<likelihoodData[geneRoot->getId()][2]<<std::endl;
   
@@ -2313,7 +2325,8 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
     }
   }
 
-  
+    
+    
   /* 
   std::cout <<"Printing all rooting likelihoods as found by the DR tree traversal"<<std::endl;
   std::map<double, Node*>::iterator it;
@@ -2321,7 +2334,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   for ( it=LksToNodes.begin() ; it != LksToNodes.end(); it++ )
     std::cout << (*it).second->getId() << " => " << (*it).first << std::endl;
    */
-  //  std::cout << "IN findMLReconciliationDR: "<<TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
+  //  std::cout << "IN findMLReconciliationDR: "<<TreeTemplateTools::treeToParenthesis (*geneTree, false)<<std::endl;
 
     vector<Node*> nodes = geneTree->getNodes();
     for (unsigned int i = 0 ; i < nodes.size() ; i++ ) {
@@ -2330,15 +2343,16 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
             break;
         }
     }
-//    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
-
-    LksToNodes.rbegin()->second->setNodeProperty("outgroupNode", BppString("here") );
-//    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
-
-    geneTree->newOutGroup(LksToNodes.rbegin()->second); //uncomment that if you want to keep gene family trees fixed except for the root
-//    std::cout << TreeTools::treeToParenthesis (*geneTree, false)<<std::endl;
+//    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, false)<<std::endl;
 
     
+    LksToNodes.rbegin()->second->setNodeProperty("outgroupNode", BppString("here") );
+//    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, false)<<std::endl;
+
+    //TEST02052012
+//    geneTree->newOutGroup(LksToNodes.rbegin()->second); //uncomment that if you want to keep gene family trees fixed except for the root
+//    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, false)<<std::endl;
+
   if (fillTables) {
   
 	//Now the best root has been found. I can thus run a function with this best root to fill all the needed tables. This additional tree traversal could be avoided.
@@ -2353,7 +2367,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   //tree->newOutGroup(LksToNodes.rbegin()->second->getId());
   
   
- //std::cout << TreeTools::treeToParenthesis (*tree, true)<<std::endl;
+ //std::cout << TreeTemplateTools::treeToParenthesis (*tree, true)<<std::endl;
 
   nodesToTryInNNISearch.clear();
 
@@ -2363,9 +2377,9 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   resetVector(num2lineages);
 
   
-// std::cout <<"HERE_rooted_tree "<<TreeTools::treeToParenthesis (*tree, true)<<std::endl;
-//  std::cout <<"HERE_rooted_tree2 "<<TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
-//  std::cout <<"HERE_SP_tree "<<TreeTools::treeToParenthesis (*spTree, true)<<std::endl;
+// std::cout <<"HERE_rooted_tree "<<TreeTemplateTools::treeToParenthesis (*tree, true)<<std::endl;
+//  std::cout <<"HERE_rooted_tree2 "<<TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
+//  std::cout <<"HERE_SP_tree "<<TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
   computeNumbersOfLineagesFromRoot(spTree, tree, 
                                    tree->getRootNode(), 
                                    seqSp, spID, 
@@ -2375,7 +2389,6 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   delete tree;
 
   }
-  
   
 /*
   std::cout <<"num0Lineages :"<<std::endl;
@@ -2390,7 +2403,7 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   //We return the best likelihood
   MLindex = LksToNodes.rbegin()->second->getId();
 // std::cout <<"Bestlikelihood"<< LksToNodes.rbegin()->first<<std::endl;
-
+    
 	return LksToNodes.rbegin()->first;
   
   
@@ -3263,12 +3276,12 @@ double findMLReconciliationSafeHeuristics (TreeTemplate<Node> * tree, TreeTempla
 
     std::cout <<"Rooting at "<< geneNodes[i]<<std::endl;
 
-    //std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+    //std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
     // std::cout <<"before geneTree->newOutGroup(i)"<<std::endl;
     if (geneNodes[i] != geneTree->getRootNode()->getId()){
     
       geneTree->newOutGroup(geneNodes[i]);// geneTree->resetNodesId(); 
-       std::cout <<"after geneTree->newOutGroup(i)"<<std::endl; std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+       std::cout <<"after geneTree->newOutGroup(i)"<<std::endl; std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
      
       resetLossesAndDuplications(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities);
       resetVector(branchNumbers);
@@ -3340,7 +3353,7 @@ double findMLReconciliation (TreeTemplate<Node> * tree, TreeTemplate<Node> * gen
     //  std::cout <<"Rooting at "<< i<<std::endl;
     if (geneNodes[i] != geneTree->getRootNode()->getId()){
       geneTree->newOutGroup(geneNodes[i]);// geneTree->resetNodesId(); 
-      // std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl; 
+      // std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl; 
       resetLossesAndDuplications(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities); 
       resetVector(branchNumbers); 
       reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, branchNumbers); 
@@ -3420,7 +3433,7 @@ double findMLReconciliation (TreeTemplate<Node> * tree, TreeTemplate<Node> * gen
     // std::cout <<"Rooting at "<< i<<std::endl; 
     if (geneNodes[i] != geneTree->getRootNode()->getId()){
       geneTree->newOutGroup(geneNodes[i]);// geneTree->resetNodesId(); 
-      // std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+      // std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
       resetLossesAndDuplications(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities); 
       resetVector(branchNumbers);
       reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, branchNumbers);
@@ -3482,7 +3495,7 @@ double findMLReconciliationSafe (TreeTemplate<Node> * tree, TreeTemplate<Node> *
     }
     // geneTree->resetNodesId();
     // std::cout <<"Rooting at "<< i<<std::endl;
-    // std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+    // std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
     // std::cout <<"before geneTree->newOutGroup(i)"<<std::endl;
     if ((geneNodes[i] != geneTree->getRootNode()->getId()) ){
       geneTree->newOutGroup(geneNodes[i]);// geneTree->resetNodesId(); 
@@ -3571,7 +3584,7 @@ double findMLReconciliationSafe (TreeTemplate<Node> * tree, TreeTemplate<Node> *
     // std::cout <<"Rooting at "<< i<<std::endl;
     if (geneNodes[i] != geneTree->getRootNode()->getId()){
       geneTree->newOutGroup(geneNodes[i]);// geneTree->resetNodesId();
-      // std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+      // std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
       resetLossesAndDuplications(*tree, lossNumbers, lossProbabilities, duplicationNumbers, duplicationProbabilities);
       resetVector(branchNumbers); 
       reconcile(*tree, *geneTree, geneTree->getRootNode(), seqSp, lossNumbers, duplicationNumbers, branchNumbers);
@@ -3801,9 +3814,9 @@ void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node *
 	olda=a;
 	a = tree.getNode(a)->getFather()->getId();
 	//Recording gene losses
-	std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(a)->getSon(0)->getId());
+	std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(tree, tree.getNode(a)->getSon(0)->getId());
 	nodesIds0.push_back(tree.getNode(a)->getSon(0)->getId());
-	std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(a)->getSon(1)->getId());
+	std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(tree, tree.getNode(a)->getSon(1)->getId());
 	nodesIds1.push_back(tree.getNode(a)->getSon(1)->getId());
 	if ((tree.getNode(a)->getSon(0)->getId()==olda)&&(!(VectorTools::contains(nodesIds1, b)))&&(b!=a))
 	  {
@@ -3832,9 +3845,9 @@ void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node *
 	oldb=b;
 	b = tree.getNode(b)->getFather()->getId();
 	//Recording gene losses
-	std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(b)->getSon(0)->getId());
+	std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(tree, tree.getNode(b)->getSon(0)->getId());
 	nodesIds0.push_back(tree.getNode(b)->getSon(0)->getId());
-	std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(b)->getSon(1)->getId());
+	std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(tree, tree.getNode(b)->getSon(1)->getId());
 	nodesIds1.push_back(tree.getNode(b)->getSon(1)->getId());
 	if ((tree.getNode(b)->getSon(0)->getId()==oldb)&&(!(VectorTools::contains(nodesIds1, a)))&&(b!=a))
 	  {
@@ -4065,9 +4078,9 @@ void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node *
         olda=a;
         a = tree.getNode(a)->getFather()->getId();
         //Recording gene losses
-        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(a)->getSon(0)->getId());
+        std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(tree, tree.getNode(a)->getSon(0)->getId());
         nodesIds0.push_back(tree.getNode(a)->getSon(0)->getId());
-        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(a)->getSon(1)->getId());
+        std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(tree, tree.getNode(a)->getSon(1)->getId());
         nodesIds1.push_back(tree.getNode(a)->getSon(1)->getId());
         if ((tree.getNode(a)->getSon(0)->getId()==olda)&&(!(VectorTools::contains(nodesIds1, b)))&&(b!=a))
           {
@@ -4098,9 +4111,9 @@ void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node *
         oldb=b;
         b = tree.getNode(b)->getFather()->getId();
         //Recording gene losses
-        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, tree.getNode(b)->getSon(0)->getId());
+        std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(tree, tree.getNode(b)->getSon(0)->getId());
         nodesIds0.push_back(tree.getNode(b)->getSon(0)->getId());
-        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, tree.getNode(b)->getSon(1)->getId());
+        std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(tree, tree.getNode(b)->getSon(1)->getId());
         nodesIds1.push_back(tree.getNode(b)->getSon(1)->getId());
         if ((tree.getNode(b)->getSon(0)->getId()==oldb)&&(!(VectorTools::contains(nodesIds1, a)))&&(b!=a))
           {
@@ -4300,9 +4313,9 @@ void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node *
         nodeA = nodeA->getFather();
         a = nodeA->getId();
         //Recording gene losses
-        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, nodeA->getSon(0)->getId());
+        std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(tree, nodeA->getSon(0)->getId());
         nodesIds0.push_back(nodeA->getSon(0)->getId());
-        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, nodeA->getSon(1)->getId());
+        std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(tree, nodeA->getSon(1)->getId());
         nodesIds1.push_back(nodeA->getSon(1)->getId());
         if ((nodeA->getSon(0)->getId()==olda)&&(!(VectorTools::contains(nodesIds1, b)))&&(b!=a))
           {
@@ -4335,9 +4348,9 @@ void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node *
         nodeB = nodeB->getFather();
         b = nodeB->getId();
         //Recording gene losses
-        std::vector <int> nodesIds0 = TreeTools::getNodesId(tree, nodeB->getSon(0)->getId());
+        std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(tree, nodeB->getSon(0)->getId());
         nodesIds0.push_back(nodeB->getSon(0)->getId());
-        std::vector <int> nodesIds1 = TreeTools::getNodesId(tree, nodeB->getSon(1)->getId());
+        std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(tree, nodeB->getSon(1)->getId());
         nodesIds1.push_back(nodeB->getSon(1)->getId());
         if ((nodeB->getSon(0)->getId()==oldb)&&(!(VectorTools::contains(nodesIds1, a)))&&(b!=a))
           {
@@ -4578,7 +4591,7 @@ double findMLReconciliation (TreeTemplate<Node> * spTree,
 	TreeTemplate<Node> * geneTree = geneTreeSafe->clone();
 	TreeTemplate<Node> * tree = spTree->clone();
 	if (!geneTree->isRooted()) {
-		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+		std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
 		std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliation !!!!!!"<<std::endl;
 		exit(-1);
 	}

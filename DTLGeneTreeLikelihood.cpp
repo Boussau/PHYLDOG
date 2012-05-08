@@ -381,7 +381,7 @@ void DTLGeneTreeLikelihood::initialize() {
    "", alphabet, true);
   ApplicationTools::displayTime ("Time After optimization using mapping: ") ;*/
   
- // std::cout << TreeTools::treeToParenthesis(*unrootedGeneTree_, false)<< std::endl;
+ // std::cout << TreeTemplateTools::treeToParenthesis(*unrootedGeneTree_, false)<< std::endl;
   
   /*
    nodes = unrootedGeneTree_->getNodes();
@@ -390,7 +390,7 @@ void DTLGeneTreeLikelihood::initialize() {
    nodes[i]->setDistanceToFather(0.1);
    } 
    }
-   std::cout << TreeTools::treeToParenthesis(*unrootedGeneTree_, false)<< std::endl;
+   std::cout << TreeTemplateTools::treeToParenthesis(*unrootedGeneTree_, false)<< std::endl;
    
    
    ApplicationTools::displayTime ("Time Before: ") ;
@@ -401,7 +401,7 @@ void DTLGeneTreeLikelihood::initialize() {
    rDist, 
    "", alphabet, false);
    ApplicationTools::displayTime ("Time After: ") ;
-   std::cout << TreeTools::treeToParenthesis(*unrootedGeneTree_, false)<< std::endl;
+   std::cout << TreeTemplateTools::treeToParenthesis(*unrootedGeneTree_, false)<< std::endl;
    */
   
   ////////////////////////////////////////////
@@ -456,7 +456,7 @@ void DTLGeneTreeLikelihood::initialize() {
  ************************************************************************/
 void DTLGeneTreeLikelihood::MLSearch() {
   std::cout <<"\t\t\tStarting MLSearch : current tree : "<< std::endl;
-  std::cout<< TreeTools::treeToParenthesis(*geneTree_, true)<< std::endl;
+  std::cout<< TreeTemplateTools::treeToParenthesis(*geneTree_, true)<< std::endl;
   breadthFirstreNumber (*geneTree_);
   std::vector <int> nodeIdsToRegraft;
   bool betterTree;
@@ -557,7 +557,7 @@ void DTLGeneTreeLikelihood::printGeneTree()
 {
   std::cout << "Best gene tree found with total lolk=" << bestDTLlogL_ + bestSequencelogL_ <<"; DTL loglk: "<< bestDTLlogL_ << "; sequence logLk: " << bestSequencelogL_ << endl;
   string outputTreeFile = ApplicationTools::getStringParameter("output.tree.file", params_, "output.tree", "", false, false);
-  //std::cout << TreeTools::treeToParenthesis(*geneTree_, false)<< std::endl;
+  //std::cout << TreeTemplateTools::treeToParenthesis(*geneTree_, false)<< std::endl;
   std::ofstream out;
   out.open (outputTreeFile.c_str(), std::ios::out);
   Nhx *nhx = new Nhx();

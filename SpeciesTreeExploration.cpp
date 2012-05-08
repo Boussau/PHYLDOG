@@ -114,7 +114,7 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
           {
               std::cout << "\t\tNNIs or Root changes: Improvement: new total Likelihood value "<<logL<<" compared to the best log Likelihood : "<<bestlogL<< std::endl;
               breadthFirstreNumber (*tree);
-              std::cout << "Improved species tree: "<<TreeTools::treeToParenthesis(*tree, true)<< std::endl;
+              std::cout << "Improved species tree: "<<TreeTemplateTools::treeToParenthesis(*tree, true)<< std::endl;
               numIterationsWithoutImprovement = 0;
               bestlogL =logL;
               if (bestTree)
@@ -365,7 +365,7 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
         bestIndex = index;
        std::cout <<"ReRooting: Improvement! : "<<numIterationsWithoutImprovement<< " logLk: "<<logL<< std::endl;
        std::cout << "Better candidate tree likelihood : "<<bestlogL<< std::endl; 
-       std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;
+       std::cout << TreeTemplateTools::treeToParenthesis(*tree, true)<< std::endl;
       }
       else {
         numIterationsWithoutImprovement++;
@@ -400,8 +400,8 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
     if (currentTree) delete currentTree;
     currentTree = bestTree->clone(); 
    std::cout << "\t\tServer: tryAllPossibleReRootingsAndMakeBestOne: new total Likelihood value "<<logL<< std::endl;
-   std::cout << TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
-    std::string currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
+   std::cout << TreeTemplateTools::treeToParenthesis(*currentTree, true)<< std::endl;
+    std::string currentSpeciesTree = TreeTemplateTools::treeToParenthesis(*currentTree, true);
 //TEST    breadthFirstreNumber (*currentTree, duplicationExpectedNumbers, lossExpectedNumbers);
       breadthFirstreNumber (*currentTree);
     if (ApplicationTools::getTime() < timeLimit)
@@ -556,7 +556,7 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
         bestIndex = index;
 
        std::cout << "SPRs: Better candidate tree likelihood : "<<bestlogL<< std::endl;
-       std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;
+       std::cout << TreeTemplateTools::treeToParenthesis(*tree, true)<< std::endl;
       }
       if (ApplicationTools::getTime() >= timeLimit)
         {
@@ -596,7 +596,7 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
             
                        
         //Send the new std::vectors to compute the new likelihood of the best tree
-        std::string currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, true);
+        std::string currentSpeciesTree = TreeTemplateTools::treeToParenthesis(*currentTree, true);
         broadcastsAllInformation(world, server, stop, 
                                  rearrange, 
                                  lossExpectedNumbers, duplicationExpectedNumbers, 
@@ -761,7 +761,7 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                                server, branchExpectedNumbersOptimization, 
                                                genomeMissing, optimizeRates, currentStep);
    /* std::cout << "after fastTryAllPossibleReRootingsAndMakeBestOne :currentTree: "<< std::endl;
-    std::cout << TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;*/
+    std::cout << TreeTemplateTools::treeToParenthesis(*currentTree, true)<< std::endl;*/
     if (ApplicationTools::getTime() >= timeLimit) 
       {	
         stop = true;
@@ -803,7 +803,7 @@ std::string computeSpeciesTreeLikelihood(const mpi::communicator& world,
                                          TreeTemplate<Node> &tree, unsigned int currentStep) 
 {
  //TEST breadthFirstreNumber (tree, duplicationExpectedNumbers, lossExpectedNumbers);
-  std::string currentSpeciesTree = TreeTools::treeToParenthesis(tree, true);
+  std::string currentSpeciesTree = TreeTemplateTools::treeToParenthesis(tree, true);
   computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, 
                                                          stop, logL, 
                                                          num0Lineages, num1Lineages, 
@@ -852,19 +852,16 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
 {
  /* if (!firstTime) 
     {*/
-    std::cout << "computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree SERVER BEFORE: "<< std::endl;
     broadcastsAllInformation(world, server, stop, 
                              rearrange, lossExpectedNumbers, 
                              duplicationExpectedNumbers, 
                              coalBls,
                              currentSpeciesTree, currentStep,
                              reconciliationModel);
-    std::cout << "computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree SERVER AFTER: "<< std::endl;
 
     index++;  
  //   }
     
-    std::cout << "computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree SERVER BEFORE gather: "<< std::endl;
     gathersInformationFromClients (world, 
                                    server,
                                    server, 
@@ -878,7 +875,6 @@ std::string computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(const mpi::co
                                    num12Lineages, 
                                    num22Lineages, 
                                    reconciliationModel);
-    std::cout << "computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree SERVER AFTER gather: "<< std::endl;
 
   /*  
   //COMPUTATION IN CLIENTS
@@ -1188,11 +1184,7 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
         }
     }
     else {
-        std::cout << "CLIENT numberOfGeneFamilies: "<< numberOfGeneFamilies<<std::endl;
-
         reduce(world, numberOfGeneFamilies, std::plus<int> (), 0);
-        std::cout << "CLIENT numberOfGeneFamilies: "<< numberOfGeneFamilies<<std::endl;
-
         bool stop;
         broadcast(world, stop, server); 
         if (stop) {
@@ -1281,7 +1273,6 @@ void gathersInformationFromClients (const mpi::communicator & world,
                                     std::string &reconciliationModel) 
 {
   //  MPI_Barrier(world);  
-    std::cout << "gathersInformationFromClients: "<< logL <<std::endl;
 
     if (whoami == server) {
         //AFTER COMPUTATION IN CLIENTS
@@ -1330,7 +1321,6 @@ void gathersInformationFromClients (const mpi::communicator & world,
     else {
         //Clients send back stuff to the server.
 //        gather(world, logL, server);     
-        std::cout << "CLIENT: "<< logL <<std::endl;
         reduce(world, logL, std::plus<double> (), 0);
         if (reconciliationModel == "DL") {
             reduce(world, num0Lineages, plus_vec(), 0);
@@ -1442,7 +1432,7 @@ void outputNNIAndRootLks(std::vector <double> & NNILks, std::vector <double> & r
 
 
 
-/*  std::string currentSpeciesTree = TreeTools::treeToParenthesis(*tree, true);
+/*  std::string currentSpeciesTree = TreeTemplateTools::treeToParenthesis(*tree, true);
  
  while (!stop) {
  std::vector<double> logLs;
@@ -1468,7 +1458,7 @@ void outputNNIAndRootLks(std::vector <double> & NNILks, std::vector <double> & r
  
  if (logL+0.01<bestlogL) {
  std::cout << "\t\tDuplication and loss probabilities optimization: Server : new total Likelihood value "<<logL<<" compared to the best log Likelihood : "<<bestlogL<< std::endl;
- std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;
+ std::cout << TreeTemplateTools::treeToParenthesis(*tree, true)<< std::endl;
  numIterationsWithoutImprovement = 0;
  bestlogL =logL;
  if (bestTree) 	
@@ -1666,7 +1656,7 @@ void makeRandomModifications(TreeTemplate<Node> &tree, int expectedFrequencyNNI,
 
 
  //TEST
-    /*  std::cout << TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
+    /*  std::cout << TreeTemplateTools::treeToParenthesis(*currentTree, true)<< std::endl;
 
     //Send the new std::vectors to compute the new likelihood of the best tree
     computeAverageDuplicationAndlossExpectedNumbersForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossExpectedNumbers, duplicationExpectedNumbers);
@@ -1674,7 +1664,7 @@ void makeRandomModifications(TreeTemplate<Node> &tree, int expectedFrequencyNNI,
     broadcast(world, rearrange, server); 
     broadcast(world, lossExpectedNumbers, server); 
     broadcast(world, duplicationExpectedNumbers, server); 
-    currentSpeciesTree = TreeTools::treeToParenthesis(*currentTree, false);
+    currentSpeciesTree = TreeTemplateTools::treeToParenthesis(*currentTree, false);
     broadcast(world, currentSpeciesTree, server);
     //COMPUTATION IN CLIENTS
     index++;  

@@ -591,7 +591,7 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
                                bool fillTables)
 {
 	if (!geneTree->isRooted()) {
-		std::cout << TreeTools::treeToParenthesis (*geneTree, true)<<std::endl;
+		std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
 		std::cout <<"!!!!!!gene tree is not rooted in findMLCoalReconciliationDR !!!!!!"<<std::endl;
         MPI::COMM_WORLD.Abort(1);
 		exit(-1);
@@ -620,8 +620,8 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
         }
     }
     
- //   std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
- //   std::cout <<"Gene Tree: \n" <<    TreeTools::treeToParenthesis(*geneTree, true) << std::endl;
+ //   std::cout <<"Species Tree: \n" <<    TreeTemplateTools::treeToParenthesis(*spTree, true) << std::endl;
+ //   std::cout <<"Gene Tree: \n" <<    TreeTemplateTools::treeToParenthesis(*geneTree, true) << std::endl;
         
     double initialLikelihood = computeCoalLikelihood ( coalCounts[geneTree->getRootNode()->getId()][0], coalBl ) ;
     
@@ -670,7 +670,7 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
     
     LksToNodes.rbegin()->second->setNodeProperty("outgroupNode", BppString("here") );
     
-    geneTree->newOutGroup(LksToNodes.rbegin()->second);     
+  //CHANGE02052012  geneTree->newOutGroup(LksToNodes.rbegin()->second);     
     
     
     
@@ -687,7 +687,7 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
         //tree->newOutGroup(LksToNodes.rbegin()->second->getId());
         
         
-        //std::cout << TreeTools::treeToParenthesis (*tree, true)<<std::endl;
+        //std::cout << TreeTemplateTools::treeToParenthesis (*tree, true)<<std::endl;
         
         nodesToTryInNNISearch.clear();
         
@@ -949,8 +949,8 @@ void CoalBranchLikelihood::computeLogLikelihood()
  }
  }
  
- std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
- std::cout <<"Gene Tree: \n" <<    TreeTools::treeToParenthesis(*geneTree, true) << std::endl;
+ std::cout <<"Species Tree: \n" <<    TreeTemplateTools::treeToParenthesis(*spTree, true) << std::endl;
+ std::cout <<"Gene Tree: \n" <<    TreeTemplateTools::treeToParenthesis(*geneTree, true) << std::endl;
  
  for (unsigned int i = 0 ; i < coalCounts[geneTree->getRootNode()->getId()][0].size() ; i++) {
  std::cout << "Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][0] << " Num coal out: "<< coalCounts[geneTree->getRootNode()->getId()][0][i][1]<<std::endl;
@@ -1087,7 +1087,7 @@ void CoalBranchLikelihood::computeLogLikelihood()
  //            bls[i] = spTree->getNode(i)->getDistanceToFather();
  //    }
  
- std::cout <<"Species Tree: \n" <<    TreeTools::treeToParenthesis(*spTree, true) << std::endl;
+ std::cout <<"Species Tree: \n" <<    TreeTemplateTools::treeToParenthesis(*spTree, true) << std::endl;
  //TEMP   TreeTemplate <Node>* geneTree = 0;
  
  //allGeneCounts: nbSpeciesBranches vectors of gTrees.size() vectors of 2 ints
@@ -1190,15 +1190,15 @@ void CoalBranchLikelihood::computeLogLikelihood()
  if ( spTree->getNode(i)->hasFather() )
  spTree->getNode(i)->setDistanceToFather(bls[i]);
  }
- std::cout <<"Species Tree optimized: \n" << TreeTools::treeToParenthesis(*spTree, true) << std::endl;
- std::cout <<"Species Tree optimized: \n" << TreeTools::treeToParenthesis(*spTree, false) << std::endl;
+ std::cout <<"Species Tree optimized: \n" << TreeTemplateTools::treeToParenthesis(*spTree, true) << std::endl;
+ std::cout <<"Species Tree optimized: \n" << TreeTemplateTools::treeToParenthesis(*spTree, false) << std::endl;
  
  for (unsigned int i = 0 ; i < bls.size() ; i++) {
  if ( spTree->getNode(i)->hasFather() )
  spTree->getNode(i)->setDistanceToFather(blAnalytical[i]);
  }
- std::cout <<"Species Tree analytical: \n" << TreeTools::treeToParenthesis(*spTree, true) << std::endl;
- std::cout <<"Species Tree analytical: \n" << TreeTools::treeToParenthesis(*spTree, false) << std::endl;
+ std::cout <<"Species Tree analytical: \n" << TreeTemplateTools::treeToParenthesis(*spTree, true) << std::endl;
+ std::cout <<"Species Tree analytical: \n" << TreeTemplateTools::treeToParenthesis(*spTree, false) << std::endl;
  
  return 0;
  

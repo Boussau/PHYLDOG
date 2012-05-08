@@ -86,7 +86,7 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
 { 
     DiscreteRatesAcrossSitesTreeLikelihood* tl;
     //DRHomogeneousTreeLikelihood * DRHomogeneousTreeLikelihood
-    // std::cout << TreeTools::treeToParenthesis(*unrootedGeneTree) <<std::endl;
+    // std::cout << TreeTemplateTools::treeToParenthesis(*unrootedGeneTree) <<std::endl;
 
     tl = new DRHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true);  
     tl->initialize();//Only initializes the parameter list, and computes the likelihood
@@ -181,7 +181,7 @@ vector< vector<unsigned int> > getCountsPerBranch(
   //auto_ptr<SubstitutionCount> count(new UniformizationSubstitutionCount(model, reg.clone()));
   
   //SubstitutionCount* count = new SimpleSubstitutionCount(reg);
-  const CategorySubstitutionRegister* creg = 0;
+/*  const CategorySubstitutionRegister* creg = 0;
   if (!stationarity) {
     try {
       creg = &dynamic_cast<const CategorySubstitutionRegister&>(reg);
@@ -191,8 +191,8 @@ vector< vector<unsigned int> > getCountsPerBranch(
   }
 
   auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(drtl, *count, false));
-
-  vector< vector<unsigned int> > counts(ids.size());
+*/
+  vector< vector<unsigned int> > counts(ids.size());/*
   unsigned int nbSites = mapping->getNumberOfSites();
   unsigned int nbTypes = mapping->getNumberOfSubstitutionTypes();
   for (size_t k = 0; k < ids.size(); ++k) {
@@ -256,7 +256,7 @@ vector< vector<unsigned int> > getCountsPerBranch(
       counts[k][j] = static_cast<unsigned int>(floor(countsf[j] + 0.5)); //Round counts
     }
   }
-  return counts;
+  return counts;*/
 }
 
 
@@ -275,10 +275,10 @@ vector< vector<unsigned int> > getTotalCountsOfSubstitutionsPerBranch(
   //auto_ptr<SubstitutionCount> count(new UniformizationSubstitutionCount(model, reg.clone()));
   
   //SubstitutionCount* count = new SimpleSubstitutionCount(reg);  
-  auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(drtl, *count, false));
-  
+/*  auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(drtl, *count, false));
+ */ 
   vector< vector<unsigned int> > counts(ids.size());
-  unsigned int nbSites = mapping->getNumberOfSites();
+ /* unsigned int nbSites = mapping->getNumberOfSites();
   unsigned int nbTypes = mapping->getNumberOfSubstitutionTypes();
   for (size_t k = 0; k < ids.size(); ++k) {
     //vector<double> countsf = SubstitutionMappingTools::computeSumForBranch(*mapping, mapping->getNodeIndex(ids[i]));
@@ -322,7 +322,7 @@ vector< vector<unsigned int> > getTotalCountsOfSubstitutionsPerBranch(
     for (size_t j = 0; j < countsf.size(); ++j) {
       counts[k][j] = static_cast<unsigned int>(floor(countsf[j] + 0.5)); //Round counts
     }
-  }
+  }*/
   return counts;
 }
 
@@ -335,8 +335,8 @@ void optimizeBLMapping(
                        DRTreeLikelihood* tl,
                        double precision)
 {
- //   std::cout<< "BEFORE: "<<TreeTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
-
+ //   std::cout<< "BEFORE: "<<TreeTemplateTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
+/*
   double currentValue = tl->getValue();
   double newValue = currentValue - 2* precision;
   ParameterList bls = tl->getBranchLengthsParameters () ;
@@ -373,19 +373,15 @@ void optimizeBLMapping(
       if (currentValue > newValue + precision) { //Significant improvement
       bls = newBls;
         tl->setParameters(bls);
- //       std::cout<< "AFTER: "<<TreeTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
+ //       std::cout<< "AFTER: "<<TreeTemplateTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
 
-      /*  TreeTemplate<Node *>* t = tl->getTree();
-        for (unsigned int i = 0 ; i < counts.size() ; i ++) {
-            t->getNode(i)->setDistanceToFather(bls[i]);
-        }*/
     }
     else { 
       if (currentValue < newValue) //new state worse, getting back to the former state
       tl->matchParametersValues(bls);
     }
   }
-  
+  */
   
   /*
   //Counting all substitutions
@@ -430,7 +426,7 @@ void optimizeBLMappingForSPRs(
                        DRTreeLikelihood* tl,
                        double precision, map<string, string> params)
 {    
-    if (!tl->isInitialized () ) {
+ /*   if (!tl->isInitialized () ) {
         tl->initialize();
     }
     double currentValue = tl->getValue();
@@ -448,18 +444,9 @@ void optimizeBLMappingForSPRs(
     
     //Then, normal optimization.
     
-  /*  tl = dynamic_cast<DRTreeLikelihood*>(PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<TreeLikelihood*>(tl), 
-                                                                                           tl->getParameters(), 
-                                                                                           params));*/
     
     SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);   
    //We do the mapping based thing only once:
-    /*while (currentValue > newValue + precision) {
-        if (first)
-            first=false;
-        else {
-            currentValue = newValue;
-        }*/
         //Perform the mapping:
     
         counts = getTotalCountsOfSubstitutionsPerBranch(*tl, ids, tl->getSubstitutionModel(0,0), *reg, count, -1);
@@ -469,10 +456,7 @@ void optimizeBLMappingForSPRs(
         for (unsigned int i = 0 ; i < counts.size() ; i ++) {
           //  if (abs(bls[i].getValue() - 0.1) < 0.000001) {
             value = double(VectorTools::sum(counts[i])) / (double)numberOfSites;
-         /*   } else {
-                value = bls[i].getValue();
-            }*/
-            // LITTLE ATTEMPT TO TRY TO AVOID HUGE BRANCHES THAT MAY OCCUR FOR VERY BAD ALIGNMENTS
+             // LITTLE ATTEMPT TO TRY TO AVOID HUGE BRANCHES THAT MAY OCCUR FOR VERY BAD ALIGNMENTS
             if (value > 1.0) value = 1.0;
             name = "BrLen" + TextTools::toString(i);
             newBls.setParameterValue(name, newBls.getParameter(name).getConstraint()->getAcceptedLimit (value));
@@ -486,10 +470,6 @@ void optimizeBLMappingForSPRs(
         if (currentValue > newValue + precision) { //Significant improvement
             bls = newBls;
             tl->setParametersValues(bls);     
-            /*  TreeTemplate<Node *>* t = tl->getTree();
-             for (unsigned int i = 0 ; i < counts.size() ; i ++) {
-             t->getNode(i)->setDistanceToFather(bls[i]);
-             }*/
         }
         else { 
             if (currentValue < newValue) //new state worse, getting back to the former state
@@ -511,7 +491,7 @@ void optimizeBLMappingForSPRs(
         
     PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
     params[ std::string("optimization.max_number_f_eval")] = backup;
-     
+     */
     
 }
 
@@ -802,7 +782,7 @@ string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
       exit(-1);
     }
   }
-  return (TreeTools::treeToParenthesis(*geneTreeWithSpNames, false) );  
+  return (TreeTemplateTools::treeToParenthesis(*geneTreeWithSpNames, false) );  
 }
 
 /**************************************************************************
@@ -825,7 +805,7 @@ string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
       exit(-1);
     }
   }
-  return (TreeTools::treeToParenthesis(*geneTreeWithSpNames, false) );  
+  return (TreeTemplateTools::treeToParenthesis(*geneTreeWithSpNames, false) );  
 }
 
 /**************************************************************************
@@ -943,7 +923,7 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
                         delete bestTree;
                     bestTree = tree->clone();  
                     /*std::cout << "Gene tree SPR: Better candidate tree likelihood : "<<bestlogL<< std::endl;
-                     std::cout << TreeTools::treeToParenthesis(*tree, true)<< std::endl;*/
+                     std::cout << TreeTemplateTools::treeToParenthesis(*tree, true)<< std::endl;*/
                 }
             }
             if (betterTree) {
@@ -952,7 +932,7 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
                     delete currentTree;
                 currentTree = bestTree->clone();
                 breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
-                //std::cout <<"NEW BETTER TREE: \n"<< TreeTools::treeToParenthesis(*currentTree, true)<< std::endl;
+                //std::cout <<"NEW BETTER TREE: \n"<< TreeTemplateTools::treeToParenthesis(*currentTree, true)<< std::endl;
                 numIterationsWithoutImprovement = 0;
             }
             else {

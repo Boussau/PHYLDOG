@@ -563,7 +563,7 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
 {
   //int nodeId = son->getId();
 //  std::cout<<"IN TESTNNI, nodeId "<< nodeId << "_nodesToTryInNNISearch.size() "<< _nodesToTryInNNISearch.size()<<std::endl;
- // std::cout << "before "<<TreeTools::treeToParenthesis (*tree_, true)<<std::endl;
+ // std::cout << "before "<<TreeTemplateTools::treeToParenthesis (*tree_, true)<<std::endl;
  //If the NNI is around a branch where a duplication was found, 
  //or if we just try all branches because the starting gene trees are parsimonious in
  //numbers of DL.
@@ -752,7 +752,7 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
             _tentativeScenarioLikelihood=ScenarioMLValue;
             }
           return tot;
-          // std::cout << "after "<<TreeTools::treeToParenthesis (tree_, true)<<std::endl;
+          // std::cout << "after "<<TreeTemplateTools::treeToParenthesis (tree_, true)<<std::endl;
           
         }
       else 
@@ -786,7 +786,7 @@ double ReconciliationTreeLikelihood::testNNI(int nodeId) const throw (NodeExcept
 void ReconciliationTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
   //std::cout<<"\t\t\tIN DONNI "<< std::endl;
-  //std::cout << TreeTools::treeToParenthesis(*tree_, true) << std::endl;
+  //std::cout << TreeTemplateTools::treeToParenthesis(*tree_, true) << std::endl;
   //Perform the topological move, the likelihood array will have to be recomputed...
   Node * son    = tree_->getNode(nodeId);
   if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", nodeId);
@@ -953,11 +953,11 @@ double ReconciliationTreeLikelihood::getSequenceLikelihood() {
 /*******************************************************************************/
 void ReconciliationTreeLikelihood::print () const {
   std::cout << "Species tree:"<<std::endl;
-  std::cout << TreeTools::treeToParenthesis (getSpTree(), true)<<std::endl;
+  std::cout << TreeTemplateTools::treeToParenthesis (getSpTree(), true)<<std::endl;
   std::cout << "Gene family rooted tree:"<<std::endl;
-  std::cout << TreeTools::treeToParenthesis (getRootedTree(), true)<<std::endl;
+  std::cout << TreeTemplateTools::treeToParenthesis (getRootedTree(), true)<<std::endl;
   std::cout << "Gene family tree:"<<std::endl;
-  std::cout << TreeTools::treeToParenthesis (getTree(), true)<<std::endl;
+  std::cout << TreeTemplateTools::treeToParenthesis (getTree(), true)<<std::endl;
   std::cout << "0 lineage numbers"<<std::endl;
   VectorTools::print(get0LineagesNumbers());
   std::cout << "1 lineage numbers"<<std::endl;
@@ -981,7 +981,7 @@ void ReconciliationTreeLikelihood::print () const {
  ************************************************************************/
 void ReconciliationTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     std::cout <<"\t\t\tStarting MLSearch : current tree : "<< std::endl;
-    std::cout<< TreeTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
+    std::cout<< TreeTemplateTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
     breadthFirstreNumber (*_rootedTree);
     std::vector <int> nodeIdsToRegraft;
     bool betterTree;
@@ -1051,7 +1051,7 @@ void ReconciliationTreeLikelihood::refineGeneTreeSPRs(map<string, string> params
                   //  tree_ = treeForSPR->clone();
                     
                     //Compute sequence likelihood and improve branch lengths on the gene tree.
-                    /*  std::cout<< TreeTools::treeToParenthesis(*tree_, true)<< std::endl;
+                    /*  std::cout<< TreeTemplateTools::treeToParenthesis(*tree_, true)<< std::endl;
                     optimizeBLMapping(this,
                                       0.1);
                     */
@@ -1062,13 +1062,13 @@ void ReconciliationTreeLikelihood::refineGeneTreeSPRs(map<string, string> params
                     
                     //fireParameterChanged(getParameters());
                     //Compute sequence likelihood and improve branch lengths on the gene tree.
-                    std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
+                    std::cout<< TreeTemplateTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
 
                     params[ std::string("optimization.topology")] = "false";
                     optimizeBLMappingForSPRs(drlk,
                                       0.1, params);
                     std::cout << "Good SPR; Sequence lk after optimization: "<< -drlk->getValue() << std::endl;
-                    std::cout<< TreeTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
+                    std::cout<< TreeTemplateTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
 
                     
                     logL = candidateScenarioLk - drlk->getValue();
@@ -1101,7 +1101,7 @@ void ReconciliationTreeLikelihood::refineGeneTreeSPRs(map<string, string> params
                     bestNodeToRegraft = nodeIdsToRegraft[i];
                     bestNodeForSPR = nodeForSPR;
                     std::cout << "\t\t\tSPRs: Better candidate tree likelihood : "<<bestlogL<< std::endl;
-                    std::cout << "\t\t\tTotal likelihood: "<<logL <<"; Reconciliation likelihood: "<< bestScenarioLk << ", Sequence likelihood: "<< bestSequenceLogL <<", for tree: "<< /*TreeTools::treeToParenthesis(bestTreeLogLk->getRootedTree()) << */std::endl;
+                    std::cout << "\t\t\tTotal likelihood: "<<logL <<"; Reconciliation likelihood: "<< bestScenarioLk << ", Sequence likelihood: "<< bestSequenceLogL <<", for tree: "<< /*TreeTemplateTools::treeToParenthesis(bestTreeLogLk->getRootedTree()) << */std::endl;
                 }
                 else {
                  //   copyContentsFrom(*bestTreeLogLk);
