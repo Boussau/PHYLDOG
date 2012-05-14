@@ -113,6 +113,11 @@ void SpeciesTreeLikelihood::initialize()
         breadthFirstreNumber (*tree_, duplicationExpectedNumbers_, lossExpectedNumbers_);
     }
     else if (reconciliationModel_ == "COAL") {
+        // computeCoalBls (std::vector < std::vector < std::vector< unsigned int > > >&  allGeneCounts , coalBls_); 
+        for (unsigned int i = 0 ; i < tree_->getNumberOfNodes() ; i++)
+        {
+            coalBls_.push_back(10);
+        }
         breadthFirstreNumber (*tree_, coalBls_);
     }
     //We write the starting species tree to a file

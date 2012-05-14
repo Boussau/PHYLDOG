@@ -34,21 +34,27 @@ void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree,
                                  std::vector < std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts,
                                  std::vector <std::vector<unsigned int> > & speciesIDs) {
 	int id=node->getId();
+
  	if (node->isLeaf()) { //In principle this should be done only once at the beginning of the algorithm, if node ids are kept
         //Fill all leaf count vectors with 0s
+
         initializeCountVectors(coalCounts[id]);
+
         speciesIDs[id][0] = assignSpeciesIdToLeaf(node, seqSp, spID);
 //        int i = spID[ seqSp[ node->getName()] ];
         incrementOutCount(coalCounts[id][0], speciesIDs[id][0]);
+
         return;
     }
     else {
+
         std::vector <Node *> sons = node->getSons();
         for (unsigned int i = 0; i< sons.size(); i++){
             computeSubtreeCoalCountsPostorder(spTree, geneTree, 
                                         sons[i], seqSp, 
                                         spID, coalCounts, 
                                         speciesIDs);
+
         }
         
         int idSon0 = sons[0]->getId();
@@ -60,12 +66,14 @@ void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree,
                 directionSon0 = i;
             }
         }
+
         neighbors = sons[1]->getNeighbors();
         for (unsigned int i=0; i<neighbors.size(); i++) {
             if (neighbors[i]==node) {
                 directionSon1 = i;
             }
         }
+
         computeCoalCountsFromSons (spTree, sons, 
                                    speciesIDs[id][0], 
                                    speciesIDs[idSon0][directionSon0], 
@@ -73,7 +81,8 @@ void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree,
                                    coalCounts[id][0],
                                    coalCounts[idSon0][directionSon0], 
                                    coalCounts[idSon1][directionSon1]
-                                    );                
+                                    ); 
+
         return;
 	}	
 }
@@ -84,17 +93,24 @@ void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree,
  ****************************************************************************/
 void initializeCountVectors(std::vector< std::vector< std::vector<unsigned int> > > &vec) {
     int size = vec[0].size();
-    for (unsigned int i = 0 ; i < 3 ; i++ ) { //I should not be necessary to initialize all vectors, i==0 should be enough
+
+    for (unsigned int i = 0 ; i < 3 ; i++ ) { //It should not be necessary to initialize all vectors, i==0 should be enough
+
         initializeCountVector(vec[i]);
+
     }
     return;
 }
 
 
 void initializeCountVector(std::vector<std::vector<unsigned int> >  &vec) {
+
     for (unsigned int j = 0 ; j < vec.size() ; j++ ) {
+
          for (unsigned int i = 0 ; i < 2 ; i++ ) {
+
              vec[j][i] = 0;
+
          }
     }
     return;

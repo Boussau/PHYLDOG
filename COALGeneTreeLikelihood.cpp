@@ -94,6 +94,10 @@ GeneTreeLikelihood(tree,
     _coalBl = coalBl;
     _coalCounts = coalCounts;
     _tentativeCoalCounts = coalCounts;
+    for (unsigned int i = 0 ; i < _coalBl.size() ; i++) {
+        num12Lineages_.push_back(0);
+        num22Lineages_.push_back(0);
+    }
     computeNumLineagesFromCoalCounts ();
 }
 
@@ -141,6 +145,13 @@ GeneTreeLikelihood(tree,
     _coalBl = coalBl;
     _coalCounts = coalCounts;
     _tentativeCoalCounts = coalCounts;
+    for (unsigned int i = 0 ; i < _coalBl.size() ; i++) {
+        num12Lineages_.push_back(0);
+        num22Lineages_.push_back(0);
+    }
+    std::cout << "_coalBl.size(): "<< _coalBl.size() <<std::endl;
+
+    computeNumLineagesFromCoalCounts ();
 }
 
 /******************************************************************************/
@@ -151,6 +162,9 @@ GeneTreeLikelihood(lik)
     _coalBl = lik._coalBl;
     _coalCounts = lik._coalCounts;
     _tentativeCoalCounts = lik._tentativeCoalCounts;
+    num12Lineages_ = lik.num12Lineages_;
+    num22Lineages_ = lik.num22Lineages_;
+
 }
 
 /******************************************************************************/
@@ -161,6 +175,8 @@ COALGeneTreeLikelihood & COALGeneTreeLikelihood::operator=(const COALGeneTreeLik
     _coalBl = lik._coalBl;
     _coalCounts = lik._coalCounts;
     _tentativeCoalCounts = lik._tentativeCoalCounts;
+    num12Lineages_ = lik.num12Lineages_;
+    num22Lineages_ = lik.num22Lineages_;
     return *this;
 }
 

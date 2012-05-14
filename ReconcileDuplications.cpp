@@ -214,6 +214,8 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                                std::vector <double> & duplicationExpectedNumbers,
                                std::vector < std::vector < std::vector < std::vector <unsigned int> > > > coalCounts,
                                std::vector <double> & coalBls,
+                               std::vector <std::vector<unsigned int> > & allNum12Lineages, 
+                               std::vector <std::vector<unsigned int> > & allNum22Lineages, 
                                std::map <std::string, int> & spId, 
                                int speciesIdLimitForRootPosition, 
                                int heuristicsLevel, int MLindex, 
@@ -573,11 +575,18 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           allNum0Lineages.push_back(numbers);
           allNum1Lineages.push_back(numbers);
           allNum2Lineages.push_back(numbers);
+          std::vector<unsigned int> uNumbers (tree->getNumberOfNodes(), 0);
+
+          allNum12Lineages.push_back(uNumbers);
+          allNum22Lineages.push_back(uNumbers);
+
           resetLossesAndDuplications(*tree, lossExpectedNumbers, duplicationExpectedNumbers);
           resetVector(allNum0Lineages[i-numDeletedFamilies]);
           resetVector(allNum1Lineages[i-numDeletedFamilies]);
           resetVector(allNum2Lineages[i-numDeletedFamilies]);
-          
+          resetVector(allNum12Lineages[i-numDeletedFamilies]);
+          resetVector(allNum22Lineages[i-numDeletedFamilies]);
+
           /************************************************************************************************************/
           /********************************************COMPUTING LIKELIHOOD********************************************/
           /************************************************************************************************************/
@@ -703,6 +712,22 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
               }
               else if (reconciliationModel == "COAL")
               {
+                  //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
+                  std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
+                  std::vector< std::vector<unsigned int> > coalCounts3;
+                  std::vector< unsigned int > coalCounts4;
+                  for (unsigned int i = 0 ; i < 2 ; i++ ) {
+                      coalCounts4.push_back(0);
+                  }
+                  for (unsigned int i = 0 ; i < tree->getNumberOfNodes() ; i++ ) {
+                      coalCounts3.push_back(coalCounts4);
+                  }
+                  for (unsigned int i = 0 ; i < 3 ; i++ ) {
+                      coalCounts2.push_back(coalCounts3);
+                  }
+                  for (unsigned int i = 0 ; i < geneTree->getNumberOfNodes() ; i++ ) {
+                      coalCounts.push_back(coalCounts2);
+                  }
                   tl = new COALGeneTreeLikelihood(*unrootedGeneTree, *sites, 
                                                   model, rDist, *tree, 
                                                   *geneTree, *treeWithSpNames, seqSp, spId, 
@@ -920,22 +945,35 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
   std::string dupTree;
   std::string lossTree;
   int rightIndex = bestIndex-startRecordingTreesFrom ;
+    std::cout << "outputGeneTrees "<<std::endl;
   for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
     {
         suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
         reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
-        
+        std::cout << "outputGeneTrees 2"<<std::endl;
+
         reconcTree = reconcTree + suffix;
         Nhx *nhx = new Nhx();
+        std::cout << "reconciledTrees.size(): "<< reconciledTrees.size()<<std::endl;
         string temp = reconciledTrees[i][rightIndex];
-        
-        TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
-        temp = duplicationTrees[i][rightIndex];
+        std::cout << "outputGeneTrees 3"<<std::endl;
+        std::cout << "and index: "<< rightIndex <<std::endl;
+        std::cout << "outputGeneTrees 3ss: "<< reconciledTrees[i].size() << "and index: "<< rightIndex <<std::endl;
+
+        std::cout << "outputGeneTrees 3bis: "<< reconciledTrees[i][rightIndex] <<std::endl;
+
+
         if (reconciliationModel == "DL") {
+            TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
+            temp = duplicationTrees[i][rightIndex];
+            std::cout << "outputGeneTrees 4"<<std::endl;
+
             TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);
             breadthFirstreNumber (*spTree);        
             std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*spTree);
             std::map <std::string, std::string> seqSp = treeLikelihoods[i]->getSeqSp();
+            std::cout << "outputGeneTrees 5"<<std::endl;
+
             annotateGeneTreeWithDuplicationEvents (*spTree, 
                                                    *geneTree, 
                                                    geneTree->getRootNode(), 
@@ -945,6 +983,8 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
             nhx->write(*geneTree, out);
             out.close();
             dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
+            std::cout << "outputGeneTrees 6"<<std::endl;
+
             dupTree = dupTree + suffix;
             out.open (dupTree.c_str(), std::ios::out);
             out << duplicationTrees[i][rightIndex]<<std::endl;
@@ -953,11 +993,30 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
             lossTree = lossTree + suffix;
             out.open (lossTree.c_str(), std::ios::out);
             out << lossTrees[i][rightIndex]<<std::endl;
+            std::cout << "outputGeneTrees 7"<<std::endl;
+            delete geneTree;
+            std::cout << "outputGeneTrees 10"<<std::endl;
+
             delete spTree;
         }
+        else if (reconciliationModel == "COAL") {
+            TreeTemplate<Node> * geneTree=TreeTemplateTools::parenthesisToTree(temp);
+            std::cout << "outputGeneTrees 4"<<std::endl;
+            out.open (reconcTree.c_str(), std::ios::out);
+            nhx->write(*geneTree, out);
+            out.close();
+            delete geneTree;
+            std::cout << "outputGeneTrees 10"<<std::endl;
+
+
+        }
+        std::cout << "outputGeneTrees 8"<<std::endl;
+
         out.close();
         delete nhx;
-        delete geneTree;
+        std::cout << "outputGeneTrees 9"<<std::endl;
+
+
     }
   return;
 }
@@ -1065,8 +1124,8 @@ int main(int args, char ** argv)
         //##################################################################################################################
         if (rank >server)
         {
-            
-           /* int z = 0;
+            /*
+           int z = 0;
              //   char hostname[256];
              //gethostname(hostname, sizeof(hostname));
              std::cout <<"PID: "<<getpid()<<std::endl;
@@ -1204,6 +1263,7 @@ int main(int args, char ** argv)
                                       geneTree, tree, num0Lineages, allNum0Lineages, 
                                       allNum1Lineages, allNum2Lineages, 
                                       lossExpectedNumbers, duplicationExpectedNumbers, coalCounts, coalBls,
+                                      allNum12Lineages, allNum22Lineages,
                                       spId, speciesIdLimitForRootPosition, heuristicsLevel, 
                                       MLindex, allLogLs, treeLikelihoods, 
                                       backupTreeLikelihoods, allParams, 
@@ -1377,7 +1437,7 @@ int main(int args, char ** argv)
                         geneTree = 0;
                     }
                     geneTree = new TreeTemplate<Node>(treeLikelihoods[i]->getRootedTree());
-                    
+
                     ///LIKELIHOOD OPTIMIZED
                     
                    // resetLossesAndDuplications(*tree, lossExpectedNumbers, duplicationExpectedNumbers);
@@ -1392,12 +1452,16 @@ int main(int args, char ** argv)
                         allLogLs[i] = dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->getValue();  
                     }
                     else if (reconciliationModel == "COAL") {
+
                         allNum12Lineages[i] = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->getNum12Lineages();
                         allNum22Lineages[i] = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->getNum22Lineages();
+
                         num12Lineages = num12Lineages + allNum12Lineages[i];
                         num22Lineages = num22Lineages + allNum22Lineages[i];
+
                         MLindex = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->getRootNodeindex();
                         allLogLs[i] = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->getValue();  
+
                     }
                     logL = logL + allLogLs[i];
                     std::cout<<"Gene Family: " << assignedFilenames[i] << " total logLk: "<< - allLogLs[i]<< " scenario loglk: "<< treeLikelihoods[i]->getScenarioLikelihood() <<std::endl;
