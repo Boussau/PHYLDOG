@@ -6,8 +6,8 @@
 //  Copyright 2012 UC Berkeley. All rights reserved.
 //
 
-#ifndef CoalTools_h
-#define CoalTools_h
+#ifndef COALTools_h
+#define COALTools_h
 #include "ReconciliationTools.h"
 #include <Bpp/Numeric/NumTools.h>
 #include <Bpp/Numeric/Function/BrentOneDimension.h>

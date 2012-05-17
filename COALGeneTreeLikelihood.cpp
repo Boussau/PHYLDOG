@@ -1383,7 +1383,9 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
                                 }
                                 if (nodesToUpdate[k]->hasDistanceToFather()) {
                                     brLenConstraint->clone();
-                                    
+                                    if (nodesToUpdate[k]->getDistanceToFather() < 0.000001) {
+                                        nodesToUpdate[k]->setDistanceToFather(0.000001);
+                                    }
                                     pl.addParameter(Parameter("BrLen" + TextTools::toString(nodesToUpdate[k]->getId()), nodesToUpdate[k]->getDistanceToFather(), brLenConstraint->clone(), true));
                                     
                                 }

@@ -100,7 +100,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 //#include "SpeciesTreeExploration.h"
 #include "SpeciesTreeLikelihood.h"
-//#include "GeneTreeAlgorithms.h"
+#include "GeneTreeAlgorithms.h"
 
 
 
