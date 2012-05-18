@@ -1284,16 +1284,17 @@ void gathersInformationFromClients (const mpi::communicator & world,
         resetVector(num2Lineages);
         resetVector(num12Lineages);
         resetVector(num22Lineages);
-        vector< int> tempNums = num0Lineages;
   //      gather(world, logL, logLs, server);
 //        logL =  VectorTools::sum(logLs);
         reduce(world, logLVal, logL, std::plus<double> (), 0);
         if (reconciliationModel == "DL") {
+            vector< int> tempNums = num0Lineages;
             reduce(world, tempNums, num0Lineages, plus_vec(), 0);
             reduce(world, tempNums, num1Lineages, plus_vec(), 0);
             reduce(world, tempNums, num2Lineages, plus_vec(), 0);
         }
         else if (reconciliationModel == "COAL") {
+            vector< unsigned int> tempNums = num0Lineages;
             reduce(world, tempNums, num12Lineages, plus_vec_unsigned(), 0);
             reduce(world, tempNums, num22Lineages, plus_vec_unsigned(), 0);
         }
