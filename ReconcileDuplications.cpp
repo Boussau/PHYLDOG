@@ -1298,7 +1298,7 @@ int main(int args, char ** argv)
                  }
              }
 */
-            MPI_Barrier(world);
+          //  MPI_Barrier(world);
             broadcast(world, stop, server);
             broadcastsAllInformationButStop(world, server, rearrange, 
                                             lossExpectedNumbers, 
