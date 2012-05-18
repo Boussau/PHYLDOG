@@ -363,8 +363,8 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                   if (spSeq.find(st1.getToken(0)) == spSeq.end())
                       spSeq.insert( make_pair(st1.getToken(0),st2.getTokens()));
                   else {
-                      for (unsigned int i = 0 ; i < (st2.getTokens()).size() ; i++)
-                          spSeq.find(st1.getToken(0))->second.push_back(st2.getTokens()[i]);
+                      for (unsigned int j = 0 ; j < (st2.getTokens()).size() ; j++)
+                          spSeq.find(st1.getToken(0))->second.push_back(st2.getTokens()[j]);
                   }
               }
           }
@@ -716,16 +716,16 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                   std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
                   std::vector< std::vector<unsigned int> > coalCounts3;
                   std::vector< unsigned int > coalCounts4;
-                  for (unsigned int i = 0 ; i < 2 ; i++ ) {
+                  for (unsigned int j = 0 ; j < 2 ; j++ ) {
                       coalCounts4.push_back(0);
                   }
-                  for (unsigned int i = 0 ; i < tree->getNumberOfNodes() ; i++ ) {
+                  for (unsigned int j = 0 ; j < tree->getNumberOfNodes() ; j++ ) {
                       coalCounts3.push_back(coalCounts4);
                   }
-                  for (unsigned int i = 0 ; i < 3 ; i++ ) {
+                  for (unsigned int j = 0 ; j < 3 ; j++ ) {
                       coalCounts2.push_back(coalCounts3);
                   }
-                  for (unsigned int i = 0 ; i < geneTree->getNumberOfNodes() ; i++ ) {
+                  for (unsigned int j = 0 ; j < geneTree->getNumberOfNodes() ; j++ ) {
                       coalCounts.push_back(coalCounts2);
                   }
                   tl = new COALGeneTreeLikelihood(*unrootedGeneTree, *sites, 
