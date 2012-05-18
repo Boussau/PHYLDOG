@@ -1308,10 +1308,12 @@ int main(int args, char ** argv)
                                             currentStep, 
                                             reconciliationModel
                                             );
-
-            if (tree) delete tree;
-            tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
-            spId = computeSpeciesNamesToIdsMap(*tree);
+            if (assignedFilenames.size()-numDeletedFamilies > 0) 
+            {
+                if (tree) delete tree;
+                tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
+                spId = computeSpeciesNamesToIdsMap(*tree);
+            }
             startRecordingTreesFrom = 1;
             for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
             {
@@ -1500,9 +1502,12 @@ int main(int args, char ** argv)
                                                     currentSpeciesTree,
                                                     currentStep, 
                                                     reconciliationModel);
-                    if (tree) delete tree;
-                    tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
-                    spId = computeSpeciesNamesToIdsMap(*tree);
+                    if (assignedFilenames.size()-numDeletedFamilies > 0) 
+                    {
+                        if (tree) delete tree;
+                        tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
+                        spId = computeSpeciesNamesToIdsMap(*tree);
+                    }
                     //if we reset the gene trees by resetting treeLikelihoods:
                     //we always start from ML trees according to sequences only
                     //when we optimize dl expected numbers, we may not want to 
