@@ -798,7 +798,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
     
     //Building a MRP species tree, if the options say so
     initTree = ApplicationTools::getStringParameter("init.species.tree", 
-                                                    allParams[0], "user", 
+                                                    params, "user", 
                                                     "", false, false);
     if (initTree == "mrp") {
         //Build a string containing all trees with one gene per species
@@ -1251,8 +1251,8 @@ int main(int args, char ** argv)
             std::vector <std::vector <std::string> > lossTrees;
             std::vector <std::string> t;  
             std::vector <std::map<std::string, std::string> > allParamsBackup = allParams;
-            bool resetGeneTrees = ApplicationTools::getBooleanParameter("reset.gene.trees",allParams[0],true);
-            unsigned int currentStep = ApplicationTools::getIntParameter("current.step",allParams[0],0);
+            bool resetGeneTrees = ApplicationTools::getBooleanParameter("reset.gene.trees",params,true);
+            unsigned int currentStep = ApplicationTools::getIntParameter("current.step",params,0);
 
             for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
             {
