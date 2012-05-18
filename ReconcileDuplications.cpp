@@ -283,11 +283,11 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       std::vector <std::string> seqsToRemove;
 
       if (minPercentSequence > 0) {
-          for ( int i = allSites->getNumberOfSequences()-1 ; i >= 0 ; i--) {
-              if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(i) ) < threshold ) {
-                  ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(i).getName()  );
+          for ( int j = allSites->getNumberOfSequences()-1 ; j >= 0 ; j--) {
+              if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(j) ) < threshold ) {
+                  ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(j).getName()  );
                  // allSites->deleteSequence(i);
-                  seqsToRemove.push_back(allSites->getSequence(i).getName());
+                  seqsToRemove.push_back(allSites->getSequence(j).getName());
               }
           }
       }

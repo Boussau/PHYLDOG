@@ -1046,6 +1046,7 @@ void broadcastsAllInformationButStop(const mpi::communicator& world, unsigned in
 
     broadcast(world, currentSpeciesTree, server);
     broadcast(world, currentStep, server);
+    MPI_Barrier(world);
  /*  double t = MPI_Wtime();
     broadcast(world, t, server); 
     std::cout << "broadcastsAllInformationButStop: " << currentStep<<" "<< setprecision(30)<< t <<std::endl;
