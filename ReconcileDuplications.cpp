@@ -793,11 +793,8 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
 
     
     unsigned int numberOfGeneFamilies = assignedFilenames.size()-numDeletedFamilies;
-
     numberOfFilteredFamiliesCommunicationsServerClient (world, server, 
-                                   rank, numberOfGeneFamilies);
-
-    
+                                   rank, numberOfGeneFamilies);    
     
     //Building a MRP species tree, if the options say so
     initTree = ApplicationTools::getStringParameter("init.species.tree", 
@@ -837,6 +834,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                                       numbersOfGeneFamilies, 
                                       lossExpectedNumbers, duplicationExpectedNumbers, coalBls, 
                                       currentSpeciesTree);
+
     delete tree;
 
     tree=TreeTemplateTools::parenthesisToTree(currentSpeciesTree, false, "", true);
@@ -922,6 +920,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
 
         }
     }
+
     return;
 }
 

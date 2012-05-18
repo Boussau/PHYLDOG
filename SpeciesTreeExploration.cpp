@@ -1184,7 +1184,7 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
         }
     }
     else {
-        reduce(world, numberOfGeneFamilies, std::plus<int> (), 0);
+        reduce(world, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
         bool stop;
         broadcast(world, stop, server); 
         if (stop) {
