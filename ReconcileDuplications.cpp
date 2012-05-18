@@ -944,34 +944,22 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
   std::string dupTree;
   std::string lossTree;
   int rightIndex = bestIndex-startRecordingTreesFrom ;
-    std::cout << "outputGeneTrees "<<std::endl;
   for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
     {
         suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
         reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
-        std::cout << "outputGeneTrees 2"<<std::endl;
 
         reconcTree = reconcTree + suffix;
         Nhx *nhx = new Nhx();
-        std::cout << "reconciledTrees.size(): "<< reconciledTrees.size()<<std::endl;
         string temp = reconciledTrees[i][rightIndex];
-        std::cout << "outputGeneTrees 3"<<std::endl;
-        std::cout << "and index: "<< rightIndex <<std::endl;
-        std::cout << "outputGeneTrees 3ss: "<< reconciledTrees[i].size() << "and index: "<< rightIndex <<std::endl;
-
-        std::cout << "outputGeneTrees 3bis: "<< reconciledTrees[i][rightIndex] <<std::endl;
-
-
-        if (reconciliationModel == "DL") {
+         if (reconciliationModel == "DL") {
             TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
             temp = duplicationTrees[i][rightIndex];
-            std::cout << "outputGeneTrees 4"<<std::endl;
 
             TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);
             breadthFirstreNumber (*spTree);        
             std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*spTree);
             std::map <std::string, std::string> seqSp = treeLikelihoods[i]->getSeqSp();
-            std::cout << "outputGeneTrees 5"<<std::endl;
 
             annotateGeneTreeWithDuplicationEvents (*spTree, 
                                                    *geneTree, 
@@ -982,7 +970,6 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
             nhx->write(*geneTree, out);
             out.close();
             dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
-            std::cout << "outputGeneTrees 6"<<std::endl;
 
             dupTree = dupTree + suffix;
             out.open (dupTree.c_str(), std::ios::out);
@@ -992,29 +979,20 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
             lossTree = lossTree + suffix;
             out.open (lossTree.c_str(), std::ios::out);
             out << lossTrees[i][rightIndex]<<std::endl;
-            std::cout << "outputGeneTrees 7"<<std::endl;
             delete geneTree;
-            std::cout << "outputGeneTrees 10"<<std::endl;
-
             delete spTree;
         }
         else if (reconciliationModel == "COAL") {
             TreeTemplate<Node> * geneTree=TreeTemplateTools::parenthesisToTree(temp);
-            std::cout << "outputGeneTrees 4"<<std::endl;
             out.open (reconcTree.c_str(), std::ios::out);
             nhx->write(*geneTree, out);
             out.close();
             delete geneTree;
-            std::cout << "outputGeneTrees 10"<<std::endl;
-
 
         }
-        std::cout << "outputGeneTrees 8"<<std::endl;
 
         out.close();
         delete nhx;
-        std::cout << "outputGeneTrees 9"<<std::endl;
-
 
     }
   return;
