@@ -787,7 +787,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
     
     if (numDeletedFamilies == assignedFilenames.size()) 
     {
-        std::cout<<"WARNING: A client is in charge of 0 gene family after gene family filtering!"<<std::endl;        
+        std::cout<<"WARNING: A client with rank "<< rank << " is in charge of 0 gene family after gene family filtering!"<<std::endl;        
         std::cout<<"A processor will be idle most of the time, the load could probably be better distributed."<<std::endl; 
     }
 
