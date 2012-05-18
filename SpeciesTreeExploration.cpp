@@ -1294,7 +1294,7 @@ void gathersInformationFromClients (const mpi::communicator & world,
             reduce(world, tempNums, num2Lineages, plus_vec(), 0);
         }
         else if (reconciliationModel == "COAL") {
-            vector< unsigned int> tempNums = num0Lineages;
+            vector< unsigned int> tempNums = num12Lineages;
             reduce(world, tempNums, num12Lineages, plus_vec_unsigned(), 0);
             reduce(world, tempNums, num22Lineages, plus_vec_unsigned(), 0);
         }
