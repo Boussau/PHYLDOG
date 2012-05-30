@@ -869,7 +869,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                 // allLogLs[i-numDeletedFamilies]= tl->f(tl->getParameters());
                 allLogLs[i]= tl->getValue();
             }
-            ApplicationTools::displayResult("Initial sequence and DL likelihood", TextTools::toString(- allLogLs[i], 15));
+            ApplicationTools::displayResult("Initial sequence and reconciliation likelihood", TextTools::toString(- allLogLs[i], 15));
             if(std::isinf(allLogLs[i]))
             {
                 ApplicationTools::displayError("!!! Unexpected initial likelihood == 0.");
@@ -904,7 +904,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                 // allLogLs[i-numDeletedFamilies]= tl->f(tl->getParameters());
                 allLogLs[i]= tl->getValue();
             }
-            ApplicationTools::displayResult("Initial sequence and DL likelihood", TextTools::toString(- allLogLs[i], 15));
+            ApplicationTools::displayResult("Initial sequence and reconciliation likelihood", TextTools::toString(- allLogLs[i], 15));
             if(std::isinf(allLogLs[i]))
             {
                 ApplicationTools::displayError("!!! Unexpected initial likelihood == 0.");

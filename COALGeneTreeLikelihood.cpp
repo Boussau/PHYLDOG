@@ -149,7 +149,6 @@ GeneTreeLikelihood(tree,
         num12Lineages_.push_back(0);
         num22Lineages_.push_back(0);
     }
-    std::cout << "_coalBl.size(): "<< _coalBl.size() <<std::endl;
 
     computeNumLineagesFromCoalCounts ();
 }
@@ -433,6 +432,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         _totalIterations = _totalIterations+1;
         
          //Compute the COAL likelihood
+	
         ScenarioMLValue =  findMLCoalReconciliationDR (_spTree, treeForNNI, 
                                                            _seqSp, _spId, 
                                                            _coalBl, 
@@ -443,7 +443,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         
         
         if (treeForNNI) delete treeForNNI;
-        // std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< _scenarioLikelihood<<std::endl;
+         std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< _scenarioLikelihood<<std::endl;
         if (_considerSequenceLikelihood ) 
         {
             if  (ScenarioMLValue >  _scenarioLikelihood) 
@@ -451,101 +451,10 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
                 //Retrieving arrays of interest:
                 // std::cout << "before nniLk_->testNNI(nodeId);"<<std::endl;
                 double newLkMinusOldLk = nniLk_->testNNI(nodeId);
-                // std::cout << "after nniLk_->testNNI(nodeId);"<<std::endl;
-                
-                
-                /*
-                 const DRASDRTreeLikelihoodNodeData * parentData = & nniLk_->getLikelihoodData()->getNodeData(parent->getId());
-                 const VVVdouble                    * sonArray   = & parentData->getLikelihoodArrayForNeighbor(son->getId());
-                 std::vector<const Node *> parentNeighbors = TreeTemplateTools::getRemainingNeighbors(parent, grandFather, son);
-                 unsigned int nbParentNeighbors = parentNeighbors.size();
-                 std::vector<const VVVdouble *> parentArrays(nbParentNeighbors);
-                 std::vector<const VVVdouble *> parentTProbs(nbParentNeighbors);
-                 for(unsigned int k = 0; k < nbParentNeighbors; k++)
-                 {
-                 const Node * n = parentNeighbors[k]; // This neighbor
-                 parentArrays[k] = & parentData->getLikelihoodArrayForNeighbor(n->getId()); 
-                 parentTProbs[k] = & pxy_[n->getId()];
-                 }
-                 const DRASDRTreeLikelihoodNodeData * grandFatherData = & nniLk_->getLikelihoodData()->getNodeData(grandFather->getId());
-                 const VVVdouble                    * uncleArray      = & grandFatherData->getLikelihoodArrayForNeighbor(uncle->getId()); 
-                 std::vector<const Node *> grandFatherNeighbors = TreeTemplateTools::getRemainingNeighbors(grandFather, parent, uncle);
-                 unsigned int nbGrandFatherNeighbors = grandFatherNeighbors.size();
-                 
-                 std::vector<const VVVdouble *> grandFatherArrays;
-                 std::vector<const VVVdouble *> grandFatherTProbs;
-                 for(unsigned int k = 0; k < nbGrandFatherNeighbors; k++)
-                 {
-                 const Node * n = grandFatherNeighbors[k]; // This neighbor
-                 if(grandFather->getFather() == NULL || n != grandFather->getFather())
-                 {
-                 grandFatherArrays.push_back(& grandFatherData->getLikelihoodArrayForNeighbor(n->getId())); 
-                 grandFatherTProbs.push_back(& pxy_[n->getId()]);
-                 }
-                 }
-                 //Compute array 1: grand father array
-                 VVVdouble array1 = *sonArray;
-                 resetLikelihoodArray(array1);
-                 grandFatherArrays.push_back(sonArray);
-                 grandFatherTProbs.push_back(& pxy_[son->getId()]);
-                 if(grandFather->hasFather())
-                 {
-                 computeLikelihoodFromArrays(grandFatherArrays, grandFatherTProbs, & grandFatherData->getLikelihoodArrayForNeighbor(grandFather->getFather()->getId()), & pxy_[grandFather->getId()], array1, nbGrandFatherNeighbors, nbDistinctSites_, nbClasses_, nbStates_, false); 
-                 
-                 }  
-                 else
-                 {
-                 computeLikelihoodFromArrays(grandFatherArrays, grandFatherTProbs, array1, nbGrandFatherNeighbors + 1, nbDistinctSites_, nbClasses_, nbStates_, false); 
-                 
-                 //This is the root node, we have to account for the ancestral frequencies:
-                 for(unsigned int i = 0; i < nbDistinctSites_; i++)
-                 {
-                 for(unsigned int j = 0; j < nbClasses_; j++)
-                 {
-                 for(unsigned int x = 0; x < nbStates_; x++)
-                 array1[i][j][x] *= rootFreqs_[x];
-                 }
-                 }
-                 }
-                 
-                 
-                 //Compute array 2: parent array
-                 VVVdouble array2 = *uncleArray;
-                 resetLikelihoodArray(array2);
-                 parentArrays.push_back(uncleArray);
-                 parentTProbs.push_back(& pxy_[uncle->getId()]);
-                 computeLikelihoodFromArrays(parentArrays, parentTProbs, array2, nbParentNeighbors + 1, nbDistinctSites_, nbClasses_, nbStates_, false); 
-                 //Initialize BranchLikelihood:
-                 brLikFunction_->initModel(nniLk->getModel(), nniLk->getRateDistribution());
-                 brLikFunction_->initLikelihoods(&array1, &array2);
-                 ParameterList parameters;	
-                 unsigned int pos = 0;
-                 while (pos < nodes_.size() && nodes_[pos]->getId() != parent->getId()) pos++;
-                 if(pos == nodes_.size()) throw Exception("NNIHomogeneousTreeLikelihood::testNNI. Invalid node id.");
-                 Parameter brLen = getParameter("BrLen" + TextTools::toString(pos));
-                 brLen.setName("BrLen");
-                 parameters.addParameter(brLen);
-                 brLikFunction_->setParameters(parameters);
-                 //Re-estimate branch length:
-                 brentOptimizer_->setMessageHandler(NULL);
-                 brentOptimizer_->setFunction(brLikFunction_);
-                 brentOptimizer_->getStopCondition()->setTolerance(0.1);
-                 brentOptimizer_->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
-                 brentOptimizer_->init(parameters); 
-                 brentOptimizer_->optimize(); 
-                 brLenNNIValues_[nodeId] = brentOptimizer_->getParameters().getParameter("BrLen").getValue();
-                 brLikFunction_->resetLikelihoods(); //Array1 and Array2 will be destroyed after this function call.
-                 //We should not keep pointers towards them...
-                 */
-                
-                //Return the resulting likelihood:
-                //   double temp = getValue() ; 
-                
-                //std::cout<<"temp "<< temp<< "; brLikFunction_->getValue()"<< brLikFunction_->getValue()<<std::endl;
-                
-                //      double tot = brLikFunction_->getValue() - ScenarioMLValue - temp; // -newsequencelogLk - (newscenariologLk) - (-currenttotallogLk); if <0, worth doing 
-                //     if (tot<0) 
+                 std::cout << "after nniLk_->testNNI(nodeId); "<< newLkMinusOldLk <<std::endl;
+
                 double tot = - ScenarioMLValue + _scenarioLikelihood + newLkMinusOldLk;
+				std::cout << "TOT: "<<tot<<std::endl;
                 // if (newLkMinusOldLk<0) 
                 if (tot < 0)
                 {
@@ -585,7 +494,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 
 void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
-    //std::cout<<"\t\t\tIN DONNI "<< std::endl;
+    std::cout<<"\t\t\tIN DONNI "<< std::endl;
     //std::cout << TreeTemplateTools::treeToParenthesis(*tree_, true) << std::endl;
     //Perform the topological move, the likelihood array will have to be recomputed...
     
@@ -687,13 +596,17 @@ std::vector < std::vector < std::vector< std::vector<unsigned int> > > > COALGen
 
 
 
-void COALGeneTreeLikelihood::computeNumLineagesFromCoalCounts () {    
-    for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
-        if ( _coalCounts[0][0][i][0]  == 1 && _coalCounts[0][0][i][1] == 2) {
+void COALGeneTreeLikelihood::computeNumLineagesFromCoalCounts () {  
+	unsigned int id = _rootedTree->getRootNode()->getId();
+    for (unsigned int i = 0 ; i < _coalCounts[id][0].size() ; i++) {
+/*		std::cout << "i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
+		std::cout << "i: "<<i<<" _coalCounts[id][0][i][0]: "<< _coalCounts[id][0][i][0] <<" _coalCounts[_rootedTree->getRootNode()->getId()][0][i][1] " << _coalCounts[id][0][i][1] << std::endl;
+*/
+        if ( _coalCounts[id][0][i][0]  == 1 && _coalCounts[id][0][i][1] == 2) {
             num12Lineages_[i] = 1; 
             num22Lineages_[i] = 0; 
         }
-        else if (_coalCounts[0][0][i][0]  == 2 && _coalCounts[0][0][i][1] == 2) {
+        else if (_coalCounts[id][0][i][0]  == 2 && _coalCounts[id][0][i][1] == 2) {
             num12Lineages_[i] = 0; 
             num22Lineages_[i] = 1; 
         }
@@ -897,7 +810,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
             if ( numLoss != "0"  /*|| nodeDup == "Y"*/) {
                 
                 //CHANGE12 11 2011 buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
-                buildVectorOfRegraftingNodesGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                buildVectorOfRegraftingNodesCoalGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
                 
                 /*              
                  if (_rootedTree->getNode(nodeForSPR)->isLeaf()) {
@@ -1337,7 +1250,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
             }
             if ( numLoss != "0"  ) {
                 
-                buildVectorOfRegraftingNodesGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                buildVectorOfRegraftingNodesCoalGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
                 
                 betterTree = false;
                 for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
@@ -1359,7 +1272,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
                                                                        _tentativeCoalCounts, 
                                                                        _tentativeNodesToTryInNNISearch, false); 
                     
-                    if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
+                    if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the scenario likelihood is not bad
                     {
                         
                         if (computeSequenceLikelihoodForSPR) {
@@ -1451,7 +1364,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
                                     else {
                                         bestTree->rootAt(rlkNodes[rlkNodes.size()-2]);
                                     }
-                                };
+                                }
                                 bestTree->newOutGroup( rlkNodes[j] );
                                 //  std::cout << "FOUND"<<std::endl;
                                 break;
@@ -1645,7 +1558,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
                 numLoss = (dynamic_cast<const BppString *>(n->getBranchProperty("L")))->toSTL() ;
             }
             if ( numLoss != "0" ) {
-                buildVectorOfRegraftingNodesGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                buildVectorOfRegraftingNodesCoalGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
                 for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
                 {
                     if (treeForSPR) 

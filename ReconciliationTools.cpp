@@ -2364,7 +2364,8 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   // Getting a well-rooted tree
   TreeTemplate<Node > * tree = geneTree->clone();
   
-  //tree->newOutGroup(LksToNodes.rbegin()->second->getId());
+	  //Test25 05 2012: I think we need to reroot the gene tree with the best root
+  tree->newOutGroup(LksToNodes.rbegin()->second->getId());
   
   
  //std::cout << TreeTemplateTools::treeToParenthesis (*tree, true)<<std::endl;

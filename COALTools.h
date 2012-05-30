@@ -24,12 +24,12 @@
  ****************************************************************************/
 
 void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree, 
-                                 TreeTemplate<Node> & geneTree, 
-                                 Node * node, 
-                                  std::map<std::string, std::string > & seqSp, 
-                                  std::map<std::string, int > & spID, 
-                                 std::vector < std::vector< std::vector< std::vector<unsigned int > > > > & coalCounts,
-                                 std::vector <std::vector<unsigned int> > & speciesIDs);
+									   TreeTemplate<Node> & geneTree, 
+									   Node * node, 
+									   std::map<std::string, std::string > & seqSp, 
+									   std::map<std::string, int > & spID, 
+									   std::vector < std::vector< std::vector< std::vector<unsigned int > > > > & coalCounts,
+									   std::vector <std::vector<unsigned int> > & speciesIDs);
 
 
 /*****************************************************************************
@@ -138,6 +138,14 @@ void computeSubtreeCoalCountsPostorderAndFillTables(TreeTemplate<Node> & spTree,
 
 
 /*****************************************************************************
+ * Useful for putting all elements of coalCounts to 0.
+ ****************************************************************************/
+
+void resetCoalCounts (std::vector < std::vector < std::vector < std::vector<unsigned int> > > > &coalCounts) ;
+void printCoalCounts (std::vector < std::vector < std::vector < std::vector<unsigned int> > > > &coalCounts) ;
+
+
+/*****************************************************************************
  * This function aims at finding the most likely coalescent reconciliation, 
  * using a double recursive tree traversal. 
  * The first traversal is post-order, and then the second traversal is pre-order.
@@ -159,7 +167,7 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
                                    std::map<std::string, int > spID,
                                    std::vector< double> coalBl, 
                                    int & MLindex, 
-                                   std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
+                                   std::vector < std::vector < std::vector < std::vector<unsigned int> > > > &coalCounts,
                                    std::set <int> &nodesToTryInNNISearch, 
                                    bool fillTables = true);
 
@@ -175,6 +183,7 @@ void computeCoalBls (std::vector < std::vector < std::vector< unsigned int > > >
 void computeCoalBls (std::vector< unsigned int > &  num12Lineages, 
                      std::vector< unsigned int > &  num22Lineages, 
                      std::vector<double> &coalBls) ;
+
 
 
 /*****************************************************************************

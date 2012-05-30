@@ -1147,6 +1147,75 @@ void getSonsOfNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <
     return;
 }
 
+/**************************************************************************
+ * This function returns a vector of branching points for gene tree SPR in the coalescent framework.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+
+
+void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree, 
+											  TreeTemplate<Node> &tree, 
+											  int nodeForSPR, 
+											  int distance, 
+											  std::vector <int> & nodeIdsToRegraft) {
+    
+    Node * N = tree.getNode(nodeForSPR);
+    Node * brother = 0;
+    if (N->hasFather()) {
+        if (N->getFather()->getSon(0) != N) {
+            brother = N->getFather()->getSon(0);
+        }
+        else {
+            brother = N->getFather()->getSon(1);
+        }
+    }
+    std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(N));
+    
+    // std::vector <int> allNodeIds = tree.getNodesId();
+    std::vector <int> allNodeIds;
+    std::vector <int> allProximalNodes;
+	//TEST12 11 2011
+    getNeighboringNodesIdLimitedDistance(tree, nodeForSPR, distance, allProximalNodes);
+    //Here, all nodes below some threshold have been added.
+    
+    //Another idea: try all regrafting points such that the new father node has a species id between the pruned node species id and the species id of the father of the pruned node.
+    
+    //Now we add nodes that may be good regrafting points based on their species ID.
+    
+    
+	
+    //std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)->getFather()));
+    
+    forbiddenIds.push_back(tree.getRootNode()->getId());
+    
+    //We don't want to reinsert the pruned subtree in the same place!
+    forbiddenIds.push_back(brother->getId());
+    
+    //We remove the nodes that are not appropriate for regrafting
+    std::vector <int> toRemove;
+    for (unsigned int i = 0 ; i< allNodeIds.size() ; i++) {
+        if (VectorTools::contains(forbiddenIds, allNodeIds[i])) {
+            toRemove.push_back(i);
+        }
+    }
+    
+    /*  std:: cout <<"nodeForSPR: "<< nodeForSPR <<"; FORBIDDEN IDS: "<<std::endl;
+     VectorTools::print(forbiddenIds);*/
+    sort(toRemove.begin(), toRemove.end(), cmp);
+    /*VectorTools::print(forbiddenIds);
+     sort(allNodeIds.begin(), allNodeIds.end(), anticmp);*/
+    for (unsigned int i = 0 ; i< toRemove.size() ; i++) {
+        std::vector<int>::iterator vi = allNodeIds.begin();
+        allNodeIds.erase(vi+toRemove[i]);
+    }
+    
+    allNodeIds = VectorTools::unique (allNodeIds);
+    //Now we only consider those nodes not far from the pruned node:
+    allNodeIds = VectorTools::vectorIntersection(allNodeIds, allProximalNodes);
+    
+    //Now allNodeIds contains all the Ids of nodes where the subtree can be reattached.
+    nodeIdsToRegraft = allNodeIds;
+}
 
 
 

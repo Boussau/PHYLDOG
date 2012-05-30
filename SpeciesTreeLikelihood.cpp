@@ -1027,41 +1027,68 @@ void SpeciesTreeLikelihood::MLSearch()
     std::cout << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
     std::cout <<"\n\n\t\tBest Species Tree found, with aLRTs: "<<std::endl;
     std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "ALRT")<<std::endl;
-    //Here we output the species tree with rates of duplication and loss
-    //For duplication rates
-    for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
-      {
-      bestTree_->getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationExpectedNumbers_[i]));
-      if (bestTree_->getNode(i)->hasFather()) 
-        {
-        bestTree_->getNode(i)->setDistanceToFather(duplicationExpectedNumbers_[i]);
-        }
-      }
-    std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params_, "AllDuplications.tree", "", false, false); 
-    dupTree = dupTree + suffix_;
-    std::ofstream out (dupTree.c_str(), std::ios::out);
+    //Here we output the species tree with rates of duplication and loss, or coalescent units
+		if (reconciliationModel_ == "DL") {
+			//For duplication rates
+			for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
+			{
+				bestTree_->getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationExpectedNumbers_[i]));
+				if (bestTree_->getNode(i)->hasFather()) 
+				{
+					bestTree_->getNode(i)->setDistanceToFather(duplicationExpectedNumbers_[i]);
+				}
+			}
+			std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params_, "AllDuplications.tree", "", false, false); 
+			dupTree = dupTree + suffix_;
+			std::ofstream out (dupTree.c_str(), std::ios::out);
+			
+			out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
+			out.close();
+			std::cout <<"\n\n\t\tBest Species Tree found, with Duplications: "<<std::endl;
+			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
 
-    out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
-    out.close();
+			//For loss rates
+			for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
+			{
+				bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+				if (bestTree_->getNode(i)->hasFather()) 
+				{
+					bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
+				}
+			}
+			
+			std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params_, "AllLosses.tree", "", false, false);
+			lossTree = lossTree + suffix_;
+			out.open (lossTree.c_str(), std::ios::out);
+			out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+			out.close();
+			std::cout <<"\n\n\t\tBest Species Tree found, with Losses: "<<std::endl;
+			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
 
-    //For loss rates
-    for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
-      {
-      bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
-      if (bestTree_->getNode(i)->hasFather()) 
-        {
-        bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-        }
-      }
+		}
+		else if (reconciliationModel_ == "COAL") {
+			//For duplication rates
+			for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
+			{
+				bestTree_->getNode(i)->setBranchProperty("COAL", Number<double>( coalBls_[i]));
+				if (bestTree_->getNode(i)->hasFather()) 
+				{
+					bestTree_->getNode(i)->setDistanceToFather(coalBls_[i]);
+				}
+			}
+			std::string coalTree = ApplicationTools::getStringParameter("output.coalescence.tree.file", params_, "AllCoalescentUnits.tree", "", false, false); 
+			coalTree = coalTree + suffix_;
+			std::ofstream out (coalTree.c_str(), std::ios::out);
+			
+			out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
+			out.close();
+			std::cout <<"\n\n\t\tBest Species Tree found, with Coalescent units: "<<std::endl;
+			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
 
-    std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params_, "AllLosses.tree", "", false, false);
-    lossTree = lossTree + suffix_;
-    out.open (lossTree.c_str(), std::ios::out);
-    out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
-
-    out.close();
+		}
     std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params_, "ServerNumbered.tree", "", false, false);
     numTree = numTree + suffix_;
+		std::ofstream out;
     out.open (numTree.c_str(), std::ios::out);
     out << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
     out.close();

@@ -238,4 +238,18 @@ void getNodesWithSimilarSpeciesIdsUpstream(Node * node, string spId, std::vector
  * The gene tree has to be rooted and annotated with species numbers.
  **************************************************************************/
 void getSonsOfNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <int> & allNodeIds) ;
+
+/**************************************************************************
+ * This function returns a vector of branching points for gene tree SPR in the coalescent framework.
+ * The gene tree has to be rooted and annotated with species numbers.
+ **************************************************************************/
+
+void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree, 
+											  TreeTemplate<Node> &tree, 
+											  int nodeForSPR, 
+											  int distance, 
+											  std::vector <int> & nodeIdsToRegraft) ;
+
 #endif //_GENETREEALGORITHMS_H_
+
+
