@@ -1276,6 +1276,7 @@ void gathersInformationFromClients (const mpi::communicator & world,
 
     if (whoami == server) {
         //AFTER COMPUTATION IN CLIENTS
+				
         logL = 0.0;
         double logLVal = 0.0;
     //    std::vector<double> logLs;
@@ -1323,16 +1324,21 @@ void gathersInformationFromClients (const mpi::communicator & world,
     else {
         //Clients send back stuff to the server.
 //        gather(world, logL, server);     
+
         reduce(world, logL, std::plus<double> (), 0);
+
+		
         if (reconciliationModel == "DL") {
             reduce(world, num0Lineages, plus_vec(), 0);
             reduce(world, num1Lineages, plus_vec(), 0);
             reduce(world, num2Lineages, plus_vec(), 0);
         }
+
         else if (reconciliationModel == "COAL") {
             reduce(world, num12Lineages, plus_vec_unsigned(), 0);
             reduce(world, num22Lineages, plus_vec_unsigned(), 0);
         }
+
 /*      gather(world, num0Lineages, allNum0Lineages, server); 
         gather(world, num1Lineages, allNum1Lineages, server);   
         gather(world, num2Lineages, allNum2Lineages, server);*/

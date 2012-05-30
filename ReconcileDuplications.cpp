@@ -261,7 +261,9 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       }
       
       AttributesTools::actualizeAttributesMap(params, famSpecificParams);
-      
+	  //COAL or DL?
+	  reconciliationModel = ApplicationTools::getStringParameter("reconciliation.model", params, "DL", "", true, false);
+
       //Sequences and model of evolution
       Alphabet * alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
       std::string seqFile = ApplicationTools::getStringParameter("input.sequence.file",params,"none");
@@ -680,8 +682,6 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           
           GeneTreeLikelihood* tl;
           std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params, "no", "", true, false);
-          //COAL or DL?
-          reconciliationModel = ApplicationTools::getStringParameter("reconciliation.model", params, "DL", "", true, false);
 
           int sprLimitGeneTree = ApplicationTools::getIntParameter("SPR.limit.gene.tree", params, 2, "", false, false);  
           //ApplicationTools::displayResult("Clock", optimizeClock);
