@@ -208,13 +208,20 @@ void COALGeneTreeLikelihood::initParameters()
         exit(-1);
      }
     else {
+		/*std::cout << "BEFORE: "<<std::endl;
+		for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
+			if (_spTree->getNode(i)->isLeaf() ) {
+				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
+			}
+		}*/
         _scenarioLikelihood = findMLCoalReconciliationDR (_spTree, _rootedTree, 
                                     _seqSp, _spId, 
                                     _coalBl, 
                                     _MLindex, 
                                     _coalCounts, 
                                     _nodesToTryInNNISearch);
-        computeNumLineagesFromCoalCounts ();
+		computeNumLineagesFromCoalCounts ();
+
     }
     _MLindex = -1;
 }
@@ -344,16 +351,24 @@ void COALGeneTreeLikelihood::computeReconciliationLikelihood()
     }
     else {
         //Compute the COAL likelihood
+		/*std::cout << "BEFORE: "<<std::endl;
+		for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
+			if (_spTree->getNode(i)->isLeaf() ) {
+				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
+			}
+		}*/
+
         _scenarioLikelihood = findMLCoalReconciliationDR (_spTree, _rootedTree, 
                                                            _seqSp, _spId, 
                                                            _coalBl, 
                                                            _tentativeMLindex, 
                                                            _tentativeCoalCounts, 
                                                            _tentativeNodesToTryInNNISearch); 
-        computeNumLineagesFromCoalCounts ();
         _MLindex = _tentativeMLindex;
         _coalCounts = _tentativeCoalCounts;
         _nodesToTryInNNISearch = _tentativeNodesToTryInNNISearch;
+		computeNumLineagesFromCoalCounts ();
+
     }
 }
 
@@ -443,7 +458,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         
         
         if (treeForNNI) delete treeForNNI;
-         std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< _scenarioLikelihood<<std::endl;
+         //std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< _scenarioLikelihood<<std::endl;
         if (_considerSequenceLikelihood ) 
         {
             if  (ScenarioMLValue >  _scenarioLikelihood) 
@@ -451,10 +466,10 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
                 //Retrieving arrays of interest:
                 // std::cout << "before nniLk_->testNNI(nodeId);"<<std::endl;
                 double newLkMinusOldLk = nniLk_->testNNI(nodeId);
-                 std::cout << "after nniLk_->testNNI(nodeId); "<< newLkMinusOldLk <<std::endl;
+//                 std::cout << "after nniLk_->testNNI(nodeId); "<< newLkMinusOldLk <<std::endl;
 
                 double tot = - ScenarioMLValue + _scenarioLikelihood + newLkMinusOldLk;
-				std::cout << "TOT: "<<tot<<std::endl;
+		//		std::cout << "TOT: "<<tot<<std::endl;
                 // if (newLkMinusOldLk<0) 
                 if (tot < 0)
                 {
@@ -494,7 +509,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 
 void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
-    std::cout<<"\t\t\tIN DONNI "<< std::endl;
+  //  std::cout<<"\t\t\tIN DONNI "<< std::endl;
     //std::cout << TreeTemplateTools::treeToParenthesis(*tree_, true) << std::endl;
     //Perform the topological move, the likelihood array will have to be recomputed...
     
@@ -598,7 +613,19 @@ std::vector < std::vector < std::vector< std::vector<unsigned int> > > > COALGen
 
 void COALGeneTreeLikelihood::computeNumLineagesFromCoalCounts () {  
 	unsigned int id = _rootedTree->getRootNode()->getId();
-    for (unsigned int i = 0 ; i < _coalCounts[id][0].size() ; i++) {
+	//std::cout << "id: "<< id <<std::endl;
+
+	//List all keys supposed to be species
+	/*std::cout << "spIds: "<< std::endl;
+	for (std::map<std::string, int >::iterator it2 = _spId.begin(); it2 != _spId.end(); it2++) {
+		std::cout << it2->second << " ";
+	}
+	std::cout << std::endl;*/
+
+   for (unsigned int i = 0 ; i < _coalCounts[id][0].size() ; i++) {
+	/*	if (_spTree->getNode(i)->isLeaf() ) {
+			std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
+		}*/
 /*		std::cout << "i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
 		std::cout << "i: "<<i<<" _coalCounts[id][0][i][0]: "<< _coalCounts[id][0][i][0] <<" _coalCounts[_rootedTree->getRootNode()->getId()][0][i][1] " << _coalCounts[id][0][i][1] << std::endl;
 */
