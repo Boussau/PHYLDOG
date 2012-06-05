@@ -926,9 +926,9 @@ void computeCoalBls (std::vector< unsigned int > &  num12Lineages,
         if (n12 ==0) {
             n12 = 1;
         }
-		/*std::cout << "branch " << i << "; n12: "<< n12 <<std::endl;
-		std::cout << "branch " << i << "; n22: "<< n22 <<std::endl;
-		*/
+		//std::cout << "branch " << i << "; n12: "<< n12 <<std::endl;
+		//std::cout << "branch " << i << "; n22: "<< n22 <<std::endl;
+		
        // estimate = log((n12+n22)/n22);        
         //std::cout <<"\t\tAnalytical estimate: "<< estimate<<std::endl;
         coalBls[i] = log((n12+n22)/n22);

@@ -1070,7 +1070,7 @@ void SpeciesTreeLikelihood::MLSearch()
 			//For duplication rates
 			for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
 			{
-				bestTree_->getNode(i)->setBranchProperty("COAL", Number<double>( coalBls_[i]));
+				// bestTree_->getNode(i)->setBranchProperty("COAL", Number<double>( coalBls_[i]));
 				if (bestTree_->getNode(i)->hasFather()) 
 				{
 					bestTree_->getNode(i)->setDistanceToFather(coalBls_[i]);
@@ -1080,10 +1080,12 @@ void SpeciesTreeLikelihood::MLSearch()
 			coalTree = coalTree + suffix_;
 			std::ofstream out (coalTree.c_str(), std::ios::out);
 			
-			out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
+			//out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
+			out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
 			out.close();
 			std::cout <<"\n\n\t\tBest Species Tree found, with Coalescent units: "<<std::endl;
-			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
+			//std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
+			std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
 
 		}
     std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params_, "ServerNumbered.tree", "", false, false);

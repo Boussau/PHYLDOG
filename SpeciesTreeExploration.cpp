@@ -1299,6 +1299,7 @@ void gathersInformationFromClients (const mpi::communicator & world,
             reduce(world, tempNums, num12Lineages, plus_vec_unsigned(), 0);
             reduce(world, tempNums, num22Lineages, plus_vec_unsigned(), 0);
         }
+
        /* std::cout <<"LOOK HERE:"<<std::endl;
         VectorTools::print(num0Lineages);
         VectorTools::print(num1Lineages);
@@ -1335,7 +1336,7 @@ void gathersInformationFromClients (const mpi::communicator & world,
         }
 
         else if (reconciliationModel == "COAL") {
-            reduce(world, num12Lineages, plus_vec_unsigned(), 0);
+			reduce(world, num12Lineages, plus_vec_unsigned(), 0);
             reduce(world, num22Lineages, plus_vec_unsigned(), 0);
         }
 

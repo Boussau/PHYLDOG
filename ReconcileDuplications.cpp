@@ -1357,6 +1357,8 @@ int main(int args, char ** argv)
                 resetVector(num0Lineages);
                 resetVector(num1Lineages);
                 resetVector(num2Lineages);
+				resetVector(num12Lineages);
+                resetVector(num22Lineages);
                 for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
                 {
                     if (rearrange) //(firstTimeImprovingGeneTrees) 

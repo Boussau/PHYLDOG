@@ -612,7 +612,7 @@ std::vector < std::vector < std::vector< std::vector<unsigned int> > > > COALGen
 
 
 void COALGeneTreeLikelihood::computeNumLineagesFromCoalCounts () {  
-	unsigned int id = _rootedTree->getRootNode()->getId();
+//	unsigned int id = _rootedTree->getRootNode()->getId();
 	//std::cout << "id: "<< id <<std::endl;
 
 	//List all keys supposed to be species
@@ -622,22 +622,28 @@ void COALGeneTreeLikelihood::computeNumLineagesFromCoalCounts () {
 	}
 	std::cout << std::endl;*/
 
-   for (unsigned int i = 0 ; i < _coalCounts[id][0].size() ; i++) {
-	/*	if (_spTree->getNode(i)->isLeaf() ) {
-			std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
-		}*/
+   for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
 /*		std::cout << "i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
 		std::cout << "i: "<<i<<" _coalCounts[id][0][i][0]: "<< _coalCounts[id][0][i][0] <<" _coalCounts[_rootedTree->getRootNode()->getId()][0][i][1] " << _coalCounts[id][0][i][1] << std::endl;
 */
-        if ( _coalCounts[id][0][i][0]  == 1 && _coalCounts[id][0][i][1] == 2) {
+        if ( _coalCounts[0][0][i][0]  == 1 && _coalCounts[0][0][i][1] == 2) {
             num12Lineages_[i] = 1; 
             num22Lineages_[i] = 0; 
         }
-        else if (_coalCounts[id][0][i][0]  == 2 && _coalCounts[id][0][i][1] == 2) {
+        else if (_coalCounts[0][0][i][0]  == 2 && _coalCounts[0][0][i][1] == 2) {
             num12Lineages_[i] = 0; 
             num22Lineages_[i] = 1; 
         }
-    }    
+		else {
+			num12Lineages_[i] = 0; 
+            num22Lineages_[i] = 0; 
+		}
+	   /*if (_spTree->getNode(i)->isLeaf() ) {
+		   std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] <<"; num12Lineages_[i] "<< num12Lineages_[i] << "; num12Lineages_[i] "<< num22Lineages_[i] << std::endl;
+	   }*/
+
+    }   
+
     return;
 }
 
