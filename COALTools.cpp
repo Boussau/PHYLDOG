@@ -39,7 +39,6 @@ void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree,
 		std::cout <<"Species Tree: \n" <<    TreeTemplateTools::treeToParenthesis(spTree, true) << std::endl;
 		std::cout <<"SIZES: "<< coalCounts.size() << " "<< coalCounts[0].size() << " "<< coalCounts[0][0].size()<< " "<< coalCounts[0][0][0].size() <<std::endl;
 		std::cout << "geneTree->getRootNode()->getId() " << geneTree.getRootNode()->getId() << std::endl;
-
 		map<std::string, std::string>::iterator it;
 		for ( it=seqSp.begin() ; it != seqSp.end(); it++ ) {
 			std::cout << (*it).first << " => " << (*it).second << std::endl;
@@ -57,7 +56,6 @@ void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree,
 		}
 		//printCoalCounts(coalCounts);
 		std::cout << node->getId() << std::endl;
-		
 		std::cout <<"XXXX BITE FIN XXXXX" << std::endl;
 
 	}*/
@@ -146,25 +144,17 @@ void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree,
  * Utilitary functions to initialize vectors of counts at leaves.
  ****************************************************************************/
 void initializeCountVectors(std::vector< std::vector< std::vector<unsigned int> > > &vec) {
-    int size = vec[0].size();
-
     for (unsigned int i = 0 ; i < 3 ; i++ ) { //It should not be necessary to initialize all vectors, i==0 should be enough
-
         initializeCountVector(vec[i]);
-
     }
     return;
 }
 
 
 void initializeCountVector(std::vector<std::vector<unsigned int> >  &vec) {
-
     for (unsigned int j = 0 ; j < vec.size() ; j++ ) {
-
          for (unsigned int i = 0 ; i < 2 ; i++ ) {
-
              vec[j][i] = 0;
-
          }
     }
     return;
@@ -350,7 +340,9 @@ double computeCoalLikelihood ( std::vector<unsigned int>  vec, double CoalBl )
     double v = (double) vec[0];
     double u = (double) vec[1];
 
-    
+//	std::cout << " v and u:"<< v <<" "<< u <<std::endl;
+	
+    /*
     for (unsigned int k = vec[0] ; k <= vec[1] ; k++ ) 
     {
         prod = 1.0;
@@ -366,22 +358,51 @@ double computeCoalLikelihood ( std::vector<unsigned int>  vec, double CoalBl )
         double dk = (double)k;
         double dkminus1 = (double)kminus1;
         double dkminusv = dk - v ;
-       /* std::cout << "CoalBl "<<CoalBl<<std::endl;
+       std::cout << "CoalBl "<<CoalBl<<std::endl;
         std::cout << "prod "<< prod <<std::endl;
         std::cout <<"fact "<<NumTools::fact(vec[0])<<std::endl;
         std::cout <<"fact2 "<<NumTools::fact(k - vec[0])<<std::endl;
         std::cout <<"exp (-k * (k-1) * CoalBl/2 ) "<<exp (-(double)k * ((double)k-1.0) * CoalBl/2.0  )<<std::endl;
         std::cout <<"(2*k -1) "<<(2.0*(double)k -1)<<std::endl;
         std::cout <<"( (-1)^(k-vec[0]) ) "<<( pow(-1.0, ( (double)k-(double)vec[0]) ) )<<std::endl;
-        std::cout <<"( NumTools::fact(vec[0]) * NumTools::fact(k - vec[0]) * (vec[0] + kminus1 ) ) "<<( (double)NumTools::fact(vec[0]) * (double)NumTools::fact(k - vec[0]) * ((double)vec[0] + kminus1 ) )<<std::endl;*/
-        
+        std::cout <<"( NumTools::fact(vec[0]) * NumTools::fact(k - vec[0]) * (vec[0] + kminus1 ) ) "<<( (double)NumTools::fact(vec[0]) * (double)NumTools::fact(k - vec[0]) * ((double)vec[0] + kminus1 ) )<<std::endl;
         logLk += ( exp (-dk * dkminus1 * CoalBl/2.0 ) ) * (2.0*dk -1.0) * ( pow(-1.0, dkminusv ) ) / ( NumTools::fact(v) * NumTools::fact(dkminusv) * (v + dkminus1 ) ) * prod;
         //std::cout << "logLk: " << logLk<<std::endl;
     }
 	if (logLk <= 0) {
 		logLk = NumConstants::VERY_TINY * NumConstants::VERY_TINY;
 	}
-    return log(logLk);
+	 return log(logLk);
+	 */
+	
+	double first = CoalBl/2.0  * (-v*v + v);
+	
+	for (unsigned int k = (int)v ; k <= (int)u ; k++ ) 
+	{
+		prod = 1.0;
+		kminus1 = k-1;
+		double dy;
+		for (unsigned int y = 0 ; y <= kminus1 ; y++ ) {
+			dy = double(y);
+			prod *= (v + dy) * (u - dy) / ( u + dy ) ;
+		}
+		if (prod == 0) {
+			prod = 1;
+		}		
+		double dk = (double)k;
+		double dkminus1 = (double)kminus1;
+		double dkminusv = dk - v ;
+		logLk += ( exp (dkminusv * (1- 2*v - dkminusv) * CoalBl/2.0 ) ) * (2.0*dk -1.0) * ( pow(-1.0, dkminusv ) ) / ( NumTools::fact(v) * NumTools::fact(dkminusv) * (v + dkminus1 ) ) * prod;
+	}
+	
+	if (logLk < 0) {
+		std::cout <<"WARNING: correction"<<std::endl;
+		logLk = NumConstants::VERY_TINY;
+	}
+	
+	logLk = log(logLk) + first;
+
+    return logLk;
 }
 
 
@@ -501,7 +522,6 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
     sons.push_back(node);
     
     sons.push_back(node->getSon(sonNumber));
-    int idSon0 = geneNodeId;
     int idSon1 = sons[1]->getId();
     
     double rootLikelihood = 0.0;
@@ -727,7 +747,14 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
 		std::cout <<"!!!!!!gene tree is not rooted in findMLCoalReconciliationDR !!!!!!"<<std::endl;
         MPI::COMM_WORLD.Abort(1);
 		exit(-1);
-    }		
+    }	
+	if (spTree->getRootNode()->getId() != 0) {
+		std::cout << TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
+		std::cout <<"!!!!!!Species tree is not properly annotated in findMLCoalReconciliationDR !!!!!!"<<std::endl;
+        MPI::COMM_WORLD.Abort(1);
+		exit(-1);
+    }	
+
     
     std::vector <unsigned int> nodeSpId(3, 0);
 
@@ -937,6 +964,60 @@ void computeCoalBls (std::vector< unsigned int > &  num12Lineages,
     
 }
 
+
+
+
+void computeCoalBls (std::string& branchExpectedNumberOptimization, 
+					 std::vector< unsigned int > &  num12Lineages, 
+                     std::vector< unsigned int > &  num22Lineages, 
+                     std::vector<double> & coalBls) 
+{
+    double n12 = 0;
+    double n22 = 0;
+	
+	if (branchExpectedNumberOptimization == "average") {
+		double coalBl = 0;
+		for (unsigned int i = 0 ; i < num12Lineages.size() ; i++) {
+			n12 += num12Lineages[i];
+			n22 += num22Lineages[i];
+		}
+		if (n22 ==0) {
+            n22 = 1;
+        }
+        if (n12 ==0) {
+            n12 = 1;
+        }
+		coalBl = log((n12+n22)/n22);
+		for (unsigned int i = 0 ; i < num12Lineages.size() ; i++) {
+			coalBls[i] = coalBl;
+		}
+	}
+	else if (branchExpectedNumberOptimization == "no") {
+		for (unsigned int i = 0 ; i < num12Lineages.size() ; i++) {
+			coalBls[i] = 10.0;
+		}
+	}
+	else {
+		for (unsigned int i = 0 ; i < num12Lineages.size() ; i++) {
+			n12 = num12Lineages[i];
+			n22 = num22Lineages[i];
+			if (n22 ==0) {
+				n22 = 1;
+			}
+			if (n12 ==0) {
+				n12 = 1;
+			}
+			//std::cout << "branch " << i << "; n12: "<< n12 <<std::endl;
+			//std::cout << "branch " << i << "; n22: "<< n22 <<std::endl;
+			
+			// estimate = log((n12+n22)/n22);        
+			//std::cout <<"\t\tAnalytical estimate: "<< estimate<<std::endl;
+			coalBls[i] = log((n12+n22)/n22);
+		}
+	}
+    return;
+    
+}
 
 
 

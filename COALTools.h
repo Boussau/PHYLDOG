@@ -178,6 +178,12 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
  * allGeneCounts: nbSpeciesBranches vectors of gTrees.size() vectors of 2 ints
  ****************************************************************************/
 
+void computeCoalBls (std::string& branchExpectedNumberOptimization, 
+					 std::vector< unsigned int > &  num12Lineages, 
+                     std::vector< unsigned int > &  num22Lineages, 
+                     std::vector<double> & coalBls) ;
+
+
 void computeCoalBls (std::vector < std::vector < std::vector< unsigned int > > >&  allGeneCounts , std::vector<double> &coalBls) ;
 
 void computeCoalBls (std::vector< unsigned int > &  num12Lineages, 

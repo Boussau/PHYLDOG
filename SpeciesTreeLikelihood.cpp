@@ -114,11 +114,16 @@ void SpeciesTreeLikelihood::initialize()
     }
     else if (reconciliationModel_ == "COAL") {
         // computeCoalBls (std::vector < std::vector < std::vector< unsigned int > > >&  allGeneCounts , coalBls_); 
-        for (unsigned int i = 0 ; i < tree_->getNumberOfNodes() ; i++)
+/*        for (unsigned int i = 0 ; i < tree_->getNumberOfNodes() ; i++)
         {
             coalBls_.push_back(10);
-        }
+        }*/
         breadthFirstreNumber (*tree_, coalBls_);
+		std::string temp = "no";
+		computeCoalBls (temp, 
+						num12Lineages_, 
+						num22Lineages_, 
+						coalBls_) ;
     }
     //We write the starting species tree to a file
     std::string file = ApplicationTools::getStringParameter("starting.tree.file", params_, "starting.tree");
@@ -1137,7 +1142,7 @@ void SpeciesTreeLikelihood::buildMRPSpeciesTree() {
     Newick newick;
     newick.read(ss, trees);
     std::cout <<"Number of gene trees used for MRP construction of the initial species tree: "<< trees.size() <<std::endl;
-    int numSpecies = TreeTemplateTools::getNumberOfLeaves(*(tree_->getRootNode() ) );
+	unsigned int numSpecies = TreeTemplateTools::getNumberOfLeaves(*(tree_->getRootNode() ) );
     tree_ = dynamic_cast <TreeTemplate<Node> *> (MRP(trees) );
     
     if (TreeTemplateTools::getNumberOfLeaves(*(tree_->getRootNode() ) ) != numSpecies) {

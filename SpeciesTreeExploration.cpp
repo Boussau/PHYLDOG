@@ -970,9 +970,19 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                              genomeMissing, tree);
             }
             else if (reconciliationModel == "COAL") {
-                computeCoalBls (num12Lineages, 
-                                     num22Lineages, 
-                                     coalBls) ;
+				if (currentStep == 0) {
+					std::string temp = "no";
+					computeCoalBls (temp, 
+									num12Lineages, 
+									num22Lineages, 
+									coalBls) ;
+				}
+				else {
+                computeCoalBls (branchExpectedNumbersOptimization, 
+								num12Lineages, 
+								num22Lineages, 
+								coalBls) ;
+				}
             }
             computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, 
                                                                    stop, logL, 

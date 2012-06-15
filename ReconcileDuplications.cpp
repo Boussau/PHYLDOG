@@ -229,6 +229,8 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                                std::vector <DiscreteDistribution *> & allDistributions, 
                                std::vector <TreeTemplate<Node> *> & allGeneTrees, 
                                std::vector <TreeTemplate<Node> *> & allUnrootedGeneTrees, 
+							   std::vector < std::map <std::string, std::string> >& allSeqSps, 
+							   std::vector<unsigned int>& allSprLimitGeneTree,
                                string &reconciliationModel) 
 {
   bool avoidFamily;
@@ -752,6 +754,14 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           allDistributions.push_back(rDist);
           allGeneTrees.push_back(geneTree->clone());
           allUnrootedGeneTrees.push_back(unrootedGeneTree->clone());
+		  allSeqSps.push_back(seqSp);
+		  allSprLimitGeneTree.push_back(sprLimitGeneTree);
+		//  delete rDist;
+		//  delete model;
+		  //delete sites;
+		
+		  // delete alphabet;
+		  
 /*          if (tl)
           delete tl;
           if (params)
@@ -1199,6 +1209,8 @@ int main(int args, char ** argv)
             std::vector <DiscreteDistribution *> allDistributions;
             std::vector <TreeTemplate<Node> *> allGeneTrees;
             std::vector <TreeTemplate<Node> *> allUnrootedGeneTrees;
+			std::vector < std::map <std::string, std::string> > allSeqSps ;
+			std::vector < unsigned int> allSprLimitGeneTree ;
             unsigned int numDeletedFamilies=0;
             unsigned int bestIndex = 0;
             bool stop = false; 
@@ -1245,7 +1257,8 @@ int main(int args, char ** argv)
                                       MLindex, allLogLs, treeLikelihoods, 
                                       backupTreeLikelihoods, allParams, 
                                       allAlphabets, allDatasets, allModels, 
-                                      allDistributions, allGeneTrees, allUnrootedGeneTrees, reconciliationModel);
+                                      allDistributions, allGeneTrees, allUnrootedGeneTrees, allSeqSps, 
+									  allSprLimitGeneTree, reconciliationModel);
             std::vector <std::vector <std::string> > reconciledTrees;
             std::vector <std::vector <std::string> > duplicationTrees;
             std::vector <std::vector <std::string> > lossTrees;
@@ -1283,21 +1296,6 @@ int main(int args, char ** argv)
                // firstTimeImprovingGeneTrees=true;
             }
             int startRecordingTreesFrom = 0; //This int is incremented until the gene trees start to be backed-up, when we start the second phase of the algorithm.
-            //We make a backup of the gene tree likelihoods.
-/*             if (reconciliationModel == "DL") {
-                 for (unsigned int i =0 ; i<treeLikelihoods.size() ; i++) 
-                 {
-                     backupTreeLikelihoods.push_back(dynamic_cast<DLGeneTreeLikelihood*> (dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->clone() ) );
-                     // backupTreeLikelihoods.push_back(treeLikelihoods[i]->clone());
-                 }    
-             }
-             else if (reconciliationModel == "COAL") {
-                 for (unsigned int i =0 ; i<treeLikelihoods.size() ; i++) 
-                 {
-                     backupTreeLikelihoods.push_back(dynamic_cast<COALGeneTreeLikelihood*> ( dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->clone() ) );
-                 }
-             }
-*/
           //  MPI_Barrier(world);
             broadcast(world, stop, server);
             broadcastsAllInformationButStop(world, server, rearrange, 
@@ -1326,7 +1324,7 @@ int main(int args, char ** argv)
                     dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->setCoalBranchLengths(coalBls);
                 }
             }
-            
+            /*
             //We make a backup of the gene tree likelihoods.
             if (reconciliationModel == "DL") {
                 for (unsigned int i =0 ; i<treeLikelihoods.size() ; i++) 
@@ -1340,7 +1338,7 @@ int main(int args, char ** argv)
                 {
                     backupTreeLikelihoods.push_back(dynamic_cast<COALGeneTreeLikelihood*> ( dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->clone() ) );
                 }
-            }
+            }*/
 
             /****************************************************************************
              ****************************************************************************
@@ -1365,12 +1363,10 @@ int main(int args, char ** argv)
                     {
                         treeLikelihoods[i]->OptimizeSequenceLikelihood(true);
                         allParams[i][ std::string("optimization.topology")] = "true";
-                       // backupTreeLikelihoods[i]->OptimizeSequenceLikelihood(true);
                     }
                     else {
                         treeLikelihoods[i]->OptimizeSequenceLikelihood(false);
                         allParams[i][ std::string("optimization.topology")] = "false";
-                       // backupTreeLikelihoods[i]->OptimizeSequenceLikelihood(false);
                     }
                     // std::cout <<  TreeTemplateTools::treeToParenthesis(*geneTree, true)<<std::endl;
                     
@@ -1523,6 +1519,7 @@ int main(int args, char ** argv)
                                 delete treeLikelihoods[i];
                         }
                         treeLikelihoods.clear();
+						/*
                         if (reconciliationModel == "DL") {
                             for (unsigned int i=0 ; i<backupTreeLikelihoods.size() ; i++) 
                             {
@@ -1536,9 +1533,72 @@ int main(int args, char ** argv)
                             }
 
                         }
- //                            treeLikelihoods.push_back(backupTreeLikelihoods[i]->clone());
-                                
-
+                         */
+						
+						if (reconciliationModel == "DL")
+						{
+							for (unsigned int i=0 ; i<allDatasets.size() ; i++) 
+                            {
+								TreeTemplate<Node> * treeWithSpNames = allUnrootedGeneTrees[i]->clone();
+								std::vector <Node*> leaves = treeWithSpNames->getLeaves();
+								for (unsigned int j =0; j<leaves.size() ; j++) 
+								{
+									leaves[j]->setName(allSeqSps[i][leaves[j]->getName()]);
+								}
+								treeLikelihoods.push_back( new DLGeneTreeLikelihood(*(allUnrootedGeneTrees[i]), *(allDatasets[i]), 
+																					allModels[i], allDistributions[i], *tree, 
+																					*allGeneTrees[i], *treeWithSpNames, allSeqSps[i], spId, 
+																					lossExpectedNumbers, 
+																					duplicationExpectedNumbers, 
+																					allNum0Lineages[i], 
+																					allNum1Lineages[i], 
+																					allNum2Lineages[i], 
+																					speciesIdLimitForRootPosition, 
+																					heuristicsLevel, MLindex, 
+																					true, true, true, true, false, allSprLimitGeneTree[i]) );
+								delete treeWithSpNames;
+							}
+							///  dynamic_cast<DLGeneTreeLikelihood*> (tl)->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+							
+						}
+						else if (reconciliationModel == "COAL")
+						{
+							for (unsigned int i=0 ; i<allDatasets.size() ; i++) 
+                            {
+								//coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
+								std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
+								std::vector< std::vector<unsigned int> > coalCounts3;
+								std::vector< unsigned int > coalCounts4;
+								for (unsigned int j = 0 ; j < 2 ; j++ ) {
+									coalCounts4.push_back(0);
+								}
+								for (unsigned int j = 0 ; j < tree->getNumberOfNodes() ; j++ ) {
+									coalCounts3.push_back(coalCounts4);
+								}
+								for (unsigned int j = 0 ; j < 3 ; j++ ) {
+									coalCounts2.push_back(coalCounts3);
+								}
+								for (unsigned int j = 0 ; j < geneTree->getNumberOfNodes() ; j++ ) {
+									coalCounts.push_back(coalCounts2);
+								}
+								TreeTemplate<Node> * treeWithSpNames = allUnrootedGeneTrees[i]->clone();
+								std::vector <Node*> leaves = treeWithSpNames->getLeaves();
+								for (unsigned int j =0; j<leaves.size() ; j++) 
+								{
+									leaves[j]->setName(allSeqSps[i][leaves[j]->getName()]);
+								}
+								
+								treeLikelihoods.push_back( new COALGeneTreeLikelihood(*allUnrootedGeneTrees[i], *allDatasets[i], 
+																					  allModels[i], allDistributions[i], *tree, 
+																					  *allGeneTrees[i], *treeWithSpNames, allSeqSps[i], spId, 
+																					  coalCounts, coalBls,  
+																					  speciesIdLimitForRootPosition, 
+																					  heuristicsLevel, MLindex, 
+																					  true, true, true, true, allSprLimitGeneTree[i]) );
+								delete treeWithSpNames;
+								
+							}
+						}
                     }
                     if (currentStep>=3)// rearrange) //?
                     {
@@ -1556,10 +1616,25 @@ int main(int args, char ** argv)
                         treeLikelihoods[i]->setSpId(spId);
                         if (reconciliationModel == "DL") {
                             dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->setExpectedNumbers(duplicationExpectedNumbers, lossExpectedNumbers);
+							//If not using the backuplks
+							if (! dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->isInitialized() ) {
+							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+							}
+							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->optimizeNumericalParameters(params); //Initial optimization of all numerical parameters
+							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->initParameters();
                         }
                         else if (reconciliationModel == "COAL") {
+							if (! dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->isInitialized() ) {
                             dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->setCoalBranchLengths(coalBls);
+							}
+							//If not using the backuplks
+							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->optimizeNumericalParameters(params); //Initial optimization of all numerical parameters
+							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->initParameters();
+
                         }
+						
+
                       //  treeLikelihoods[i]->computeTreeLikelihood();
                     }
                     //if (tree) delete tree;
@@ -1580,7 +1655,7 @@ int main(int args, char ** argv)
                     break;
                 }
             }//End while, END OF MAIN LOOP
-            	for (int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
+            	for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
                 {  
                     if (allAlphabets[i])
                         delete allAlphabets[i];
@@ -1592,13 +1667,12 @@ int main(int args, char ** argv)
                         delete allDistributions[i];
                     if (allGeneTrees[i])
                         delete allGeneTrees[i];
-                    if (backupTreeLikelihoods[i])
-                        delete backupTreeLikelihoods[i];
+                  /*  if (backupTreeLikelihoods[i])
+                        delete backupTreeLikelihoods[i];*/
                     if (treeLikelihoods[i])
                         delete treeLikelihoods[i];
                     if (allUnrootedGeneTrees[i])
-                        delete allUnrootedGeneTrees[i];
-                    
+                        delete allUnrootedGeneTrees[i];                    
                 }
             delete nhx;
             if (geneTree) 

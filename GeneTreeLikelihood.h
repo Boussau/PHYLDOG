@@ -247,6 +247,9 @@ using namespace bpp;
             
         };
 
+		bool isInitialized() {
+			return nniLk_->isInitialized();
+		}
         
         
     };
