@@ -235,6 +235,24 @@ void DLGeneTreeLikelihood::initParameters()
                                                       _duplicationProbabilities, _MLindex, 
                                                       _num0Lineages, _num1Lineages,
                                                       _num2Lineages, _nodesToTryInNNISearch); 
+		//Rooting bestTree as in TreeForSPR:
+		vector<Node*> nodes = _rootedTree->getNodes();
+		for (unsigned int j = 0 ; j < nodes.size() ; j++) {
+			if (nodes[j]->hasNodeProperty("outgroupNode")) {
+				if (_rootedTree->getRootNode() == nodes[j]) {
+					if (j < nodes.size()-1) 
+					{
+						_rootedTree->rootAt(nodes[nodes.size()-1]);   
+					}
+					else {
+						_rootedTree->rootAt(nodes[nodes.size()-2]);
+					}
+				};
+				_rootedTree->newOutGroup( nodes[j] );
+				//  std::cout << "FOUND"<<std::endl;
+				break;
+			}
+		}
     }
     _MLindex = -1;
     // std::cout << "in ReconciliationTreeLikelihood::initParameters : _num0Lineages, _num1Lineages, _num2Lineages : "<< TextTools::toString(VectorTools::sum(_num0Lineages))<<" "<<TextTools::toString(VectorTools::sum(_num1Lineages))<<" "<< TextTools::toString(VectorTools::sum(_num2Lineages))<<std::endl;
@@ -1364,7 +1382,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params) {
     double candidateScenarioLk ;
     double bestSequenceLogL = getSequenceLikelihood();
     double bestScenarioLk = getScenarioLikelihood();
-    // std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
+   //  std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
     unsigned int numIterationsWithoutImprovement = 0;
     FastRHomogeneousTreeLikelihood * bestRlk = 0;
     breadthFirstreNumber (*_rootedTree);
@@ -1502,7 +1520,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params) {
                         bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(bestRlk->getTree()))->clone();
                         //Rooting bestTree as in TreeForSPR:
                         vector<Node*> rlkNodes = bestTree->getNodes();
-                        //  std::cout << "BEFORE NEWOUTGROUP: "<<TreeTemplateTools::treeToParenthesis(*bestTree, true)<< std::endl;
                         for (unsigned int j = 0 ; j < rlkNodes.size() ; j++) {
                             if (rlkNodes[j]->hasNodeProperty("outgroupNode")) {
                                 if (bestTree->getRootNode() == rlkNodes[j]) {

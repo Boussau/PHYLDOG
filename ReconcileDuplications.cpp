@@ -678,8 +678,22 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           //Outputting the starting tree, with species names, and with sequence names
           Newick newick(true);
           std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
-          newick.write(*geneTree, startingGeneTreeFile, true);
-          newick.write(*treeWithSpNames, startingGeneTreeFile+"_sp_names", true);
+		  try
+		  {
+			  newick.write(*geneTree, startingGeneTreeFile, true);
+		  }
+		  catch (IOException e)
+		  {
+			  cout << "Problem writing tree to file "<< startingGeneTreeFile <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
+		  }
+		  try
+		  {
+			  newick.write(*treeWithSpNames, startingGeneTreeFile+"_sp_names", true);
+		  }
+		  catch (IOException e)
+		  {
+			  cout << "Problem writing tree to file "<< startingGeneTreeFile+"_sp_names" <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
+		  }
           //std::cout << " Rooted tree? : "<<TreeTemplateTools::treeToParenthesis(*geneTree, true) << std::endl;
           
           GeneTreeLikelihood* tl;
@@ -1647,7 +1661,7 @@ int main(int args, char ** argv)
                     if (recordGeneTrees) 
                     {
                         broadcast(world, bestIndex, server);
-                        //std::cout << "bestIndex: "<<bestIndex<<" startRecordingTreesFrom: "<<startRecordingTreesFrom<<std::endl;
+                        std::cout << "bestIndex: "<<bestIndex<<" startRecordingTreesFrom: "<<startRecordingTreesFrom<<std::endl;
                         outputGeneTrees(assignedFilenames, treeLikelihoods, allParams, numDeletedFamilies, 
                                         reconciledTrees, duplicationTrees, lossTrees, 
                                         bestIndex, startRecordingTreesFrom, reconciliationModel);

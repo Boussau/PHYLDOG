@@ -188,7 +188,7 @@ void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> 
                                 std::vector< std::vector<unsigned int> > & coalCountsSon0,
                                 std::vector< std::vector<unsigned int> > & coalCountsSon1)
 {
-//std::cout << "SHOULD be not 0: "<<    son0SpId << " and "<< son1SpId <<"Son 0 id: "<< sons[0]->getId() << " Son 1 id: "<< sons[1]->getId() <<std::endl;
+//std::cout << "SHOULD be not 0: "<<    son0SpId << " and "<< son1SpId <<"; Son 0 id: "<< sons[0]->getId() << " Son 1 id: "<< sons[1]->getId() <<std::endl;
     int a, a0, olda;
     int b, b0, oldb;
     a = a0 = olda = son0SpId;
@@ -429,18 +429,21 @@ void computeSubtreeCoalCountsPreorder(TreeTemplate<Node> & spTree,
                                       std::vector <std::vector<unsigned int> > & speciesIDs, 
                                       int sonNumber, 
                                       std::map <double, Node*> & LksToNodes) {
+//	std::cout <<"Gene Tree: \n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;
     computeRootingCoalCounts(spTree, node, 
                              coalCounts, bls, speciesIDs, 
                              sonNumber, LksToNodes);
-    if (node->isLeaf()) {
+   if (node->isLeaf()) {
         return; 
     }
     Node * son;
     if (sonNumber==1) {
         son= node->getSon(1);
+	//	std::cout <<"node son getid: "<< node->getSon(1)->getId() <<std::endl;
     }
     else {
         son= node->getSon(0);
+	//	std::cout <<"node son getid: "<< node->getSon(0)->getId() <<std::endl;
     }
     //  for (int i = 0; i< sons.size(); i++){
     for (unsigned int j =0; j<son->getNumberOfSons(); j++) {
@@ -473,6 +476,7 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
                               int sonNumber, 
                               std::map <double, Node*> & LksToNodes) {
     int geneNodeId = node->getId();
+	//VectorTools::print(TreeTemplateTools::getLeavesNames(*node));
     int directionForFather;
     std::vector <Node*> nodes;
 
@@ -529,12 +533,24 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
     //int rootDupData = 0;
   
     
-
-    /*
+/*
+	if (node->getSon(sonNumber)->getId() == 4) {
+		std::cout << "sonNumber: "<<sonNumber <<std::endl;
     for (unsigned int i = 0 ; i < coalCounts[geneNodeId][directionSon0].size() ; i++) {
-        std::cout << "BEFORE For branch "<< geneNodeId<<"; Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneNodeId][directionSon0][i][0] << " Num coal out: "<< coalCounts[geneNodeId][directionSon0][i][1]<<std::endl;
+        std::cout << "BEFORE PREORDER: Superior subtree For outgroup node  "<< node->getSon(sonNumber)->getId() <<"; Sp Branch "<<i<<" Num coal in: "<< coalCounts[geneNodeId][directionSon0][i][0] << " Num coal out: "<< coalCounts[geneNodeId][directionSon0][i][1]<<std::endl;
     }
-*/
+		
+		for (unsigned int i = 0 ; i < coalCounts[geneNodeId][directionSon0].size() ; i++) {
+			std::cout << "BEFORE PREORDER: INferior subtree For outgroup node  "<< node->getSon(sonNumber)->getId() <<"; Sp Branch "<<i<<" Num coal in: "<< coalCounts[idSon1][0][i][0] << " Num coal out: "<< coalCounts[idSon1][0][i][1]<<std::endl;
+		}
+
+		
+	}*/
+	
+	
+
+
+	
     computeCoalCountsFromSons (spTree, sons, 
                                rootSpId, 
                                speciesIDs[geneNodeId][directionSon0], 
@@ -561,10 +577,11 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
         }
     }
     /*
+	if (node->getSon(sonNumber)->getId() == 3) {
     for (unsigned int i = 0 ; i < coalCounts[geneNodeId][directionSon0].size() ; i++) {
-        std::cout << "For branch "<< geneNodeId<<"; Sp Branch "<<i<<" Num coal in: "<< rootCounts[i][0] << " Num coal out: "<< rootCounts[i][1]<<std::endl;
+        std::cout << "PREORDER: For outgroup node "<< node->getSon(sonNumber)->getId()<<"; Sp Branch "<<i<<" Num coal in: "<< rootCounts[i][0] << " Num coal out: "<< rootCounts[i][1]<<std::endl;
     }
-     */
+	}*/
 
     //What to put?
     rootLikelihood = computeCoalLikelihood ( rootCounts, bls ) ;
@@ -579,9 +596,9 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
                                               speciesIDs[idSon1][directionSon1], 
                                               rootDupData, dupData[idSon0][directionSon0], 
                                               dupData[idSon1][directionSon1], true);*/
-    // std::cout <<"LK FOUND "<<rootLikelihood<<std::endl;
+//     std::cout <<"LK FOUND "<<rootLikelihood<<std::endl;
     while (LksToNodes.find(rootLikelihood)!=LksToNodes.end()) {
-        // std::cout <<"changing rootLikelihood !!!!!!!!!!!!!!!!!!!"<<std::endl;
+//         std::cout <<"changing rootLikelihood !!!!!!!!!!!!!!!!!!!"<<std::endl;
         rootLikelihood+=SMALLPROBA;
     }
     LksToNodes[rootLikelihood]=node->getSon(sonNumber);
@@ -868,8 +885,8 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
   //CHANGE02052012  
 	geneTree->newOutGroup(LksToNodes.rbegin()->second);     
 
-	geneTree->resetNodesId();
-	breadthFirstreNumber (*geneTree);
+/*	TEMP TEST 06072012 geneTree->resetNodesId();
+	breadthFirstreNumber (*geneTree);*/
 
     
     if (fillTables) {
@@ -927,7 +944,12 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
     //We return the best likelihood
     MLindex = LksToNodes.rbegin()->second->getId();
 	//std::cout <<"Best reconciliation likelihood: "<< LksToNodes.rbegin()->first<<std::endl;
-    
+	for(std::map<double, Node* >::iterator it = LksToNodes.begin(); it != LksToNodes.end(); it++){
+		std::cout << it->second->getId() <<" : "<<it->first <<std::endl;		
+		
+	}
+	
+	
 	return LksToNodes.rbegin()->first;
     
     
@@ -1007,6 +1029,8 @@ void computeCoalBls (std::string& branchExpectedNumberOptimization,
 			if (n12 ==0) {
 				n12 = 1;
 			}
+			
+			
 			//std::cout << "branch " << i << "; n12: "<< n12 <<std::endl;
 			//std::cout << "branch " << i << "; n22: "<< n22 <<std::endl;
 			
@@ -1081,6 +1105,7 @@ double CoalBranchLikelihood::initModel()
         n12 = 1;
     }
     estimate = log((n12+n22)/n22);
+	return estimate;
 }
 
 //Just returning the analytical estimate of the branch length, 
