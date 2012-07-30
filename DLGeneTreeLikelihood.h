@@ -45,6 +45,8 @@
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 #include <Bpp/Phyl/OptimizationTools.h>
 #include <Bpp/Phyl/Io/Nhx.h>
+#include <Bpp/Phyl/Likelihood.all>
+
 
 
 // From NumCalc:
@@ -323,7 +325,8 @@ using namespace bpp;
          * and we use a simple recursion for that.
          ************************************************************************/
         void refineGeneTreeSPRsFast(map<string, string> params);
-        
+		void refineGeneTreeSPRsFast2(map<string, string> params);
+
         //Not up to date anymore, do not use without checking the code.
         void refineGeneTreeSPRs2(map<string, string> params);
 

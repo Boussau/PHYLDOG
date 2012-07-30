@@ -1408,7 +1408,7 @@ int main(int args, char ** argv)
                         //SPR optimization:    
                         //std::cout <<"Before optimization: "<<TreeTemplateTools::treeToParenthesis(treeLikelihoods[i]->getRootedTree(), true)<<std::endl;
                         if (reconciliationModel == "DL") {
-                            dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast(allParams[i]);
+                            dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast2(allParams[i]);
                         }
                         else if (reconciliationModel == "COAL") {
                             dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast(allParams[i]);
@@ -1629,6 +1629,9 @@ int main(int args, char ** argv)
                         treeLikelihoods[i]->setSpTree(*tree);
                         treeLikelihoods[i]->setSpId(spId);
                         if (reconciliationModel == "DL") {
+							VectorTools::print(duplicationExpectedNumbers);
+							VectorTools::print(lossExpectedNumbers);
+
                             dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->setExpectedNumbers(duplicationExpectedNumbers, lossExpectedNumbers);
 							//If not using the backuplks
 							if (! dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->isInitialized() ) {

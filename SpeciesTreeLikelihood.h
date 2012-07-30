@@ -139,10 +139,24 @@ namespace bpp
       bestTree_ = 0;
       currentTree_ = 0;
       parseOptions();
-      Parameter p("coefDup", 1, &Parameter::R_PLUS_STAR);
-      addParameter_(p);
-      Parameter p2("coefLoss", 1, &Parameter::R_PLUS_STAR);
-      addParameter_(p2);
+	  std::cout <<"HEHREH"<<std::endl;
+	  Parameter p("coefDup", 1);
+	  std::cout <<"HEHREH 1"<<std::endl;
+
+     // Parameter p("coefDup", 0, &Parameter::R_PLUS_STAR);
+	  std::cout <<"HEHREH 2"<<std::endl;
+	//  Constraint *c = (Parameter::R_PLUS_STAR).clone();
+	//  p.setConstraint(c);
+	  std::cout <<"HEHREH 21"<<std::endl;
+
+      addParameter_(&p);
+	  std::cout <<"HEHREH 3"<<std::endl;
+
+     // Parameter p2("coefLoss", 0, &Parameter::R_PLUS_STAR);
+	  Parameter p2("coefLoss", 1);
+	  std::cout <<"HEHREH 4"<<std::endl;
+
+      addParameter_(&p2);
   }
   
   
