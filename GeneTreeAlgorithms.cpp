@@ -1219,3 +1219,84 @@ void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree,
 
 
 
+/******************************************************************************/
+
+unsigned int optimizeBranchLengthsParameters(
+											 DiscreteRatesAcrossSitesTreeLikelihood* tl,
+											 const ParameterList& parameters,
+											 double target,
+											 OptimizationListener* listener,
+											 double tolerance,
+											 unsigned int tlEvalMax,
+											 OutputStream* messageHandler,
+											 OutputStream* profiler,
+											 unsigned int verbose,
+											 const std::string& optMethodDeriv)
+throw (Exception)
+{
+	// Build optimizer:
+	Optimizer* optimizer = 0;
+	if (optMethodDeriv == OptimizationTools::OPTIMIZATION_GRADIENT)
+	{
+		tl->enableFirstOrderDerivatives(true);
+		tl->enableSecondOrderDerivatives(false);
+		optimizer = new ConjugateGradientMultiDimensions(tl);
+	}
+	else if (optMethodDeriv == OptimizationTools::OPTIMIZATION_NEWTON)
+	{
+		tl->enableFirstOrderDerivatives(true);
+		tl->enableSecondOrderDerivatives(true);
+		optimizer = new PseudoNewtonOptimizer(tl);
+	}
+	else if (optMethodDeriv == OptimizationTools::OPTIMIZATION_BFGS)
+	{
+		tl->enableFirstOrderDerivatives(true);
+		tl->enableSecondOrderDerivatives(false);
+		optimizer = new BfgsMultiDimensions(tl);
+	}
+	else
+		throw Exception("OptimizationTools::optimizeBranchLengthsParameters. Unknown optimization method: " + optMethodDeriv);
+	optimizer->setVerbose(verbose);
+	optimizer->setProfiler(profiler);
+	optimizer->setMessageHandler(messageHandler);
+	optimizer->getStopCondition()->setTolerance(tolerance);
+	// Optimize TreeLikelihood function:
+	ParameterList pl = parameters.getCommonParametersWith(tl->getBranchLengthsParameters());
+	optimizer->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
+	if (listener)
+		optimizer->addOptimizationListener(listener);
+	optimizer->init(pl);
+
+	//We do the optimization one iteration at a time
+	optimizer->setMaximumNumberOfEvaluations( 2 ) ; //tlEvalMax);
+	std::vector <double> values;
+	values.push_back(tl->getValue());
+	bool stop = false;
+	while (!stop) {
+		optimizer->optimize();
+		values.push_back(optimizer->getFunction()->getValue());
+		/*std::cout << "Target: "<< target << "; currentlk: "<< optimizer->getFunction()->getValue()<<std::endl;
+		std::cout << "values.size(): "<<values.size()<<"; values[values.size()-1]: "<<values[values.size()-1]<< "; values[values.size()-2]: "<<values[values.size()-2] << std::endl;*/
+		if ( ( values[values.size()-1] + (30-values.size()) * (values[values.size()-1] - values[values.size()-2]) > target /*+ 10*/) || (values[values.size()-1] < target) ){
+			stop = true;
+		}
+		if (verbose > 0){
+			std::cout << "Iteration "<< values.size()-1 <<"; New value: "<< optimizer->getFunction()->getValue() <<std::endl;
+			ApplicationTools::displayMessage("\n");
+		}
+	}
+	if ( (values[values.size()-1] < target) && ((values[values.size()-2] - values[values.size()-1]) > 0.1) ) {
+		//optimizer->setMaximumNumberOfEvaluations( 2 ) ; //tlEvalMax);
+		optimizer->optimize();
+	}
+	
+	/*std::cout << "Values ";
+	VectorTools::print(values);*/
+	// We're done.
+	unsigned int n = values.size()-1 ; //optimizer->getNumberOfEvaluations();
+	delete optimizer;
+	return n;
+}
+
+/******************************************************************************/
+

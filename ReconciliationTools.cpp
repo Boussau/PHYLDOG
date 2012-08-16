@@ -2828,6 +2828,7 @@ void computeDuplicationAndLossRatesForTheSpeciesTree (std::string &branchProbaOp
   
   //Doing the correction:
   if (branchProbaOptimization=="average") {
+	  std::cout << "Averaging branch-wise estimates."<<std::endl;
     alterLineageCountsWithCoverages(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree, true);
   }
   else {

@@ -680,7 +680,14 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
 		  try
 		  {
-			  newick.write(*geneTree, startingGeneTreeFile, true);
+			  Nhx *nhx = new Nhx();
+			  annotateGeneTreeWithDuplicationEvents (*tree, 
+													 *geneTree, 
+													 geneTree->getRootNode(), 
+													 seqSp, spId); 
+			  nhx->write(*geneTree, startingGeneTreeFile, true);
+
+			 // newick.write(*geneTree, startingGeneTreeFile, true);
 		  }
 		  catch (IOException e)
 		  {
@@ -796,7 +803,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
               delete alphabet;
       }
       double familyTime = ApplicationTools::getTime() - startingFamilyTime ;  
-      std::cout <<"Examined family "<<assignedFilenames[i] << " in "<<familyTime<<" seconds."<<std::endl;
+      std::cout <<"Examined family "<<assignedFilenames[i] << " in "<<familyTime<<" s."<<std::endl;
       if (unrootedGeneTree) {
           delete unrootedGeneTree;
           unrootedGeneTree = 0;
@@ -1179,7 +1186,7 @@ int main(int args, char ** argv)
             std::vector < std::vector <unsigned int> > allNum22Lineages; 
             std::vector < std::vector <unsigned int> > allNum12Lineages; 
 
-
+			std::string SPRalgorithm;
             std::string currentSpeciesTree;
             std::string reconciliationModel;
             
@@ -1399,7 +1406,7 @@ int main(int args, char ** argv)
                         if (timing) 
                         {
                             totalTime = ApplicationTools::getTime() - startingTime;
-                            std::cout << "Family "<< assignedFilenames[i] <<"; Time for NNI exploration: "<<  totalTime << " seconds." <<std::endl;
+                            std::cout << "Family "<< assignedFilenames[i] <<"; Time for NNI exploration: "<<  totalTime << " s." <<std::endl;
                         }
                     }
                     else {
@@ -1407,8 +1414,13 @@ int main(int args, char ** argv)
                             startingTime = ApplicationTools::getTime();
                         //SPR optimization:    
                         //std::cout <<"Before optimization: "<<TreeTemplateTools::treeToParenthesis(treeLikelihoods[i]->getRootedTree(), true)<<std::endl;
+						SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams[i], "normal", "", true, false);
                         if (reconciliationModel == "DL") {
-                            dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast2(allParams[i]);
+							if (SPRalgorithm == "normal")
+								dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast2(allParams[i]);
+							else
+								dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast3(allParams[i]);
+
                         }
                         else if (reconciliationModel == "COAL") {
                             dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast(allParams[i]);
@@ -1420,7 +1432,7 @@ int main(int args, char ** argv)
                         if (timing) 
                         {
                             totalTime = ApplicationTools::getTime() - startingTime;
-                            std::cout << "Family "<< assignedFilenames[i] <<"; Time for SPR exploration: "<<  totalTime << " seconds." <<std::endl;
+                            std::cout << "Family "<< assignedFilenames[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;
                         }
                     }     
                     if (geneTree) {
@@ -1489,6 +1501,10 @@ int main(int args, char ** argv)
                 gather(world, num0Lineages, allNum0Lineages, server); 
                 gather(world, num1Lineages, allNum1Lineages, server);   
                 gather(world, num2Lineages, allNum2Lineages, server);*/
+				if (timing) 
+				{
+					startingTime = ApplicationTools::getTime();
+				}
 
                 gathersInformationFromClients (world, 
                                                server,
@@ -1501,12 +1517,21 @@ int main(int args, char ** argv)
                                                allNum1Lineages, 
                                                allNum2Lineages, 
                                                num12Lineages, num22Lineages, reconciliationModel);
+				if (timing) 
+				{
+					totalTime = ApplicationTools::getTime() - startingTime;
+					std::cout << "Time for gathering information: "<<  totalTime << " s." <<std::endl;
+				}
+
                 //Should the computations stop? The server tells us.
                 broadcast(world, stop, server);
                 if (!stop) 
                 {	// we continue the loop
                     //We get the new values from the server
-
+					if (timing) 
+					{
+						startingTime = ApplicationTools::getTime();
+					}
                     broadcastsAllInformationButStop(world, server, rearrange, 
                                                     lossExpectedNumbers, 
                                                     duplicationExpectedNumbers, 
@@ -1514,6 +1539,13 @@ int main(int args, char ** argv)
                                                     currentSpeciesTree,
                                                     currentStep, 
                                                     reconciliationModel);
+					if (timing) 
+					{
+						totalTime = ApplicationTools::getTime() - startingTime;
+						std::cout << "Time for broadcasting information: "<<  totalTime << " s." <<std::endl;
+						startingTime = ApplicationTools::getTime();
+					}
+
                     if (assignedFilenames.size()-numDeletedFamilies > 0) 
                     {
                         if (tree) delete tree;
@@ -1545,7 +1577,6 @@ int main(int args, char ** argv)
                             {
                                 treeLikelihoods.push_back(dynamic_cast<COALGeneTreeLikelihood*> (backupTreeLikelihoods[i])->clone());
                             }
-
                         }
                          */
 						
@@ -1629,8 +1660,8 @@ int main(int args, char ** argv)
                         treeLikelihoods[i]->setSpTree(*tree);
                         treeLikelihoods[i]->setSpId(spId);
                         if (reconciliationModel == "DL") {
-							VectorTools::print(duplicationExpectedNumbers);
-							VectorTools::print(lossExpectedNumbers);
+							/*VectorTools::print(duplicationExpectedNumbers);
+							VectorTools::print(lossExpectedNumbers);*/
 
                             dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->setExpectedNumbers(duplicationExpectedNumbers, lossExpectedNumbers);
 							//If not using the backuplks
@@ -1648,13 +1679,13 @@ int main(int args, char ** argv)
 							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
 							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->optimizeNumericalParameters(params); //Initial optimization of all numerical parameters
 							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->initParameters();
-
                         }
-						
-
-                      //  treeLikelihoods[i]->computeTreeLikelihood();
                     }
-                    //if (tree) delete tree;
+					if (timing) 
+					{
+						totalTime = ApplicationTools::getTime() - startingTime;
+						std::cout << "Time for resetting gene tree likelihoods: "<<  totalTime << " s." <<std::endl;
+					}
                 }
                 else 
                 { 

@@ -35,6 +35,7 @@
 //#include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Phyl/Mapping.all>
 #include <Bpp/Phyl/Likelihood/DRTreeLikelihoodTools.h>
+#include <Bpp/Phyl/Likelihood/PseudoNewtonOptimizer.h>
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 #include <Bpp/Phyl/OptimizationTools.h>
 
@@ -50,7 +51,7 @@
 #include <Bpp/Numeric/AutoParameter.h>
 #include <Bpp/Numeric/Random/RandomTools.h>
 #include <Bpp/Numeric/NumConstants.h>
-#include <Bpp/Numeric/Function/PowellMultiDimensions.h>
+#include <Bpp/Numeric/Function.all>
 
 // From Utils:
 #include <Bpp/Utils/AttributesTools.h>
@@ -249,6 +250,42 @@ void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree,
 											  int nodeForSPR, 
 											  int distance, 
 											  std::vector <int> & nodeIdsToRegraft) ;
+
+/**
+ * @brief Optimize branch lengths parameters of a TreeLikelihood function.
+ *
+ * Uses Newton's method.
+ *
+ * A condition over function values is used as a stop condition for the algorithm.
+ *
+ * @see NewtonBrentMetaOptimizer
+ *
+ * @param tl             A pointer toward the TreeLikelihood object to optimize.
+ * @param parameters     The list of parameters to optimize. The intersection of branch length parameters and the input set will be used. Use tl->getBranchLengthsParameters() in order to estimate all branch length parameters.
+ * @param target         Current maximum likelihood value. If early rounds of optimization suggest we are not going to improve upon it, stop optimization.
+ * @param listener       A pointer toward an optimization listener, if needed.
+ * @param tolerance      The tolerance to use in the algorithm.
+ * @param tlEvalMax      The maximum number of function evaluations.
+ * @param messageHandler The massage handler.
+ * @param profiler       The profiler.
+ * @param verbose        The verbose level.
+ * @param optMethodDeriv Optimization type for derivable parameters (first or second order derivatives).
+ * @see OPTIMIZATION_NEWTON, OPTIMIZATION_GRADIENT
+ * @throw Exception any exception thrown by the Optimizer.
+ */
+unsigned int optimizeBranchLengthsParameters(
+													DiscreteRatesAcrossSitesTreeLikelihood* tl,
+													const ParameterList& parameters,
+													double target,
+													OptimizationListener* listener     = 0,
+													double tolerance                   = 0.000001,
+													unsigned int tlEvalMax             = 1000000,
+													OutputStream* messageHandler       = ApplicationTools::message,
+													OutputStream* profiler             = ApplicationTools::message,
+													unsigned int verbose               = 1,
+													const std::string& optMethodDeriv  = OptimizationTools::OPTIMIZATION_NEWTON)
+throw (Exception);
+
 
 #endif //_GENETREEALGORITHMS_H_
 

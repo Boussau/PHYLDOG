@@ -620,7 +620,7 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                                            num12Lineages, 
                                            num22Lineages, 
                                            reconciliationModel);
-     
+			ApplicationTools::displayTime("Execution time so far:");
         }
       else 
         {
@@ -925,49 +925,49 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                         TreeTemplate<Node> &tree, double & bestlogL, 
                                                                         unsigned int currentStep) 
 {
-  /*if (branchExpectedNumbersOptimization != "no")
-    {
-    //we set the expected numbers to 0.001 uniformly: we start afresh for each new species tree topology.
-    for (unsigned int i = 0 ; i < lossExpectedNumbers.size() ; i++ ) 
-      {
-      lossExpectedNumbers[i] = 0.001;
-      duplicationExpectedNumbers[i] = 0.001;
-      }
-    }*/
-  std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index, 
-                                                                stop, logL, 
-                                                                num0Lineages, 
-                                                                num1Lineages,
-                                                                num2Lineages, 
-                                                                allNum0Lineages, 
-                                                                allNum1Lineages, 
-                                                                allNum2Lineages, 
-                                                                lossExpectedNumbers, 
-                                                                duplicationExpectedNumbers, 
-                                                                num12Lineages, num22Lineages,
-                                                                coalBls, reconciliationModel,
-                                                                rearrange, server, 
-                                                                branchExpectedNumbersOptimization, 
-                                                                genomeMissing, tree, currentStep);
+	/*if (branchExpectedNumbersOptimization != "no")
+	 {
+	 //we set the expected numbers to 0.001 uniformly: we start afresh for each new species tree topology.
+	 for (unsigned int i = 0 ; i < lossExpectedNumbers.size() ; i++ ) 
+	 {
+	 lossExpectedNumbers[i] = 0.001;
+	 duplicationExpectedNumbers[i] = 0.001;
+	 }
+	 }*/
+	std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index, 
+																  stop, logL, 
+																  num0Lineages, 
+																  num1Lineages,
+																  num2Lineages, 
+																  allNum0Lineages, 
+																  allNum1Lineages, 
+																  allNum2Lineages, 
+																  lossExpectedNumbers, 
+																  duplicationExpectedNumbers, 
+																  num12Lineages, num22Lineages,
+																  coalBls, reconciliationModel,
+																  rearrange, server, 
+																  branchExpectedNumbersOptimization, 
+																  genomeMissing, tree, currentStep);
     
-  double currentlogL = -UNLIKELY;
-  int i=1;
-  if (branchExpectedNumbersOptimization != "no")
+	double currentlogL = -UNLIKELY;
+	int i=1;
+	if (branchExpectedNumbersOptimization != "no")
     {
-     //   std::cout << "Species tree LogLikelihood after the first round: "<< - logL<<std::endl;
-    //Then we update duplication and loss rates based on the results of this first 
-    //computation, until the likelihood stabilizes (roughly)
+		//   std::cout << "Species tree LogLikelihood after the first round: "<< - logL<<std::endl;
+		//Then we update duplication and loss rates based on the results of this first 
+		//computation, until the likelihood stabilizes (roughly)
         while ((i<=1)&&(currentlogL-logL>logL-bestlogL)) 
             //      while (logL - bestlogL > 0.1) 
         { 
             currentlogL = logL;
             i++;
             if (reconciliationModel == "DL") {
-            computeDuplicationAndLossRatesForTheSpeciesTree (branchExpectedNumbersOptimization, 
-                                                             num0Lineages, num1Lineages, 
-                                                             num2Lineages, lossExpectedNumbers, 
-                                                             duplicationExpectedNumbers, 
-                                                             genomeMissing, tree);
+				computeDuplicationAndLossRatesForTheSpeciesTree (branchExpectedNumbersOptimization, 
+																 num0Lineages, num1Lineages, 
+																 num2Lineages, lossExpectedNumbers, 
+																 duplicationExpectedNumbers, 
+																 genomeMissing, tree);
             }
             else if (reconciliationModel == "COAL") {
 				if (currentStep == 0) {
@@ -978,10 +978,10 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
 									coalBls) ;
 				}
 				else {
-                computeCoalBls (branchExpectedNumbersOptimization, 
-								num12Lineages, 
-								num22Lineages, 
-								coalBls) ;
+					computeCoalBls (branchExpectedNumbersOptimization, 
+									num12Lineages, 
+									num22Lineages, 
+									coalBls) ;
 				}
             }
             computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world,index, 
@@ -1002,10 +1002,11 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                    currentSpeciesTree, false, currentStep); 
         }
     }
-  std::cout <<"\t\tNumber of species trees tried: "<< index ;
-  std::cout<<";\t\tLogLk value for this species tree: "<< - logL<<std::endl;
-
- // std::cout << i<< " iterations of likelihood computation for optimizing duplication and loss rates have been done."<< std::endl;
+	std::cout <<"\t\tNumber of species trees tried: "<< index ;
+	std::cout<<";\t\tLogLk value for this species tree: "<< - logL<<std::endl;
+	ApplicationTools::displayTime("Execution time so far:");
+	
+	// std::cout << i<< " iterations of likelihood computation for optimizing duplication and loss rates have been done."<< std::endl;
 }
 
 
