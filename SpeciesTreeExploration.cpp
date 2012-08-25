@@ -708,11 +708,11 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                          unsigned int currentStep) {
   if (optimizeRates)
     {
-    std::cout <<"Making SPRs and NNIs and optimizing duplication and loss rates."<< std::endl;
+    std::cout <<"Making SPRs and Rerootings and optimizing duplication and loss rates."<< std::endl;
     }
   else 
     {
-    std::cout <<"Making SPRs and NNIs but NOT optimizing duplication and loss rates."<< std::endl;
+    std::cout <<"Making SPRs and Rerootings but NOT optimizing duplication and loss rates."<< std::endl;
     }
   numIterationsWithoutImprovement=0;
   

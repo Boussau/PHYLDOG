@@ -14,13 +14,12 @@ BOOST_LIBRARIES = /usr/local/lib
 SRC = ./
 
 #Debugging compilation options
-CC = mpic++ -m64 -g -Wall -I $(BOOST_INCLUDE) 
+#CC = mpic++ -m64 -g -Wall -I $(BOOST_INCLUDE) 
 
 #Efficient compilation options
-#CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
+CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
 
 
-#LL =  -L/usr/local/lib -lboost_serialization -lboost_mpi
 LL =  -L/usr/local/lib -L$(BIOPP_LIBRARIES) -L$(BOOST_LIBRARIES) -lboost_serialization -lboost_mpi
 
 all : RearrangeGeneTreeDTL phyldog
@@ -72,7 +71,6 @@ mpi_time_order.o : $(SRC)mpi_time_order.cpp  $(SRC)DTL.h $(SRC)DTL_mpi.h
 
 ####DL model only
 
-#phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o ReconciliationTreeLikelihood.o DLGeneTreeLikelihood.o ReconciliationTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o
 phyldog : ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o COALGeneTreeLikelihood.o GeneTreeLikelihood.o ReconciliationTools.o COALTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o FastRHomogeneousTreeLikelihood.o 
 	$(CC) $(INCLUDE) -o phyldog ReconcileDuplications.o SpeciesTreeLikelihood.o DLGeneTreeLikelihood.o COALGeneTreeLikelihood.o GeneTreeLikelihood.o ReconciliationTools.o COALTools.o SpeciesTreeExploration.o GenericTreeExplorationAlgorithms.o GeneTreeAlgorithms.o FastRHomogeneousTreeLikelihood.o -lbpp-phyl -lbpp-seq -lbpp-core $(LL)
 
@@ -119,9 +117,8 @@ archive :
 
 phyldogarchive :
 	mkdir PHYLDOGArchive
-	cp ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp Makefile INSTALL README PHYLDOGArchive
+	cp ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp FastRHomogeneousTreeLikelihood.cpp FastRHomogeneousTreeLikelihood.h COALTools.cpp COALTools.h GeneTreeLikelihood.cpp GeneTreeLikelihood.h COALGeneTreeLikelihood.cpp COALGeneTreeLikelihood.h  Makefile INSTALL README PHYLDOGArchive
 	tar cfz PHYLDOGArchive.tgz PHYLDOGArchive
-#ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp Makefile
 
 examplearchive :
 	#rm example/*_5Mammals
@@ -129,5 +126,3 @@ examplearchive :
 	#rm example/*_starting.tree_sp_names
 	#rm example/Client_*
 	tar cfz example.tgz example
-
-# DO NOT DELETE

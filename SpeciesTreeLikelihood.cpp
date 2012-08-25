@@ -185,7 +185,7 @@ void SpeciesTreeLikelihood::initialize()
                                                            *tree_, 
                                                            currentSpeciesTree_,
                                                            false, currentStep_); //TEST
-    std::cout << "\t\tServer: total initial Likelihood value "<<logL_<<std::endl;
+    std::cout << setprecision(30) <<"\t\tServer: total initial Likelihood value "<<logL_<<std::endl;
     bestlogL_ = logL_;
     ApplicationTools::displayTime("Execution time so far:");
   /*  for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) {
