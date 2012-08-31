@@ -1096,8 +1096,8 @@ int main(int args, char ** argv)
             while (0 == z){
                 std::cout << z <<std::endl;
                 sleep(5);
-            }
-            */
+            }*/
+            
             
             std::cout << "******************************************************************" << std::endl;
             std::cout << "*                   PHYLDOG, version 1.1.0                       *" << std::endl;
@@ -1704,30 +1704,40 @@ int main(int args, char ** argv)
                 }
             }//End while, END OF MAIN LOOP
             	for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
-                {  
+                {  			
                     if (allAlphabets[i])
                         delete allAlphabets[i];
+
                     if (allDatasets[i])
                         delete allDatasets[i];
+
                     if (allModels[i])
                         delete allModels[i];
+
                     if (allDistributions[i])
                         delete allDistributions[i];
+
                     if (allGeneTrees[i])
                         delete allGeneTrees[i];
+
                   /*  if (backupTreeLikelihoods[i])
                         delete backupTreeLikelihoods[i];*/
                     if (treeLikelihoods[i])
                         delete treeLikelihoods[i];
+
                     if (allUnrootedGeneTrees[i])
-                        delete allUnrootedGeneTrees[i];                    
+                        delete allUnrootedGeneTrees[i];  
+
                 }
+
             delete nhx;
             if (geneTree) 
             {
                 delete geneTree;
             }
+
             if (tree) delete tree;
+
             if (!debug) {
                 cerr.rdbuf(backupcerr);    // restore cerr's original streambuf
                 cout.rdbuf(backup);        // restore cout's original streambuf                                                                                                                                                  

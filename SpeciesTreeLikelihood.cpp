@@ -18,10 +18,10 @@ using namespace std;
 
 void SpeciesTreeLikelihood::updateDuplicationAndLossExpectedNumbers() 
 {
-  double d = getParameterValue("coefDup");
+/*  double d = getParameterValue("coefDup");
   duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_ * d;
   double l = getParameterValue("coefLoss");
-  lossExpectedNumbers_ = backupLossExpectedNumbers_ * l;
+  lossExpectedNumbers_ = backupLossExpectedNumbers_ * l;*/
 }
 
 /*******************************************************************************/
@@ -1047,10 +1047,12 @@ void SpeciesTreeLikelihood::MLSearch()
 			dupTree = dupTree + suffix_;
 			std::ofstream out (dupTree.c_str(), std::ios::out);
 			
-			out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
+//			out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
+			out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
 			out.close();
 			std::cout <<"\n\n\t\tBest Species Tree found, with Duplications: "<<std::endl;
-			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
+//			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
+			std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
 
 			//For loss rates
 			for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
@@ -1065,10 +1067,12 @@ void SpeciesTreeLikelihood::MLSearch()
 			std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params_, "AllLosses.tree", "", false, false);
 			lossTree = lossTree + suffix_;
 			out.open (lossTree.c_str(), std::ios::out);
-			out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+			//out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+			out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
 			out.close();
 			std::cout <<"\n\n\t\tBest Species Tree found, with Losses: "<<std::endl;
-			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+//			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+			std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
 
 		}
 		else if (reconciliationModel_ == "COAL") {

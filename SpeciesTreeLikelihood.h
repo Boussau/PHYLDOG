@@ -16,6 +16,7 @@
 #include <Bpp/Numeric/Parameter.h>
 #include <Bpp/Numeric/AbstractParametrizable.h>
 #include <Bpp/Numeric/Function/Functions.h>
+#include <Bpp/Numeric/NumConstants.h>
 
 // From core
 #include <Bpp/Text/StringTokenizer.h>
@@ -139,7 +140,7 @@ namespace bpp
       bestTree_ = 0;
       currentTree_ = 0;
       parseOptions();
-	  Parameter p("coefDup", 1);
+	/*  Parameter p("coefDup", 1);
 
      // Parameter p("coefDup", 0, &Parameter::R_PLUS_STAR);
 	//  Constraint *c = (Parameter::R_PLUS_STAR).clone();
@@ -150,7 +151,7 @@ namespace bpp
      // Parameter p2("coefLoss", 0, &Parameter::R_PLUS_STAR);
 	  Parameter p2("coefLoss", 1);
 
-      addParameter_(&p2);
+      addParameter_(&p2);*/
   }
   
   

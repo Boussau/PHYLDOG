@@ -817,6 +817,9 @@ void FastRHomogeneousTreeLikelihood::computeSubtreeLikelihood(const Node* node)
         
         // Must reset the likelihood array first (i.e. set all of them to 1):
         VVVdouble* _likelihoods_node = &likelihoodData_->getLikelihoodArray(node->getId());
+# ifdef _OPENMP
+#pragma omp parallel for
+#endif
         for (unsigned int i = 0; i < nbSites; i++)
         {
             //For each site in the sequence,
@@ -844,6 +847,9 @@ void FastRHomogeneousTreeLikelihood::computeSubtreeLikelihood(const Node* node)
             vector<unsigned int> * _patternLinks_node_son = &likelihoodData_->getArrayPositions(node->getId(), son->getId());
             VVVdouble* _likelihoods_son = &likelihoodData_->getLikelihoodArray(son->getId());
             
+# ifdef _OPENMP
+#pragma omp parallel for
+#endif
             for (unsigned int i = 0; i < nbSites; i++)
             {
                 //For each site in the sequence,

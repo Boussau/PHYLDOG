@@ -1712,7 +1712,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
     OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (bestRlk), 
                                                        bestRlk->getParameters(), backupListener.get(), 
                                                        tolerance, tlEvalMax, messageHandler, messageHandler, 0);
-	std::cout << "bestRlk tree: " << TreeTemplateTools::treeToParenthesis(bestRlk->getTree(), false) <<std::endl;
+	//std::cout << "bestRlk tree: " << TreeTemplateTools::treeToParenthesis(bestRlk->getTree(), false) <<std::endl;
 	
 	delete nniLk_;
     nniLk_ = new NNIHomogeneousTreeLikelihood (bestRlk->getTree(), 
@@ -1724,7 +1724,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	/*   delete rlk;
 	 rlk = 0;
 	 */
-	std::cout << "bestRlk value: "<<bestRlk->getValue() <<std::endl;
+	//std::cout << "bestRlk value: "<<bestRlk->getValue() <<std::endl;
     
     logL = getLogLikelihood();
     //  std::cout << "logL after mapping: " <<getSequenceLikelihood()<<std::endl;
@@ -1794,17 +1794,17 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
                         
                         if (computeSequenceLikelihoodForSPR) {
                             
-							std::cout << "good candidateScenarioLk: "<< candidateScenarioLk<<"; bestScenarioLk: "<< bestScenarioLk<< std::endl;
+							//std::cout << "good candidateScenarioLk: "<< candidateScenarioLk<<"; bestScenarioLk: "<< bestScenarioLk<< std::endl;
                             if (rlk) {
                                 delete rlk;
                                 rlk = 0;
                             }
-							std::cout << "COMPUTING SEQLK: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, false) <<std::endl;
+						//	std::cout << "COMPUTING SEQLK: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, false) <<std::endl;
                             ParameterList pl ;//= rlk->getBranchLengthsParameters();
                             std::auto_ptr<Constraint> brLenConstraint;
 							//                            brLenConstraint.reset(new IncludingInterval(0.000001, 10000));
                             brLenConstraint.reset(new IntervalConstraint(0.000001, 10000, true, true));
-							std::cout << "nodesToUpdate.size(): "<< nodesToUpdate.size() <<std::endl;
+							//std::cout << "nodesToUpdate.size(): "<< nodesToUpdate.size() <<std::endl;
                             //Only optimizes branch lengths likely to have changed because of the SPR
 							/*Works, but slow:
 							 for (unsigned int k = 0 ; k < treeForSPR->getNumberOfNodes() ; k++) {
@@ -1815,7 +1815,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 							for (unsigned int k = 0 ; k < nodesToUpdate.size() ; k++) {
                                 if (nodesToUpdate[k]->hasDistanceToFather()) {
                                     brLenConstraint->clone();
-									std::cout <<"distance to update: "<< nodesToUpdate[k]->getDistanceToFather()<<std::endl;
+									//std::cout <<"distance to update: "<< nodesToUpdate[k]->getDistanceToFather()<<std::endl;
                                     if (nodesToUpdate[k]->getDistanceToFather() < 0.000001) {
                                         nodesToUpdate[k]->setDistanceToFather(0.000001);
                                     }
@@ -1824,7 +1824,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
                                     pl.addParameter(Parameter("BrLen" + TextTools::toString(nodesToUpdate[k]->getId()), nodesToUpdate[k]->getDistanceToFather(), brLenConstraint->clone(), true));
                                 }
                             }
-							std::cout << "pl.size(): "<< pl.size() <<std::endl;
+							//std::cout << "pl.size(): "<< pl.size() <<std::endl;
 						//	std::cout << "WITH NODES 0.2: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, false) <<std::endl;
 
 							/*       rlk  = new FastRHomogeneousTreeLikelihood (*treeForSPR, 
@@ -1841,7 +1841,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 							
                             rlk->initialize();
 							//   rlk2->initializeLikelihoodData();
-							std::cout <<"BEFORE optim: "<<rlk->getValue()<<std::endl;
+							//std::cout <<"BEFORE optim: "<<rlk->getValue()<<std::endl;
 						/*	 OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (rlk), 
 							 pl, backupListener.get(), 
 							 tolerance, tlEvalMax, messageHandler, messageHandler, 3);*/
@@ -1850,12 +1850,12 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 																			   rlk->getBranchLengthsParameters(), /*pl,*/backupListener.get(), 
 																			   tolerance, tlEvalMax, messageHandler, messageHandler, 0);
 							
-							std::cout << "optim rlk tree: " << TreeTemplateTools::treeToParenthesis(rlk->getTree(), false) <<std::endl;
+						//	std::cout << "optim rlk tree: " << TreeTemplateTools::treeToParenthesis(rlk->getTree(), false) <<std::endl;
 							
 							
 							logL = candidateScenarioLk - rlk->getValue();
 							
-							std::cout << "SPR seqLk: "<< rlk->getValue()<<" compared to best rlk: "<< bestRlk->getValue() <<std::endl;
+						//	std::cout << "SPR seqLk: "<< rlk->getValue()<<" compared to best rlk: "<< bestRlk->getValue() <<std::endl;
                         }
                         else {
                             logL = candidateScenarioLk - bestSequenceLogL;
@@ -1863,14 +1863,14 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
                         
                     }
                     else { 
-						std::cout << "bad candidateScenarioLk: "<< candidateScenarioLk<<"; bestScenarioLk: "<< bestScenarioLk<< std::endl;
+						//std::cout << "bad candidateScenarioLk: "<< candidateScenarioLk<<"; bestScenarioLk: "<< bestScenarioLk<< std::endl;
                         logL =logL - 10;
                     }
                     //If the candidate tree has a DL + sequence Lk better than the current best
 					
                     if (logL - 0.01 > bestlogL) 
                     {
-						std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
+					//	std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
                         betterTree = true;
                         bestlogL = logL;
                         bestScenarioLk = candidateScenarioLk;
