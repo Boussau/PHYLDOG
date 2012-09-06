@@ -280,45 +280,54 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       unsigned int numSites = allSites->getNumberOfSites();
       ApplicationTools::displayResult("Number of sequences", TextTools::toString(allSites->getNumberOfSequences()));
       ApplicationTools::displayResult("Number of sites", TextTools::toString(numSites));
-
-      unsigned int minPercentSequence = ApplicationTools::getIntParameter("sequence.removal.threshold",params,0);
-      unsigned int threshold = (int) ((double)minPercentSequence * (double)numSites / 100 );
-
-      std::vector <std::string> seqsToRemove;
-
-      if (minPercentSequence > 0) {
-          for ( int j = allSites->getNumberOfSequences()-1 ; j >= 0 ; j--) {
-              if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(j) ) < threshold ) {
-                  ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(j).getName()  );
-                 // allSites->deleteSequence(i);
-                  seqsToRemove.push_back(allSites->getSequence(j).getName());
-              }
-          }
-      }
-      
-      for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
-      {
-          std::vector <std::string> seqNames = allSites->getSequencesNames();
-          if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
-          {
-              allSites->deleteSequence(seqsToRemove[j]);
-          }
-          else 
-              std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
-      }
-
-      
-      ApplicationTools::displayResult("# sequences post size-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
-      seqsToRemove.clear();
-      
-      if (allSites->getNumberOfSequences() <= 1 ) {
-          std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
-          avoidFamily = true;
+	  
+	  std::vector <std::string> seqsToRemove;
+	  VectorSiteContainer * sites;
+	  
+	  if (numSites == 0 ) {
+		  std::cout<<"WARNING: Discarding a family whose alignment is 0 site long: "<< seqFile <<std::endl;
+		  avoidFamily = true;
           numDeletedFamilies = numDeletedFamilies+1;
-      }
-      VectorSiteContainer * sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
-      delete allSites;   
-      
+		  delete allSites;   
+	  }
+	  if (!avoidFamily) {
+		  unsigned int minPercentSequence = ApplicationTools::getIntParameter("sequence.removal.threshold",params,0);
+		  unsigned int threshold = (int) ((double)minPercentSequence * (double)numSites / 100 );
+		  
+		  
+		  if (minPercentSequence > 0) {
+			  for ( int j = allSites->getNumberOfSequences()-1 ; j >= 0 ; j--) {
+				  if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(j) ) < threshold ) {
+					  ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(j).getName()  );
+					  // allSites->deleteSequence(i);
+					  seqsToRemove.push_back(allSites->getSequence(j).getName());
+				  }
+			  }
+		  }
+		  
+		  for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
+		  {
+			  std::vector <std::string> seqNames = allSites->getSequencesNames();
+			  if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
+			  {
+				  allSites->deleteSequence(seqsToRemove[j]);
+			  }
+			  else 
+				  std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
+		  }
+		  
+		  
+		  ApplicationTools::displayResult("# sequences post size-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
+		  seqsToRemove.clear();
+		  
+		  if (allSites->getNumberOfSequences() <= 1 ) {
+			  std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
+			  avoidFamily = true;
+			  numDeletedFamilies = numDeletedFamilies+1;
+		  }
+		  sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
+		  delete allSites;   
+	  }
       
       //method to optimize the gene tree root; only useful if heuristics.level!=0.
       bool rootOptimization = false;

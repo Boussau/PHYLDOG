@@ -1680,6 +1680,24 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
   else {
 
     std::vector <Node *> sons = node->getSons();
+#ifdef _OPENMP
+#pragma omp single
+	  {
+#pragma omp task
+      computeSubtreeLikelihoodPostorder(spTree, geneTree, 
+                                        sons[0], seqSp, 
+                                        spID, likelihoodData, 
+                                        lossRates, duplicationRates, 
+                                        speciesIDs, dupData);
+#pragma omp task
+      computeSubtreeLikelihoodPostorder(spTree, geneTree, 
+                                        sons[1], seqSp, 
+                                        spID, likelihoodData, 
+                                        lossRates, duplicationRates, 
+                                        speciesIDs, dupData);
+#pragma omp taskwait
+	  }
+#else	  
     for (unsigned int i = 0; i< sons.size(); i++){
       computeSubtreeLikelihoodPostorder(spTree, geneTree, 
                                         sons[i], seqSp, 
@@ -1688,6 +1706,7 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
                                         speciesIDs, dupData);
 
     }
+#endif
     
     int idSon0 = sons[0]->getId();
     int idSon1 = sons[1]->getId();
@@ -1869,7 +1888,7 @@ void computeSubtreeLikelihoodPreorder(TreeTemplate<Node> & spTree,
                                       std::vector <std::vector<int> > & dupData,
                                       int sonNumber, 
                                       std::map <double, Node*> & LksToNodes) {
-  computeRootingLikelihood(spTree, node, 
+	computeRootingLikelihood(spTree, node, 
                            likelihoodData, lossRates, 
                            duplicationRates, speciesIDs, 
                            dupData, sonNumber, LksToNodes);
@@ -1884,13 +1903,24 @@ void computeSubtreeLikelihoodPreorder(TreeTemplate<Node> & spTree,
     son= node->getSon(0);
   }
 //  for (int i = 0; i< sons.size(); i++){
+#ifdef _OPENMP
+#pragma omp single
+	{
+#endif
     for (unsigned int j =0; j<son->getNumberOfSons(); j++) {
+#ifdef _OPENMP
+#pragma omp task
+#endif
       computeSubtreeLikelihoodPreorder(spTree, geneTree, 
                                        son, seqSp, spID, 
                                        likelihoodData, 
                                        lossRates, duplicationRates, 
                                        speciesIDs, dupData, j, LksToNodes);
     }
+# ifdef _OPENMP
+#pragma omp taskwait
+	}
+#endif
 //  }
 	return;
 	
@@ -2180,14 +2210,24 @@ void computeNumbersOfLineagesFromRoot(TreeTemplate<Node> * spTree,
   }
   else {
     std::vector <Node *> sons = node->getSons();
+#ifdef _OPENMP
+#pragma omp single 
+	  {
+#endif
     for (unsigned int i = 0; i< sons.size(); i++){
-      computeNumbersOfLineagesFromRoot(spTree, geneTree, sons[i], 
+#ifdef _OPENMP
+#pragma omp task
+#endif
+		computeNumbersOfLineagesFromRoot(spTree, geneTree, sons[i], 
                                        seqSp, spID, num0lineages, 
                                        num1lineages, num2lineages, 
                                        speciesIDs, dupData, 
                                        branchesWithDuplications);
     }
-    
+#ifdef _OPENMP
+#pragma omp wait
+	  }
+#endif	  
     int idSon0 = sons[0]->getId();
     int idSon1 = sons[1]->getId();
     unsigned int directionSon0, directionSon1;
@@ -2279,11 +2319,28 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
     
 /*  std::cout <<"root number :"<<geneRoot->getId()<<std::endl;
   std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
+# ifdef _OPENMP
+	double START, END;
+	START= omp_get_wtime();
+#pragma omp parallel
+	{
+		#pragma omp single 
+		{
+#endif
+
   initialLikelihood = computeSubtreeLikelihoodPostorder(*spTree, *geneTree, 
                                                         geneRoot, seqSp, spID, 
                                                         likelihoodData, lossRates, 
                                                         duplicationRates, speciesIDs, dupData);
-/*    VectorTools::print(duplicationRates);
+# ifdef _OPENMP
+		}
+	}
+	END= omp_get_wtime();
+	std::cout << "computeSubtreeLikelihoodPostorder took: "<< END-START <<std::endl;
+#endif
+
+	
+	/*    VectorTools::print(duplicationRates);
     std::cout << TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
     std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
     std::cout << "initialLikelihood: "<< initialLikelihood << std::endl;*/
@@ -2315,6 +2372,13 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   }
   */
 
+# ifdef _OPENMP
+	START= omp_get_wtime();
+#pragma omp parallel
+	{
+#pragma omp single
+		{
+#endif
   for (unsigned int i = 0; i< sons.size(); i++){
     for (unsigned int j =0; j<sons[i]->getNumberOfSons(); j++) {
       computeSubtreeLikelihoodPreorder(*spTree, *geneTree, 
@@ -2324,6 +2388,13 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
                                        speciesIDs, dupData, j, LksToNodes);
     }
   }
+# ifdef _OPENMP
+		}
+	}
+	END= omp_get_wtime();
+	std::cout << "computeSubtreeLikelihoodPreorder took: "<< END-START <<std::endl;
+#endif
+	
 
     
     
@@ -2381,12 +2452,26 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
 // std::cout <<"HERE_rooted_tree "<<TreeTemplateTools::treeToParenthesis (*tree, true)<<std::endl;
 //  std::cout <<"HERE_rooted_tree2 "<<TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
 //  std::cout <<"HERE_SP_tree "<<TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
-  computeNumbersOfLineagesFromRoot(spTree, tree, 
+# ifdef _OPENMP
+	  START = omp_get_wtime();
+#pragma omp parallel
+	  {
+#pragma omp single
+		  {
+#endif
+	  computeNumbersOfLineagesFromRoot(spTree, tree, 
                                    tree->getRootNode(), 
                                    seqSp, spID, 
                                    num0lineages, num1lineages, 
                                    num2lineages, speciesIDs, 
                                    dupData, nodesToTryInNNISearch);
+# ifdef _OPENMP
+		  }
+	  }
+	  END = omp_get_wtime();
+	  std::cout << "computeNumbersOfLineagesFromRoot took: "<< END-START <<std::endl;
+#endif
+
   delete tree;
 
   }
