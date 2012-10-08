@@ -1425,6 +1425,7 @@ int main(int args, char ** argv)
                         //std::cout <<"Before optimization: "<<TreeTemplateTools::treeToParenthesis(treeLikelihoods[i]->getRootedTree(), true)<<std::endl;
 						SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams[i], "normal", "", true, false);
                         if (reconciliationModel == "DL") {
+							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeMuffato(allParams[i]);
 							if (SPRalgorithm == "normal")
 								dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast2(allParams[i]);
 							else

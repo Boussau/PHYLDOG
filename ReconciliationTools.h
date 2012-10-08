@@ -25,7 +25,7 @@
 //#include <Bpp/Clonable.h>
 
 #include <Bpp/BppString.h>
-//#include <Bpp/BppBoolean.h>
+#include <Bpp/BppVector.h>
 #include <Bpp/Text/KeyvalTools.h>
 #include <Bpp/Text/TextTools.h>
 
@@ -282,6 +282,14 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
                                             Node * node, 
                                             std::map<std::string, std::string > seqSp,
                                             std::map<std::string, int > spID); 
+void annotateGeneTreeWithScoredDuplicationEvents (TreeTemplate<Node> & spTree, 
+												  TreeTemplate<Node> & geneTree, 
+												  Node * node, 
+												  std::map<std::string, std::string > seqSp,
+												  std::map<std::string, int > spID);
+void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
+								 TreeTemplate<Node> & geneTree,
+								 Node * node) ;
 
 
 //To sort in descending order

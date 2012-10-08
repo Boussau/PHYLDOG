@@ -671,7 +671,7 @@ Tree* MRP(const vector<Tree*>& vecTr)
     DistanceEstimation distFunc(&jc, &constRate, sites, 0, true);
     BioNJ bionjTreeBuilder;
     bionjTreeBuilder.setDistanceMatrix(*(distFunc.getMatrix()));
-    bionjTreeBuilder.computeTree(false);
+    bionjTreeBuilder.computeTree();
     if (ApplicationTools::message) ApplicationTools::message->endLine();
     TreeTemplate<Node>* tree = new TreeTemplate<Node>(*bionjTreeBuilder.getTree());
     return tree;

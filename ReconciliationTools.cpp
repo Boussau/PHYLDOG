@@ -1683,13 +1683,13 @@ double computeSubtreeLikelihoodPostorder(TreeTemplate<Node> & spTree,
 #ifdef _OPENMP
 #pragma omp single
 	  {
-#pragma omp task
+#pragma omp task untied
       computeSubtreeLikelihoodPostorder(spTree, geneTree, 
                                         sons[0], seqSp, 
                                         spID, likelihoodData, 
                                         lossRates, duplicationRates, 
                                         speciesIDs, dupData);
-#pragma omp task
+#pragma omp task untied
       computeSubtreeLikelihoodPostorder(spTree, geneTree, 
                                         sons[1], seqSp, 
                                         spID, likelihoodData, 
@@ -2216,7 +2216,7 @@ void computeNumbersOfLineagesFromRoot(TreeTemplate<Node> * spTree,
 #endif
     for (unsigned int i = 0; i< sons.size(); i++){
 #ifdef _OPENMP
-#pragma omp task
+#pragma omp task untied
 #endif
 		computeNumbersOfLineagesFromRoot(spTree, geneTree, sons[i], 
                                        seqSp, spID, num0lineages, 
@@ -2225,7 +2225,7 @@ void computeNumbersOfLineagesFromRoot(TreeTemplate<Node> * spTree,
                                        branchesWithDuplications);
     }
 #ifdef _OPENMP
-#pragma omp wait
+#pragma omp wait untied
 	  }
 #endif	  
     int idSon0 = sons[0]->getId();
@@ -3271,6 +3271,215 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
         return;
 	}
 }
+
+
+/**************************************************************************
+ * Annotate gene tree with duplication events. Adds D=Y to node properties where
+ * there was a duplication, and D=N where there was no duplication.
+ * Also adds species node id for each node of the gene tree, using :S=spId.
+ *************************************************************************/
+
+void annotateGeneTreeWithScoredDuplicationEvents (TreeTemplate<Node> & spTree, 
+                                            TreeTemplate<Node> & geneTree, 
+                                            Node * node, 
+                                            std::map<std::string, std::string > seqSp,
+                                            std::map<std::string, int > spID) 
+{
+ 	if (node->isLeaf()) {
+		int sp = assignSpeciesIdToLeaf(node, seqSp, spID);
+        node->setNodeProperty("S", BppString(TextTools::toString(sp)));
+		node->setNodeProperty("spPresentInSubtree", BppVector<int> (1, sp));
+        node->setBranchProperty("Ev", BppString("S"));
+        return;
+    }
+    else {
+        std::vector <Node *> sons = node->getSons();
+        for (unsigned int i = 0; i< sons.size(); i++){
+            annotateGeneTreeWithScoredDuplicationEvents(spTree, geneTree, sons[i], seqSp, spID);
+        }
+        
+        int a = TextTools::toInt((dynamic_cast<const BppString*>(sons[0]->getNodeProperty("S")))->toSTL());
+        int b = TextTools::toInt((dynamic_cast<const BppString*>(sons[1]->getNodeProperty("S")))->toSTL());
+        
+        int aold = a;
+        int bold = b;
+        int lossA = 0;
+        int lossB = 0;
+        
+        while (a!=b) 
+        {
+            if (a>b){
+                a = spTree.getNode(a)->getFather()->getId(); 
+                lossA = lossA +1;
+            }
+            else {
+                b = spTree.getNode(b)->getFather()->getId(); 
+                lossB = lossB + 1;
+            }
+        }
+        sons[0]->setBranchProperty("L", BppString(TextTools::toString(lossA)));
+        sons[1]->setBranchProperty("L", BppString(TextTools::toString(lossB)));
+        node->setNodeProperty("S", BppString(TextTools::toString(a)));
+		//VectorTools::print( (dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL() );
+		//VectorTools::print( (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL() );
+
+		std::vector<int> vec = VectorTools::vectorUnion((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+		node->setNodeProperty("spPresentInSubtree", BppVector<int> (vec.begin(), vec.end() ));
+
+        if ((a == aold ) || (a == bold))
+        {
+            node->setBranchProperty("Ev", BppString("D"));
+			node->setNodeProperty("Ev", BppString("D"));
+			//Need to compute the intersection (and its size) and divide by the size of the union (computed above)
+			//to compute the score of the duplication event.
+			std::vector<int> vec2 = VectorTools::vectorIntersection((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+			node->setNodeProperty("Score", BppString ( TextTools::toString( vec2.size() / vec.size() )));
+        }
+        else 
+        {
+            node->setBranchProperty("Ev", BppString("S"));
+        }
+        
+        return;
+	}
+}
+
+
+
+
+
+void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
+								 TreeTemplate<Node> & geneTree,
+								 Node * node) {
+ 	if (node->isLeaf()) { }
+	else {
+		if (node->hasNodeProperty("Score")) {
+			double dist = 0.1;
+			double score = TextTools::toDouble((dynamic_cast<const BppString*>(node->getNodeProperty("Score")))->toSTL());
+
+			if (score <= 0.3) {
+				//we edit the node
+				int ancestorSpecies = TextTools::toInt((dynamic_cast<const BppString*>(node->getNodeProperty("S")))->toSTL());
+				Node *ancestor = spTree.getNode(ancestorSpecies);
+				int son0Id = ancestor->getSon(0)->getId();
+				int son1Id = ancestor->getSon(1)->getId();	
+				Node *son0;
+				Node *son1;
+				if (! node->getSon(0)->isLeaf() ) {
+					son0= node->getSon(0);
+				}
+				else {
+					//Need to create a father for node son0
+					//And need to rename this father node0
+					Node* grandSon0 = node->getSon(0);
+					unsigned int temp = 0;
+					node->removeSon(temp);
+					son0 = new Node();
+					son0->addSon( grandSon0 );
+					node->addSon( son0 );
+					son0->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+					grandSon0->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+				}
+				if (! node->getSon(1)->isLeaf() ) {	
+					son1 = node->getSon(1);
+				}
+				else {
+					//Need to create a father for node son1
+					//And need to rename this father node1
+					Node* grandSon1 = node->getSon(1);
+					unsigned int temp = 1;
+					node->removeSon(temp);
+					son1 = new Node();
+					son1->addSon( grandSon1 );
+					node->addSon( son1 );
+					son1->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+					grandSon1->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+
+				}
+				//now we need to move the grandsons around to make sure that everything is in the right place
+				//First, we get the node ids in the subtrees from the species tree
+				std::vector<int> son0UnderlyingIds = TreeTemplateTools::getNodesId( *(ancestor->getSon(0) ) );
+				//std::vector<int> son1UnderlyingIds = ancestor->getSon(1)->getNodesId();
+				//Now, we move, in the gene tree, the grandsons to make sure that everything is in the right place
+				std::map<Node*, int> sonsOrGrandSons;
+				son0->setNodeProperty("S", BppString(TextTools::toString(son0Id)));
+				for (unsigned int i = 0 ; i < son0->getNumberOfSons() ; i++) {
+					sonsOrGrandSons[son0->getSon(i)] = TextTools::toInt((dynamic_cast<const BppString*>(son0->getSon(i)->getNodeProperty("S")))->toSTL());
+				}
+				son1->setNodeProperty("S", BppString(TextTools::toString(son1Id)));
+				for (unsigned int i = 0 ; i < son1->getNumberOfSons() ; i++) {
+					sonsOrGrandSons[son1->getSon(i)] = TextTools::toInt((dynamic_cast<const BppString*>(son1->getSon(i)->getNodeProperty("S")))->toSTL());
+				}
+
+				for (std::map<Node*, int >::iterator it = sonsOrGrandSons.begin(); it != sonsOrGrandSons.end(); it++){
+					if (VectorTools::contains(son0UnderlyingIds, it->second) ) {
+						/*std::cout << "ID: "<< it->first->getId() <<std::endl;
+						std::cout << "ID2: "<< son0->getId() <<std::endl;	
+						std::cout << "ID3: "<< son0->getSon(0)->getId() <<std::endl;	
+						std::cout << "ID4: "<< son0->getSon(1)->getId() <<std::endl;*/	
+						std::vector<Node*> ns = son0->getSons();
+						if (! VectorTools::contains (ns, it->first) ) {
+							son1->removeSon( it->first );
+							son0->addSon( it->first );
+							it->first->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+						}
+					}
+					else {
+						std::vector<Node*> ns = son1->getSons();
+						if (! VectorTools::contains (ns, it->first) ) {
+							son0->removeSon( it->first );
+							son1->addSon( it->first );
+							it->first->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+						}
+					}
+				}
+
+				//Removing nodes of out-degree 1
+				if (son0->getNumberOfSons() == 1) {
+					Node* father =  son0->getFather();
+					Node* son = son0->getSon(0);
+					son0->removeSon(son);
+					father->removeSon(son0);
+					father->addSon(son);
+					son->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+					delete son0;
+				}
+				if (son1->getNumberOfSons() == 1) {
+					Node* father =  son1->getFather();
+					Node* son = son1->getSon(0);
+					son1->removeSon(son);
+					father->removeSon(son1);
+					father->addSon(son);
+					son->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+					delete son1;
+				}
+				//Now we need to update the scores of the sons
+				if (!node->getSon(0)->isLeaf()) {
+				std::vector <Node *> sons = node->getSon(0)->getSons();
+				std::vector<int> vec = VectorTools::vectorUnion((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+				std::vector<int> vec2 = VectorTools::vectorIntersection((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+					node->getSon(0)->setNodeProperty("Score", BppString ( TextTools::toString( vec2.size() / vec.size() )));
+				}
+				if (!node->getSon(1)->isLeaf()) {
+					std::vector <Node *> sons = node->getSon(1)->getSons();
+					std::vector<int> vec = VectorTools::vectorUnion((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+					std::vector<int> vec2 = VectorTools::vectorIntersection((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+					node->getSon(1)->setNodeProperty("Score", BppString ( TextTools::toString( vec2.size() / vec.size() )));
+				}
+			}
+        }
+		//continue editing
+		editDuplicationNodesMuffato(spTree, 
+									geneTree,
+									node->getSon(0));
+		editDuplicationNodesMuffato(spTree, 
+									geneTree,
+									node->getSon(1));
+	}
+}
+
+
+
 
 
 

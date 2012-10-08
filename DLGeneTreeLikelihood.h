@@ -327,6 +327,7 @@ using namespace bpp;
         void refineGeneTreeSPRsFast(map<string, string> params);
 		void refineGeneTreeSPRsFast2(map<string, string> params);
 		void refineGeneTreeSPRsFast3 (map<string, string> params);
+		void refineGeneTreeMuffato (map<string, string> params);
 
         //Not up to date anymore, do not use without checking the code.
         void refineGeneTreeSPRs2(map<string, string> params);

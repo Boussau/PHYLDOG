@@ -255,8 +255,8 @@ vector< vector<unsigned int> > getCountsPerBranch(
     for (size_t j = 0; j < countsf.size(); ++j) {
       counts[k][j] = static_cast<unsigned int>(floor(countsf[j] + 0.5)); //Round counts
     }
-  }
-  return counts;*/
+  }*/
+  return counts;
 }
 
 
@@ -654,7 +654,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     }
     double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
     
-    unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, false, type, tolerance);
+    unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, type, tolerance);
     std::vector<Node*> nodes = unrootedGeneTree->getNodes();
     
     for(unsigned int k = 0; k < nodes.size(); k++)
