@@ -62,9 +62,12 @@ int main(int args, char ** argv)
 	//Now, we generate a tree topology in which we rearrange the poorly supported duplications.
 	//By that, we mean duplications with scores < 0.3 (default value)
 	double editionThreshold = ApplicationTools::getDoubleParameter("muffato.edition.threshold", params, 0.3, "", false, false);
+	std::cout << "SPTREE: " << TreeTemplateTools::treeToParenthesis(*spTree, false) <<std::endl;
 	
+	std::cout << "TREE: " << TreeTemplateTools::treeToParenthesis(*gTree, false) <<std::endl;
+
 	
-	editDuplicationNodesMuffato(*spTree, *gTree, gTree->getRootNode());
+	editDuplicationNodesMuffato(*spTree, *gTree, gTree->getRootNode(), editionThreshold);
 	
 	std::cout <<"Species Tree: \n" <<    TreeTemplateTools::treeToParenthesis(*spTree, true) << std::endl;
 	std::cout <<"Gene Tree: \n" <<    TreeTemplateTools::treeToParenthesis(*gTree, true) << std::endl;

@@ -3350,21 +3350,30 @@ void annotateGeneTreeWithScoredDuplicationEvents (TreeTemplate<Node> & spTree,
 
 void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
 								 TreeTemplate<Node> & geneTree,
-								 Node * node) {
+								 Node * node,
+								 double editionThreshold) {
  	if (node->isLeaf()) { }
 	else {
+		//std::cout << "editDuplicationNodesMuffato "  <<std::endl;
+
 		if (node->hasNodeProperty("Score")) {
 			double dist = 0.1;
 			double score = TextTools::toDouble((dynamic_cast<const BppString*>(node->getNodeProperty("Score")))->toSTL());
+			//std::cout << "editDuplicationNodesMuffato 2: score: "<< score  <<std::endl;
+			//std::cout <<"Gene Tree: \n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;
 
-			if (score <= 0.3) {
+			if (score <= editionThreshold && TextTools::toInt((dynamic_cast<const BppString*>(node->getNodeProperty("S")))->toSTL()) != TextTools::toInt((dynamic_cast<const BppString*>(node->getSon(0)->getNodeProperty("S")))->toSTL()) && TextTools::toInt((dynamic_cast<const BppString*>(node->getNodeProperty("S")))->toSTL()) != TextTools::toInt((dynamic_cast<const BppString*>(node->getSon(0)->getNodeProperty("S")))->toSTL()) ) {
 				//we edit the node
 				int ancestorSpecies = TextTools::toInt((dynamic_cast<const BppString*>(node->getNodeProperty("S")))->toSTL());
+				//std::cout << "editDuplicationNodesMuffato 2: spid: "<< ancestorSpecies <<" and id: "<< node->getId() <<std::endl;
+
 				Node *ancestor = spTree.getNode(ancestorSpecies);
 				int son0Id = ancestor->getSon(0)->getId();
 				int son1Id = ancestor->getSon(1)->getId();	
 				Node *son0;
 				Node *son1;
+				//std::cout << "editDuplicationNodesMuffato 3"  <<std::endl;
+
 				if (! node->getSon(0)->isLeaf() ) {
 					son0= node->getSon(0);
 				}
@@ -3380,6 +3389,8 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 					son0->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
 					grandSon0->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
 				}
+				//std::cout << "editDuplicationNodesMuffato 4"  <<std::endl;
+
 				if (! node->getSon(1)->isLeaf() ) {	
 					son1 = node->getSon(1);
 				}
@@ -3396,6 +3407,8 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 					grandSon1->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
 
 				}
+				//std::cout << "editDuplicationNodesMuffato 5"  <<std::endl;
+
 				//now we need to move the grandsons around to make sure that everything is in the right place
 				//First, we get the node ids in the subtrees from the species tree
 				std::vector<int> son0UnderlyingIds = TreeTemplateTools::getNodesId( *(ancestor->getSon(0) ) );
@@ -3410,6 +3423,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 				for (unsigned int i = 0 ; i < son1->getNumberOfSons() ; i++) {
 					sonsOrGrandSons[son1->getSon(i)] = TextTools::toInt((dynamic_cast<const BppString*>(son1->getSon(i)->getNodeProperty("S")))->toSTL());
 				}
+				//std::cout << "editDuplicationNodesMuffato 6"  <<std::endl;
 
 				for (std::map<Node*, int >::iterator it = sonsOrGrandSons.begin(); it != sonsOrGrandSons.end(); it++){
 					if (VectorTools::contains(son0UnderlyingIds, it->second) ) {
@@ -3433,6 +3447,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 						}
 					}
 				}
+				//std::cout << "editDuplicationNodesMuffato 7"  <<std::endl;
 
 				//Removing nodes of out-degree 1
 				if (son0->getNumberOfSons() == 1) {
@@ -3453,6 +3468,8 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 					son->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
 					delete son1;
 				}
+				//std::cout << "editDuplicationNodesMuffato 8"  <<std::endl;
+
 				//Now we need to update the scores of the sons
 				if (!node->getSon(0)->isLeaf()) {
 				std::vector <Node *> sons = node->getSon(0)->getSons();
@@ -3468,13 +3485,17 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 				}
 			}
         }
+		//std::cout << "editDuplicationNodesMuffato 9"  <<std::endl;
+
 		//continue editing
 		editDuplicationNodesMuffato(spTree, 
 									geneTree,
-									node->getSon(0));
+									node->getSon(0), 
+									editionThreshold);
 		editDuplicationNodesMuffato(spTree, 
 									geneTree,
-									node->getSon(1));
+									node->getSon(1), 
+									editionThreshold);
 	}
 }
 
