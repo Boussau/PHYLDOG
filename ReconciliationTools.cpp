@@ -245,20 +245,26 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
 
 //There we do not update probabilities
 
-std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree) {
+std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> * tree) {
   int index = 0;
   std::map<Node *, int> color ;
   std::map <int, std::vector <int> > DepthToIds; //A std::map where we store the correspondence between the depth of a node (number of branches between the root and the node) and the node id.
   std::map <int, int > IdsToDepths;
-  std::vector <Node * > nodes = tree.getNodes();
+  std::vector <Node * > nodes = tree->getNodes();
   //All nodes white
   for (unsigned int i = 0; i< nodes.size() ; i++) {
     color.insert(std::pair <Node *,int>(nodes[i],0));
   }
   std::queue <Node *> toDo;
-  toDo.push(tree.getRootNode());
-  color[tree.getRootNode()] = 1;
-  tree.getRootNode()->setId(index);
+  toDo.push(tree->getRootNode());
+  color[tree->getRootNode()] = 1;
+	std::cout <<"Here "<<std::endl;
+	std::cout << 		TreeTemplateTools::treeToParenthesis(*tree, true) <<std::endl;
+	std::cout <<"Here 2 "<< tree->getRootNode()->getId() <<std::endl;
+
+  tree->getRootNode()->setId(index);
+	std::cout <<"Here 3"<<std::endl;
+
   std::vector <int> v;
   DepthToIds.insert(std::pair <int, std::vector<int> > (0,v));
   DepthToIds[0].push_back(index);

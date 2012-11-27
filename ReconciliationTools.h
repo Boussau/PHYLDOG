@@ -50,7 +50,7 @@ const int MAXSPECIESTREESIZE = 10000; //size of the species tree, in number of C
 void assignArbitraryBranchLengths(TreeTemplate<Node> & tree);
 void reNumber (TreeTemplate<Node> & tree, Node * noeud, int & index);
 void reNumber (TreeTemplate<Node> & tree);
-std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree);
+std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> * tree);
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector<double> & duplicationProbabilities, std::vector <double> & lossProbabilities);
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector<double> & duplicationProbabilities, std::vector <double> & lossProbabilities, std::vector <double> & coalBl);
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector <double> & coalBl);
