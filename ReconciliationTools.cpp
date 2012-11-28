@@ -245,24 +245,24 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
 
 //There we do not update probabilities
 
-std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> * tree) {
+std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree) {
   int index = 0;
   std::map<Node *, int> color ;
   std::map <int, std::vector <int> > DepthToIds; //A std::map where we store the correspondence between the depth of a node (number of branches between the root and the node) and the node id.
   std::map <int, int > IdsToDepths;
-  std::vector <Node * > nodes = tree->getNodes();
+  std::vector <Node * > nodes = tree.getNodes();
   //All nodes white
   for (unsigned int i = 0; i< nodes.size() ; i++) {
     color.insert(std::pair <Node *,int>(nodes[i],0));
   }
   std::queue <Node *> toDo;
-  toDo.push(tree->getRootNode());
-  color[tree->getRootNode()] = 1;
+  toDo.push(tree.getRootNode());
+  color[tree.getRootNode()] = 1;
 	std::cout <<"Here "<<std::endl;
-	std::cout << 		TreeTemplateTools::treeToParenthesis(*tree, true) <<std::endl;
-	std::cout <<"Here 2 "<< tree->getRootNode()->getId() <<std::endl;
+	std::cout << 		TreeTemplateTools::treeToParenthesis(tree, true) <<std::endl;
+	std::cout <<"Here 2 "<< tree.getRootNode()->getId() <<std::endl;
 
-  tree->getRootNode()->setId(index);
+  tree.getRootNode()->setId(index);
 	std::cout <<"Here 3"<<std::endl;
 
   std::vector <int> v;
@@ -1373,7 +1373,7 @@ int assignSpeciesIdToLeaf(Node * node,  const std::map<std::string, std::string 
  * 
  ****************************************************************************/
 
-void recoverLosses(Node & node, int & a, const int & b, int & olda, int & a0, 
+void recoverLosses(Node *& node, int & a, const int & b, int & olda, int & a0, 
                    const TreeTemplate<Node> & tree, 
                    double & likelihoodCell, 
                    const std::vector< double> & lossRates, 
@@ -1382,8 +1382,8 @@ void recoverLosses(Node & node, int & a, const int & b, int & olda, int & a0,
  // const Node* const node = tree.getNode(a);
   olda=a;
   Node* nodeA;
-  if (node.hasFather()) {
-    nodeA = node.getFather();
+  if (node->hasFather()) {
+    nodeA = node->getFather();
   }
   else {
    std::cout <<"Problem in recoverLosses, nodeA has no father"<<std::endl; 
@@ -1393,7 +1393,7 @@ void recoverLosses(Node & node, int & a, const int & b, int & olda, int & a0,
   a = nodeA->getId();
  // std::cout <<"a "<<a <<std::endl;
 
-  node = *nodeA;
+  node = nodeA;
  //  std::cout <<"a "<<a <<std::endl;
   //std::cout <<"here 10"<<std::endl;
 
@@ -1461,7 +1461,7 @@ void recoverLosses(Node & node, int & a, const int & b, int & olda, int & a0,
  * 
  ****************************************************************************/
 
-void recoverLossesWithDuplication(const Node & nodeA, 
+void recoverLossesWithDuplication(const Node * nodeA, 
                                   const int &a, 
                                   const int &olda, 
                                   const TreeTemplate<Node> & tree,
@@ -1472,12 +1472,12 @@ void recoverLossesWithDuplication(const Node & nodeA,
  // const Node * nodeA = tree.getNode(a);
   const Node * nodeOldA ;
   const Node * lostNode;
-  if (nodeA.getSon(0)->getId() == olda) {
-    nodeOldA = nodeA.getSon(0);
+  if (nodeA->getSon(0)->getId() == olda) {
+    nodeOldA = nodeA->getSon(0);
     lostNode=nodeOldA->getFather()->getSon(1);
   }
   else {
-    nodeOldA = nodeA.getSon(1);
+    nodeOldA = nodeA->getSon(1);
     lostNode=nodeOldA->getFather()->getSon(0);
   }
   //We need to place the loss event in the right lineage  
@@ -1529,8 +1529,8 @@ double computeConditionalLikelihoodAndAssignSpId(TreeTemplate<Node> & tree,
     }
     */
     
-    Node temp0 = *(tree.getNode(son0SpId));
-    Node temp1 = *(tree.getNode(son1SpId));
+    Node * temp0 = tree.getNode(son0SpId);
+    Node * temp1 = tree.getNode(son1SpId);
 
     while (a!=b) { //There have been losses !
       if (a>b) {
@@ -1945,21 +1945,21 @@ void computeSubtreeLikelihoodPreorder(TreeTemplate<Node> & spTree,
 
 
 
-void recoverLossesAndLineages(Node & node, int & a, const int & b, int & olda, int & a0, 
+void recoverLossesAndLineages(Node *& node, int & a, const int & b, int & olda, int & a0, 
                    const TreeTemplate<Node> & tree, 
                    int & dupData, std::vector<int> &num0lineages, std::vector<int> &num1lineages) {
  // const Node* const node = tree.getNode(a);
  
   olda=a;
   Node* nodeA;
-  if (node.hasFather()) {
-    nodeA = node.getFather();
+  if (node->hasFather()) {
+    nodeA = node->getFather();
   }
   else {
     std::cout <<"Problem in recoverLossesAndLineages, nodeA has no father"<<std::endl; 
   }
   a = nodeA->getId();
-  node = *nodeA;
+  node = nodeA;
   std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId(*(nodeA->getSon(0)));
   nodesIds0.push_back(nodeA->getSon(0)->getId());
   std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId(*(nodeA->getSon(1)));
@@ -2004,7 +2004,7 @@ void recoverLossesAndLineages(Node & node, int & a, const int & b, int & olda, i
 
 
 
-void recoverLossesAndLineagesWithDuplication(const Node & nodeA, 
+void recoverLossesAndLineagesWithDuplication(const Node * nodeA, 
                                              const int &a, 
                                              const int &olda, 
                                              const TreeTemplate<Node> & tree, 
@@ -2013,12 +2013,12 @@ void recoverLossesAndLineagesWithDuplication(const Node & nodeA,
 //  const Node * nodeA = tree.getNode(a);
   const Node * nodeOldA ;
   const Node * lostNode;
-  if (nodeA.getSon(0)->getId() == olda) {
-    nodeOldA = nodeA.getSon(0);
+  if (nodeA->getSon(0)->getId() == olda) {
+    nodeOldA = nodeA->getSon(0);
     lostNode=nodeOldA->getFather()->getSon(1);
   }
   else {
-    nodeOldA = nodeA.getSon(1);
+    nodeOldA = nodeA->getSon(1);
     lostNode=nodeOldA->getFather()->getSon(0);
   }
   //We need to place the loss event in the right lineage  
@@ -2058,8 +2058,8 @@ void computeNumbersOfLineagesInASubtree(TreeTemplate<Node> & tree,
   a = a0 = olda = son0SpId;
   b = b0 = oldb = son1SpId;
   
-  Node temp0 = *(tree.getNode(son0SpId));
-  Node temp1 = *(tree.getNode(son1SpId));
+  Node * temp0 = tree.getNode(son0SpId);
+  Node * temp1 = tree.getNode(son1SpId);
 
   
   while (a!=b) { //There have been losses !

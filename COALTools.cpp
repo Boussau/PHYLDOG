@@ -193,6 +193,7 @@ void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> 
     int b, b0, oldb;
     a = a0 = olda = son0SpId;
     b = b0 = oldb = son1SpId;
+
     for (unsigned int i= 0 ; i < coalCountsFather.size() ; i++) { //for each branch of the sp tree
         for (unsigned int j= 0 ; j < 2 ; j++) { //for incoming and outgoing counts
             coalCountsFather[i][j] = coalCountsSon0[i][j] + coalCountsSon1[i][j];
@@ -202,9 +203,8 @@ void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> 
     
     
     
-    Node temp0 = *(tree.getNode(son0SpId));
-    Node temp1 = *(tree.getNode(son1SpId));
-    
+    Node *temp0 = tree.getNode(son0SpId);
+    Node *temp1 = tree.getNode(son1SpId);
     while (a!=b) { //There is ILS!
         if (a>b) {
             recoverILS(temp0, a, olda, coalCountsFather);
@@ -213,6 +213,7 @@ void computeCoalCountsFromSons (TreeTemplate<Node> & tree, std::vector <Node *> 
             recoverILS(temp1, b, oldb, coalCountsFather);
         }
     }
+
     rootSpId = a;
    // std::cout << "SHOULD be not 0: "<<    son0SpId << " and "<< son1SpId <<"; Son 0 id: "<< sons[0]->getId() << " Son 1 id: "<< sons[1]->getId() << " Father Spid: "<< a<< std::endl;
     return;    
@@ -249,8 +250,8 @@ void computeCoalCountsFromSonsAndFillTables (TreeTemplate<Node> & tree, std::vec
     
     
     
-    Node temp0 = *(tree.getNode(son0SpId));
-    Node temp1 = *(tree.getNode(son1SpId));
+    Node *temp0 = tree.getNode(son0SpId);
+    Node *temp1 = tree.getNode(son1SpId);
     
     while (a!=b) { //There is ILS!
 		//DO WE FILL CORRECTLY THE nodesToTryInNNISearch SET ? NEED TO TEST THAT
@@ -276,20 +277,24 @@ void computeCoalCountsFromSonsAndFillTables (TreeTemplate<Node> & tree, std::vec
 /*****************************************************************************
  * This function recovers ILS by comparing a subtree in a gene tree to
  * a species tree.
- * WARNING: MAY NEED TO CHANGE: NEED TO TAKE THE LOWEST POSSIBLE BRANCH FOR DOING THE COALESCENCE
  ****************************************************************************/
-void recoverILS(Node & node, int & a, int & olda, 
+void recoverILS( Node*& node, int & a, int & olda, 
                 std::vector <std::vector < unsigned int > > &vec) {
     olda=a;
     Node* nodeA;
-    if (node.hasFather()) {
-        nodeA = node.getFather();
+   /* TreeTemplate<Node> t3 = TreeTemplateTools::cloneSubtree<Node> (*node);
+    std::cout <<"Starting tree: \n" <<    TreeTemplateTools::treeToParenthesis(t3, true) << std::endl;*/
+
+    if (node->hasFather()) {
+        nodeA = node->getFather();
     }
     else {
         std::cout <<"Problem in recoverILS , nodeA has no father"<<std::endl; 
     }
+
+
     a = nodeA->getId();
-    node = *nodeA;
+    node = nodeA;
 	//if (a == 46) 		std::cout << "recoverILS incrementInCount: "<< olda <<" incrementOutCount : "<< a <<std::endl;	
     incrementInCount(vec, olda);
     incrementOutCount(vec, a);
@@ -421,7 +426,7 @@ double computeCoalLikelihood ( std::vector<unsigned int>  vec, double CoalBl )
 
 void computeSubtreeCoalCountsPreorder(TreeTemplate<Node> & spTree, 
                                       TreeTemplate<Node> & geneTree, 
-                                      Node * node, 
+                                      Node *& node, 
                                       const std::map<std::string, std::string > & seqSp, 
                                       const std::map<std::string, int > & spID, 
                                       std::vector < std::vector< std::vector< std::vector<unsigned  int > > > > & coalCounts, 
@@ -469,7 +474,7 @@ void computeSubtreeCoalCountsPreorder(TreeTemplate<Node> & spTree,
  * node is a node of the gene tree. 
  ****************************************************************************/
 void computeRootingCoalCounts(TreeTemplate<Node> & spTree, 
-                              Node * node, 
+                              Node *& node, 
                               std::vector < std::vector< std::vector< std::vector<unsigned  int > > > > & coalCounts, 
                               const std::vector< double> & bls, 
                               std::vector <std::vector<unsigned int> > & speciesIDs, 

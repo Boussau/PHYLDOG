@@ -50,7 +50,7 @@ const int MAXSPECIESTREESIZE = 10000; //size of the species tree, in number of C
 void assignArbitraryBranchLengths(TreeTemplate<Node> & tree);
 void reNumber (TreeTemplate<Node> & tree, Node * noeud, int & index);
 void reNumber (TreeTemplate<Node> & tree);
-std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> * tree);
+std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree);
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector<double> & duplicationProbabilities, std::vector <double> & lossProbabilities);
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector<double> & duplicationProbabilities, std::vector <double> & lossProbabilities, std::vector <double> & coalBl);
 std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tree, std::vector <double> & coalBl);
@@ -112,13 +112,13 @@ int assignSpeciesIdToLeaf(Node * node,
                           const std::map<std::string, 
                           std::string > & seqSp, 
                           const std::map<std::string, int > & spID);
-void recoverLosses(Node & node, 
+void recoverLosses(Node *& node, 
                    int & a, const int & b, int & olda, 
                    const TreeTemplate<Node> & tree, 
                    double & likelihoodCell, 
                    const std::vector< double> & lossRates, 
                    const std::vector< double> & duplicationRates);
-void recoverLossesWithDuplication(const Node & nodeA, 
+void recoverLossesWithDuplication(const Node * nodeA, 
                                   const int &a, 
                                   const int &olda, 
                                   const TreeTemplate<Node> & tree,
@@ -170,13 +170,13 @@ void computeSubtreeLikelihoodPreorder(TreeTemplate<Node> & spTree,
                                       std::vector <std::vector<int> > & dupData,
                                       int sonNumber, 
                                       std::map <double, Node*> & LksToNodes);
-void recoverLossesAndLineages(Node & node, int & a, const int & b, int & olda, 
+void recoverLossesAndLineages(Node *& node, int & a, const int & b, int & olda, 
                               int & a0, 
                               const TreeTemplate<Node> & tree, 
                               int & dupData, 
                               std::vector<int> &num0lineages, 
                               std::vector<int> &num1lineages);
-void recoverLossesAndLineagesWithDuplication(const Node & nodeA, 
+void recoverLossesAndLineagesWithDuplication(const Node *& nodeA, 
                                              const int &a, 
                                              const int &olda, 
                                              const TreeTemplate<Node> & tree, 

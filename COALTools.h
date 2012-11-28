@@ -72,7 +72,7 @@ void computeCoalCountsFromSonsAndFillTables (TreeTemplate<Node> & tree, std::vec
  * This function recovers ILS by comparing a subtree in a gene tree to
  * a species tree.
  ****************************************************************************/
-void recoverILS(Node & node, int & a, int & olda, 
+void recoverILS(Node*& node, int & a, int & olda, 
                 std::vector <std::vector <unsigned int> > &vec);
 
 
@@ -102,7 +102,7 @@ double computeCoalLikelihood ( std::vector<unsigned int>  vec, double CoalBl ) ;
 
 void computeSubtreeCoalCountsPreorder(TreeTemplate<Node> & spTree, 
                                       TreeTemplate<Node> & geneTree, 
-                                      Node * node, 
+                                      Node *& node, 
                                       const std::map<std::string, std::string > & seqSp, 
                                       const std::map<std::string, int > & spID, 
                                       std::vector < std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts, 
@@ -120,7 +120,7 @@ void computeSubtreeCoalCountsPreorder(TreeTemplate<Node> & spTree,
  * 
  ****************************************************************************/
 void computeRootingCoalCounts(TreeTemplate<Node> & spTree, 
-                              Node * node, 
+                              Node *& node, 
                               std::vector < std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts, 
                               const std::vector< double> & bls, 
                               std::vector <std::vector<unsigned int> > & speciesIDs, 
