@@ -606,7 +606,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     TreeTemplate<Node>  *unrootedGeneTree = 0;
     
     //We don't want to use rate heterogeneity across sites with bionj, it seems to behave weirdly (e.g. very long branches)
-    DiscreteDistribution*  rDist2 = new ConstantDistribution(1., true);
+    DiscreteDistribution*  rDist2 = new ConstantDistribution(1.);
     DistanceEstimation distEstimation(model, rDist2, sites, 1, false);
     
     //DistanceEstimation distEstimation(model, rDist, sites, 1, false);
