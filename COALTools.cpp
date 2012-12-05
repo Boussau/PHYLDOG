@@ -141,6 +141,123 @@ void computeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree,
 
 
 /*****************************************************************************
+ * This function first prunes a species tree to have the same set of leaves as
+ * the gene tree we are analyzing. Then it's same thing as computeSubtreeCoalCountsPostorder.
+ * This function performs a postorder tree traversal in order to  
+ * fill up vectors of counts of coalescence events for rootings. 
+ * For each branch of the species tree, we need to record how many lineages got in,
+ * and how many lineages got out.
+ * Thus, for each branch of the species tree, we have 2 ints: 
+ * vec[0]: number of incoming lineages
+ * vec[1]: number of outgoing lineages
+ * When followed by the preorder tree traversal function, 
+ * vectors of counts for all rootings are computed.
+ * coalCounts contains all lower counts for all nodes.
+ * speciesIDs contains all species IDs for all nodes.
+ * 
+ ****************************************************************************/
+
+void resizeSpeciesTreeAndComputeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree, 
+														   TreeTemplate<Node> & geneTree, 
+														   Node * node, 
+														   std::map<std::string, std::string > & seqSp, 
+														   std::map<std::string, int > & spID, 
+														   std::vector < std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts,
+														   std::vector <std::vector<unsigned int> > & speciesIDs) {
+	//Resizing:
+	if ( spTree.getNumberOfLeaves() != geneTree.getNumberOfLeaves() ) {
+		vector<string> namesToKeep = geneTree.getLeavesNames();
+		// Now we're going to traverse the species tree and prune it to have the same
+		// set of leaves as the gene tree. In the process we have to renumber the pruned species tree
+		// and build a map to keep the correspondence between numbering in the original species tree
+		// and the pruned species tree. 
+		
+	
+	}
+	
+	int id=node->getId();
+	
+ 	if (node->isLeaf()) { 
+		//In principle this should be done only once at the beginning of the algorithm, if node ids are kept
+        //Fill all leaf count vectors with 0s
+        initializeCountVectors(coalCounts[id]);
+		
+        speciesIDs[id][0] = assignSpeciesIdToLeaf(node, seqSp, spID);
+		speciesIDs[id][1] = speciesIDs[id][0];
+		speciesIDs[id][2] = speciesIDs[id][0];
+		
+		//        int i = spID[ seqSp[ node->getName()] ];
+        incrementOutCount(coalCounts[id][0], speciesIDs[id][0]);
+		
+        return;
+    }
+    else {
+		
+        std::vector <Node *> sons = node->getSons();
+        for (unsigned int i = 0; i< sons.size(); i++){
+            computeSubtreeCoalCountsPostorder(spTree, geneTree, 
+											  sons[i], seqSp, 
+											  spID, coalCounts, 
+											  speciesIDs);
+			
+        }
+        
+        int idSon0 = sons[0]->getId();
+        int idSon1 = sons[1]->getId();
+		//Index to define the subtree for son0 and son1
+        unsigned int directionSon0, directionSon1;
+		//Here, because of our convention of linking the father node to direction 0
+		directionSon0 = directionSon1 = 0;
+		/*
+		 std::vector <Node *> neighbors = sons[0]->getNeighbors();
+		 for (unsigned int i=0; i<neighbors.size(); i++) {
+		 if (neighbors[i]==node) {
+		 directionSon0 = i;
+		 }
+		 }
+		 
+		 neighbors = sons[1]->getNeighbors();
+		 for (unsigned int i=0; i<neighbors.size(); i++) {
+		 if (neighbors[i]==node) {
+		 directionSon1 = i;
+		 }
+		 }*/
+		
+		/*
+		 //The speciesIDs[idSon0][directionSon0] and 
+		 //speciesIDs[idSon1][directionSon1] should have been filled
+		 //in by computeSubtreeCoalCountsPostorder.
+		 //We can use them to fill in speciesIDs[id][directionFather]
+		 unsigned int directionFather;
+		 Node * father  = 0;
+		 if (node ->hasFather() ){
+		 father = node->getFather();
+		 }
+		 neighbors = node->getNeighbors();
+		 for (unsigned int i=0; i<neighbors.size(); i++) {
+		 if (neighbors[i]==father) {
+		 directionFather = i;
+		 }
+		 }
+		 */
+		
+        computeCoalCountsFromSons (spTree, sons, 
+                                   speciesIDs[id][0], 
+                                   speciesIDs[idSon0][directionSon0], 
+                                   speciesIDs[idSon1][directionSon1],
+                                   coalCounts[id][0],
+                                   coalCounts[idSon0][directionSon0], 
+                                   coalCounts[idSon1][directionSon1]
+								   ); 
+		
+        return;
+	}	
+}
+
+
+
+
+/*****************************************************************************
  * Utilitary functions to initialize vectors of counts at leaves.
  ****************************************************************************/
 void initializeCountVectors(std::vector< std::vector< std::vector<unsigned int> > > &vec) {

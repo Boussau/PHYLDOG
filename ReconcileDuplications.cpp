@@ -510,7 +510,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
               else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
               {
                   unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, alphabet);
-                  
+
                   if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
                   { 
                       refineGeneTreeUsingSequenceLikelihoodOnly (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
@@ -1141,8 +1141,8 @@ int main(int args, char ** argv)
         //##################################################################################################################
         if (rank >server)
         {
-            /*
-           int z = 0;
+            
+          /* int z = 0;
              //   char hostname[256];
              //gethostname(hostname, sizeof(hostname));
              std::cout <<"PID: "<<getpid()<<std::endl;

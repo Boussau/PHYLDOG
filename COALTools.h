@@ -12,6 +12,31 @@
 #include <Bpp/Numeric/NumTools.h>
 #include <Bpp/Numeric/Function/BrentOneDimension.h>
 
+/*****************************************************************************
+ * This function first prunes a species tree to have the same set of leaves as
+ * the gene tree we are analyzing. Then it's same thing as computeSubtreeCoalCountsPostorder.
+ * This function performs a postorder tree traversal in order to  
+ * fill up vectors of counts of coalescence events for rootings. 
+ * For each branch of the species tree, we need to record how many lineages got in,
+ * and how many lineages got out.
+ * Thus, for each branch of the species tree, we have 2 ints: 
+ * vec[0]: number of incoming lineages
+ * vec[1]: number of outgoing lineages
+ * When followed by the preorder tree traversal function, 
+ * vectors of counts for all rootings are computed.
+ * coalCounts contains all lower counts for all nodes.
+ * speciesIDs contains all species IDs for all nodes.
+ * 
+ ****************************************************************************/
+
+void resizeSpeciesTreeAndComputeSubtreeCoalCountsPostorder(TreeTemplate<Node> & spTree, 
+														   TreeTemplate<Node> & geneTree, 
+														   Node * node, 
+														   std::map<std::string, std::string > & seqSp, 
+														   std::map<std::string, int > & spID, 
+														   std::vector < std::vector< std::vector< std::vector< unsigned int > > > > & coalCounts,
+														   std::vector <std::vector<unsigned int> > & speciesIDs);
+
 
 /*****************************************************************************
  * This function performs a postorder tree traversal in order to find 

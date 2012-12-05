@@ -542,15 +542,15 @@ throw (Exception)
                  fatherData = &(tl->getLikelihoodData()->getNodeData(nodes[i]->getFather()->getId()));
                 sonData = &(tl->getLikelihoodData()->getNodeData(nodes[i]->getId()));
                 fatherArray   = fatherData->getLikelihoodArrayForNeighbor(nodes[i]->getId());
+				vector<double> rootFreqs = tl->getRootFrequencies(0);
                 if (nodes[i]->getFather() == tree.getRootNode() ) {
                     //This is the root node, we have to account for the ancestral frequencies:
-                    for(unsigned int i = 0; i < fatherArray.size(); i++) //Nb of sites
+                    for(unsigned int k = 0; k < fatherArray.size(); k++) //Nb of sites
                     {
                         for(unsigned int j = 0; j < tl->getNumberOfClasses(); j++)
                         {
-                            vector<double> rootFreqs = tl->getRootFrequencies(0);
                             for(unsigned int x = 0; x < tl->getNumberOfStates(); x++)
-                                fatherArray[i][j][x] *= rootFreqs[x];
+                                fatherArray[k][j][x] *= rootFreqs[x];
                         }
                     }
                 }
@@ -606,15 +606,15 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     TreeTemplate<Node>  *unrootedGeneTree = 0;
     
     //We don't want to use rate heterogeneity across sites with bionj, it seems to behave weirdly (e.g. very long branches)
-    DiscreteDistribution*  rDist2 = new ConstantDistribution(1.);
-    DistanceEstimation distEstimation(model, rDist2, sites, 1, false);
+    auto_ptr<DiscreteDistribution>   rDist2 (new ConstantDistribution(1.) );
+    DistanceEstimation distEstimation(model->clone(), rDist2.release(), sites, 1, false);
     
     //DistanceEstimation distEstimation(model, rDist, sites, 1, false);
-    
+    	
     BioNJ * bionj = new BioNJ();     
-    
+
     bionj->outputPositiveLengths(true);  
-    
+
     std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
     if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
     else if(type == "pairwise") type = OptimizationTools::DISTANCEMETHOD_PAIRWISE;
@@ -623,13 +623,13 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     // Should I ignore some parameters?
     ParameterList allParameters = model->getParameters();
     // allParameters.addParameters(rDist->getParameters());
-    allParameters.addParameters(rDist2->getParameters());
-    
+    allParameters.addParameters(distEstimation.getRateDistribution().getParameters());
+
     ParameterList parametersToIgnore;
     std::string paramListDesc = ApplicationTools::getStringParameter("optimization.ignore_parameter", params, "", "", true, false);
     bool ignoreBrLen = false;
     StringTokenizer st(paramListDesc, ",");
-    
+
     while(st.hasMoreToken())
     {
         try
@@ -653,7 +653,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
         }
     }
     double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
-    
+
     unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, type, tolerance);
     std::vector<Node*> nodes = unrootedGeneTree->getNodes();
     
@@ -664,7 +664,8 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
         //Remove long branches, in case it helps
         //if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() > 0.5) nodes[k]->setDistanceToFather(0.05);        
     }
-    delete rDist2;
+
+    //delete rDist2;
     delete bionj;  
     return unrootedGeneTree;
 }

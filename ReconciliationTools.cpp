@@ -258,12 +258,8 @@ std::map <int, std::vector <int> > breadthFirstreNumber (TreeTemplate<Node> & tr
   std::queue <Node *> toDo;
   toDo.push(tree.getRootNode());
   color[tree.getRootNode()] = 1;
-	std::cout <<"Here "<<std::endl;
-	std::cout << 		TreeTemplateTools::treeToParenthesis(tree, true) <<std::endl;
-	std::cout <<"Here 2 "<< tree.getRootNode()->getId() <<std::endl;
 
   tree.getRootNode()->setId(index);
-	std::cout <<"Here 3"<<std::endl;
 
   std::vector <int> v;
   DepthToIds.insert(std::pair <int, std::vector<int> > (0,v));
