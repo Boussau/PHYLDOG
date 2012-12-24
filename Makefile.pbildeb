@@ -1,18 +1,18 @@
 #Where the boost include files and directories can be found:
-BOOST_INCLUDE = /usr/local/include/boost
+BOOST_INCLUDE = /usr/include/boost
+#/usr/local/include/boost
 
 #Where the include files for Bio++ can be found:
-BIOPP_INCLUDE = /usr/remote/Libs/bpp-2.0.3/include
-#/panhome/boussau/libs/include
-#/usr/local/include
+BIOPP_INCLUDE = /panhome/boussau/libs/include
+#/usr/remote/Libs/bpp-20120120/include
 
 #Where the Bio++ libraries can be found:
-BIOPP_LIBRARIES = /usr/remote/Libs/bpp-2.0.3/lib
-#/panhome/boussau/libs/lib
-#/usr/local/lib
+BIOPP_LIBRARIES = /panhome/boussau/libs/lib
+#/usr/remote/Libs/bpp-20120120/lib
 
 #Where the Boost libraries can be found:
-BOOST_LIBRARIES = /usr/local/lib
+BOOST_LIBRARIES = /usr/lib
+#/usr/local/lib
 
 #Where the sources are:
 SRC = ./
@@ -25,13 +25,13 @@ CC = mpic++ -m64 -O3 -I $(BOOST_INCLUDE)
 
 
 #LL =  -L/usr/local/lib -lboost_serialization -lboost_mpi
-LL =  -L/usr/local/lib -L$(BIOPP_LIBRARIES) -L$(BOOST_LIBRARIES) -lboost_serialization -lboost_mpi
+LL =  -L$(BIOPP_LIBRARIES) -L$(BOOST_LIBRARIES) -lboost_serialization.so.1.46.1 -lboost_mpi
 
 all : RearrangeGeneTreeDTL phyldog
 
 ###DTL model
 
-LINK =  -L. -lDTL -lblas  
+LINK =  -L. -lDTL -lblas -L$(BOOST_LIBRARIES)
 
 
 INCLUDE = -I$(BOOST_INCLUDE) -I$(BIOPP_INCLUDE)

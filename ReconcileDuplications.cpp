@@ -1142,7 +1142,7 @@ int main(int args, char ** argv)
         if (rank >server)
         {
             
-          /* int z = 0;
+	  /*int z = 0;
              //   char hostname[256];
              //gethostname(hostname, sizeof(hostname));
              std::cout <<"PID: "<<getpid()<<std::endl;

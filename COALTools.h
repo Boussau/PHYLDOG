@@ -252,7 +252,8 @@ public:
     vec_(vec), compressedVec_(0), lnL_(log(0.)), patternToWeights_(), lks_(0)
     {
         Parameter p("BrLen", 1, 0);
-        addParameter_(&p);
+	        addParameter_(&p);
+	//       addParameter_(p);
     }
     
     CoalBranchLikelihood(const CoalBranchLikelihood& bl) :

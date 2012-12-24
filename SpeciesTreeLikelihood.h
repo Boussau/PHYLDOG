@@ -146,7 +146,8 @@ namespace bpp
 	//  Constraint *c = (Parameter::R_PLUS_STAR).clone();
 	//  p.setConstraint(c);
 
-      addParameter_(&p);
+	  //      addParameter_(&p);
+      addParameter_(p);
 
      // Parameter p2("coefLoss", 0, &Parameter::R_PLUS_STAR);
 	  Parameter p2("coefLoss", 1);

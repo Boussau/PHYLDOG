@@ -219,7 +219,7 @@ DLGeneTreeLikelihood::~DLGeneTreeLikelihood()
 
 void DLGeneTreeLikelihood::initParameters()
 {
-    // std::cout << "in initParameters"<<std::endl;
+  //     std::cout << "in initParameters"<<std::endl;
     if (_considerSequenceLikelihood) {
         nniLk_->initParameters();
     }
@@ -230,15 +230,25 @@ void DLGeneTreeLikelihood::initParameters()
         //    _scenarioLikelihood = findMLReconciliation (&_spTree, &_rootedTree, _seqSp, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, _MLindex, _branchNumbers, _speciesIdLimitForRootPosition, _heuristicsLevel, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
     }
     else {
+      //  std::cout << "in initParameters 2"<<std::endl;
+
         _scenarioLikelihood = findMLReconciliationDR (_spTree, _rootedTree, 
                                                       _seqSp, _spId, _lossProbabilities, 
                                                       _duplicationProbabilities, _MLindex, 
                                                       _num0Lineages, _num1Lineages,
                                                       _num2Lineages, _nodesToTryInNNISearch); 
 		//Rooting bestTree as in TreeForSPR:
+	//std::cout << "in initParameters 3"<<std::endl;
+
 		vector<Node*> nodes = _rootedTree->getNodes();
+		//	std::cout << "in initParameters 4"<<std::endl;
+
 		for (unsigned int j = 0 ; j < nodes.size() ; j++) {
+		  // std::cout << "in initParameters 5"<<std::endl;
+
 			if (nodes[j]->hasNodeProperty("outgroupNode")) {
+			  //	  std::cout << "in initParameters 6"<<std::endl;
+
 				if (_rootedTree->getRootNode() == nodes[j]) {
 					if (j < nodes.size()-1) 
 					{
@@ -249,7 +259,7 @@ void DLGeneTreeLikelihood::initParameters()
 					}
 				};
 				_rootedTree->newOutGroup( nodes[j] );
-				//  std::cout << "FOUND"<<std::endl;
+				//	  std::cout << "FOUND"<<std::endl;
 				break;
 			}
 		}
@@ -2381,7 +2391,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
-	std::cout <<"Here "<<std::endl;
+  //  	std::cout <<"Here "<<std::endl;
     if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
         //We don't do SPRs
         //std::cout << "WE DONT DO SPRS"<<std::endl;
@@ -2390,17 +2400,17 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
     }
     std::vector<Node*> nodesToUpdate;
     std::vector <int> nodeIdsToRegraft;
-    bool betterTree;
+    bool betterTree = false;
     TreeTemplate<Node> * treeForSPR = 0;
     TreeTemplate<Node> * bestTree = 0;
     // if (getLogLikelihood()==UNLIKELY) 
-	std::cout <<"Here 1"<<std::endl;
+    //	std::cout <<"Here 1"<<std::endl;
 
     computeReconciliationLikelihood();
-	std::cout <<"Here 2"<<std::endl;
+    //	std::cout <<"Here 2"<<std::endl;
 
     double logL = getLogLikelihood();
-	std::cout <<"Here 3"<<std::endl;
+    //	std::cout <<"Here 3"<<std::endl;
 
 
     //Initial optimization of the branch lengths, before the SPRs
@@ -2411,24 +2421,24 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 											  nniLk_->getSubstitutionModel(), 
 											  nniLk_->getRateDistribution(), 
 											  true, false);
-	std::cout <<"Here 4"<<std::endl;
+    //	std::cout <<"Here 4"<<std::endl;
 
     bestRlk->initialize();
 	//   bestRlk->initializeLikelihoodData();
-	std::cout <<"Here 5"<<std::endl;
+    //	std::cout <<"Here 5"<<std::endl;
 
     auto_ptr<BackupListener> backupListener;
     //unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", params, 1, "", true, false);
     double tolerance = 0.1;
     unsigned int tlEvalMax = 1000000 / 10000;
     OutputStream* messageHandler = 0 ; 
-	std::cout <<"Here 6"<<std::endl;
+    //	std::cout <<"Here 6"<<std::endl;
 
     OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (bestRlk), 
                                                        bestRlk->getParameters(), backupListener.get(), 
                                                        tolerance, tlEvalMax, messageHandler, messageHandler, 0);
 	//std::cout << "bestRlk tree: " << TreeTemplateTools::treeToParenthesis(bestRlk->getTree(), false) <<std::endl;
-	std::cout <<"Here 7"<<std::endl;
+    //	std::cout <<"Here 7"<<std::endl;
 
 	delete nniLk_;
     nniLk_ = new NNIHomogeneousTreeLikelihood (bestRlk->getTree(), 
@@ -2436,10 +2446,10 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
                                                bestRlk->getSubstitutionModel(0,0), 
                                                bestRlk->getRateDistribution(), 
                                                true, false);
-	std::cout <<"Here 8"<<std::endl;
+    //	std::cout <<"Here 8"<<std::endl;
 
     nniLk_->initialize();
-	std::cout <<"Here 9"<<std::endl;
+    //	std::cout <<"Here 9"<<std::endl;
 
 	/*   delete rlk;
 	 rlk = 0;
@@ -2447,16 +2457,16 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 	//std::cout << "bestRlk value: "<<bestRlk->getValue() <<std::endl;
     
     logL = getLogLikelihood();
-    //  std::cout << "logL after mapping: " <<getSequenceLikelihood()<<std::endl;
+    // std::cout << "logL after mapping: " <<getSequenceLikelihood()<<std::endl;
     
     double bestlogL = logL;
     double candidateScenarioLk ;
     double bestSequenceLogL = getSequenceLikelihood();
     double bestScenarioLk = getScenarioLikelihood();
-	//std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
+    //	std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
     unsigned int numIterationsWithoutImprovement = 0;
     breadthFirstreNumber (*_rootedTree);
-	std::cout <<"Here 10"<<std::endl;
+    //	std::cout <<"Here 10"<<std::endl;
 
     
     // DRHomogeneousTreeLikelihood drlk;
@@ -2469,13 +2479,22 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 	std::map < double, TreeTemplate<Node> * >::reverse_iterator it;
 	//double bestCurrentCandidateScenarioLk;
     bool computeSequenceLikelihoodForSPR = ApplicationTools::getBooleanParameter("compute.sequence.likelihood.in.sprs", params, true, "", false, false);
-	std::cout <<"Here 11"<<std::endl;
+    //	std::cout <<"Here 11"<<std::endl;
+
+    //	std::cout << TreeTemplateTools::treeToParenthesis(*_spTree, true) <<std::endl;
+	//	std::cout <<"Here 11b"<<std::endl;
+
+    //	std::cout << TreeTemplateTools::treeToParenthesis(*_rootedTree, true) <<std::endl;
+    //	std::cout <<"Here 11c"<<std::endl;
+
+
+
 
         annotateGeneTreeWithScoredDuplicationEvents (*_spTree, 
                                                *_rootedTree, 
                                                _rootedTree->getRootNode(), 
                                                _seqSp, _spId); 
-	std::cout <<"Here 12"<<std::endl;
+	//		std::cout <<"Here 12"<<std::endl;
 
 		//Now, we generate a tree topology in which we rearrange the poorly supported duplications.
 		//By that, we mean duplications with scores < 0.3 (default value)
@@ -2484,7 +2503,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 		treeForSPR = _rootedTree->clone();
 
 		editDuplicationNodesMuffato(*_spTree, *treeForSPR, treeForSPR->getRootNode(), editionThreshold);
-	std::cout <<"Here 13"<<std::endl;
+		//		std::cout <<"Here 13"<<std::endl;
 
 		//Compute the DL likelihood
 		candidateScenarioLk =  findMLReconciliationDR (_spTree, treeForSPR, 
@@ -2496,7 +2515,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 													   _tentativeNum1Lineages, 
 													   _tentativeNum2Lineages, 
 													   _tentativeNodesToTryInNNISearch, false); 
-	std::cout <<"Here 14"<<std::endl;
+		//	std::cout <<"Here 14"<<std::endl;
 
 		//We compute the sequence likelihood
 		if (computeSequenceLikelihoodForSPR) {
@@ -2504,16 +2523,16 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 				delete rlk;
 				rlk = 0;
 			}
-			std::cout <<"Here 15"<<std::endl;
+			//		std::cout <<"Here 15"<<std::endl;
 
-			//std::cout << "COMPUTING SEQLK: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, false) <<std::endl;
+			//	std::cout << "COMPUTING SEQLK: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, false) <<std::endl;
 			rlk  = new RHomogeneousTreeLikelihood (*treeForSPR, 
 												   *(nniLk_->getData()), 
 												   nniLk_->getSubstitutionModel(), 
 												   nniLk_->getRateDistribution(), 
 												   true, false);
 			rlk->initialize();
-			std::cout <<"Here 16"<<std::endl;
+			//			std::cout <<"Here 16"<<std::endl;
 
 			//	std::cout <<"BEFORE optim: "<<rlk->getValue()<<std::endl;
 			unsigned int numEval = 0;
@@ -2525,19 +2544,20 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 													  bestRlk->getValue() + candidateScenarioLk - bestScenarioLk,
 													  backupListener.get(), 
 													  tolerance, tlEvalMax, messageHandler, messageHandler, 0);
-			std::cout <<"Here 17"<<std::endl;
+			//			std::cout <<"Here 17"<<std::endl;
 
 			/*	std::cout << "NUM EVALUATIONS: "<<numEval <<std::endl;
 			 std::cout << "optim rlk tree: " << TreeTemplateTools::treeToParenthesis(rlk->getTree(), false) <<std::endl;
 			 */	
 			
 			logL = candidateScenarioLk - rlk->getValue();
-			
+			//	std::cout <<"Here 17b"<<std::endl;
+
 			//	std::cout << "SPR seqLk: "<< rlk->getValue()<<" compared to best rlk: "<< bestRlk->getValue() <<std::endl;
 			//If the candidate tree has a DL + sequence Lk better than the current best
 			if (logL - 0.01 > bestlogL) 
 			{
-				//	std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
+					std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
 				betterTree = true;
 				bestlogL = logL;
 				bestScenarioLk = candidateScenarioLk;
@@ -2550,6 +2570,8 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 					if (rlk)
 						bestRlk = dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood *> (rlk->clone());
 				}
+				//	std::cout <<"Here 17c"<<std::endl;
+
 				if (bestTree) {
 					delete bestTree;
 					bestTree = 0;
@@ -2557,6 +2579,8 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 				bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(bestRlk->getTree()))->clone();
 				//Rooting bestTree as in TreeForSPR:
 				vector<Node*> rlkNodes = bestTree->getNodes();
+				//	std::cout <<"Here 17d"<<std::endl;
+
 				for (unsigned int j = 0 ; j < rlkNodes.size() ; j++) {
 					if (rlkNodes[j]->hasNodeProperty("outgroupNode")) {
 						if (bestTree->getRootNode() == rlkNodes[j]) {
@@ -2573,19 +2597,27 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 						break;
 					}
 				}
+				//	std::cout <<"Here 17e"<<std::endl;
+
 			}
 			else {
+			  //			  std::cout <<"Here 17f"<<std::endl;
+
 				//   copyContentsFrom(*bestTreeLogLk);
 				//  std::cout << "\t\t\tSPRs: No improvement : "<< logL << " compared to current best: "<< bestlogL << std::endl;
 			}
 		}
 		else {
+		  //		  std::cout <<"Here 17g"<<std::endl;
+
 			logL = candidateScenarioLk - bestSequenceLogL;
 		}
-		
+		//	std::cout <<"Here 17h"<<std::endl;
+
 		if (betterTree) //If, among all the SPRs tried, a better tree has been found 
 		{
-			
+		  //		  std::cout <<"Here 17i"<<std::endl;
+
 			logL = bestlogL; 
 			numIterationsWithoutImprovement = 0;
 			if (treeForSPR) 
@@ -2593,19 +2625,31 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 				delete treeForSPR;
 				treeForSPR = 0;
 			}
+			//	std::cout <<"Here 17i2"<<std::endl;
+
 			if (_rootedTree) 
 			{
 				delete _rootedTree;
 				_rootedTree = 0;
 			}
+			//			std::cout <<"Here 17i3"<<std::endl;
+
 			_rootedTree = bestTree->clone();
+			//	std::cout <<"Here 17i31"<<std::endl;
+			//	std::cout << "_rootedTree: " << TreeTemplateTools::treeToParenthesis(*_rootedTree, true) <<std::endl;
+
 			_scenarioLikelihood = bestScenarioLk;
+			//	std::cout <<"Here 17i32"<<std::endl;
+
 			//  breadthFirstreNumber (*_rootedTree);
 			breadthFirstreNumberAndResetProperties (*_rootedTree);
+			//	std::cout <<"Here 17i4"<<std::endl;
+
 			if (bestTree) {
 				delete bestTree;
 				bestTree = 0;
 			}
+			//			std::cout <<"Here 17j"<<std::endl;
 
 			if (computeSequenceLikelihoodForSPR) {                        
 				if (nniLk_) {
@@ -2623,8 +2667,8 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
 			}
 		}
-
-	std::cout <<"Here 18"<<std::endl;
+		
+		//	std::cout <<"Here 18"<<std::endl;
 
 	
     _rootedTree->resetNodesId();
@@ -2647,7 +2691,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
     OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (bestRlk), 
                                                        bestRlk->getParameters(), backupListener.get(), 
                                                        tolerance, tlEvalMax, messageHandler, messageHandler, 0);
-	//std::cout << "bestRlk tree: " << TreeTemplateTools::treeToParenthesis(bestRlk->getTree(), false) <<std::endl;
+    //	std::cout << "bestRlk tree: " << TreeTemplateTools::treeToParenthesis(bestRlk->getTree(), false) <<std::endl;
 
 	delete nniLk_;
     nniLk_ = new NNIHomogeneousTreeLikelihood (bestRlk->getTree(), 
