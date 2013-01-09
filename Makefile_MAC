@@ -117,7 +117,7 @@ archive :
 
 phyldogarchive :
 	mkdir PHYLDOGArchive
-	cp ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp FastRHomogeneousTreeLikelihood.cpp FastRHomogeneousTreeLikelihood.h COALTools.cpp COALTools.h GeneTreeLikelihood.cpp GeneTreeLikelihood.h COALGeneTreeLikelihood.cpp COALGeneTreeLikelihood.h  Makefile INSTALL README PHYLDOGArchive
+	cp ReconciliationTools.cpp ReconciliationTools.h GenericTreeExplorationAlgorithms.cpp GenericTreeExplorationAlgorithms.h DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h GeneTreeAlgorithms.cpp GeneTreeAlgorithms.h ReconcileDuplications.cpp  SpeciesTreeExploration.h SpeciesTreeExploration.cpp FastRHomogeneousTreeLikelihood.cpp FastRHomogeneousTreeLikelihood.h COALTools.cpp COALTools.h GeneTreeLikelihood.cpp GeneTreeLikelihood.h COALGeneTreeLikelihood.cpp COALGeneTreeLikelihood.h  Makefile INSTALL README CMakeLists.txt PHYLDOGArchive 
 	tar cfz PHYLDOGArchive.tgz PHYLDOGArchive
 
 examplearchive :
