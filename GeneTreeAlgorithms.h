@@ -287,6 +287,18 @@ unsigned int optimizeBranchLengthsParameters(
 throw (Exception);
 
 
+/**************************************************************************                                                                                                                                                                                                                                                                                               *
+  **************************************************************************/
+
+void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
+				 TreeTemplate<Node> & geneTree,
+				 Node * node,
+				 double editionThreshold) ;
+void recoverSAndSpPresentInSubtree ( TreeTemplate<Node> & spTree, Node * node ) ;
+
+Node * removeNodesWithDegree1 ( Node * node) ;
+
+
 #endif //_GENETREEALGORITHMS_H_
 
 

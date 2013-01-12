@@ -8,6 +8,7 @@
  */
 
 #include "GeneTreeAlgorithms.h"
+#include <Bpp/Phyl/Io/Nhx.h>
 
 /**************************************************************************
  * This function creates a sequence tree from a species tree and a std::map 
@@ -1301,3 +1302,443 @@ throw (Exception)
 
 /******************************************************************************/
 
+void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
+				 TreeTemplate<Node> & geneTree,
+				 Node * node,
+				 double editionThreshold) {
+    Nhx *nhx = new Nhx();
+  if (node->isLeaf()) { }
+  else {
+      if (node->hasNodeProperty("Score")) {
+          
+          double score = TextTools::toDouble((dynamic_cast<const BppString*>(node->getNodeProperty("Score")))->toSTL());
+         // std::cout << "editDuplicationNodesMuffato 2: score: "<< score  <<std::endl;  std::cout <<"Gene Tree: \n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;  std::cout << "node id: "<< node->getId() <<std::endl; std::cout << "son 0 id: "<< node->getSon(0)->getId() <<std::endl; std::cout << "son 1 id: "<< node->getSon(1)->getId() <<std::endl; std::cout << "editionThreshold "<< editionThreshold <<std::endl;
+          if ( score <= editionThreshold  ) {
+             // nhx->write(geneTree, cout);
+              //SpIds as currently found in the gene tree
+              int ancestorSpId = TextTools::toInt((dynamic_cast<const BppString*>(node->getNodeProperty("S")))->toSTL());
+              int son0SpId = TextTools::toInt( (dynamic_cast<const BppString*>(node->getSon(0)->getNodeProperty("S")))->toSTL() );
+              int son1SpId = TextTools::toInt( (dynamic_cast<const BppString*>(node->getSon(1)->getNodeProperty("S")))->toSTL() ); 
+              if (ancestorSpId != son0SpId || ancestorSpId != son1SpId)
+              {
+                  //we edit the node
+				/*  std::cout<< "node->getNumberOfSons(): "<< node->getNumberOfSons() <<std::endl;
+				  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
+				  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;
+*/
+                  Node *son0 = 0;
+                  Node *son1 = 0;
+                  if (! node->getSon(0)->isLeaf() ) {
+                      son0= node->getSon(0);
+					/*  std::cout << "son 0 Not a leaf"<<std::endl;
+					  std::cout<< "son0->getNumberOfSons(): "<< son0->getNumberOfSons() <<std::endl;
+					  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
+					  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;*/
+                  }
+                  else if (node->getSon(0)->hasName() ) {
+                      //Need to create a father for node son0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                      //And need to rename this father node0  
+					//  std::cout << "son0->getName() : " << node->getSon(0)->getName() << std::endl;  
+
+                      Node* grandSon0 = node->getSon(0);
+                      node->removeSon(grandSon0);
+					//  std::cout << "grandSon0->getName() : " << grandSon0->getName() << std::endl;  
+                      son0 = new Node();
+                      son0->addSon( grandSon0 );
+                      node->addSon( 0, son0 );
+                      son0->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE 
+					 /* std::cout<< "son0->getNumberOfSons(): "<< son0->getNumberOfSons() <<std::endl;
+					  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
+					  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;*/
+                      grandSon0->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                  }
+                  if (! node->getSon(1)->isLeaf() ) {
+                      son1 = node->getSon(1);
+                     /* std::cout << "son 1 Not a leaf"<<std::endl;
+					  std::cout<< "son1->getNumberOfSons(): "<< son1->getNumberOfSons() <<std::endl;
+					  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
+					  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;*/
+
+                  }
+                  else if (node->getSon(1)->hasName() ) {
+                      //Need to create a father for node son1                                                                                                                                                                                                                                                                                                                        	  //And need to rename this father node1                                                                                                                                                                                                                                                                                                                          
+                     // std::cout << "son1->getName() : " << node->getSon(1)->getName() << std::endl;  
+                      Node* grandSon1 = node->getSon(1);
+                      node->removeSon(grandSon1);
+                    //  std::cout << "grandSon1->getName() : " << grandSon1->getName() << std::endl;  
+                      son1 = new Node();
+                      son1->addSon( grandSon1 );
+                      node->addSon( 1, son1 );
+                      son1->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE   
+					/*  std::cout<< "son1->getNumberOfSons(): "<< son1->getNumberOfSons() <<std::endl;
+					  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
+					  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;*/
+
+                      grandSon1->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                  }
+                  //Idea: we only need to remove nodes from the subtrees whose root spId is identical to the node of interest
+                  bool editSon0Subtree = false;
+                  bool editSon1Subtree = false;
+                  if ( ancestorSpId == son0SpId ) {
+                      editSon0Subtree = true ;
+                  }
+                  if ( ancestorSpId == son1SpId ) {
+                      editSon1Subtree = true ;
+                  }
+                /*  std::cout << "ancestorSpId: "<<ancestorSpId <<std::endl;
+                  std::cout << "son0SpId: "<<son0SpId <<std::endl;
+                  std::cout << "son1SpId: "<<son1SpId <<std::endl;*/
+                  
+                  //SpIds as they are in the species tree
+                  Node *ancestor = spTree.getNode(ancestorSpId);
+                  int ancestorSon0Id = 0;
+                  int ancestorSon1Id = 0;
+                  std::vector<int> ancestorSon0UnderlyingSpIds = TreeTemplateTools::getNodesId( *( ancestor->getSon(0) ) );
+                  std::vector<int> ancestorSon1UnderlyingSpIds = TreeTemplateTools::getNodesId( *( ancestor->getSon(1) ) );
+			
+				/*  std::cout<< "son0->getNumberOfSons(): "<< son0->getNumberOfSons() <<std::endl;
+				  std::cout<< "son1->getNumberOfSons(): "<< son1->getNumberOfSons() <<std::endl;
+				  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
+				  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;*/
+
+
+                  if ( editSon0Subtree && editSon1Subtree ) {
+                     // std::cout << "We alter Ids of both subtrees"<<std::endl;
+                      //We alter Ids of both subtrees
+                      ancestorSon0Id = ancestor->getSon(0)->getId();
+                      ancestorSon1Id = ancestor->getSon(1)->getId();
+                      //We update the node SpIds if we can
+                      vector<Node* > son0sons = son0->getSons();
+                      vector <int> son0sonsSp ;
+                      bool ok = false;
+                      for (size_t i = 0 ; i < son0sons.size() ; i++) {
+                          son0sonsSp.push_back(TextTools::toInt((dynamic_cast<const BppString*>(son0sons[i]->getNodeProperty("S")))->toSTL()));
+                          if (son0sonsSp[i] < ancestorSon0Id) {
+                              ok=false;
+                              break;
+                          }
+                      }
+                      if (ok)
+                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id))); 
+                   /*   else 
+                          son0->setNodeProperty("S", BppString(TextTools::toString(VectorTools::min() ) ) );*/
+                      vector<Node* > son1sons = son1->getSons();
+                      vector <int> son1sonsSp ;
+                      ok = false;
+                      for (size_t i = 0 ; i < son1sons.size() ; i++) {
+                          son1sonsSp.push_back(TextTools::toInt((dynamic_cast<const BppString*>(son1sons[i]->getNodeProperty("S")))->toSTL()));
+                          if (son1sonsSp[i] < ancestorSon1Id) {
+                              ok=false;
+                              break;
+                          }
+                      }
+                      if (ok)
+                          son1->setNodeProperty("S", BppString(TextTools::toString(ancestorSon1Id)));
+                  }
+                  else if ( editSon0Subtree ) {
+                  //    std::cout << "We alter Id of subtree 0"<<std::endl;
+                      //We alter the node Id of just subtree 0, because the other one is already fine
+                      if ( VectorTools::contains(ancestorSon1UnderlyingSpIds, son1SpId)  ) {
+                          ancestorSon0Id = ancestor->getSon(0)->getId();
+                          ancestorSon1Id = ancestor->getSon(1)->getId();
+                      }
+                      else {
+                          ancestorSon0Id = ancestor->getSon(1)->getId();
+                          ancestorSon1Id = ancestor->getSon(0)->getId();
+                      }
+                      //We update the node SpIds if we can
+                      vector<Node* > son0sons = son0->getSons();
+                      vector <int> son0sonsSp ;
+                      bool ok = false;
+                      for (size_t i = 0 ; i < son0sons.size() ; i++) {
+                          son0sonsSp.push_back(TextTools::toInt((dynamic_cast<const BppString*>(son0sons[i]->getNodeProperty("S")))->toSTL()));
+                          if (son0sonsSp[i] < ancestorSon0Id) {
+                              ok=false;
+                              break;
+                          }
+                      }
+                      if (ok)
+                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id))); 
+                      vector<Node* > son1sons = son1->getSons();
+                      vector <int> son1sonsSp ;
+                      ok = false;
+                      for (size_t i = 0 ; i < son1sons.size() ; i++) {
+                          son1sonsSp.push_back(TextTools::toInt((dynamic_cast<const BppString*>(son1sons[i]->getNodeProperty("S")))->toSTL()));
+                          if (son1sonsSp[i] < ancestorSon1Id) {
+                              ok=false;
+                              break;
+                          }
+                      }
+                      if (ok)
+                          son1->setNodeProperty("S", BppString(TextTools::toString(ancestorSon1Id)));
+                      
+                  }
+                  else {
+                   //   std::cout << "We alter Id of subtree 1"<<std::endl;
+                      //We alter the node Id of just subtree 1, because the other one is already fine
+                      if ( VectorTools::contains(ancestorSon0UnderlyingSpIds, son0SpId) ) {
+                          ancestorSon1Id = ancestor->getSon(1)->getId();
+                          ancestorSon0Id = ancestor->getSon(0)->getId();
+                      }
+                      else {
+                          ancestorSon1Id = ancestor->getSon(0)->getId();
+                          ancestorSon0Id = ancestor->getSon(1)->getId();
+                      }
+                      //We update the node SpIds if we can
+                      vector<Node* > son0sons = son0->getSons();
+                      vector <int> son0sonsSp ;
+                      bool ok = false;
+                      for (size_t i = 0 ; i < son0sons.size() ; i++) {
+                          son0sonsSp.push_back(TextTools::toInt((dynamic_cast<const BppString*>(son0sons[i]->getNodeProperty("S")))->toSTL()));
+                          if (son0sonsSp[i] < ancestorSon0Id) {
+                              ok=false;
+                              break;
+                          }
+                      }
+                      if (ok)
+                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id))); 
+                      vector<Node* > son1sons = son1->getSons();
+                      vector <int> son1sonsSp ;
+                      ok = false;
+                      for (size_t i = 0 ; i < son1sons.size() ; i++) {
+                          son1sonsSp.push_back(TextTools::toInt((dynamic_cast<const BppString*>(son1sons[i]->getNodeProperty("S")))->toSTL()));
+                          if (son1sonsSp[i] < ancestorSon1Id) {
+                              ok=false;
+                              break;
+                          }
+                      }
+                      if (ok)
+                          son1->setNodeProperty("S", BppString(TextTools::toString(ancestorSon1Id)));
+                      
+                  }
+              /*    std::cout << "ancestorSon0Id: "<<ancestorSon0Id <<std::endl;
+                  std::cout << "ancestorSon1Id: "<<ancestorSon1Id <<std::endl;*/
+                  
+                  
+                  //Now, we get the node ids in the subtrees from the species tree                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+                  //std::vector<int> 
+                  ancestorSon0UnderlyingSpIds = TreeTemplateTools::getNodesId( *( spTree.getNode( ancestorSon0Id ) ) );
+                  ancestorSon1UnderlyingSpIds = TreeTemplateTools::getNodesId( *( spTree.getNode( ancestorSon1Id ) ) );
+                  
+                /*  std::cout << "ancestorSon0UnderlyingSpIds: "<< std::endl;
+                  VectorTools::print(ancestorSon0UnderlyingSpIds);*/
+                  
+                  
+                  //now we need to move the grandsons around to make sure that everything is in the right place                                                                                                                                                                                                                                                                                                    std::cout << "son1->getId() : " << son1->getId() << std::endl;                                                                                                                                                                                                                                                                                                                                                                         
+                  //Now, we move, in the gene tree, the grandsons to make sure that everything is in the right place                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+                  std::map<Node*, int> sonsOfSon0;
+                  std::map<Node*, int> sonsOfSon1;
+                  
+                  if (editSon0Subtree) {
+					//  std::cout << "edit subtree 0 "<<std::endl;
+                      for (size_t i = 0 ; i < son0->getNumberOfSons() ; i++) {
+                          recoverSAndSpPresentInSubtree ( spTree, son0->getSon(i) );
+                          sonsOfSon0[son0->getSon(i)] = TextTools::toInt((dynamic_cast<const BppString*>(son0->getSon(i)->getNodeProperty("S")))->toSTL());
+                         // std::cout << "Node to edit: "<< son0->getSon(i)->getId() <<std::endl;
+                      }
+                  }
+				/*  std::cout<< "son0->getNumberOfSons(): "<< son0->getNumberOfSons() <<std::endl;
+				  std::cout<< "son1->getNumberOfSons(): "<< son1->getNumberOfSons() <<std::endl;*/
+                  if (editSon1Subtree) {
+					//  std::cout << "edit subtree 1 "<<std::endl;
+                      for (size_t i = 0 ; i < son1->getNumberOfSons() ; i++) {
+                          recoverSAndSpPresentInSubtree ( spTree, son1->getSon(i) );
+                          sonsOfSon1[son1->getSon(i)] = TextTools::toInt((dynamic_cast<const BppString*>(son1->getSon(i)->getNodeProperty("S")))->toSTL());
+						//  std::cout << "Node to edit: "<< son1->getSon(i)->getId() <<std::endl;
+                      }
+                  }
+              /*    std::cout << "HERHERE 2"  << std::endl;  
+                  std::cout <<"Gene Tree: TER\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
+				  std::cout << "sonsOfSon0.size(): "<< sonsOfSon0.size()  << std::endl;  
+				  std::cout << "sonsOfSon1.size(): "<< sonsOfSon1.size()  << std::endl;  */
+
+                  //Rearranging the grandsons
+                  for (std::map<Node*, int >::iterator it = sonsOfSon0.begin(); it != sonsOfSon0.end(); it++) {
+                      if ( VectorTools::contains ( ancestorSon0UnderlyingSpIds, it->second ) ) {
+                          //the node is already in the correct subtree, we do nothing
+                      }
+                      else {
+                          //We need to move the node, but we also need to check that indeed the other subtree should contain this node
+                          if ( VectorTools::contains ( ancestorSon1UnderlyingSpIds, it->second ) ) {
+                              makeMuffatoSPR(geneTree, it->first, son1, false );
+                              //std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
+                          }
+                          else {
+                           //   std::cout << "DIFFICULTY NODE " << it->first->getId() << std::endl;
+                              //Difficulty: we cannot make a move that swaps sons to remove the duplication 
+                              //Instead, we may want to look for nodes further down the tree that we could remove, 
+                              //like a rogue sequence that is nested deep in a clade where it does not belong
+                          }
+                      }
+                  }
+                  for (std::map<Node*, int >::iterator it = sonsOfSon1.begin(); it != sonsOfSon1.end(); it++) {
+                      if ( VectorTools::contains ( ancestorSon0UnderlyingSpIds, it->second ) ) {
+                          //We need to move the node
+                          /*std::vector<Node*> ns = son0->getSons();
+                           if (! VectorTools::contains (ns, it->first) ) {*/
+                          makeMuffatoSPR(geneTree, it->first, son0, false );
+                       //   std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
+                      }
+                      else {
+                          //the node is already in the correct subtree, we do nothing
+                          /* std::vector<Node*> ns = son1->getSons();
+                           if (! VectorTools::contains (ns, it->first) ) {
+                           makeMuffatoSPR(geneTree, it->first, son1->getSon(0), false );
+                           }*/
+                      }
+                  }
+                  
+                  // std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
+                  node = removeNodesWithDegree1(node);
+                  geneTree.resetNodesId();
+               //   std::cout <<"Gene Tree: QUINT\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
+                  
+                  
+                  
+                  /*      
+                   //Removing nodes of out-degree 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                   if (son0->getNumberOfSons() == 1) {
+                   Node* father =  son0->getFather();
+                   Node* son = son0->getSon(0);
+                   son0->removeSon(son);
+                   father->removeSon(son0);
+                   father->addSon(son);
+                   son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                   delete son0;
+                   }
+                   if (son1->getNumberOfSons() == 1) {
+                   Node* father =  son1->getFather();
+                   Node* son = son1->getSon(0);
+                   son1->removeSon(son);
+                   father->removeSon(son1);
+                   father->addSon(son);
+                   son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                   delete son1;
+                   }*/
+            /*      std::cout << "node->getId() "<< node->getId() <<std::endl;
+                  std::cout << "node->getSon(0)->getId() "<< node->getSon(0)->getId() <<std::endl;
+                  std::cout << "node->getSon(1)->getId() "<< node->getSon(1)->getId() <<std::endl;*/
+
+                 /* 
+                  if (! node->getSon(0)->isLeaf() ) {
+                      recoverSAndSpPresentInSubtree ( spTree, node->getSon(0)->getSon(0) );
+                      recoverSAndSpPresentInSubtree ( spTree, node->getSon(0)->getSon(1) );
+                  }                  
+                  if (! node->getSon(1)->isLeaf() ) {
+                      recoverSAndSpPresentInSubtree ( spTree, node->getSon(1)->getSon(0) );
+                      recoverSAndSpPresentInSubtree ( spTree, node->getSon(1)->getSon(1) );
+                  }
+                  recoverSAndSpPresentInSubtree ( spTree, node->getSon(0) );
+                  recoverSAndSpPresentInSubtree ( spTree, node->getSon(1) );*/
+                  recoverSAndSpPresentInSubtree ( spTree, node );
+                  //Now we need to update the scores of the sons                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                  if (!node->getSon(0)->isLeaf()) {
+                      std::vector <Node *> sons = node->getSon(0)->getSons();
+                      /*recoverSAndSpPresentInSubtree ( spTree, sons[0] );
+                      recoverSAndSpPresentInSubtree ( spTree, sons[1] );*/
+                      std::vector<int> vec = VectorTools::vectorUnion((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+                      std::vector<int> vec2 = VectorTools::vectorIntersection((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+                      node->getSon(0)->setNodeProperty("Score", BppString ( TextTools::toString( vec2.size() / vec.size() )));
+                  }
+                  if (!node->getSon(1)->isLeaf()) {
+                      std::vector <Node *> sons = node->getSon(1)->getSons();
+                      /*recoverSAndSpPresentInSubtree ( spTree, sons[0] );
+                      recoverSAndSpPresentInSubtree ( spTree, sons[1] );*/
+                      std::vector<int> vec = VectorTools::vectorUnion((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+                      std::vector<int> vec2 = VectorTools::vectorIntersection((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+                      node->getSon(1)->setNodeProperty("Score", BppString ( TextTools::toString( vec2.size() / vec.size() )));
+                  }
+                 // std::cout <<"Edited tree from ReconciliationTools: \n"<< TreeTemplateTools::treeToParenthesis(geneTree, false, "Score") << "\n" << std::endl;
+              }
+          }
+      }
+      /*                              std::cout << "editDuplicationNodesMuffato 9"  <<std::endl;              std::cout << TreeTemplateTools::treeToParenthesis(spTree, true)<<std::endl;             std::cout << "editDuplicationNodesMuffato 10"  <<std::endl;             std::cout << TreeTemplateTools::treeToParenthesis(geneTree, true)<<std::endl;           std::cout << "editDuplicationNodesMuffato 11"  <<std::endl;             std::cout << "editDuplicationNodesMuffato: id"<< node->getSon(0)->getId()  <<std::endl;         std::cout << "editDuplicationNodesMuffato: id"<< node->getSon(1)->getId()  <<std::endl;         */
+      //continue editing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+      editDuplicationNodesMuffato(spTree,
+                                  geneTree,
+                                  node->getSon(0),
+                                  editionThreshold);
+      editDuplicationNodesMuffato(spTree,
+                                  geneTree,
+                                  node->getSon(1),
+                                  editionThreshold);
+  }
+  //      std::cout <<"Edited tree from ReconciliationTools: \n"<< TreeTemplateTools::treeToParenthesis(geneTree, false, "Score") << "\n" << std::endl;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+}
+
+
+
+
+
+
+
+void recoverSAndSpPresentInSubtree ( TreeTemplate<Node> & spTree, Node * node ) {
+ /*   if ( (! node->hasNodeProperty( "spPresentInSubtree" ) ) ||  ( ! node->hasNodeProperty( "S" ) ) ) 
+    {*/
+    if (! node->isLeaf() )
+    {
+        vector<Node * > sons = node->getSons();
+    /*    if (! node->hasNodeProperty( "spPresentInSubtree" )  ) 
+        {*/
+            size_t siz = sons.size();
+            if (siz > 2 ) {
+                std::cerr << "Error: non-binary tree in recoverSpPresentInSubtree."<<std::endl;
+                exit (-1);
+            }
+            recoverSAndSpPresentInSubtree ( spTree, sons[0] );
+            recoverSAndSpPresentInSubtree ( spTree, sons[1] );
+            std::vector<int> vec = VectorTools::vectorUnion((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
+            node->setNodeProperty("spPresentInSubtree", BppVector<int> (vec.begin(), vec.end() ));
+            
+        /*}
+        if ( ! node->hasNodeProperty( "S" ) )
+        {*/
+            //Now recovering the species id of the node
+            int a = TextTools::toInt((dynamic_cast<const BppString*>(sons[0]->getNodeProperty("S")))->toSTL());
+            int b = TextTools::toInt((dynamic_cast<const BppString*>(sons[1]->getNodeProperty("S")))->toSTL());
+            int lossA = 0;
+            int lossB = 0;
+            
+            while (a!=b) 
+            {
+                if (a>b){
+                    a = spTree.getNode(a)->getFather()->getId(); 
+                    lossA = lossA +1;
+                }
+                else {
+                    b = spTree.getNode(b)->getFather()->getId(); 
+                    lossB = lossB + 1;
+                }
+            }
+            sons[0]->setBranchProperty("L", BppString(TextTools::toString(lossA)));
+            sons[1]->setBranchProperty("L", BppString(TextTools::toString(lossB)));
+            node->setNodeProperty("S", BppString(TextTools::toString(a)));
+            node->setNodeProperty("Score", BppString(TextTools::toString(1)));
+        //}
+    }
+    return;
+}
+
+
+Node * removeNodesWithDegree1(Node * node) {
+    //Removing nodes of out-degree 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+	if (node->getNumberOfSons() == 1 ) {
+        Node* father =  node->getFather();
+        Node* son = node->getSon(0);
+        node->removeSon(son);
+        father->removeSon(node);
+        father->addSon(son);
+        son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+        delete node;
+        removeNodesWithDegree1(son);
+        return father;
+	}
+    else {
+        std::vector< Node* > sons = node->getSons() ;
+        size_t siz = sons.size();
+        for (size_t i = 0 ; i < siz ; i++) {
+            removeNodesWithDegree1(sons[i]);
+        }
+        return node;
+    }
+}

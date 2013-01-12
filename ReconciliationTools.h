@@ -46,6 +46,7 @@ const double SMALLPROBA=0.0000000001;
 const double BIGPROBA=0.9999999999;
 const int MAXFILENAMESIZE = 500;
 const int MAXSPECIESTREESIZE = 10000; //size of the species tree, in number of CHARs, as it is written in Newick format
+const double DIST = 0.1;
 
 void assignArbitraryBranchLengths(TreeTemplate<Node> & tree);
 void reNumber (TreeTemplate<Node> & tree, Node * noeud, int & index);
@@ -287,11 +288,11 @@ void annotateGeneTreeWithScoredDuplicationEvents (TreeTemplate<Node> & spTree,
 												  Node * node, 
 												  std::map<std::string, std::string > seqSp,
 												  std::map<std::string, int > spID);
-void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
+/*void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
 								 TreeTemplate<Node> & geneTree,
 								 Node * node,
 								 double editionThreshold) ;
-
+*/
 
 //To sort in descending order
 bool cmp( int a, int b );

@@ -41,6 +41,11 @@ std::vector<Node*>  makeSPR(TreeTemplate<Node> &tree,
                             int cutNodeId, int newBrotherId, 
                             bool verbose = true, 
                             bool returnNodesToUpdate = false);
+void makeMuffatoSPR(TreeTemplate<Node> &tree, 
+             Node* cutNode, 
+             Node* newFather, 
+             bool verbose = true) ;
+
 void makeNNI(TreeTemplate<Node> &tree, int nodeId);
 void buildVectorOfRegraftingNodes(TreeTemplate<Node> &tree, int nodeForSPR, std::vector <int> & nodeIdsToRegraft);
 std::vector<int> getRemainingNeighbors(const Node * node1, const Node * node2);

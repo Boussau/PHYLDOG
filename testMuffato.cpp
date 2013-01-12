@@ -8,10 +8,12 @@
 
 #include <iostream>
 #include "ReconciliationTools.h"
+#include "GeneTreeAlgorithms.h"
 #include <Bpp/Numeric/NumTools.h>
 #include <Bpp/Numeric/Function/BrentOneDimension.h>
 
-//Compilation: //mpic++ -g -lbpp-core -lbpp-seq -lbpp-phyl -lboost_serialization -lboost_mpi  ReconciliationTools.cpp testMuffato.cpp -o testMuffato
+//Compilation: //mpic++ -g -lbpp-core -lbpp-seq -lbpp-phyl -lboost_serialization -lboost_mpi  ReconciliationTools.cpp testMuffato.cpp  GeneTreeAlgorithms.cpp GenericTreeExplorationAlgorithms.cpp -o testMuffato
+//On pbil-deb: mpic++ -I /panhome/boussau/libs/include/ -L/usr/local/lib -L/panhome/boussau/libs/lib/ -g -lbpp-core -lbpp-seq -lbpp-phyl -lboost_serialization -lboost_mpi ReconciliationTools.cpp testMuffato.cpp GeneTreeAlgorithms.cpp GenericTreeExplorationAlgorithms.cpp -o testMuffato
 
 
 

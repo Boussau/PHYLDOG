@@ -202,6 +202,80 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
     return nodesToUpdate;
 }
 
+
+/************************************************************************
+ * Make a SPR between two nodes. A subtree is cut at node with Id cutNodeId, 
+ * and pasted beneath node with Id newFatherId. Beware this function does not necessarily return a proper binary tree.
+ ************************************************************************/
+void makeMuffatoSPR(TreeTemplate<Node> &tree, 
+						   Node* cutNode, 
+						   Node* newFather, 
+                           bool verbose) {
+	
+	Node *oldFather, *N;
+	double dist = 0.1;  
+	
+	if (verbose)
+		std::cout <<"\t\t\tMaking a Muffato SPR, moving node "<< cutNode->getId() << " as son of node "<< newFather->getId() << std::endl;
+
+    //std::vector <int> nodeIds =tree.getNodesId();
+	
+	if ( ! ( cutNode->hasFather() ) ) {
+		std::cout <<"Error in makeMuffatoSPR"<< std::endl;
+			std::cout << " Node "<< cutNode->getId() <<" has no father"<< std::endl;
+		MPI::COMM_WORLD.Abort(1);
+		exit (-1);
+	}
+	
+	oldFather = cutNode->getFather();
+/*    std::vector<Node*> oldBrothers;
+	//Get all old brothers 
+	for(unsigned int i=0;i<oldFather->getNumberOfSons();i++)
+		if(oldFather->getSon(i)!=cutNode){oldBrothers.push_back(oldFather->getSon(i));}
+	
+	newBrothersFather = newBrother->getFather();
+	if (newBrothersFather == oldFather) {
+		return nodesToUpdate;
+	}*/
+	
+    //If the newFather already has two sons, then we need to create a new node (to keep a binary tree)    
+    if ( newFather->getNumberOfSons() > 1 ) {
+		//we create a new node N which will be the father of cutNode and newBrother
+		N=new Node();
+      //  std::cout << "newFather id "<< newFather->getId() << std::endl;
+
+        std::vector< Node* > newBrothers = newFather->getSons();
+        size_t siz = newBrothers.size();
+    //    std::cout << "number of brothers "<< siz << std::endl;
+
+        for (size_t i = 0 ; i < siz; i++) {
+            newFather->removeSon( newBrothers[i] );
+       //     std::cout << "newBrothers id "<< newBrothers[i]->getId() << std::endl;
+            N->addSon( newBrothers[i] );//TEST PRINT id OF newBrothers[i]
+            newBrothers[i]->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+        }
+        newFather->addSon(N);
+        N->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+    }
+    // we move node cutNode
+  //  std::cout << "cutNode id "<< cutNode->getId() << std::endl;
+
+    oldFather->removeSon( cutNode );
+ //   std::cout << "cutNode id again "<< cutNode->getId() << std::endl;
+
+    newFather->addSon(cutNode);
+    cutNode->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+
+    
+    //In principle we may not need to clean up behind us, because we only use this function from editDuplicationNodesMuffato
+    
+    return ;
+}
+
+
+
+
+
 /************************************************************************
  * Make a NNI around a particular branch. The node with Id nodeId is exchanged with its uncle. 
  ************************************************************************/

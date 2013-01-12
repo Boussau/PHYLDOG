@@ -2488,6 +2488,9 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
     //	std::cout <<"Here 11c"<<std::endl;
 
 
+  //  while (numIterationsWithoutImprovement < _rootedTree->getNumberOfNodes() - 2)
+	while (1)
+    {
 
 
         annotateGeneTreeWithScoredDuplicationEvents (*_spTree, 
@@ -2495,7 +2498,8 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
                                                _rootedTree->getRootNode(), 
                                                _seqSp, _spId); 
 	//		std::cout <<"Here 12"<<std::endl;
-
+	//std::cout <<"Tree With scores: \n"<< TreeTemplateTools::treeToParenthesis(*_rootedTree, false, "Score") << "\n" << std::endl;
+	//std::cout << "best Scenario likelihood: "<<bestScenarioLk << std::endl;
 		//Now, we generate a tree topology in which we rearrange the poorly supported duplications.
 		//By that, we mean duplications with scores < 0.3 (default value)
 		double editionThreshold = ApplicationTools::getDoubleParameter("muffato.edition.threshold", params, 0.3, "", false, false);
@@ -2504,6 +2508,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
 		editDuplicationNodesMuffato(*_spTree, *treeForSPR, treeForSPR->getRootNode(), editionThreshold);
 		//		std::cout <<"Here 13"<<std::endl;
+//		std::cout <<"Edited tree: \n"<< TreeTemplateTools::treeToParenthesis(*treeForSPR, false, "Score") << "\n" << std::endl;
 
 		//Compute the DL likelihood
 		candidateScenarioLk =  findMLReconciliationDR (_spTree, treeForSPR, 
@@ -2515,7 +2520,8 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 													   _tentativeNum1Lineages, 
 													   _tentativeNum2Lineages, 
 													   _tentativeNodesToTryInNNISearch, false); 
-		//	std::cout <<"Here 14"<<std::endl;
+	//	std::cout <<"candidate scenario lk"<< candidateScenarioLk <<std::endl;
+
 
 		//We compute the sequence likelihood
 		if (computeSequenceLikelihoodForSPR) {
@@ -2555,7 +2561,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
 			//	std::cout << "SPR seqLk: "<< rlk->getValue()<<" compared to best rlk: "<< bestRlk->getValue() <<std::endl;
 			//If the candidate tree has a DL + sequence Lk better than the current best
-			if (logL - 0.01 > bestlogL) 
+			if (logL - 0.1 > bestlogL) 
 			{
 					std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
 				betterTree = true;
@@ -2601,6 +2607,8 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
 			}
 			else {
+				break;
+
 			  //			  std::cout <<"Here 17f"<<std::endl;
 
 				//   copyContentsFrom(*bestTreeLogLk);
@@ -2650,7 +2658,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 				bestTree = 0;
 			}
 			//			std::cout <<"Here 17j"<<std::endl;
-
+		/*TEST
 			if (computeSequenceLikelihoodForSPR) {                        
 				if (nniLk_) {
 					delete nniLk_;
@@ -2665,11 +2673,13 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
 				nniLk_->initialize();
 
-			}
+			}*/
 		}
-		
+		else {
+			break;
+		}
 		//	std::cout <<"Here 18"<<std::endl;
-
+	}
 	
     _rootedTree->resetNodesId();
     if (rlk) {
@@ -2709,7 +2719,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
                                            *_rootedTree, 
                                            _rootedTree->getRootNode(), 
                                            _seqSp, _spId); 
-    cout << "Reconciled tree: "<<endl;
+    cout << "Muffato reconciled tree: "<<endl;
     nhx->write(*_rootedTree, cout);
 
     if (bestTree) {
