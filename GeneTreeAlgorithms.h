@@ -12,8 +12,7 @@
 
 
 // From SeqLib:
-/*#include <Bpp/Seq/Alphabet/Alphabet.h>
-#include <Bpp/Seq/Container/VectorSiteContainer.h>
+/*#include <Bpp/Seq/Container/VectorSiteContainer.h>
 #include <Bpp/Seq/SiteTools.h>
 #include <Bpp/Seq/App/SequenceApplicationTools.h>
 */
@@ -33,7 +32,7 @@
 */
 
 //#include <Bpp/Phyl/Io/Nhx.h>
-#include <Bpp/Phyl/Mapping.all>
+//#include <Bpp/Phyl/Mapping.all>
 #include <Bpp/Phyl/Likelihood/DRTreeLikelihoodTools.h>
 #include <Bpp/Phyl/Likelihood/PseudoNewtonOptimizer.h>
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
@@ -97,14 +96,14 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
 // This function maps substitutions in a gene tree.
 /******************************************************************************/
 
-vector< vector<unsigned int> > getCountsPerBranch(
+/*vector< vector<unsigned int> > getCountsPerBranch(
                                                   DRTreeLikelihood& drtl,
                                                   const vector<int>& ids,
                                                   SubstitutionModel* model,
                                                   const SubstitutionRegister& reg,
                                                   SubstitutionCount *count,
                                                   bool stationarity = true,
-                                                  double threshold = -1);
+                                                  double threshold = -1);*/
 /******************************************************************************/
 // This function optimizes branch lengths in a gene tree using substitution mapping
 /******************************************************************************/

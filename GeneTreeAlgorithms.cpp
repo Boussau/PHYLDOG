@@ -170,7 +170,7 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
 // This function maps all types of substitutions in a gene tree.
 /******************************************************************************/
 
-vector< vector<unsigned int> > getCountsPerBranch(
+/*vector< vector<unsigned int> > getCountsPerBranch(
                                                   DRTreeLikelihood& drtl,
                                                   const vector<int>& ids,
                                                   SubstitutionModel* model,
@@ -182,7 +182,7 @@ vector< vector<unsigned int> > getCountsPerBranch(
   //auto_ptr<SubstitutionCount> count(new UniformizationSubstitutionCount(model, reg.clone()));
   
   //SubstitutionCount* count = new SimpleSubstitutionCount(reg);
-/*  const CategorySubstitutionRegister* creg = 0;
+  const CategorySubstitutionRegister* creg = 0;
   if (!stationarity) {
     try {
       creg = &dynamic_cast<const CategorySubstitutionRegister&>(reg);
@@ -192,8 +192,8 @@ vector< vector<unsigned int> > getCountsPerBranch(
   }
 
   auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(drtl, *count, false));
-*/
-  vector< vector<unsigned int> > counts(ids.size());/*
+
+  vector< vector<unsigned int> > counts(ids.size());
   unsigned int nbSites = mapping->getNumberOfSites();
   unsigned int nbTypes = mapping->getNumberOfSubstitutionTypes();
   for (size_t k = 0; k < ids.size(); ++k) {
@@ -256,16 +256,16 @@ vector< vector<unsigned int> > getCountsPerBranch(
     for (size_t j = 0; j < countsf.size(); ++j) {
       counts[k][j] = static_cast<unsigned int>(floor(countsf[j] + 0.5)); //Round counts
     }
-  }*/
+  }
   return counts;
 }
-
+*/
 
 /******************************************************************************/
 // This function maps total numbers of substitutions per branch in a gene tree.
 /******************************************************************************/
 
-vector< vector<unsigned int> > getTotalCountsOfSubstitutionsPerBranch(
+/*vector< vector<unsigned int> > getTotalCountsOfSubstitutionsPerBranch(
                                                   DRTreeLikelihood& drtl,
                                                   const vector<int>& ids,
                                                   SubstitutionModel* model,
@@ -276,10 +276,10 @@ vector< vector<unsigned int> > getTotalCountsOfSubstitutionsPerBranch(
   //auto_ptr<SubstitutionCount> count(new UniformizationSubstitutionCount(model, reg.clone()));
   
   //SubstitutionCount* count = new SimpleSubstitutionCount(reg);  
-/*  auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(drtl, *count, false));
- */ 
+  auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(drtl, *count, false));
+ 
   vector< vector<unsigned int> > counts(ids.size());
- /* unsigned int nbSites = mapping->getNumberOfSites();
+  unsigned int nbSites = mapping->getNumberOfSites();
   unsigned int nbTypes = mapping->getNumberOfSubstitutionTypes();
   for (size_t k = 0; k < ids.size(); ++k) {
     //vector<double> countsf = SubstitutionMappingTools::computeSumForBranch(*mapping, mapping->getNodeIndex(ids[i]));
@@ -323,10 +323,10 @@ vector< vector<unsigned int> > getTotalCountsOfSubstitutionsPerBranch(
     for (size_t j = 0; j < countsf.size(); ++j) {
       counts[k][j] = static_cast<unsigned int>(floor(countsf[j] + 0.5)); //Round counts
     }
-  }*/
+  }
   return counts;
 }
-
+*/
 
 /******************************************************************************/
 // This function optimizes branch lengths in a gene tree using substitution mapping

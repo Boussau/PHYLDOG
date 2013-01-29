@@ -12,6 +12,10 @@
 #include <Bpp/Phyl/Io/Newick.h>
 
 
+#include <Bpp/Seq/Alphabet.all>
+#include <Bpp/Seq/Alphabet/CodonAlphabet.h>
+
+
 // From NumCalc:
 #include <Bpp/Numeric/VectorTools.h>
 #include <Bpp/Numeric/NumConstants.h>

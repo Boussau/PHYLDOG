@@ -3500,6 +3500,7 @@ void editDuplicationNodesMuffato2(TreeTemplate<Node> & spTree,
 /* Better version of the Muffato algorithm: we can edit deeper in the tree, 
  for instance to get one rogue sequence lost in a large tree.*/
 
+/*
 void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
 								 TreeTemplate<Node> & geneTree,
 								 Node * node,
@@ -3586,10 +3587,6 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 				for (std::map<Node*, int >::iterator it = sonsOrGrandSonsOrBeyond.begin(); it != end; ++it){
 					if ( blackListed.find(it->first) == blackListed.end() ) { // if the node has not been blacklisted yet
 						if (VectorTools::contains(son0UnderlyingIds, it->second) ) {
-							/*std::cout << "ID: "<< it->first->getId() <<std::endl;
-							 std::cout << "ID2: "<< son0->getId() <<std::endl;	
-							 std::cout << "ID3: "<< son0->getSon(0)->getId() <<std::endl;	
-							 std::cout << "ID4: "<< son0->getSon(1)->getId() <<std::endl;*/	
 							std::vector<Node*> ns = son0->getSons();
 							if (! VectorTools::contains (ns, it->first) ) {
 								it->first->getFather()->removeSon( it->first );
@@ -3667,18 +3664,6 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 				}
 			}
         }
-		/*				std::cout << "editDuplicationNodesMuffato 9"  <<std::endl;
-		 
-		 std::cout << TreeTemplateTools::treeToParenthesis(spTree, true)<<std::endl;
-		 std::cout << "editDuplicationNodesMuffato 10"  <<std::endl;
-		 
-		 std::cout << TreeTemplateTools::treeToParenthesis(geneTree, true)<<std::endl;
-		 
-		 std::cout << "editDuplicationNodesMuffato 11"  <<std::endl;
-		 
-		 std::cout << "editDuplicationNodesMuffato: id"<< node->getSon(0)->getId()  <<std::endl;
-		 std::cout << "editDuplicationNodesMuffato: id"<< node->getSon(1)->getId()  <<std::endl;
-		 */
 		
 		//continue editing
 		editDuplicationNodesMuffato(spTree, 
@@ -3691,7 +3676,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 									editionThreshold);
 	}
 }
-
+*/
 
 
 
