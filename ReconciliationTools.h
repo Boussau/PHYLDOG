@@ -289,7 +289,7 @@ void annotateGeneTreeWithScoredDuplicationEvents (TreeTemplate<Node> & spTree,
 												  std::map<std::string, std::string > seqSp,
 												  std::map<std::string, int > spID);
 
-void editDuplicationNodesMuffato2(TreeTemplate<Node> & spTree, 
+/*void editDuplicationNodesMuffato2(TreeTemplate<Node> & spTree, 
 								 TreeTemplate<Node> & geneTree,
 								 Node * node,
 								 double editionThreshold) ;
@@ -297,7 +297,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 								 TreeTemplate<Node> & geneTree,
 								 Node * node,
 								 double editionThreshold) ;
-
+*/
 
 //To sort in descending order
 bool cmp( int a, int b );
