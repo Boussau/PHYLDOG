@@ -1426,24 +1426,27 @@ int main(int args, char ** argv)
 						SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams[i], "normal", "", true, false);
                         if (reconciliationModel == "DL") {
 							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeMuffato(allParams[i]);
+							if (timing) 
+							{
+								totalTime = ApplicationTools::getTime() - startingTime;
+								std::cout << "Family "<< assignedFilenames[i] <<"; Time for Muffato exploration: "<<  totalTime << " s." <<std::endl;
+								startingTime = ApplicationTools::getTime();
+							}
 							if (SPRalgorithm == "normal")
 								dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast2(allParams[i]);
 							else
 								dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast3(allParams[i]);
-
                         }
                         else if (reconciliationModel == "COAL") {
                             dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast(allParams[i]);
-                            
                         }
                         //   treeLikelihoods[i]->refineGeneTreeSPRs(allParams[i]);
                         //  treeLikelihoods[i]->refineGeneTreeSPRs2(allParams[i]);
-
-                        if (timing) 
-                        {
-                            totalTime = ApplicationTools::getTime() - startingTime;
-                            std::cout << "Family "<< assignedFilenames[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;
-                        }
+						if (timing) 
+						{
+							totalTime = ApplicationTools::getTime() - startingTime;
+							std::cout << "Family "<< assignedFilenames[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;
+						}
                     }     
                     if (geneTree) {
                         delete geneTree;
@@ -1465,16 +1468,12 @@ int main(int args, char ** argv)
                         allLogLs[i] = dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->getValue();  
                     }
                     else if (reconciliationModel == "COAL") {
-
                         allNum12Lineages[i] = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->getNum12Lineages();
                         allNum22Lineages[i] = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->getNum22Lineages();
-
                         num12Lineages = num12Lineages + allNum12Lineages[i];
                         num22Lineages = num22Lineages + allNum22Lineages[i];
-
                         MLindex = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->getRootNodeindex();
                         allLogLs[i] = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->getValue();  
-
                     }
                     logL = logL + allLogLs[i];
                     std::cout<<"Gene Family: " << assignedFilenames[i] << " total logLk: "<< - allLogLs[i]<< " scenario loglk: "<< treeLikelihoods[i]->getScenarioLikelihood() <<std::endl;

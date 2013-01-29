@@ -53,6 +53,8 @@
 //using namespace std;
 using namespace bpp;
 
+#define FAST 0
+
 /******************************************************************************/
 DLGeneTreeLikelihood::DLGeneTreeLikelihood(
                                                            const Tree & tree,
@@ -1705,11 +1707,19 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
     //Initial optimization of the branch lengths, before the SPRs
     DiscreteRatesAcrossSitesTreeLikelihood* rlk = 0;
 	DiscreteRatesAcrossSitesTreeLikelihood* bestRlk = 0;
-    bestRlk = new RHomogeneousTreeLikelihood (nniLk_->getTree(), 
+#ifdef FAST
+    bestRlk = new FastRHomogeneousTreeLikelihood (nniLk_->getTree(), 
 												  *(nniLk_->getData()), 
 												  nniLk_->getSubstitutionModel(), 
 												  nniLk_->getRateDistribution(), 
 												  true, false);
+#else
+    bestRlk = new RHomogeneousTreeLikelihood (nniLk_->getTree(), 
+											  *(nniLk_->getData()), 
+											  nniLk_->getSubstitutionModel(), 
+											  nniLk_->getRateDistribution(), 
+											  true, false);
+#endif
     bestRlk->initialize();
  //   bestRlk->initializeLikelihoodData();
     
@@ -1843,11 +1853,19 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 							 nniLk_->getRateDistribution(), 
 							 true, false);
 							 */
-							rlk  = new RHomogeneousTreeLikelihood (*treeForSPR, 
-																											*(nniLk_->getData()), 
-																											nniLk_->getSubstitutionModel(), 
-																											nniLk_->getRateDistribution(), 
-																											true, false);
+#ifdef FAST
+							rlk = new FastRHomogeneousTreeLikelihood (*treeForSPR, 
+																		  *(nniLk_->getData()), 
+																		  nniLk_->getSubstitutionModel(), 
+																		  nniLk_->getRateDistribution(), 
+																		  true, false);
+#else
+							rlk = new RHomogeneousTreeLikelihood (*treeForSPR, 
+																	  *(nniLk_->getData()), 
+																	  nniLk_->getSubstitutionModel(), 
+																	  nniLk_->getRateDistribution(), 
+																	  true, false);
+#endif
 							
                             rlk->initialize();
 							//   rlk2->initializeLikelihoodData();
@@ -2063,11 +2081,19 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
     //Initial optimization of the branch lengths, before the SPRs
     DiscreteRatesAcrossSitesTreeLikelihood* rlk = 0;
 	DiscreteRatesAcrossSitesTreeLikelihood* bestRlk = 0;
+#ifdef FAST
+    bestRlk = new FastRHomogeneousTreeLikelihood (nniLk_->getTree(), 
+												  *(nniLk_->getData()), 
+												  nniLk_->getSubstitutionModel(), 
+												  nniLk_->getRateDistribution(), 
+												  true, false);
+#else
     bestRlk = new RHomogeneousTreeLikelihood (nniLk_->getTree(), 
 											  *(nniLk_->getData()), 
 											  nniLk_->getSubstitutionModel(), 
 											  nniLk_->getRateDistribution(), 
 											  true, false);
+#endif
     bestRlk->initialize();
 	//   bestRlk->initializeLikelihoodData();
     
@@ -2182,12 +2208,19 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
                                 rlk = 0;
                             }
 							//std::cout << "COMPUTING SEQLK: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, false) <<std::endl;
-							rlk  = new RHomogeneousTreeLikelihood (*treeForSPR, 
-																   *(nniLk_->getData()), 
-																   nniLk_->getSubstitutionModel(), 
-																   nniLk_->getRateDistribution(), 
-																   true, false);
-							
+#ifdef FAST
+							rlk = new FastRHomogeneousTreeLikelihood (*treeForSPR, 
+																		  *(nniLk_->getData()), 
+																		  nniLk_->getSubstitutionModel(), 
+																		  nniLk_->getRateDistribution(), 
+																		  true, false);
+#else
+							rlk = new RHomogeneousTreeLikelihood (*treeForSPR, 
+																	  *(nniLk_->getData()), 
+																	  nniLk_->getSubstitutionModel(), 
+																	  nniLk_->getRateDistribution(), 
+																	  true, false);
+#endif							
                             rlk->initialize();
 						//	std::cout <<"BEFORE optim: "<<rlk->getValue()<<std::endl;
 							unsigned int numEval = 0;
@@ -2331,11 +2364,20 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 	}
 
 	//One more full sequence likelihood optimization:
+#ifdef FAST
+    bestRlk = new FastRHomogeneousTreeLikelihood (nniLk_->getTree(), 
+											  *(nniLk_->getData()), 
+											  nniLk_->getSubstitutionModel(), 
+											  nniLk_->getRateDistribution(), 
+											  true, false);
+#else
     bestRlk = new RHomogeneousTreeLikelihood (nniLk_->getTree(), 
 											  *(nniLk_->getData()), 
 											  nniLk_->getSubstitutionModel(), 
 											  nniLk_->getRateDistribution(), 
 											  true, false);
+#endif
+	
     bestRlk->initialize();
     OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (bestRlk), 
                                                        bestRlk->getParameters(), backupListener.get(), 
@@ -2416,11 +2458,19 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
     //Initial optimization of the branch lengths, before the SPRs
     DiscreteRatesAcrossSitesTreeLikelihood* rlk = 0;
 	DiscreteRatesAcrossSitesTreeLikelihood* bestRlk = 0;
+#ifdef FAST
+    bestRlk = new FastRHomogeneousTreeLikelihood (nniLk_->getTree(), 
+												  *(nniLk_->getData()), 
+												  nniLk_->getSubstitutionModel(), 
+												  nniLk_->getRateDistribution(), 
+												  true, false);
+#else
     bestRlk = new RHomogeneousTreeLikelihood (nniLk_->getTree(), 
 											  *(nniLk_->getData()), 
 											  nniLk_->getSubstitutionModel(), 
 											  nniLk_->getRateDistribution(), 
 											  true, false);
+#endif
     //	std::cout <<"Here 4"<<std::endl;
 
     bestRlk->initialize();
@@ -2532,11 +2582,19 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 			//		std::cout <<"Here 15"<<std::endl;
 
 			//	std::cout << "COMPUTING SEQLK: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, false) <<std::endl;
-			rlk  = new RHomogeneousTreeLikelihood (*treeForSPR, 
-												   *(nniLk_->getData()), 
-												   nniLk_->getSubstitutionModel(), 
-												   nniLk_->getRateDistribution(), 
-												   true, false);
+#ifdef FAST
+			rlk = new FastRHomogeneousTreeLikelihood (*treeForSPR, 
+														  *(nniLk_->getData()), 
+														  nniLk_->getSubstitutionModel(), 
+														  nniLk_->getRateDistribution(), 
+														  true, false);
+#else
+			rlk = new RHomogeneousTreeLikelihood (*treeForSPR, 
+													  *(nniLk_->getData()), 
+													  nniLk_->getSubstitutionModel(), 
+													  nniLk_->getRateDistribution(), 
+													  true, false);
+#endif
 			rlk->initialize();
 			//			std::cout <<"Here 16"<<std::endl;
 
@@ -2692,11 +2750,19 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 	}
 
 	//One more full sequence likelihood optimization:
+#ifdef FAST
+    bestRlk = new FastRHomogeneousTreeLikelihood (nniLk_->getTree(), 
+												  *(nniLk_->getData()), 
+												  nniLk_->getSubstitutionModel(), 
+												  nniLk_->getRateDistribution(), 
+												  true, false);
+#else
     bestRlk = new RHomogeneousTreeLikelihood (nniLk_->getTree(), 
 											  *(nniLk_->getData()), 
 											  nniLk_->getSubstitutionModel(), 
 											  nniLk_->getRateDistribution(), 
 											  true, false);
+#endif
     bestRlk->initialize();
     OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (bestRlk), 
                                                        bestRlk->getParameters(), backupListener.get(), 
