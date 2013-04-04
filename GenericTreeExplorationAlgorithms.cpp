@@ -671,7 +671,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
         {
         if (nodeForRooting<tree.getNumberOfNodes()) 
           {//Make a rerooting move
-            while ((rootLks[nodeForRooting] < NumConstants::VERY_BIG) && (nodeForRooting < tree.getNumberOfNodes())) {
+            while ((rootLks[nodeForRooting] < NumConstants::VERY_BIG()) && (nodeForRooting < tree.getNumberOfNodes())) {
               //std::cout<<rootLks[nodeForRooting]<<" 1_NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
               
               nodeForRooting++;
@@ -681,7 +681,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
           { //Make a NNI move
             nodeForNNI=3;
             //   while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
-            while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+            while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG()) && (nodeForNNI < tree.getNumberOfNodes()))
               {
               //std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
               nodeForNNI = nodeForNNI+2;
@@ -691,7 +691,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
       else 
         {
         //  while ((NNILks[bestTree->getNode(nodeForNNI-1)->getFather()->getId()] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))       
-        while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG) && (nodeForNNI < tree.getNumberOfNodes()))
+        while ((NNILks[nodeForNNI-1] < NumConstants::VERY_BIG()) && (nodeForNNI < tree.getNumberOfNodes()))
           {
           //std::cout<<NNILks[nodeForNNI-1]<<" NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
           nodeForNNI = nodeForNNI+2;
@@ -701,7 +701,7 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
   else 
     {//we reset the loop rooting-NNIs
       nodeForNNI = 2;
-      while ((rootLks[nodeForRooting] < NumConstants::VERY_BIG) && (nodeForRooting < tree.getNumberOfNodes())) {
+      while ((rootLks[nodeForRooting] < NumConstants::VERY_BIG()) && (nodeForRooting < tree.getNumberOfNodes())) {
         //std::cout<<rootLks[nodeForRooting]<<" 2_NumConstants::VERY_BIG: "<<NumConstants::VERY_BIG <<std::endl;
         nodeForRooting++;
       }
@@ -750,4 +750,64 @@ Tree* MRP(const vector<Tree*>& vecTr)
     TreeTemplate<Node>* tree = new TreeTemplate<Node>(*bionjTreeBuilder.getTree());
     return tree;
 }
+
+
+/************************************************************************
+ * Function to root a tree based on a list of outgroup taxa.
+ ************************************************************************/
+void rootTreeWithOutgroup (TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) {
+	if (outgroupTaxa.size() == 0 ) {
+		std::cerr<< "Error: trying to root the species tree with an empty outgroup list!"<<std::endl;
+		exit(-1);
+	}
+	std::vector<std::string> allLeafNames = tree.getLeavesNames();
+	std::vector<std::string> ingroupTaxa ; 
+	VectorTools::diff <std::string> (allLeafNames, *(const_cast< std::vector<std::string>* > (&outgroupTaxa)), ingroupTaxa) ;
+	if ( ingroupTaxa.size() == 0 ) {
+		std::cerr<< "Error: trying to root the species tree with an outgroup list that contains all taxa!"<<std::endl;
+		exit(-1);
+	}
+	Node *n = tree.getNode( outgroupTaxa[0] );
+	std::vector<std::string> descendantNames = TreeTemplateTools::getLeavesNames( *n );
+	while ( descendantNames.size() < outgroupTaxa.size() ) {
+		n = n->getFather() ;
+		descendantNames = TreeTemplateTools::getLeavesNames( *n );
+	}
+	VectorTools::diff <std::string> (descendantNames, *(const_cast< std::vector<std::string>* > (&outgroupTaxa)), ingroupTaxa) ;
+	if ( ingroupTaxa.size() == 0 ) {
+		tree.newOutGroup( n ) ;
+	}
+	else {
+		std::cerr<< "Error: trying to root the species tree with an outgroup but the outgroup is not monophyletic!"<<std::endl;
+		exit(-1);
+	}
+	return;	
+}
+
+
+/************************************************************************
+ * Function to test whether a tree is rooted according to a list of outgroup taxa.
+ ************************************************************************/
+bool isTreeRootedWithOutgroup (const TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) {
+	if (outgroupTaxa.size() == 0 ) {
+		std::cerr<< "Error: trying to test whether the species tree is rooted with an empty outgroup list!"<<std::endl;
+		exit(-1);
+	}
+	const Node *n = tree.getNode( outgroupTaxa[0] );
+	std::vector<std::string> descendantNames = TreeTemplateTools::getLeavesNames( *n );
+	while ( descendantNames.size() < outgroupTaxa.size() || ! n->hasFather() ) {
+		n = n->getFather() ;
+		descendantNames = TreeTemplateTools::getLeavesNames( *n );
+	}
+	std::vector<std::string> testTaxa ; 
+
+	VectorTools::diff < std::string >(descendantNames, *(const_cast< std::vector<std::string>* > (&outgroupTaxa)), testTaxa) ;
+	if ( testTaxa.size() == 0 ) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 

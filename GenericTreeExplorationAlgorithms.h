@@ -62,4 +62,6 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
                                std::vector < double >  &rootLks);
 void dropLeaves(TreeTemplate<Node> & tree, const std::vector<string> &spToDrop);
 Tree* MRP(const vector<Tree*>& vecTr);
+void rootTreeWithOutgroup (TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) ;
+bool isTreeRootedWithOutgroup (const TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) ;
 #endif 

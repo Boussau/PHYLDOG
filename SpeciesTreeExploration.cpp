@@ -45,7 +45,9 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             std::string & branchExpectedNumbersOptimization, 
                                             std::map < std::string, int> genomeMissing,
                                             std::vector < double >  &NNILks, 
-                                            std::vector<double> &rootLks, unsigned int currentStep) 
+                                            std::vector<double> &rootLks, unsigned int currentStep, 
+											const bool fixedOutgroupSpecies_, 
+											const std::vector < std::string > outgroupSpecies_) 
 {
     std::vector <double> bestDupProba;
     std::vector<double> bestLossProba;
@@ -69,6 +71,7 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
 
     if (!stop) 
       {
+		  //HERE WE SHOULD MAKE SURE WE DON'T CHANGE THE ROOT!
       makeDeterministicNNIsAndRootChangesOnly(*tree, nodeForNNI, nodeForRooting);  
 
       computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, 
@@ -138,8 +141,8 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
               bestIndex = index;
               for (unsigned int i = 0 ; i< NNILks.size() ; i++ ) 
               {
-                  NNILks[i]=NumConstants::VERY_BIG;
-                  rootLks[i]=NumConstants::VERY_BIG;
+                  NNILks[i]=NumConstants::VERY_BIG();
+                  rootLks[i]=NumConstants::VERY_BIG();
               }
               if (ApplicationTools::getTime() >= timeLimit)
               {
@@ -478,7 +481,8 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                             std::string &reconciliationModel,
                             bool rearrange, int &numIterationsWithoutImprovement, unsigned int server, 
                             std::string &branchExpectedNumbersOptimization, std::map < std::string, int> genomeMissing, 
-                            int sprLimit, bool optimizeRates, unsigned int currentStep) {
+                            int sprLimit, bool optimizeRates, unsigned int currentStep, 
+							const bool fixedOutgroupSpecies_, const std::vector < std::string > outgroupSpecies_) {
 
     std::vector <double> bestDupProba;
     std::vector <double> bestLossProba;
@@ -506,6 +510,9 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
       tree = currentTree->clone();
 
       makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i]);
+		if (fixedOutgroupSpecies_) {
+			if (isTreeRootedWithOutgroup (*tree, outgroupSpecies_) )
+		
         breadthFirstreNumber (*tree);
    /*   if (optimizeRates) 
         {*/
@@ -531,6 +538,11 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
                                        genomeMissing, *tree, currentStep);
 
         }*/
+		}
+		else {
+			//The tree to test is not properly rooted, we do not compute its likelihood
+			logL = bestlogL + 2000 ;
+		}
       if (logL+0.01<bestlogL) {
         betterTree = true;
         bestlogL =logL;
@@ -705,7 +717,9 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                                          std::map < std::string, int> genomeMissing, 
                                          int sprLimit, 
                                          bool optimizeRates, 
-                                         unsigned int currentStep) {
+                                         unsigned int currentStep, 
+										 const bool fixedOutgroupSpecies_, 
+										 const std::vector < std::string > outgroupSpecies_) {
   if (optimizeRates)
     {
     std::cout <<"Making SPRs and Rerootings and optimizing duplication and loss rates."<< std::endl;
@@ -726,11 +740,12 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
                            allNum0Lineages, allNum1Lineages, allNum2Lineages, 
                            lossExpectedNumbers, duplicationExpectedNumbers, 
                            num12Lineages, num22Lineages,
-                           bestNum12Lineages, bestNum12Lineages, 
+                           bestNum12Lineages, bestNum22Lineages, 
                            coalBls, reconciliationModel,
                            rearrange, numIterationsWithoutImprovement, 
                            server, branchExpectedNumbersOptimization, genomeMissing, 
-                           sprLimit, optimizeRates, currentStep);
+                           sprLimit, optimizeRates, currentStep,
+						   fixedOutgroupSpecies_, outgroupSpecies_);
 
     if (ApplicationTools::getTime() >= timeLimit) 
       {	
@@ -745,21 +760,25 @@ void fastTryAllPossibleSPRsAndReRootings(const mpi::communicator& world,
       {	
         break;
       }
-    
-    fastTryAllPossibleReRootingsAndMakeBestOne(world, currentTree, bestTree, 
-                                               index, bestIndex,  
-                                               stop, timeLimit, 
-                                               logL, bestlogL, 
-                                               num0Lineages, num1Lineages, num2Lineages, 
-                                               bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
-                                               allNum0Lineages, allNum1Lineages, allNum2Lineages, 
-                                               lossExpectedNumbers, duplicationExpectedNumbers, 
-                                               num12Lineages, num22Lineages,
-                                               bestNum12Lineages, bestNum12Lineages, 
-                                               coalBls, reconciliationModel,
-                                               rearrange, numIterationsWithoutImprovement, 
-                                               server, branchExpectedNumbersOptimization, 
-                                               genomeMissing, optimizeRates, currentStep);
+	  if ( ! fixedOutgroupSpecies_) {
+		  fastTryAllPossibleReRootingsAndMakeBestOne(world, currentTree, bestTree, 
+													 index, bestIndex,  
+													 stop, timeLimit, 
+													 logL, bestlogL, 
+													 num0Lineages, num1Lineages, num2Lineages, 
+													 bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, 
+													 allNum0Lineages, allNum1Lineages, allNum2Lineages, 
+													 lossExpectedNumbers, duplicationExpectedNumbers, 
+													 num12Lineages, num22Lineages,
+													 bestNum12Lineages, bestNum12Lineages, 
+													 coalBls, reconciliationModel,
+													 rearrange, numIterationsWithoutImprovement, 
+													 server, branchExpectedNumbersOptimization, 
+													 genomeMissing, optimizeRates, currentStep);
+	  }
+	  else {
+		  numIterationsWithoutImprovement += 2*bestTree->getNumberOfLeaves() - 2 ; 
+	  }
    /* std::cout << "after fastTryAllPossibleReRootingsAndMakeBestOne :currentTree: "<< std::endl;
     std::cout << TreeTemplateTools::treeToParenthesis(*currentTree, true)<< std::endl;*/
     if (ApplicationTools::getTime() >= timeLimit) 

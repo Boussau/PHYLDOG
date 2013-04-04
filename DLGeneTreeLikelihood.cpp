@@ -2184,7 +2184,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
                                                                    _tentativeNodesToTryInNNISearch, false); 
 					while (treesToOptimizeSeqLk.count(candidateScenarioLk) > 0 )
 					{
-						candidateScenarioLk = candidateScenarioLk + NumConstants::SMALL;
+						candidateScenarioLk = candidateScenarioLk + NumConstants::SMALL();
 					}
 					treesToOptimizeSeqLk[candidateScenarioLk] = treeForSPR->clone();
 				}
@@ -2192,7 +2192,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 					bestCurrentCandidateScenarioLk = (* (treesToOptimizeSeqLk.rbegin() ) ).first;
 				for ( it=treesToOptimizeSeqLk.rbegin() ; it != treesToOptimizeSeqLk.rend(); it++ ) {
 					candidateScenarioLk = (*it).first;
-					if ( ( candidateScenarioLk > bestScenarioLk) && ( candidateScenarioLk < bestCurrentCandidateScenarioLk + 10 * NumConstants::SMALL) )//If the likelihood is better than the current best, and one of the best ones to test
+					if ( ( candidateScenarioLk > bestScenarioLk) && ( candidateScenarioLk < bestCurrentCandidateScenarioLk + 10 * NumConstants::SMALL()) )//If the likelihood is better than the current best, and one of the best ones to test
 					{
 						//We compute the sequence likelihood
 						if (computeSequenceLikelihoodForSPR) {

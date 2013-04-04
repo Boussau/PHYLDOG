@@ -519,7 +519,7 @@ double computeCoalLikelihood ( std::vector<unsigned int>  vec, double CoalBl )
 	
 	if (logLk < 0) {
 		std::cout <<"WARNING: correction"<<std::endl;
-		logLk = NumConstants::VERY_TINY;
+		logLk = NumConstants::VERY_TINY();
 	}
 	
 	logLk = log(logLk) + first;

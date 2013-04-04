@@ -97,6 +97,10 @@ namespace bpp
         std::vector< unsigned int > bestNum12Lineages_;
         std::vector< unsigned int > bestNum22Lineages_;
 
+		//to fix the root of the tree
+		bool fixedOutgroupSpecies_;
+		std::vector<std::string> outgroupSpecies_;
+		
        // std::vector < std::vector < std::vector < std::vector< unsigned int > > > > backupCoalCounts_;
         std::vector < double > coalBls_;
         std::vector < double > backupCoalBls_;

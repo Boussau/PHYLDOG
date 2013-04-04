@@ -306,11 +306,24 @@ void SpeciesTreeLikelihood::parseOptions()
         }
     }
     else throw Exception("Unknown init.species.tree method.");
+	//Now, root the tree according to the list of outgroup species if these have been given
+	fixedOutgroupSpecies_ = ApplicationTools::getBooleanParameter("fix.outgroup", params_, false, "", true, false);
+	if (fixedOutgroupSpecies_) {
+		std::string outgroupSpeciesFile = ApplicationTools::getStringParameter("outgroup.species.file",params_,"none");	
+		std::ifstream inOutgroup (outgroupSpeciesFile.c_str());
+		std::string line;
+		while(getline(inOutgroup,line)) 
+		{
+			outgroupSpecies_.push_back(line);
+		}
+		cleanVectorOfOptions(outgroupSpecies_, false);
+		rootTreeWithOutgroup (*tree_, outgroupSpecies_);
+	}
     breadthFirstreNumber (*tree_);
     assignArbitraryBranchLengths(*tree_);
+	
     // Try to write the current tree to file. This will be overwritten by the optimized tree,
     // but allows to check file existence before running optimization!
-    
     string file = ApplicationTools::getStringParameter("output.tree.file", params_, "output.tree");
     Newick newick;
     newick.write(*tree_, file, true);
@@ -438,8 +451,8 @@ void SpeciesTreeLikelihood::parseOptions()
   //vector to keep NNIs likelihoods, for making aLRTs.
   for (unsigned int i = 0 ; i <tree_->getNumberOfNodes() ; i ++)
     {
-    NNILks_.push_back(NumConstants::VERY_BIG);
-    rootLks_.push_back(NumConstants::VERY_BIG);
+    NNILks_.push_back(NumConstants::VERY_BIG());
+    rootLks_.push_back(NumConstants::VERY_BIG());
     }
   
   
@@ -560,7 +573,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                         coalBls_, reconciliationModel_, 
                                                         rearrange_, numIterationsWithoutImprovement_, 
                                                         server_, branchExpectedNumbersOptimization_, 
-                                                        genomeMissing_, sprLimit_, false, currentStep_);
+                                                        genomeMissing_, sprLimit_, false, currentStep_, 
+														fixedOutgroupSpecies_, outgroupSpecies_);
                     if (ApplicationTools::getTime() < timeLimit_) 
                     {
                         std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings over.\n\n"<< std::endl;
@@ -653,7 +667,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                     coalBls_, reconciliationModel_,
                                                     rearrange_, numIterationsWithoutImprovement_, 
                                                     server_, branchExpectedNumbersOptimization_, 
-                                                    genomeMissing_, sprLimit_, true, currentStep_);
+                                                    genomeMissing_, sprLimit_, true, currentStep_, 
+													fixedOutgroupSpecies_, outgroupSpecies_);
                 if (ApplicationTools::getTime() < timeLimit_) 
                 {
                     std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters over.\n\n"<< std::endl;
@@ -749,7 +764,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                            rearrange_, numIterationsWithoutImprovement_, 
                                                            server_, nodeForNNI, nodeForRooting, 
                                                            branchExpectedNumbersOptimization_, genomeMissing_, 
-                                                           NNILks_, rootLks_, currentStep_);
+                                                           NNILks_, rootLks_, currentStep_, 
+														   fixedOutgroupSpecies_, outgroupSpecies_);
                     //NNI-based Optimizations ended
                     currentStep_ = 4;
                     stop_ = false;

@@ -45,6 +45,7 @@ knowledge of the CeCILL license and that you accept its terms.
 // From SeqLib:
 #include <Bpp/Seq/Alphabet/Alphabet.h>
 #include <Bpp/Seq/Container/VectorSiteContainer.h>
+#include <Bpp/Seq/Container/SiteContainerTools.h>
 #include <Bpp/Seq/SiteTools.h>
 #include <Bpp/Seq/SequenceTools.h>
 #include <Bpp/Seq/App/SequenceApplicationTools.h>
@@ -521,7 +522,10 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                       geneTree = 0;
                   }        
                   geneTree = unrootedGeneTree->clone(); 
-                  geneTree->newOutGroup(0); 
+				  breadthFirstreNumber (*geneTree);
+				  std::cout << " Problem tree? : "<<TreeTemplateTools::treeToParenthesis(*geneTree, true) << std::endl;
+ 					
+				  geneTree->newOutGroup( geneTree->getLeavesId()[0] ); 
               }
               else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
           }
@@ -1141,7 +1145,7 @@ int main(int args, char ** argv)
         //##################################################################################################################
         if (rank >server)
         {
-	  /*
+	  
 	  int z = 0;
              //   char hostname[256];
              //gethostname(hostname, sizeof(hostname));
@@ -1153,7 +1157,7 @@ int main(int args, char ** argv)
              std::cout << z <<std::endl;
              sleep(5);
              }
-	  */
+	  
             ApplicationTools::startTimer();
             bool debug = ApplicationTools::getBooleanParameter("debug",params,false);
             string path = ApplicationTools::getStringParameter("PATH", params, "", "", true, false);

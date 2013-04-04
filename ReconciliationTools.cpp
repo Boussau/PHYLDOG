@@ -777,7 +777,7 @@ double computeBranchProbability (double duplicationProbability, double lossProba
   }
   if ( (res == 0) || std::isnan(res) )
     {
-     res = NumConstants::VERY_TINY ; 
+     res = NumConstants::VERY_TINY() ; 
     }
   return(res);
 
@@ -847,7 +847,7 @@ double computeBranchProbabilityAtRoot (double duplicationProbability, double los
     }
    else if (temp == 0) {
     // std::cerr <<"TEMP equals 0; beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
-     temp = NumConstants::VERY_TINY ;
+     temp = NumConstants::VERY_TINY() ;
    }
     return(temp);
   }
