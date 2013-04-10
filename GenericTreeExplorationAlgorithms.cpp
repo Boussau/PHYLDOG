@@ -740,9 +740,10 @@ Tree* MRP(const vector<Tree*>& vecTr)
     
     //starting bioNJ tree
     const DNA* alphabet= dynamic_cast<const DNA*>(sites->getAlphabet());
-    JCnuc jc(alphabet);
-    ConstantDistribution constRate(1.);
-    DistanceEstimation distFunc(&jc, &constRate, sites, 0, true);
+	auto_ptr<SubstitutionModel>   jc (new JCnuc( alphabet ) );
+    //ConstantDistribution constRate1(1.);
+	auto_ptr<DiscreteDistribution>   constRate (new ConstantDistribution(1.) );
+    DistanceEstimation distFunc(jc.release(), constRate.release(), sites, 0, true);
     BioNJ bionjTreeBuilder;
     bionjTreeBuilder.setDistanceMatrix(*(distFunc.getMatrix()));
     bionjTreeBuilder.computeTree();
