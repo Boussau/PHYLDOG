@@ -1306,7 +1306,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 				 TreeTemplate<Node> & geneTree,
 				 Node * node,
 				 double editionThreshold) {
-    Nhx *nhx = new Nhx();
+  //  Nhx *nhx = new Nhx();
   if (node->isLeaf()) { }
   else {
       if (node->hasNodeProperty("Score")) {

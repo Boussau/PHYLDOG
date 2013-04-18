@@ -50,11 +50,6 @@ void SpeciesTreeLikelihood::initialize()
     std::vector<unsigned int> numbersOfGeneFamilies;
     unsigned int numberOfGeneFamilies = 0;
     
-    
-    //COAL or DL?
-    reconciliationModel_ = ApplicationTools::getStringParameter("reconciliation.model", params_, "DL", "", true, false);
-
-    
     /****************************************************************************
      * Check that we have enough gene families to proceed
      *****************************************************************************/
@@ -84,6 +79,23 @@ void SpeciesTreeLikelihood::initialize()
                                                                  duplicationExpectedNumbers_, 
                                                                  genomeMissing_, 
                                                                  *tree_);
+	/*	//TEMP PRINTING
+		//For loss rates
+		for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
+		{
+			tree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+			if (tree_->getNode(i)->hasFather()) 
+			{
+				tree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
+			}
+		}
+		std::cout <<"\n\n\t\t Starting Species Tree found, with Losses: "<<std::endl;
+		//			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+		std::cout << TreeTemplateTools::treeToParenthesis(*tree_, false)<<std::endl;
+*/
+		
+		
+		
         
     }
     else if (reconciliationModel_ == "DL") {
@@ -228,6 +240,10 @@ void SpeciesTreeLikelihood::parseOptions()
     // Get the initial tree
     std::string initTree = ApplicationTools::getStringParameter("init.species.tree", params_, "user", "", false, false);
     ApplicationTools::displayResult("Input species tree", initTree);
+	
+	//COAL or DL?
+    reconciliationModel_ = ApplicationTools::getStringParameter("reconciliation.model", params_, "DL", "", true, false);
+	
     // A given species tree
     if(initTree == "user")
     {
@@ -300,15 +316,12 @@ void SpeciesTreeLikelihood::parseOptions()
         tree_ = TreeTemplateTools::getRandomTree(spNames);
         tree_->setBranchLengths(1.0);
         TreeTools::midpointRooting(*tree_);
-        if (initTree == "random") {
-            std::cout <<"Initial random species tree"<<std::endl;
-            std::cout <<TreeTemplateTools::treeToParenthesis(*tree_, false)<<std::endl;
-        }
     }
     else throw Exception("Unknown init.species.tree method.");
 	//Now, root the tree according to the list of outgroup species if these have been given
 	fixedOutgroupSpecies_ = ApplicationTools::getBooleanParameter("fix.outgroup", params_, false, "", true, false);
 	if (fixedOutgroupSpecies_) {
+		std::cout <<"Rooting the starting tree according to the outgroup species provided."<<std::endl;
 		std::string outgroupSpeciesFile = ApplicationTools::getStringParameter("outgroup.species.file",params_,"none");	
 		std::ifstream inOutgroup (outgroupSpeciesFile.c_str());
 		std::string line;
@@ -317,9 +330,34 @@ void SpeciesTreeLikelihood::parseOptions()
 			outgroupSpecies_.push_back(line);
 		}
 		cleanVectorOfOptions(outgroupSpecies_, false);
-		rootTreeWithOutgroup (*tree_, outgroupSpecies_);
+		bool wellRooted = false;
+		if (initTree == "random") {
+			while (! wellRooted) {
+				wellRooted = true;
+				try  {
+					rootTreeWithOutgroup (*tree_, outgroupSpecies_);
+				}
+				catch (TreeException e) {
+					std::cout << "Random tree is not well rooted, re-drawing the tree." << std::endl;
+					wellRooted = false;
+					tree_ = TreeTemplateTools::getRandomTree(spNames);
+				}
+			}
+            std::cout <<"Initial random species tree"<<std::endl;
+            std::cout <<TreeTemplateTools::treeToParenthesis(*tree_, false)<<std::endl;
+        }
+		else {
+			try  {
+				rootTreeWithOutgroup (*tree_, outgroupSpecies_);
+			}
+			catch ( TreeException e ) {
+				std::cerr << "Starting tree cannot be rooted by the given list of outgroup species. The tree:" << e.getTree () <<std::endl;
+				std::cerr << e.what() << std::endl;
+				exit(-1);
+			}
+		}
 	}
-    breadthFirstreNumber (*tree_);
+	breadthFirstreNumber (*tree_);
     assignArbitraryBranchLengths(*tree_);
 	
     // Try to write the current tree to file. This will be overwritten by the optimized tree,
@@ -385,7 +423,7 @@ void SpeciesTreeLikelihood::parseOptions()
             std::map<std::string,int>::iterator iter = genomeMissing_.find(st1.getToken(0));
             if (iter != genomeMissing_.end() ) 
             {
-                iter->second = 100-TextTools::toInt(st1.getToken(1));
+                iter->second = 100-(int) (TextTools::toDouble ( st1.getToken( 1 ) ) );
             }
             else 
             {
@@ -516,8 +554,8 @@ void SpeciesTreeLikelihood::parseOptions()
 void SpeciesTreeLikelihood::MLSearch()
 {
   //Indices used in the exploration
-  int nodeForNNI = 0;
-  int nodeForRooting = 4;
+  size_t nodeForNNI = 0;
+  size_t nodeForRooting = 4;
   bool noMoreSPR;
    /* broadcastsAllInformation(world_, server_, stop_, rearrange_, lossExpectedNumbers_, duplicationExpectedNumbers_, currentSpeciesTree_, currentStep_);*/
 
@@ -554,6 +592,28 @@ void SpeciesTreeLikelihood::MLSearch()
 /*            if (!noMoreSPR) 
             {*/
             
+			
+		/*	//TEMP PRINTING
+			//For loss rates
+			for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
+			{
+				currentTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+				if (currentTree_->getNode(i)->hasFather()) 
+				{
+					currentTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
+				}
+				bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+				if (bestTree_->getNode(i)->hasFather()) 
+				{
+					bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
+				}
+			}
+			std::cout <<"\n\n\t\t Starting Species Tree found, with Losses: "<<std::endl;
+			//			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+			std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, false)<<std::endl;
+			std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
+*/
+			
             /****************************************************************************
              * Doing SPRs and rerootings. This first step does not optimize duplication 
              * and loss (D and L) expected numbers, and does not rearrange gene trees.
@@ -575,9 +635,34 @@ void SpeciesTreeLikelihood::MLSearch()
                                                         server_, branchExpectedNumbersOptimization_, 
                                                         genomeMissing_, sprLimit_, false, currentStep_, 
 														fixedOutgroupSpecies_, outgroupSpecies_);
+					/*
+					//TEMP PRINTING
+					//For loss rates
+					for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
+					{
+						currentTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+						if (currentTree_->getNode(i)->hasFather()) 
+						{
+							currentTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
+						}
+						bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+						if (bestTree_->getNode(i)->hasFather()) 
+						{
+							bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
+						}
+					}
+					std::cout <<"\n\n\t\t Species Tree found AFTER SPRs, with Losses: "<<std::endl;
+					//			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+					std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, false)<<std::endl;
+					std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
+*/
+					
                     if (ApplicationTools::getTime() < timeLimit_) 
                     {
-                        std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings over.\n\n"<< std::endl;
+						if (fixedOutgroupSpecies_)
+							std::cout << "\n\n\t\t\tFirst fast step of SPRs over.\n\n"<< std::endl;
+						else 
+							std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings over.\n\n"<< std::endl;
                         ApplicationTools::displayTime("Execution time so far:");
                         if (branchExpectedNumbersOptimization_ != "no") {
                             currentStep_ = 1;
@@ -589,7 +674,10 @@ void SpeciesTreeLikelihood::MLSearch()
                     }  
                     else 
                     {
-                        std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+						if (fixedOutgroupSpecies_)
+							std::cout << "\n\n\t\t\tFirst fast step of SPRs is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+						else 
+							std::cout << "\n\n\t\t\tFirst fast step of SPRs and rerootings is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
                         ApplicationTools::displayTime("Execution time so far:");
                         if (stop_==false)
                         {
@@ -669,15 +757,45 @@ void SpeciesTreeLikelihood::MLSearch()
                                                     server_, branchExpectedNumbersOptimization_, 
                                                     genomeMissing_, sprLimit_, true, currentStep_, 
 													fixedOutgroupSpecies_, outgroupSpecies_);
+				
+				/*
+				//TEMP PRINTING
+				//For loss rates
+				for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
+				{
+					currentTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+					if (currentTree_->getNode(i)->hasFather()) 
+					{
+						currentTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
+					}
+					bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+					if (bestTree_->getNode(i)->hasFather()) 
+					{
+						bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
+					}
+				}
+				std::cout <<"\n\n\t\t Species Tree found AFTER SPRs AGAIN, with Losses: "<<std::endl;
+				//			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+				std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, false)<<std::endl;
+				std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
+*/
+				
+				
                 if (ApplicationTools::getTime() < timeLimit_) 
                 {
-                    std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters over.\n\n"<< std::endl;
+					if (fixedOutgroupSpecies_)
+						std::cout << "\n\n\t\t\tStep of SPRs with optimization of the duplication and loss parameters over.\n\n"<< std::endl;
+					else
+						std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters over.\n\n"<< std::endl;
                     ApplicationTools::displayTime("Execution time so far:");
                     currentStep_ = 3;
                 }
                 else 
                 {
-                    std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+					if (fixedOutgroupSpecies_)
+						std::cout << "\n\n\t\t\tStep of SPRs with optimization of the duplication and loss parameters is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+					else 						std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+
                     ApplicationTools::displayTime("Execution time so far:");
                     if (stop_==false)
                     {
@@ -749,7 +867,10 @@ void SpeciesTreeLikelihood::MLSearch()
 
                 if (optimizeSpeciesTreeTopology_ && (ApplicationTools::getTime() < timeLimit_) ) //We optimize the species tree topology
                 {
-                    std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
+					if (fixedOutgroupSpecies_)
+                    std::cout <<"\tNNIs: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
+					else 
+						std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
                     localOptimizationWithNNIsAndReRootings(world_, currentTree_, bestTree_, 
                                                            index_, bestIndex_, 
                                                            stop_, timeLimit_, 
@@ -891,8 +1012,8 @@ void SpeciesTreeLikelihood::MLSearch()
                                                             num12Lineages_, num22Lineages_,
                                                             coalBls_, reconciliationModel_,
                                                             rearrange_, numIterationsWithoutImprovement_, 
-                                                            server_, nodeForNNI, nodeForRooting, 
-                                                            branchExpectedNumbersOptimization_, genomeMissing_, currentStep_);
+                                                            server_, branchExpectedNumbersOptimization_, 
+															genomeMissing_, currentStep_);
                         
 
                      /*   gathersInformationFromClients(world_, server_, server_, logL_, 
@@ -1171,6 +1292,7 @@ void SpeciesTreeLikelihood::buildMRPSpeciesTree() {
         exit(-1);
     }
     TreeTools::midpointRooting(*tree_);
+	breadthFirstreNumber (*tree_);
     return;
 }
 

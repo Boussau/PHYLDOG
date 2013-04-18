@@ -55,13 +55,14 @@ void getNeighboringNodesIdLimitedDistance (TreeTemplate<Node> &tree, int nodeId,
 void getNeighboringNodesIdLimitedDistanceLowerNodes (TreeTemplate<Node> &tree, int nodeId, int distance, std::vector <int> & neighboringNodeIds);
 void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int nodeForSPR, int distance, std::vector <int> & nodeIdsToRegraft);
 void buildVectorOfRegraftingNodesLimitedDistanceLowerNodes(TreeTemplate<Node> &tree, int nodeForSPR, int distance, std::vector <int> & nodeIdsToRegraft);
-void makeDeterministicModifications(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForSPR, int & nodeForRooting);
-void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForRooting);
-bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, int & nodeForNNI, 
-                               int & nodeForRooting, std::vector < double >  &NNILks, 
+void makeDeterministicModifications(TreeTemplate<Node> &tree, size_t & nodeForNNI, size_t & nodeForSPR, size_t & nodeForRooting);
+void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, size_t & nodeForNNI, size_t & nodeForRooting, const bool fixedOutgroupSpecies_) ;
+bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, size_t & nodeForNNI, 
+                               size_t & nodeForRooting, std::vector < double >  &NNILks, 
                                std::vector < double >  &rootLks);
 void dropLeaves(TreeTemplate<Node> & tree, const std::vector<string> &spToDrop);
 Tree* MRP(const vector<Tree*>& vecTr);
-void rootTreeWithOutgroup (TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) ;
+void rootTreeWithOutgroup (TreeTemplate<Node> &tree, 
+						   const std::vector<std::string> outgroupTaxa) throw ( TreeException );
 bool isTreeRootedWithOutgroup (const TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) ;
 #endif 

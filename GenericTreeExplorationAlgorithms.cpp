@@ -10,9 +10,6 @@
 #include "GenericTreeExplorationAlgorithms.h"
 
 
-
-
-
 /************************************************************************
  * Change the root of the tree by changing the outgroup.
  ************************************************************************/
@@ -540,7 +537,7 @@ void buildVectorOfRegraftingNodesLimitedDistanceLowerNodes(TreeTemplate<Node> &t
 /************************************************************************
  * Makes a modification, knowing what previous modifications have been done.
  ************************************************************************/
-void makeDeterministicModifications(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForSPR, int & nodeForRooting) {
+void makeDeterministicModifications(TreeTemplate<Node> &tree, size_t & nodeForNNI, size_t & nodeForSPR, size_t & nodeForRooting) {
   if (nodeForNNI < tree.getNumberOfNodes()) {//Make a NNI move
     if (nodeForNNI <3) {
       if (nodeForRooting<tree.getNumberOfNodes()) {
@@ -588,19 +585,19 @@ void makeDeterministicModifications(TreeTemplate<Node> &tree, int & nodeForNNI, 
     int oldFatherId = tree.getNode(nodeForSPR)->getFather()->getId();
     int brotherId;
     //Get one brother ; a binary tree is supposed here (because of the "break")
-    for(int i=0;i<tree.getNode(oldFatherId)->getNumberOfSons();i++)
-      if(tree.getNode(oldFatherId)->getSon(i)->getId()!=nodeForSPR){brotherId=tree.getNode(oldFatherId)->getSon(i)->getId(); break;}
+    for(size_t i=0;i<tree.getNode(oldFatherId)->getNumberOfSons();i++)
+      if( (size_t) tree.getNode(oldFatherId)->getSon(i)->getId() != nodeForSPR ){brotherId=tree.getNode(oldFatherId)->getSon(i)->getId(); break;}
     if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
       forbiddenIds.push_back(brotherId);
     }
     std::vector <int> toRemove;
-    for (unsigned int i = 0 ; i< allNodeIds.size() ; i++) {
+    for (size_t i = 0 ; i< allNodeIds.size() ; i++) {
       if (VectorTools::contains(forbiddenIds, allNodeIds[i])) {
         toRemove.push_back(i);
       }
     }
     sort(toRemove.begin(), toRemove.end(), cmp);
-    for (unsigned int i = 0 ; i< toRemove.size() ; i++) {
+    for (size_t i = 0 ; i< toRemove.size() ; i++) {
       std::vector<int>::iterator vi = allNodeIds.begin();
       allNodeIds.erase(vi+toRemove[i]);
     }
@@ -620,32 +617,69 @@ void makeDeterministicModifications(TreeTemplate<Node> &tree, int & nodeForNNI, 
 /************************************************************************
  * Makes NNIs and root changings only.
  ************************************************************************/
-void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nodeForNNI, int & nodeForRooting) {
+void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, size_t & nodeForNNI, size_t & nodeForRooting, const bool fixedOutgroupSpecies_) {
   if (nodeForNNI < tree.getNumberOfNodes() ) {//Make a NNI or rerooting move
     if (nodeForNNI < 3) {
-      if (nodeForRooting < tree.getNumberOfNodes()) {//Make a rerooting move
+      if ( !fixedOutgroupSpecies_ && nodeForRooting < tree.getNumberOfNodes() ) {//Make a rerooting move
         changeRoot(tree, nodeForRooting);
         nodeForRooting++;
       }
       else { //Make a NNI move
-        nodeForNNI=3;
-        makeNNI(tree, nodeForNNI);
-        nodeForNNI++;
-      }
+		  nodeForNNI = 3;
+		  if ( !fixedOutgroupSpecies_ ) {
+			  makeNNI(tree, nodeForNNI);
+			  nodeForNNI++;
+		  }
+		  else {
+			  //All grandsons of the root should not be considered as appropriate for a NNI
+			  //because we want to consider the root.
+			  Node *n = tree.getNode(nodeForNNI);
+			  Node *root = tree.getRootNode() ;
+			  while ( n->getFather()->getFather() == root) {
+				  nodeForNNI++;
+				  n = tree.getNode(nodeForNNI);
+			  }
+			  makeNNI(tree, nodeForNNI);
+			  nodeForNNI++;
+		  } 
+	  }
     }
     else {
-      makeNNI(tree, nodeForNNI);
-      nodeForNNI++;
+		if ( fixedOutgroupSpecies_ ) {
+			//All grandsons of the root should not be considered as appropriate for a NNI
+			//because we want to consider the root.
+			Node *n = tree.getNode(nodeForNNI);
+			Node *root = tree.getRootNode() ;
+			while ( n->getFather()->getFather() == root) {
+				nodeForNNI++;
+				n = tree.getNode(nodeForNNI);
+			}
+		}
+		makeNNI(tree, nodeForNNI);
+		nodeForNNI++;
     }
   }
   else {//we reset the loop rooting-NNIs
       nodeForNNI = 0;
-      nodeForRooting = 4; //We don't want to root on nodes 1 or 2, 
-      //the two sons of the root.
-      //We do not want to root on node 3 either, 
-      //as a NNI already provides this tree.
-      changeRoot(tree, nodeForRooting);
-      nodeForRooting++;
+	  if ( !fixedOutgroupSpecies_ ) {
+		  nodeForRooting = 4; //We don't want to root on nodes 1 or 2, 
+		  //the two sons of the root.
+		  //We do not want to root on node 3 either, 
+		  //as a NNI already provides this tree.
+		  changeRoot(tree, nodeForRooting);
+		  nodeForRooting++;
+	  }
+	  else {
+		  nodeForNNI = 3;
+		  //All grandsons of the root should not be considered as appropriate for a NNI
+		  //because we want to consider the root.
+		  Node *n = tree.getNode(nodeForNNI);
+		  Node *root = tree.getRootNode() ;
+		  while ( n->getFather()->getFather() == root) {
+			  nodeForNNI++;
+			  n = tree.getNode(nodeForNNI);
+		  }
+	  }
   }
 }
 
@@ -661,8 +695,8 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, int & nod
  * If all NNIs or rerootings have been made, return true.
  ************************************************************************/
 
-bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, int & nodeForNNI, 
-                               int & nodeForRooting, std::vector < double >  &NNILks, 
+bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, size_t & nodeForNNI, 
+                               size_t & nodeForRooting, std::vector < double >  &NNILks, 
                                std::vector < double >  &rootLks)
 {
   if (nodeForNNI < tree.getNumberOfNodes()) 
@@ -756,7 +790,8 @@ Tree* MRP(const vector<Tree*>& vecTr)
 /************************************************************************
  * Function to root a tree based on a list of outgroup taxa.
  ************************************************************************/
-void rootTreeWithOutgroup (TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) {
+void rootTreeWithOutgroup (TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) throw ( TreeException )
+{
 	if (outgroupTaxa.size() == 0 ) {
 		std::cerr<< "Error: trying to root the species tree with an empty outgroup list!"<<std::endl;
 		exit(-1);
@@ -779,11 +814,12 @@ void rootTreeWithOutgroup (TreeTemplate<Node> &tree, const std::vector<std::stri
 		tree.newOutGroup( n ) ;
 	}
 	else {
-		std::cerr<< "Error: trying to root the species tree with an outgroup but the outgroup is not monophyletic!"<<std::endl;
+		throw ( TreeException("Error: trying to root the species tree with an outgroup but the outgroup is not monophyletic!", &tree ) );
 		exit(-1);
 	}
 	return;	
 }
+
 
 
 /************************************************************************

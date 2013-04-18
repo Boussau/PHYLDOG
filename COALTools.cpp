@@ -499,12 +499,12 @@ double computeCoalLikelihood ( std::vector<unsigned int>  vec, double CoalBl )
 	
 	double first = CoalBl/2.0  * (-v*v + v);
 	
-	for (unsigned int k = (int)v ; k <= (int)u ; k++ ) 
+	for (size_t k = (size_t)v ; k <= (size_t)u ; k++ ) 
 	{
 		prod = 1.0;
 		kminus1 = k-1;
 		double dy;
-		for (unsigned int y = 0 ; y <= kminus1 ; y++ ) {
+		for (int y = 0 ; y <= kminus1 ; y++ ) {
 			dy = double(y);
 			prod *= (v + dy) * (u - dy) / ( u + dy ) ;
 		}

@@ -241,15 +241,15 @@ protected:
     std::vector <std::vector <unsigned int> > vec_;
     //compressedVec_: same as vec above, but compressed to have one entry per pattern
     std::vector <std::vector <unsigned int> > compressedVec_;
+	double lnL_;
     std::vector <double> lks_;
     //Weights (= number of occurences) of the patterns
     std::map <string, unsigned int> patternToWeights_; 
-    double lnL_;
     
 public:
     CoalBranchLikelihood(const std::vector <std::vector <unsigned int> >& vec) :
     AbstractParametrizable(""),
-    vec_(vec), compressedVec_(0), lnL_(log(0.)), patternToWeights_(), lks_(0)
+    vec_(vec), compressedVec_(0), lnL_(log(0.)), lks_(0), patternToWeights_()
     {
         Parameter p("BrLen", 1, 0);
 	        addParameter_(&p);
@@ -259,7 +259,7 @@ public:
     CoalBranchLikelihood(const CoalBranchLikelihood& bl) :
     AbstractParametrizable(bl),
     vec_(bl.vec_), compressedVec_(bl.compressedVec_), lnL_(bl.lnL_),
-    patternToWeights_(bl.patternToWeights_), lks_(0)
+	lks_(0), patternToWeights_(bl.patternToWeights_)
     {}
     
     CoalBranchLikelihood& operator=(const CoalBranchLikelihood& bl)

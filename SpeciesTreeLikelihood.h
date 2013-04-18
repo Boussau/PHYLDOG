@@ -108,7 +108,7 @@ namespace bpp
         //Whether we should rearrange the gene trees
         bool rearrange_;
         //Number of iterations of the search algorithm without improvement
-        int numIterationsWithoutImprovement_;
+        unsigned int numIterationsWithoutImprovement_;
         //How far can we regraft subtrees when doing a spr
         int sprLimit_;
         //string giving the kind of optimization to perform
@@ -137,12 +137,41 @@ namespace bpp
                         unsigned int & server,
                         unsigned int & size, 
                         std::map<std::string, std::string> & params) :
-  AbstractParametrizable(""),
-  world_(world), server_(server), size_(size), params_(params)
-  {
-      tree_ = 0;
+//  AbstractParametrizable(""),   world_(world), server_(server), size_(size), params_(params)
+        AbstractParametrizable(""), world_(world), server_(server), 
+		size_(size), rank_(0), params_(params),
+		numbersOfGenesPerClient_(0), assignedNumberOfGenes_(0),
+		assignedFilenames_(), listOfOptionsPerClient_(),
+        duplicationExpectedNumbers_(),
+        lossExpectedNumbers_(), 
+        backupDuplicationExpectedNumbers_(),
+        backupLossExpectedNumbers_(), 
+		tree_(0), bestTree_(0), 
+		currentTree_(0), currentSpeciesTree_(""), index_(0),
+        bestIndex_(0), optimizeSpeciesTreeTopology_(0), 
+		stop_(0), logL_(0), bestlogL_(0),
+        num0Lineages_(), num1Lineages_(), 
+        num2Lineages_(), 
+		bestNum0Lineages_(), bestNum1Lineages_(), 
+        bestNum2Lineages_(), 
+        allNum0Lineages_(), allNum1Lineages_(), 
+        allNum2Lineages_(),
+        num12Lineages_(), num22Lineages_(),
+        bestNum12Lineages_(), bestNum22Lineages_(),
+		fixedOutgroupSpecies_(0), outgroupSpecies_(),
+        coalBls_(), backupCoalBls_(), 
+        rearrange_(0), 
+        numIterationsWithoutImprovement_(0), 
+		sprLimit_(0),
+        branchExpectedNumbersOptimization_(""), 
+        genomeMissing_(), 
+        speciesTreeNodeNumber_(0), NNILks_(),
+        rootLks_(), timeLimit_(0), currentStep_(0),
+        suffix_(""), reconciliationModel_("DL")
+		{
+ /*     tree_ = 0;
       bestTree_ = 0;
-      currentTree_ = 0;
+      currentTree_ = 0;*/
       parseOptions();
 	/*  Parameter p("coefDup", 1);
 
@@ -214,22 +243,31 @@ namespace bpp
   //Copy constructor
         SpeciesTreeLikelihood(const SpeciesTreeLikelihood& stl) :
         AbstractParametrizable(stl),
-        world_(stl.world_), server_(stl.server_), tree_(stl.tree_), index_(stl.index_),
-        bestIndex_(stl.bestIndex_), stop_(stl.stop_),
-        logL_(stl.logL_), bestlogL_(stl.bestlogL_),
-        num0Lineages_(stl.num0Lineages_), num1Lineages_(stl.num1Lineages_), 
-        num2Lineages_(stl.num2Lineages_), 
-        allNum0Lineages_(stl.allNum0Lineages_), allNum1Lineages_(stl.allNum1Lineages_), 
-        allNum2Lineages_(stl.allNum2Lineages_),
-        lossExpectedNumbers_(stl.lossExpectedNumbers_), 
+        world_(stl.world_), server_(stl.server_), 
+		size_(stl.size_), rank_(stl.rank_), params_(stl.params_),
+		numbersOfGenesPerClient_(stl.numbersOfGenesPerClient_), assignedNumberOfGenes_(stl.assignedNumberOfGenes_),
+		assignedFilenames_(stl.assignedFilenames_), listOfOptionsPerClient_(stl.listOfOptionsPerClient_),
         duplicationExpectedNumbers_(stl.duplicationExpectedNumbers_),
+        lossExpectedNumbers_(stl.lossExpectedNumbers_), 
         backupDuplicationExpectedNumbers_(stl.backupDuplicationExpectedNumbers_),
         backupLossExpectedNumbers_(stl.backupLossExpectedNumbers_), 
+		tree_(stl.tree_), bestTree_(stl.bestTree_), 
+		currentTree_(stl.currentTree_), currentSpeciesTree_(stl.currentSpeciesTree_), index_(stl.index_),
+        bestIndex_(stl.bestIndex_), optimizeSpeciesTreeTopology_(stl.optimizeSpeciesTreeTopology_), 
+		stop_(stl.stop_), logL_(stl.logL_), bestlogL_(stl.bestlogL_),
+        num0Lineages_(stl.num0Lineages_), num1Lineages_(stl.num1Lineages_), 
+        num2Lineages_(stl.num2Lineages_), 
+		bestNum0Lineages_(stl.bestNum0Lineages_), bestNum1Lineages_(stl.bestNum1Lineages_), 
+        bestNum2Lineages_(stl.bestNum2Lineages_), 
+        allNum0Lineages_(stl.allNum0Lineages_), allNum1Lineages_(stl.allNum1Lineages_), 
+        allNum2Lineages_(stl.allNum2Lineages_),
         num12Lineages_(stl.num12Lineages_), num22Lineages_(stl.num22Lineages_),
         bestNum12Lineages_(stl.bestNum12Lineages_), bestNum22Lineages_(stl.bestNum22Lineages_),
+		fixedOutgroupSpecies_(stl.fixedOutgroupSpecies_), outgroupSpecies_(stl.outgroupSpecies_),
         coalBls_(stl.coalBls_), backupCoalBls_(stl.backupCoalBls_), 
         rearrange_(stl.rearrange_), 
         numIterationsWithoutImprovement_(stl.numIterationsWithoutImprovement_), 
+		sprLimit_(stl.sprLimit_),
         branchExpectedNumbersOptimization_(stl.branchExpectedNumbersOptimization_), 
         genomeMissing_(stl.genomeMissing_), 
         speciesTreeNodeNumber_(stl.speciesTreeNodeNumber_), NNILks_(stl.NNILks_),

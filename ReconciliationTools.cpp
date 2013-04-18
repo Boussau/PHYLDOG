@@ -976,7 +976,6 @@ void computeScenarioScore (TreeTemplate<Node> & tree,
       {
         computeScenarioScore (tree, geneTree, son1, branchNumbers, geneNodeIdToSpeciations, duplicationProbabilities, lossProbabilities, num0lineages, num1lineages, num2lineages);
       }
-    int num = (dynamic_cast<const Number<int> *>(noeud->getNodeProperty(SPECIESID))->getValue());
     int num0 = (dynamic_cast<const Number<int> *>(son0->getNodeProperty(SPECIESID))->getValue());
     int num1 = (dynamic_cast<const Number<int> *>(son1->getNodeProperty(SPECIESID))->getValue());
     double probaBranch ;
