@@ -1,3 +1,11 @@
+WARNING: This document is outdated. Until it’s being updated, please refer to our wiki:
+http://pbil-dev.univ-lyon1.fr/redmine/projects/phyldogtoolt/wiki/Wiki_Home
+
+
+_______________________________________________
+
+
+
 To compile and install PHYLDOG, two libraries are required:
 - Bio++
 - Boost with MPI enabled
