@@ -84,7 +84,6 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
 		else {
 			std::cout << " Node "<<newBrotherId<<" has no father"<< std::endl;
 		}
-		MPI::COMM_WORLD.Abort(1);
 		exit (-1);
 	}
 	
@@ -220,7 +219,6 @@ void makeMuffatoSPR(TreeTemplate<Node> &tree,
 	if ( ! ( cutNode->hasFather() ) ) {
 		std::cout <<"Error in makeMuffatoSPR"<< std::endl;
 			std::cout << " Node "<< cutNode->getId() <<" has no father"<< std::endl;
-		MPI::COMM_WORLD.Abort(1);
 		exit (-1);
 	}
 	

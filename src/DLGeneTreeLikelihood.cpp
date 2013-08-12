@@ -227,7 +227,6 @@ void DLGeneTreeLikelihood::initParameters()
     }
     if (_heuristicsLevel>0) {
         std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
-        MPI::COMM_WORLD.Abort(1);
         exit(-1);
         //    _scenarioLikelihood = findMLReconciliation (&_spTree, &_rootedTree, _seqSp, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, _MLindex, _branchNumbers, _speciesIdLimitForRootPosition, _heuristicsLevel, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
     }
@@ -393,7 +392,6 @@ void DLGeneTreeLikelihood::computeReconciliationLikelihood()
     resetLossesAndDuplications(*_spTree, /*_lossNumbers, */_lossProbabilities, /*_duplicationNumbers, */_duplicationProbabilities);
     if (_heuristicsLevel>0) {
         std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
-        MPI::COMM_WORLD.Abort(1);
         exit(-1);
         //    _scenarioLikelihood = findMLReconciliation (&_spTree, &_rootedTree, _seqSp, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, _MLindex, _branchNumbers, _speciesIdLimitForRootPosition, _heuristicsLevel, _num0Lineages, _num1Lineages, _num2Lineages, _nodesToTryInNNISearch); 
     }

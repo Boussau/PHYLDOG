@@ -33,7 +33,6 @@
 #include <Bpp/Text/KeyvalTools.h>
 #include <Bpp/Text/TextTools.h>
 
-#include "mpi.h" 
 using namespace bpp;
 
 const std::string SPECIESID="SPECIESID";

@@ -884,14 +884,14 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
 	if (!geneTree->isRooted()) {
 		std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
 		std::cout <<"!!!!!!gene tree is not rooted in findMLCoalReconciliationDR !!!!!!"<<std::endl;
-        MPI::COMM_WORLD.Abort(1);
-		exit(-1);
+
+        exit(-1);
     }	
 	if (spTree->getRootNode()->getId() != 0) {
 		std::cout << TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
 		std::cout <<"!!!!!!Species tree is not properly annotated in findMLCoalReconciliationDR !!!!!!"<<std::endl;
-        MPI::COMM_WORLD.Abort(1);
-		exit(-1);
+
+        exit(-1);
     }	
 
     
@@ -907,7 +907,8 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
 	resetCoalCounts(coalCounts);
 
 	/*
-	std::string gStr = "(((((taxon26:0.08316,(taxon30:0.01004,taxon3:0.01004):0.073115):0.090045,taxon2:0.173205):0.172685,taxon15:0.34589):0.15941,(((taxon29:0.23656,(taxon7:0.064225,taxon9:0.064225):0.17233):0.044465,(taxon13:0.09682,taxon33:0.09682):0.1842):0.140795,(((((taxon1:0.183495,((taxon22:0.12459,(taxon21:0.025215,taxon20:0.02522):0.09937):0.01579,taxon24:0.140375):0.04311):0.104935,(taxon16:0.21073,taxon12:0.21073):0.077695):0.01399,((taxon34:0.06071,taxon8:0.06071):0.206685,(taxon36:0.252725,((taxon11:0.0872,(taxon27:0.008555,taxon5:0.008555):0.078645):0.10741,taxon17:0.19461):0.058115):0.014665):0.03502):0.003255,((taxon35:0.18384,(taxon18:0.009025,taxon6:0.009025):0.174815):0.049945,(taxon28:0.174385,taxon23:0.174395):0.0594):0.07188):0.075495,(((taxon19:0.20129,taxon14:0.20129):0.093865,(((taxon25:0.076435,taxon4:0.076435):0.06435,(taxon38:0.118835,taxon32:0.118835):0.02195):0.08733,taxon10:0.22812):0.067035):0.04378,(taxon40:0.30888,(taxon39:0.075125,taxon37:0.075125):0.233765):0.03005):0.042235):0.04065):0.08348):0.00623,taxon31:0.511535);";
+	std::string gStr = "(((((taxon26:0.08316,(taxon30:0.01004,taxon3:0.01004):0.073115):0.090045,taxon2:0.173205):0.172685,taxon15:0.34589):0.15941,(((taxon29:0.23656,(taxon7:0.064225,taxon9:0.064225):0.17233):0.044465,(taxon13:0.09682,taxon33:0.09682):0.1842):0.140795,(((((taxon1:0.183495,((taxon22:0.12459,(taxon21:0.025215,taxon20:0.02522):0.09937):0.01579,taxon24:0.140375):0.04311):0.104935,(taxon16:0.21073,taxon12:0.21073):0.077695):0.01399,((taxon34:0.06071,taxon8:0.06071):0.206685,(taxon36:0.252725,((taxon11:0.0872,(taxon27:0.008555,taxon5:0.008555):0.078645):0.10741,taxon17:0.19461):0.058115):0.014665):0.03502):0.003255,((taxon35:0.18384,(taxon18:0.009025,taxon6:0.009025):0.174815):0.049945,(taxon28:0.174385,taxon23:0.174395):0.0594):0.07188):0.075495,(((taxon19:0.20129,taxon14:0.20129):0.093865,(((taxon25:0.076435,taxon4:0.076435):0.06435,(taxon38:0.118835,taxon32:0.118835):0.02195):0.08733,taxon10:0.22812):0.067035):0.04378,(taxon40:0.30888,(taxon39:0.075125,taxon37:0.075125):0.233765):0.03005):0.
+042235):0.04065):0.08348):0.00623,taxon31:0.511535);";
 	geneTree = TreeTemplateTools::parenthesisToTree(gStr);
 */
 	

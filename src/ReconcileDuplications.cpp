@@ -431,7 +431,7 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
            //Then we need to get the substitution model.
            *****************************************************************************/
 
-          model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, sites, params); 
+          model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, 00, sites, params); 
 
           if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
 
@@ -1219,7 +1219,8 @@ int main(int args, char ** argv)
             
             //TEST:
             /*
-             currentSpeciesTree =    "((((((((((((((((((Macaca_mulatta,((((Homo_sapiens,Pan_troglodytes),Gorilla_gorilla),Pongo_abelii),Nomascus_leucogenys)),Callithrix_jacchus),Tarsius_syrichta),(Microcebus_murinus,Otolemur_garnettii)),Tupaia_belangeri),(((((Mus_musculus,Rattus_norvegicus),Dipodomys_ordii),Cavia_porcellus),Spermophilus_tridecemlineatus),(Oryctolagus_cuniculus,Ochotona_princeps))),((((Vicugna_pacos,(Tursiops_truncatus,Bos_taurus)),Sus_scrofa),((Equus_caballus,(Felis_catus,(Ailuropoda_melanoleuca,Canis_lupus_familiaris))),(Myotis_lucifugus,Pteropus_vampyrus))),(Erinaceus_europaeus,Sorex_araneus))),(((Loxodonta_africana,Procavia_capensis),Echinops_telfairi),(Dasypus_novemcinctus,Choloepus_hoffmanni))),(Monodelphis_domestica,(Macropus_eugenii,Sarcophilus_harrisii))),Ornithorhynchus_anatinus),(((Gallus_gallus,Meleagris_gallopavo),Taeniopygia_guttata),Anolis_carolinensis)),Xenopus_tropicalis),(((Tetraodon_nigroviridis,Takifugu_rubripes),(Gasterosteus_aculeatus,Oryzias_latipes)),Danio_rerio)),Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster),Caenorhabditis_elegans),Saccharomyces_cerevisiae);";
+             currentSpeciesTree =    "((((((((((((((((((Macaca_mulatta,((((Homo_sapiens,Pan_troglodytes),Gorilla_gorilla),Pongo_abelii),Nomascus_leucogenys)),Callithrix_jacchus),Tarsius_syrichta),(Microcebus_murinus,Otolemur_garnettii)),Tupaia_belangeri),(((((Mus_musculus,Rattus_norvegicus),Dipodomys_ordii),Cavia_porcellus),Spermophilus_tridecemlineatus),(Oryctolagus_cuniculus,Ochotona_princeps))),((((Vicugna_pacos,(Tursiops_truncatus,Bos_taurus)),Sus_scrofa),((Equus_caballus,(Felis_catus,(Ailuropoda_melanoleuca,Canis_lupus_familiaris))),(Myotis_lucifugus,Pteropus_vampyrus))),(Erinaceus_europaeus,Sorex_araneus))),(((Loxodonta_africana,Procavia_capensis),Echinops_telfairi),(Dasypus_novemcinctus,Choloepus_hoffmanni))),(Monodelphis_domestica,(Macropus_eugenii,Sarcophilus_harrisii))),Ornithorhynchus_anatinus),(((Gallus_gallus,Meleagris_gallopavo),Taeniopygia_guttata),Anolis_carolinensis)),Xenopus_tropicalis),(((Tetraodon_nigroviridis,Takifugu_rubripes),(Gasterosteus_aculeatus,Oryzias_latipes)),Danio_rerio)),
+Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster),Caenorhabditis_elegans),Saccharomyces_cerevisiae);";
             */
             
             //First we read the species tree from the char[] sent by the server

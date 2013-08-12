@@ -9,6 +9,7 @@
 
 #include "GeneTreeAlgorithms.h"
 #include <Bpp/Phyl/Io/Nhx.h>
+#include <Bpp/Seq/GeneticCode/StandardGeneticCode.h>
 
 /**************************************************************************
  * This function creates a sequence tree from a species tree and a std::map 
@@ -111,7 +112,8 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
     if (std::isinf(logL))
       {
       ApplicationTools::displayError("!!! Unexpected initial likelihood == 0.");
-      CodonAlphabet *pca=dynamic_cast<CodonAlphabet*>(alphabet);
+      NucleicAlphabet *pca=dynamic_cast<NucleicAlphabet*>(alphabet);
+      StandardGeneticCode gcode(pca);
       if (pca){
         bool f=false;
         unsigned int  s;
@@ -120,14 +122,13 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
             const Site& site=sites->getSite(i);
             s=site.size();
             for (unsigned int j=0;j<s;j++)
-              if (pca->isStop(site.getValue(j))){
+              if (gcode.isStop(site.getValue(j))){
                 (*ApplicationTools::error << "Stop Codon at site " << site.getPosition() << " in sequence " << sites->getSequence(j).getName()).endLine();
                 f=true;
               }
           }
         }
           if (f) {
-              MPI::COMM_WORLD.Abort(1);
           exit(-1);
           }
       }
@@ -137,7 +138,6 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
         (*ApplicationTools::error << "Site " << sites->getSite(i).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(i)).endLine();
         }
       ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularily if datasets are big (>~500 sequences).");
-          MPI::COMM_WORLD.Abort(1);
       exit(-1);
       }
 
@@ -711,7 +711,8 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
   if (std::isinf(logL))
     {
     ApplicationTools::displayError("!!! Unexpected initial likelihood == 0.");
-    CodonAlphabet *pca=dynamic_cast<CodonAlphabet*>(alphabet);
+    NucleicAlphabet *pca=dynamic_cast<NucleicAlphabet*>(alphabet);
+    StandardGeneticCode gcode(pca);
     if (pca){
       bool f=false;
       unsigned int  s;
@@ -720,14 +721,13 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
           const Site& site=sites->getSite(i);
           s=site.size();
           for (unsigned int j=0;j<s;j++)
-            if (pca->isStop(site.getValue(j))){
+            if (gcode.isStop(site.getValue(j))){
               (*ApplicationTools::error << "Stop Codon at site " << site.getPosition() << " in sequence " << sites->getSequence(j).getName()).endLine();
               f=true;
             }
         }
       }
         if (f) {
-            MPI::COMM_WORLD.Abort(1);
         exit(-1);
         }
     }
@@ -737,7 +737,6 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
       (*ApplicationTools::error << "Site " << sites->getSite(i).getPosition() << "\tlog likelihood = " << tl->getLogLikelihoodForASite(i)).endLine();
       }
     ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularily if datasets are big (>~500 sequences).");
-        MPI::COMM_WORLD.Abort(1);
     exit(-1);
     }
   
@@ -780,7 +779,6 @@ string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
     }
     else {
       std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
-        MPI::COMM_WORLD.Abort(1);
       exit(-1);
     }
   }
@@ -803,7 +801,6 @@ string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
     }
     else {
       std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
-      MPI::COMM_WORLD.Abort(1);
       exit(-1);
     }
   }
@@ -842,7 +839,6 @@ void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
     }
     else {
       std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
-      MPI::COMM_WORLD.Abort(1);
       exit(-1);
     }
   }
