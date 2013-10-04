@@ -3,7 +3,7 @@
 # Created: 12/05/2010
 
 # Global parameters
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(phyldog CXX)
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
@@ -33,6 +33,20 @@ IF(BUILD_STATIC)
   MESSAGE("-- Static linkage requested.")
   SET(CMAKE_CXX_FLAGS "-static -static-libgcc ${CMAKE_CXX_FLAGS}")
 ENDIF()
+
+
+
+IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+SET(CMAKE_BUILD_TYPE Distribution)
+ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+SET(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Weffc++ -Wshadow")
+SET(CMAKE_C_FLAGS_DEBUG "-g -Wall -Weffc++ -Wshadow")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Weffc++ -Wshadow")
+SET(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Weffc++ -Wshadow")
+SET(CMAKE_CXX_FLAGS_DISTRIBUTION "-O3 -w")
+SET(CMAKE_C_FLAGS_DISTRIBUTION "-O3 -w")
+
+
 
 #here is a useful function:
 MACRO(IMPROVED_FIND_LIBRARY OUTPUT_LIBS lib_name include_to_find)
@@ -72,9 +86,6 @@ ELSE(
   SET( CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}" ))
 ENDIF(CMAKE_INSTALL_PREFIX)
 
-#Compiling executables
-ADD_EXECUTABLE(phyldog ReconcileDuplications.cpp)
-
 #Finidng the appropriate openmp flags
 # ENABLE_LANGUAGE(C)
 # FIND_PACKAGE( OpenMP)
@@ -91,36 +102,30 @@ ADD_EXECUTABLE(phyldog ReconcileDuplications.cpp)
 IMPROVED_FIND_LIBRARY(LIBS bpp-phyl Bpp/Phyl/Tree.h)
 IMPROVED_FIND_LIBRARY(LIBS bpp-seq Bpp/Seq/Alphabet/Alphabet.h)
 IMPROVED_FIND_LIBRARY(LIBS bpp-core Bpp/Clonable.h)
-#IMPROVED_FIND_LIBRARY(LIBS boost_serialization)
-#IMPROVED_FIND_LIBRARY(LIBS boost_mpi)
 
 #Boost libraries:
-find_package(Boost COMPONENTS serialization mpi REQUIRED)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
+include(FindBoostAlt)
+find_package(BoostAlt COMPONENTS serialization mpi REQUIRED)
 
 # Require MPI for this project:
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH}) 
 set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
 set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
-#include_directories(MPI_INCLUDE_PATH)
+
+
+#Compiling executables
+SET(PHYLDOG_SRCS SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h SpeciesTreeExploration.h SpeciesTreeExploration.cpp ReconciliationTools.h ReconciliationTools.cpp DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h COALGeneTreeLikelihood.cpp COALGeneTreeLikelihood.h GeneTreeLikelihood.cpp GeneTreeLikelihood.h COALTools.cpp COALTools.h GenericTreeExplorationAlgorithms.h GenericTreeExplorationAlgorithms.cpp GeneTreeAlgorithms.h GeneTreeAlgorithms.cpp FastRHomogeneousTreeLikelihood.h FastRHomogeneousTreeLikelihood.cpp)
+ADD_EXECUTABLE(phyldog ReconcileDuplications.cpp ${PHYLDOG_SRCS})
+
 
 target_link_libraries(phyldog 
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_MPI_LIBRARY}
   ${MPI_LIBRARIES}
+  ${LIBS}
 )
-
-#Compiling executables
-SET(RECDUP_SRCS SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h SpeciesTreeExploration.h SpeciesTreeExploration.cpp ReconciliationTools.h ReconciliationTools.cpp DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h COALGeneTreeLikelihood.cpp COALGeneTreeLikelihood.h GeneTreeLikelihood.cpp GeneTreeLikelihood.h COALTools.cpp COALTools.h GenericTreeExplorationAlgorithms.h GenericTreeExplorationAlgorithms.cpp GeneTreeAlgorithms.h GeneTreeAlgorithms.cpp FastRHomogeneousTreeLikelihood.h FastRHomogeneousTreeLikelihood.cpp)
-ADD_LIBRARY(RECDUP_LIB ${RECDUP_SRCS})
-
-
-TARGET_LINK_LIBRARIES(phyldog RECDUP_LIB ${LIBS} ${MPI_LIBRARIES})
-#ADD_DEPENDENCIES(phyldog ReconcileDuplications.cpp SpeciesTreeLikelihood.cpp SpeciesTreeLikelihood.h SpeciesTreeExploration.h SpeciesTreeExploration.cpp DLGeneTreeLikelihood.cpp DLGeneTreeLikelihood.h COALGeneTreeLikelihood.cpp COALGeneTreeLikelihood.h GeneTreeLikelihood.cpp GeneTreeLikelihood.h ReconciliationTools.h ReconciliationTools.cpp COALTools.cpp COALTools.h GenericTreeExplorationAlgorithms.h GenericTreeExplorationAlgorithms.cpp GeneTreeAlgorithms.h GeneTreeAlgorithms.cpp)
-
-
-
-
 # Libtool-like version number
 # CURRENT:REVISION:AGE => file.so.(C-A).A.R
 # current:  The most recent interface number that this library implements.
