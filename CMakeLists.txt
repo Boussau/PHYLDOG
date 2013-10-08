@@ -66,12 +66,13 @@ IMPROVED_FIND_LIBRARY(LIBS bpp-seq Bpp/Seq/Alphabet/Alphabet.h)
 IMPROVED_FIND_LIBRARY(LIBS bpp-core Bpp/Clonable.h)
 
 #Boost libraries:
-# if boost version >= 1.51, mpi is no longer available as a lib
-# (just headers)
+
 find_package(Boost COMPONENTS serialization REQUIRED)
-IF(Boost_VERSION LESS 1.51)
-  find_package(Boost COMPONENTS mpi)
-ENDIF(Boost_VERSION LESS 1.51)
+# for recent boost, we just need to include boost headers
+# for versions < 1.51, we also need to require the lib as well
+IF(Boost_LIB_VERSION VERSION_LESS 1_51)
+  find_package(Boost COMPONENTS mpi REQUIRED)
+ENDIF(Boost_LIB_VERSION VERSION_LESS 1_51)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
