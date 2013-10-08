@@ -70,9 +70,9 @@ IMPROVED_FIND_LIBRARY(LIBS bpp-core Bpp/Clonable.h)
 find_package(Boost COMPONENTS serialization REQUIRED)
 # for recent boost, we just need to include boost headers
 # for versions < 1.51, we also need to require the lib as well
-IF(Boost_LIB_VERSION VERSION_LESS 1_51)
+IF(${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} VERSION_LESS 1_51)
   find_package(Boost COMPONENTS mpi REQUIRED)
-ENDIF(Boost_LIB_VERSION VERSION_LESS 1_51)
+ENDIF(${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} VERSION_LESS 1_51)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
