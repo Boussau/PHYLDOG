@@ -66,7 +66,13 @@ IMPROVED_FIND_LIBRARY(LIBS bpp-seq Bpp/Seq/Alphabet/Alphabet.h)
 IMPROVED_FIND_LIBRARY(LIBS bpp-core Bpp/Clonable.h)
 
 #Boost libraries:
-find_package(Boost COMPONENTS mpi serialization REQUIRED)
+# if boost version >= 1.51, mpi is no longer available as a lib
+# (just headers)
+find_package(Boost COMPONENTS serialization REQUIRED)
+IF(Boost_VERSION LESS 1.51)
+  find_package(Boost COMPONENTS mpi)
+ENDIF(Boost_VERSION LESS 1.51)
+
 include_directories(${Boost_INCLUDE_DIRS})
 
 
@@ -77,7 +83,7 @@ set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
 set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 
 # Source Directory
-add_subdirectory(src)
+add_subdirectory(src ${PHYLDOG_BINARY_DIR})
 
 
 # Packager
