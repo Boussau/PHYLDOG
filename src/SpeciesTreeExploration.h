@@ -1,20 +1,23 @@
-//
-// File: SpeciesTreeExploration.h
-// Created by: Bastien Boussau
-// Created on: Tu March 26 2008
-//
-
 /*
-Copyright or � or Copr. CNRS, (November 16, 2004)
+Copyright or © or Copr. Centre National de la Recherche Scientifique
+contributor : Bastien Boussau (2009-2013)
 
-This software is a computer program whose purpose is to provide classes
-for phylogenetic data analysis.
+bastien.boussau@univ-lyon1.fr
 
-This software is governed by the CeCILL  license under French law and
+This software is a bioinformatics computer program whose purpose is to
+simultaneously build gene and species trees when gene families have
+undergone duplications and losses. It can analyze thousands of gene
+families in dozens of genomes simultaneously, and was presented in
+an article in Genome Research. Trees and parameters are estimated
+in the maximum likelihood framework, by maximizing theprobability
+of alignments given the species tree, the gene trees and the parameters
+of duplication and loss.
+
+This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.  You can  use, 
 modify and/ or redistribute the software under the terms of the CeCILL
 license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info". 
+"http://www.cecill.info".
 
 As a counterpart to the access to the source code and  rights to copy,
 modify and redistribute granted by the license, users are provided only
