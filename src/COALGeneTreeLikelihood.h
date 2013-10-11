@@ -4,14 +4,13 @@ contributor : Bastien Boussau (2009-2013)
 
 bastien.boussau@univ-lyon1.fr
 
-This software is a bioinformatics computer program whose purpose is to
-simultaneously build gene and species trees when gene families have
-undergone duplications and losses. It can analyze thousands of gene
-families in dozens of genomes simultaneously, and was presented in
-an article in Genome Research. Trees and parameters are estimated
-in the maximum likelihood framework, by maximizing theprobability
-of alignments given the species tree, the gene trees and the parameters
-of duplication and loss.
+This software is a computer program whose purpose is to simultaneously build 
+gene and species trees when gene families have undergone duplications and 
+losses. It can analyze thousands of gene families in dozens of genomes 
+simultaneously, and was presented in an article in Genome Research. Trees and 
+parameters are estimated in the maximum likelihood framework, by maximizing 
+theprobability of alignments given the species tree, the gene trees and the 
+parameters of duplication and loss.
 
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.  You can  use, 
