@@ -1888,7 +1888,8 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
           
                     if (logL - 0.01 > bestlogL) 
                     {
-          //  std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
+                        std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
+                        writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> (&(bestRlk->getTree()))->clone(), _spTree, _seqSp, true ) ;
                         betterTree = true;
                         bestlogL = logL;
                         bestScenarioLk = candidateScenarioLk;
@@ -2233,7 +2234,9 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
               //If the candidate tree has a DL + sequence Lk better than the current best
               if (logL - 0.01 > bestlogL) 
               {
-              //  std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
+                std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
+                writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> (&(bestRlk->getTree()))->clone(), _spTree, _seqSp, true ) ;
+
                 betterTree = true;
                 bestlogL = logL;
                 bestScenarioLk = candidateScenarioLk;
