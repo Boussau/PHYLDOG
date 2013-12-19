@@ -52,6 +52,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Phyl/Tree.h>
 #include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
 #include <Bpp/Phyl/Io/Newick.h>
+#include <Bpp/Phyl/Io/Nhx.h>
 
 
 #include <Bpp/Seq/Alphabet.all>
@@ -93,6 +94,8 @@ const int MAXFILENAMESIZE = 500;
 const int MAXSPECIESTREESIZE = 10000; //size of the species tree, in number of CHARs, as it is written in Newick format
 const double DIST = 0.1;
 
+
+void writeReconciledGeneTree (map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, bool temporary ) ;
 void assignArbitraryBranchLengths(TreeTemplate<Node> & tree);
 void reNumber (TreeTemplate<Node> & tree, Node * noeud, int & index);
 void reNumber (TreeTemplate<Node> & tree);
@@ -329,19 +332,19 @@ void annotateGeneTreeWithDuplicationEvents (TreeTemplate<Node> & spTree,
                                             std::map<std::string, std::string > seqSp,
                                             std::map<std::string, int > spID); 
 void annotateGeneTreeWithScoredDuplicationEvents (TreeTemplate<Node> & spTree, 
-												  TreeTemplate<Node> & geneTree, 
-												  Node * node, 
-												  std::map<std::string, std::string > seqSp,
-												  std::map<std::string, int > spID);
+                          TreeTemplate<Node> & geneTree, 
+                          Node * node, 
+                          std::map<std::string, std::string > seqSp,
+                          std::map<std::string, int > spID);
 
 /*void editDuplicationNodesMuffato2(TreeTemplate<Node> & spTree, 
-								 TreeTemplate<Node> & geneTree,
-								 Node * node,
-								 double editionThreshold) ;
+                 TreeTemplate<Node> & geneTree,
+                 Node * node,
+                 double editionThreshold) ;
 void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
-								 TreeTemplate<Node> & geneTree,
-								 Node * node,
-								 double editionThreshold) ;
+                 TreeTemplate<Node> & geneTree,
+                 Node * node,
+                 double editionThreshold) ;
 */
 
 //To sort in descending order
