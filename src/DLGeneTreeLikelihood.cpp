@@ -2429,7 +2429,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
   //    std::cout <<"Here "<<std::endl;
     if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
         //We don't do SPRs
-        //std::cout << "WE DONT DO SPRS"<<std::endl;
+        std::cout << "WE DONT DO SPRS"<<std::endl;
         computeReconciliationLikelihood();
         return;
     }

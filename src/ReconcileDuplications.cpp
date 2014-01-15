@@ -1394,7 +1394,10 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
               if (timing) 
               {
                 totalTime = ApplicationTools::getTime() - startingTime;
-                std::cout << "Family "<< assignedFilenames[i] <<"; Time for Muffato exploration: "<<  totalTime << " s." <<std::endl;
+                if (rearrange)
+                {
+                  std::cout << "Family "<< assignedFilenames[i] <<"; Time for Muffato exploration: "<<  totalTime << " s." <<std::endl;
+                }
                 startingTime = ApplicationTools::getTime();
               }
               if (SPRalgorithm == "normal")
