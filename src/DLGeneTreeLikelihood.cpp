@@ -2597,12 +2597,13 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
        rlk->getBranchLengthsParameters(),backupListener.get(), 
        tolerance, tlEvalMax, messageHandler, messageHandler, 0);*/
       std::cout << "Branch length optimization."<<std::endl;
-      numEval = optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (rlk), 
-                            rlk->getBranchLengthsParameters(), 
-                            bestRlk->getValue() + candidateScenarioLk - bestScenarioLk,
-                            backupListener.get(), 
-                            tolerance, tlEvalMax, messageHandler, messageHandler, 0);
-      //      std::cout <<"Here 17"<<std::endl;
+      numEval = OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (rlk), rlk->getBranchLengthsParameters(),backupListener.get(), tolerance, tlEvalMax, messageHandler, messageHandler, 0);
+      // numEval = optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (rlk), 
+      //                       rlk->getBranchLengthsParameters(), 
+      //                       bestRlk->getValue() + candidateScenarioLk - bestScenarioLk,
+      //                       backupListener.get(), 
+      //                       tolerance, tlEvalMax, messageHandler, messageHandler, 0);
+      // //      std::cout <<"Here 17"<<std::endl;
 
         std::cout << "NUM branch length EVALUATIONS: "<<numEval <<std::endl;
        std::cout << "optimized Muffato tree: " << TreeTemplateTools::treeToParenthesis(rlk->getTree(), false) <<std::endl;
