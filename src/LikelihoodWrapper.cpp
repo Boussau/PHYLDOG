@@ -9,8 +9,9 @@ extern "C" {
 
 
 using namespace std;
-using namespace bpp;
 
-loadPLLtree(){
-  alignmentData_PLL = pllParseAlignmentFile(PLL_FORMAT_FASTA, fastaForPLL);
+LikelihoodWrapper::loadPLLtree(){
+  // using pllNewickParseString (""); 
+  
+  alignmentData_PLL() = pllParseAlignmentFile(PLL_FORMAT_FASTA, fastaForPLL);
 }

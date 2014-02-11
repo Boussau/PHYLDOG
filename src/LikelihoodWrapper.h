@@ -52,7 +52,7 @@ extern "C" {
 
 
 
-Class LikelihoodWrapper {
+class LikelihoodWrapper {
 private:
   std::string treeFile;
   std::string alignmentFile;
@@ -118,12 +118,12 @@ private:
   /**
   Defines the real sequences names to simplified ones for PLL
   */
-  std::map<string,string> realToStrict;
+  std::map<std::string,std::string> realToStrict;
   
   /**
   Defines simplified names for PLL to real sequence ones
   */
-  std::map<string,string> strictToReal;
+  std::map<std::string,std::string> strictToReal;
 
   
   /**
