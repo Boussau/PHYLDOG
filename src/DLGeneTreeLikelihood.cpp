@@ -1889,7 +1889,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
                     if (logL - 0.01 > bestlogL) 
                     {
                         std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
-                        writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> (&(bestRlk->getTree()))->clone(), _spTree, _seqSp, true ) ;
+
                         betterTree = true;
                         bestlogL = logL;
                         bestScenarioLk = candidateScenarioLk;
@@ -1927,6 +1927,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
                                 break;
                             }
                         }
+						writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), _spTree, _seqSp, true ) ;
             
                     }
                     else {
@@ -2235,8 +2236,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
               if (logL - 0.01 > bestlogL) 
               {
                 std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
-                writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> (&(bestRlk->getTree()))->clone(), _spTree, _seqSp, true ) ;
-
                 betterTree = true;
                 bestlogL = logL;
                 bestScenarioLk = candidateScenarioLk;
@@ -2272,6 +2271,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
                     break;
                   }
                 }
+				                  writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), _spTree, _seqSp, true ) ;
                 break; //If we have found one topology better than the current one for seqlk+scenlk
               }
               else {
@@ -2617,7 +2617,6 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
       if (logL - 0.1 > bestlogL) 
       {
         std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
-        writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> (&(bestRlk->getTree()))->clone(), _spTree, _seqSp, true ) ;
         betterTree = true;
         bestlogL = logL;
         bestScenarioLk = candidateScenarioLk;
@@ -2657,6 +2656,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
             break;
           }
         }
+		          writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), _spTree, _seqSp, true ) ;
         //  std::cout <<"Here 17e"<<std::endl;
 
       }

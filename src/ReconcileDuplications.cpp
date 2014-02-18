@@ -944,29 +944,6 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
     Nhx *nhx = new Nhx();
     string temp = reconciledTrees[i][rightIndex];                                                                        
   if (reconciliationModel == "DL") {
-      /*        suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
-        reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
-
-        reconcTree = reconcTree + suffix;
-        Nhx *nhx = new Nhx();
-        string temp = reconciledTrees[i][rightIndex];
-       
-            TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
-            temp = duplicationTrees[i][rightIndex];
-
-            TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);
-            breadthFirstreNumber (*spTree);        
-            std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*spTree);
-            std::map <std::string, std::string> seqSp = treeLikelihoods[i]->getSeqSp();
-
-            annotateGeneTreeWithDuplicationEvents (*spTree, 
-                                                   *geneTree, 
-                                                   geneTree->getRootNode(), 
-                                                   treeLikelihoods[i]->getSeqSp(),
-                                                   spId); 
-            out.open (reconcTree.c_str(), std::ios::out);
-            nhx->write(*geneTree, out);
-            out.close();*/
       TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
       temp = duplicationTrees[i][rightIndex]; 
       TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);                                                                  
