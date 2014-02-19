@@ -26,3 +26,5 @@ target_link_libraries(phyldog
   ${MPI_LIBRARIES}
   ${LIBS}
 )
+
+install(TARGETS phyldog DESTINATION bin)
