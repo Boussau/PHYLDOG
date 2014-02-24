@@ -46,6 +46,10 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include<string>
 
+#include<Bpp/Phyl/Node.h>
+#include<Bpp/Phyl/TreeTemplate.h>
+
+
 extern "C" {
 #include <pll/pll.h>
 }
@@ -108,12 +112,12 @@ private:
   /**
   Alignment strictly formatted for PLL
   */
-  string fastaForPLL;
+  std::string fastaForPLL;
   
   /**
   Newick strictly formatted for PLL
   */
-  string newickForPLL;
+  std::string newickForPLL;
   
   /**
   Defines the real sequences names to simplified ones for PLL
@@ -125,15 +129,34 @@ private:
   */
   std::map<std::string,std::string> strictToReal;
 
-  
-  /**
-  Loads the PLL tree.
-  */
-  
   ///@}
   
   
+  /** @name Original BPP Data
+  *  BPP data are used as reference in this wrapper
+  ///@{
   
+  /**
+  Alignment strictly formatted for PLL
+  */
+  bpp::TreeTemplate<bpp::Node> tree;
+  
+  /**
+  Newick strictly formatted for PLL
+  */
+  std::string newickForPLL;
+  
+  /**
+  Defines the real sequences names to simplified ones for PLL
+  */
+  std::map<std::string,std::string> realToStrict;
+  
+  /**
+  Defines simplified names for PLL to real sequence ones
+  */
+  std::map<std::string,std::string> strictToReal;
+
+  ///@}
 public:
   
   LikelihoodWrapper(std::string treeFile, std::string alignmentFile);
@@ -145,6 +168,6 @@ public:
 
 #else
 
-Class LikelihoodWrapper;
+class LikelihoodWrapper;
 
 #endif
