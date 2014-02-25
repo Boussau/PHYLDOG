@@ -1,0 +1,4 @@
+./ml alphabet=DNA input.sequence.file=data/LSU.phy input.sequence.sites_to_use=all init.tree=user input.tree.file=data/LSU.dnd input.tree.format=Phylip model=GTR rate_distribution=Gamma\(n=4,alpha=1\) likelihood.recursion=simple likelihood.recursion_simple.compression=recursive output.tree.file=data/output.tree
+
+# Avec PLL :
+LD_LIBRARY_PATH=/panusr/Libs/libpll-1.0.0/lib ./ml-pll alphabet=DNA input.sequence.file=data/LSU.fasta2 input.sequence.sites_to_use=all init.tree=user input.tree.file=data/LSU.dnd input.tree.format=Phylip model=GTR rate_distribution=Gamma\(n=4,alpha=1\) likelihood.recursion=simple likelihood.recursion_simple.compression=recursive output.tree.file=data/output.tree pll.sites.partition=data/site-partition.txt
