@@ -96,14 +96,38 @@ private:
   pllNewickTree * newick_PLL;
   
   /**
+  The PLL partitions list.
+  */
+  partitionList * partitions_PLL;
+  
+  /**
   The PLL partition information.
   */  
   pllQueue * partitionInfo_PLL;
     
+  
+  /**
+  Loads the PLL alignment
+  */
+  loadPLLalignment(char* path);
+  
+  
   /**
   Loads the PLL tree.
   */
-  loadPLLtree();
+  loadPLLtree(char* path);
+  
+  /**
+  Initializing partitions for PLL.
+  */
+  loadPLLpartitions(char* path);
+  
+  /**
+  Initializing PLL tree: tr_PLL.
+  */
+  initializePLL();
+  
+  
   ///@}
   
   
@@ -165,6 +189,8 @@ public:
   LikelihoodWrapper(std::string treeFile, std::string alignmentFile);
   
   double getLikelihood();
+  
+  
   
   
 };
