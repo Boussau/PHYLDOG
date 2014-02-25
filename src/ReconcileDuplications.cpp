@@ -118,31 +118,31 @@ void help()
 
 
 std::vector <int> operator + (std::vector <int> x, std::vector <int> y) {
-	unsigned int temp=x.size();
-	if (temp!=y.size()) {
-		std::cout <<"problem : adding two std::vectors of unequal sizes."<<std::endl;
+  unsigned int temp=x.size();
+  if (temp!=y.size()) {
+    std::cout <<"problem : adding two std::vectors of unequal sizes."<<std::endl;
         MPI::COMM_WORLD.Abort(1);
-		exit (-1);
-	}
+    exit (-1);
+  }
  std::vector<int> result;
-	for(unsigned int i = 0 ; i<temp ; i++){
-		result.push_back(x[i]+y[i]);
-	}
-	return result;
+  for(unsigned int i = 0 ; i<temp ; i++){
+    result.push_back(x[i]+y[i]);
+  }
+  return result;
 }
 
 std::vector <double> operator + (std::vector <double> x, std::vector <double> y) {
-	unsigned int temp=x.size();
-	if (temp!=y.size()) {
-		std::cout <<"problem : adding two std::vectors of unequal sizes."<<std::endl;
+  unsigned int temp=x.size();
+  if (temp!=y.size()) {
+    std::cout <<"problem : adding two std::vectors of unequal sizes."<<std::endl;
         MPI::COMM_WORLD.Abort(1);
-		exit (-1);
-	}
+    exit (-1);
+  }
  std::vector<double> result;
-	for(unsigned int i = 0 ; i<temp ; i++){
-		result.push_back(x[i]+y[i]);
-	}
-	return result;
+  for(unsigned int i = 0 ; i<temp ; i++){
+    result.push_back(x[i]+y[i]);
+  }
+  return result;
 }
 
 /******************************************************************************/
@@ -181,8 +181,8 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                                std::vector <DiscreteDistribution *> & allDistributions, 
                                std::vector <TreeTemplate<Node> *> & allGeneTrees, 
                                std::vector <TreeTemplate<Node> *> & allUnrootedGeneTrees, 
-							   std::vector < std::map <std::string, std::string> >& allSeqSps, 
-							   std::vector<unsigned int>& allSprLimitGeneTree,
+                 std::vector < std::map <std::string, std::string> >& allSeqSps, 
+                 std::vector<unsigned int>& allSprLimitGeneTree,
                                string &reconciliationModel) 
 {
   bool avoidFamily;
@@ -215,8 +215,8 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       }
       
       AttributesTools::actualizeAttributesMap(params, famSpecificParams);
-	  //COAL or DL?
-	  reconciliationModel = ApplicationTools::getStringParameter("reconciliation.model", params, "DL", "", true, false);
+    //COAL or DL?
+    reconciliationModel = ApplicationTools::getStringParameter("reconciliation.model", params, "DL", "", true, false);
 
       //Sequences and model of evolution
       Alphabet * alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
@@ -232,54 +232,54 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
       unsigned int numSites = allSites->getNumberOfSites();
       ApplicationTools::displayResult("Number of sequences", TextTools::toString(allSites->getNumberOfSequences()));
       ApplicationTools::displayResult("Number of sites", TextTools::toString(numSites));
-	  
-	  std::vector <std::string> seqsToRemove;
-	  VectorSiteContainer * sites;
-	  
-	  if (numSites == 0 ) {
-		  std::cout<<"WARNING: Discarding a family whose alignment is 0 site long: "<< seqFile <<std::endl;
-		  avoidFamily = true;
+    
+    std::vector <std::string> seqsToRemove;
+    VectorSiteContainer * sites;
+    
+    if (numSites == 0 ) {
+      std::cout<<"WARNING: Discarding a family whose alignment is 0 site long: "<< seqFile <<std::endl;
+      avoidFamily = true;
           numDeletedFamilies = numDeletedFamilies+1;
-		  delete allSites;   
-	  }
-	  if (!avoidFamily) {
-		  unsigned int minPercentSequence = ApplicationTools::getIntParameter("sequence.removal.threshold",params,0);
-		  unsigned int threshold = (int) ((double)minPercentSequence * (double)numSites / 100 );
-		  
-		  
-		  if (minPercentSequence > 0) {
-			  for ( int j = allSites->getNumberOfSequences()-1 ; j >= 0 ; j--) {
-				  if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(j) ) < threshold ) {
-					  ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(j).getName()  );
-					  // allSites->deleteSequence(i);
-					  seqsToRemove.push_back(allSites->getSequence(j).getName());
-				  }
-			  }
-		  }
-		  
-		  for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
-		  {
-			  std::vector <std::string> seqNames = allSites->getSequencesNames();
-			  if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
-			  {
-				  allSites->deleteSequence(seqsToRemove[j]);
-			  }
-			  else 
-				  std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
-		  }
-		  
-		  
-		  ApplicationTools::displayResult("# sequences post size-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
-		  seqsToRemove.clear();
-		  
-		  if (allSites->getNumberOfSequences() <= 1 ) {
-			  std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
-			  avoidFamily = true;
-			  numDeletedFamilies = numDeletedFamilies+1;
-		  }
-		  sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
-		  delete allSites;   
-	  }
+      delete allSites;   
+    }
+    if (!avoidFamily) {
+      unsigned int minPercentSequence = ApplicationTools::getIntParameter("sequence.removal.threshold",params,0);
+      unsigned int threshold = (int) ((double)minPercentSequence * (double)numSites / 100 );
+      
+      
+      if (minPercentSequence > 0) {
+        for ( int j = allSites->getNumberOfSequences()-1 ; j >= 0 ; j--) {
+          if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(j) ) < threshold ) {
+            ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(j).getName()  );
+            // allSites->deleteSequence(i);
+            seqsToRemove.push_back(allSites->getSequence(j).getName());
+          }
+        }
+      }
+      
+      for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
+      {
+        std::vector <std::string> seqNames = allSites->getSequencesNames();
+        if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
+        {
+          allSites->deleteSequence(seqsToRemove[j]);
+        }
+        else 
+          std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
+      }
+      
+      
+      ApplicationTools::displayResult("# sequences post size-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
+      seqsToRemove.clear();
+      
+      if (allSites->getNumberOfSequences() <= 1 ) {
+        std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
+        avoidFamily = true;
+        numDeletedFamilies = numDeletedFamilies+1;
+      }
+      sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
+      delete allSites;   
+    }
       
       //method to optimize the gene tree root; only useful if heuristics.level!=0.
       bool rootOptimization = false;
@@ -473,10 +473,10 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
                       geneTree = 0;
                   }        
                   geneTree = unrootedGeneTree->clone(); 
-				  breadthFirstreNumber (*geneTree);
-				  std::cout << " Problem tree? : "<<TreeTemplateTools::treeToParenthesis(*geneTree, true) << std::endl;
- 					
-				  geneTree->newOutGroup( geneTree->getLeavesId()[0] ); 
+          breadthFirstreNumber (*geneTree);
+          std::cout << " Problem tree? : "<<TreeTemplateTools::treeToParenthesis(*geneTree, true) << std::endl;
+          
+          geneTree->newOutGroup( geneTree->getLeavesId()[0] ); 
               }
               else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
           }
@@ -642,29 +642,29 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           //Outputting the starting tree, with species names, and with sequence names
           Newick newick(true);
           std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params,"none");
-		  try
-		  {
-			  Nhx *nhx = new Nhx();
-			  annotateGeneTreeWithDuplicationEvents (*tree, 
-													 *geneTree, 
-													 geneTree->getRootNode(), 
-													 seqSp, spId); 
-			  nhx->write(*geneTree, startingGeneTreeFile, true);
+      try
+      {
+        Nhx *nhx = new Nhx();
+        annotateGeneTreeWithDuplicationEvents (*tree, 
+                           *geneTree, 
+                           geneTree->getRootNode(), 
+                           seqSp, spId); 
+        nhx->write(*geneTree, startingGeneTreeFile, true);
 
-			 // newick.write(*geneTree, startingGeneTreeFile, true);
-		  }
-		  catch (IOException e)
-		  {
-			  cout << "Problem writing tree to file "<< startingGeneTreeFile <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
-		  }
-		  try
-		  {
-			  newick.write(*treeWithSpNames, startingGeneTreeFile+"_sp_names", true);
-		  }
-		  catch (IOException e)
-		  {
-			  cout << "Problem writing tree to file "<< startingGeneTreeFile+"_sp_names" <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
-		  }
+       // newick.write(*geneTree, startingGeneTreeFile, true);
+      }
+      catch (IOException e)
+      {
+        cout << "Problem writing tree to file "<< startingGeneTreeFile <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
+      }
+      try
+      {
+        newick.write(*treeWithSpNames, startingGeneTreeFile+"_sp_names", true);
+      }
+      catch (IOException e)
+      {
+        cout << "Problem writing tree to file "<< startingGeneTreeFile+"_sp_names" <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
+      }
           //std::cout << " Rooted tree? : "<<TreeTemplateTools::treeToParenthesis(*geneTree, true) << std::endl;
           
           GeneTreeLikelihood* tl;
@@ -739,14 +739,14 @@ void parseAssignedGeneFamilies(const mpi::communicator & world,
           allDistributions.push_back(rDist);
           allGeneTrees.push_back(geneTree->clone());
           allUnrootedGeneTrees.push_back(unrootedGeneTree->clone());
-		  allSeqSps.push_back(seqSp);
-		  allSprLimitGeneTree.push_back(sprLimitGeneTree);
-		//  delete rDist;
-		//  delete model;
-		  //delete sites;
-		
-		  // delete alphabet;
-		  
+      allSeqSps.push_back(seqSp);
+      allSprLimitGeneTree.push_back(sprLimitGeneTree);
+    //  delete rDist;
+    //  delete model;
+      //delete sites;
+    
+      // delete alphabet;
+      
 /*          if (tl)
           delete tl;
           if (params)
@@ -941,29 +941,14 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
   int rightIndex = bestIndex-startRecordingTreesFrom ;
   for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
     {
-        suffix = ApplicationTools::getStringParameter("output.file.suffix", allParams[i], "", "", false, false);
-        reconcTree = ApplicationTools::getStringParameter("output.reconciled.tree.file", allParams[i], "reconciled.tree", "", false, false);
+    Nhx *nhx = new Nhx();
+    string temp = reconciledTrees[i][rightIndex];                                                                        
+  if (reconciliationModel == "DL") {
+      TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
+      temp = duplicationTrees[i][rightIndex]; 
+      TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);                                                                  
+      writeReconciledGeneTree ( allParams[i], geneTree,  spTree, treeLikelihoods[i]->getSeqSp(), false ); 
 
-        reconcTree = reconcTree + suffix;
-        Nhx *nhx = new Nhx();
-        string temp = reconciledTrees[i][rightIndex];
-         if (reconciliationModel == "DL") {
-            TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
-            temp = duplicationTrees[i][rightIndex];
-
-            TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);
-            breadthFirstreNumber (*spTree);        
-            std::map <std::string, int> spId = computeSpeciesNamesToIdsMap(*spTree);
-            std::map <std::string, std::string> seqSp = treeLikelihoods[i]->getSeqSp();
-
-            annotateGeneTreeWithDuplicationEvents (*spTree, 
-                                                   *geneTree, 
-                                                   geneTree->getRootNode(), 
-                                                   treeLikelihoods[i]->getSeqSp(),
-                                                   spId); 
-            out.open (reconcTree.c_str(), std::ios::out);
-            nhx->write(*geneTree, out);
-            out.close();
             dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams[i], "duplications.tree", "", false, false);
 
             dupTree = dupTree + suffix;
@@ -978,7 +963,8 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
             delete spTree;
         }
         else if (reconciliationModel == "COAL") {
-            TreeTemplate<Node> * geneTree=TreeTemplateTools::parenthesisToTree(temp);
+
+    TreeTemplate<Node> * geneTree=TreeTemplateTools::parenthesisToTree(temp);
             out.open (reconcTree.c_str(), std::ios::out);
             nhx->write(*geneTree, out);
             out.close();
@@ -1011,21 +997,21 @@ void outputGeneTrees (std::vector<std::string> & assignedFilenames,
 
 int main(int args, char ** argv)
 {
-	if(args == 1)
-	{
-		help();
-		exit(0);
-	}
+  if(args == 1)
+  {
+    help();
+    exit(0);
+  }
 
-	unsigned int rank, size;
-	unsigned int server = 0;
+  unsigned int rank, size;
+  unsigned int server = 0;
 
-	//Using BOOST :
-	mpi::environment env(args, argv);
-	mpi::communicator world;
-	rank = world.rank();
-	size = world.size();
-	std::string line;
+  //Using BOOST :
+  mpi::environment env(args, argv);
+  mpi::communicator world;
+  rank = world.rank();
+  size = world.size();
+  std::string line;
 
   if (size==1) {
     std::cout <<"\n\n\n\t\tError: this program can only run if 2 or more processes are used."<<std::endl;
@@ -1035,10 +1021,10 @@ int main(int args, char ** argv)
   }
   
   
-	try {
-		ApplicationTools::startTimer();
+  try {
+    ApplicationTools::startTimer();
         //All processors parse the main options
-		std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
+    std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
 
     
         //##################################################################################################################
@@ -1047,7 +1033,7 @@ int main(int args, char ** argv)
         //##################################################################################################################
         //##################################################################################################################
         
-		if (rank == server) { 
+    if (rank == server) { 
             
             /*
             int z = 0;
@@ -1078,26 +1064,26 @@ int main(int args, char ** argv)
 
             spTL.MLSearch();
                         
-			std::cout << "PHYLDOG's done. Bye." << std::endl;
-			ApplicationTools::displayTime("Total execution time:");
+      std::cout << "PHYLDOG's done. Bye." << std::endl;
+      ApplicationTools::displayTime("Total execution time:");
             MPI_Barrier(world);  
             MPI::Finalize( );
-		}//End if at the server node
+    }//End if at the server node
     
     
     
     
     
         
-		//##################################################################################################################
+    //##################################################################################################################
         //##################################################################################################################
         //############################################# IF AT A CLIENT NODE ################################################
         //##################################################################################################################
         //##################################################################################################################
         if (rank >server)
         {
-	/*  
-	  int z = 0;
+  /*  
+    int z = 0;
              //   char hostname[256];
              //gethostname(hostname, sizeof(hostname));
              std::cout <<"PID: "<<getpid()<<std::endl;
@@ -1108,7 +1094,7 @@ int main(int args, char ** argv)
              std::cout << z <<std::endl;
              sleep(5);
              }*/
-	  
+    
             ApplicationTools::startTimer();
             bool debug = ApplicationTools::getBooleanParameter("debug",params,false);
             string path = ApplicationTools::getStringParameter("PATH", params, "", "", true, false);
@@ -1150,7 +1136,7 @@ int main(int args, char ** argv)
             std::vector < std::vector <unsigned int> > allNum22Lineages; 
             std::vector < std::vector <unsigned int> > allNum12Lineages; 
 
-			std::string SPRalgorithm;
+      std::string SPRalgorithm;
             std::string currentSpeciesTree;
             std::string reconciliationModel;
             
@@ -1195,8 +1181,8 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
             std::vector <DiscreteDistribution *> allDistributions;
             std::vector <TreeTemplate<Node> *> allGeneTrees;
             std::vector <TreeTemplate<Node> *> allUnrootedGeneTrees;
-			std::vector < std::map <std::string, std::string> > allSeqSps ;
-			std::vector < unsigned int> allSprLimitGeneTree ;
+      std::vector < std::map <std::string, std::string> > allSeqSps ;
+      std::vector < unsigned int> allSprLimitGeneTree ;
             unsigned int numDeletedFamilies=0;
             unsigned int bestIndex = 0;
             bool stop = false; 
@@ -1244,7 +1230,7 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                                       backupTreeLikelihoods, allParams, 
                                       allAlphabets, allDatasets, allModels, 
                                       allDistributions, allGeneTrees, allUnrootedGeneTrees, allSeqSps, 
-									  allSprLimitGeneTree, reconciliationModel);
+                    allSprLimitGeneTree, reconciliationModel);
             std::vector <std::vector <std::string> > reconciledTrees;
             std::vector <std::vector <std::string> > duplicationTrees;
             std::vector <std::vector <std::string> > lossTrees;
@@ -1341,7 +1327,7 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                 resetVector(num0Lineages);
                 resetVector(num1Lineages);
                 resetVector(num2Lineages);
-				resetVector(num12Lineages);
+        resetVector(num12Lineages);
                 resetVector(num22Lineages);
                 for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
                 {
@@ -1379,30 +1365,33 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                             startingTime = ApplicationTools::getTime();
                         //SPR optimization:    
                         //std::cout <<"Before optimization: "<<TreeTemplateTools::treeToParenthesis(treeLikelihoods[i]->getRootedTree(), true)<<std::endl;
-						SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams[i], "normal", "", true, false);
+            SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams[i], "normal", "", true, false);
                         if (reconciliationModel == "DL") {
-							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeMuffato(allParams[i]);
-							if (timing) 
-							{
-								totalTime = ApplicationTools::getTime() - startingTime;
-								std::cout << "Family "<< assignedFilenames[i] <<"; Time for Muffato exploration: "<<  totalTime << " s." <<std::endl;
-								startingTime = ApplicationTools::getTime();
-							}
-							if (SPRalgorithm == "normal")
-								dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast2(allParams[i]);
-							else
-								dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast3(allParams[i]);
+              dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeMuffato(allParams[i]);
+              if (timing) 
+              {
+                totalTime = ApplicationTools::getTime() - startingTime;
+                if (rearrange)
+                {
+                  std::cout << "Family "<< assignedFilenames[i] <<"; Time for Muffato exploration: "<<  totalTime << " s." <<std::endl;
+                }
+                startingTime = ApplicationTools::getTime();
+              }
+              if (SPRalgorithm == "normal")
+                dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast2(allParams[i]);
+              else
+                dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast3(allParams[i]);
                         }
                         else if (reconciliationModel == "COAL") {
                             dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->refineGeneTreeSPRsFast(allParams[i]);
                         }
                         //   treeLikelihoods[i]->refineGeneTreeSPRs(allParams[i]);
                         //  treeLikelihoods[i]->refineGeneTreeSPRs2(allParams[i]);
-						if (timing) 
-						{
-							totalTime = ApplicationTools::getTime() - startingTime;
-							std::cout << "Family "<< assignedFilenames[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;
-						}
+            if (timing) 
+            {
+              totalTime = ApplicationTools::getTime() - startingTime;
+              std::cout << "Family "<< assignedFilenames[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;
+            }
                     }     
                     if (geneTree) {
                         delete geneTree;
@@ -1466,10 +1455,10 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                 gather(world, num0Lineages, allNum0Lineages, server); 
                 gather(world, num1Lineages, allNum1Lineages, server);   
                 gather(world, num2Lineages, allNum2Lineages, server);*/
-				if (timing) 
-				{
-					startingTime = ApplicationTools::getTime();
-				}
+        if (timing) 
+        {
+          startingTime = ApplicationTools::getTime();
+        }
 
                 gathersInformationFromClients (world, 
                                                server,
@@ -1482,21 +1471,21 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                                                allNum1Lineages, 
                                                allNum2Lineages, 
                                                num12Lineages, num22Lineages, reconciliationModel);
-				if (timing) 
-				{
-					totalTime = ApplicationTools::getTime() - startingTime;
-					std::cout << "Time for gathering information: "<<  totalTime << " s." <<std::endl;
-				}
+        if (timing) 
+        {
+          totalTime = ApplicationTools::getTime() - startingTime;
+          std::cout << "Time for gathering information: "<<  totalTime << " s." <<std::endl;
+        }
 
                 //Should the computations stop? The server tells us.
                 broadcast(world, stop, server);
                 if (!stop) 
-                {	// we continue the loop
+                { // we continue the loop
                     //We get the new values from the server
-					if (timing) 
-					{
-						startingTime = ApplicationTools::getTime();
-					}
+          if (timing) 
+          {
+            startingTime = ApplicationTools::getTime();
+          }
                     broadcastsAllInformationButStop(world, server, rearrange, 
                                                     lossExpectedNumbers, 
                                                     duplicationExpectedNumbers, 
@@ -1504,12 +1493,12 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                                                     currentSpeciesTree,
                                                     currentStep, 
                                                     reconciliationModel);
-					if (timing) 
-					{
-						totalTime = ApplicationTools::getTime() - startingTime;
-						std::cout << "Time for broadcasting information: "<<  totalTime << " s." <<std::endl;
-						startingTime = ApplicationTools::getTime();
-					}
+          if (timing) 
+          {
+            totalTime = ApplicationTools::getTime() - startingTime;
+            std::cout << "Time for broadcasting information: "<<  totalTime << " s." <<std::endl;
+            startingTime = ApplicationTools::getTime();
+          }
 
                     if (assignedFilenames.size()-numDeletedFamilies > 0) 
                     {
@@ -1530,7 +1519,7 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                                 delete treeLikelihoods[i];
                         }
                         treeLikelihoods.clear();
-						/*
+            /*
                         if (reconciliationModel == "DL") {
                             for (unsigned int i=0 ; i<backupTreeLikelihoods.size() ; i++) 
                             {
@@ -1544,71 +1533,71 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                             }
                         }
                          */
-						
-						if (reconciliationModel == "DL")
-						{
-							for (unsigned int i=0 ; i<allDatasets.size() ; i++) 
+            
+            if (reconciliationModel == "DL")
+            {
+              for (unsigned int i=0 ; i<allDatasets.size() ; i++) 
                             {
-								TreeTemplate<Node> * treeWithSpNames = allUnrootedGeneTrees[i]->clone();
-								std::vector <Node*> leaves = treeWithSpNames->getLeaves();
-								for (unsigned int j =0; j<leaves.size() ; j++) 
-								{
-									leaves[j]->setName(allSeqSps[i][leaves[j]->getName()]);
-								}
-								treeLikelihoods.push_back( new DLGeneTreeLikelihood(*(allUnrootedGeneTrees[i]), *(allDatasets[i]), 
-																					allModels[i], allDistributions[i], *tree, 
-																					*allGeneTrees[i], *treeWithSpNames, allSeqSps[i], spId, 
-																					lossExpectedNumbers, 
-																					duplicationExpectedNumbers, 
-																					allNum0Lineages[i], 
-																					allNum1Lineages[i], 
-																					allNum2Lineages[i], 
-																					speciesIdLimitForRootPosition, 
-																					heuristicsLevel, MLindex, 
-																					true, true, true, true, false, allSprLimitGeneTree[i]) );
-								delete treeWithSpNames;
-							}
-							///  dynamic_cast<DLGeneTreeLikelihood*> (tl)->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
-							
-						}
-						else if (reconciliationModel == "COAL")
-						{
-							for (unsigned int i=0 ; i<allDatasets.size() ; i++) 
+                TreeTemplate<Node> * treeWithSpNames = allUnrootedGeneTrees[i]->clone();
+                std::vector <Node*> leaves = treeWithSpNames->getLeaves();
+                for (unsigned int j =0; j<leaves.size() ; j++) 
+                {
+                  leaves[j]->setName(allSeqSps[i][leaves[j]->getName()]);
+                }
+                treeLikelihoods.push_back( new DLGeneTreeLikelihood(*(allUnrootedGeneTrees[i]), *(allDatasets[i]), 
+                                          allModels[i], allDistributions[i], *tree, 
+                                          *allGeneTrees[i], *treeWithSpNames, allSeqSps[i], spId, 
+                                          lossExpectedNumbers, 
+                                          duplicationExpectedNumbers, 
+                                          allNum0Lineages[i], 
+                                          allNum1Lineages[i], 
+                                          allNum2Lineages[i], 
+                                          speciesIdLimitForRootPosition, 
+                                          heuristicsLevel, MLindex, 
+                                          true, true, true, true, false, allSprLimitGeneTree[i]) );
+                delete treeWithSpNames;
+              }
+              ///  dynamic_cast<DLGeneTreeLikelihood*> (tl)->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+              
+            }
+            else if (reconciliationModel == "COAL")
+            {
+              for (unsigned int i=0 ; i<allDatasets.size() ; i++) 
                             {
-								//coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
-								std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
-								std::vector< std::vector<unsigned int> > coalCounts3;
-								std::vector< unsigned int > coalCounts4;
-								for (unsigned int j = 0 ; j < 2 ; j++ ) {
-									coalCounts4.push_back(0);
-								}
-								for (unsigned int j = 0 ; j < tree->getNumberOfNodes() ; j++ ) {
-									coalCounts3.push_back(coalCounts4);
-								}
-								for (unsigned int j = 0 ; j < 3 ; j++ ) {
-									coalCounts2.push_back(coalCounts3);
-								}
-								for (unsigned int j = 0 ; j < geneTree->getNumberOfNodes() ; j++ ) {
-									coalCounts.push_back(coalCounts2);
-								}
-								TreeTemplate<Node> * treeWithSpNames = allUnrootedGeneTrees[i]->clone();
-								std::vector <Node*> leaves = treeWithSpNames->getLeaves();
-								for (unsigned int j =0; j<leaves.size() ; j++) 
-								{
-									leaves[j]->setName(allSeqSps[i][leaves[j]->getName()]);
-								}
-								
-								treeLikelihoods.push_back( new COALGeneTreeLikelihood(*allUnrootedGeneTrees[i], *allDatasets[i], 
-																					  allModels[i], allDistributions[i], *tree, 
-																					  *allGeneTrees[i], *treeWithSpNames, allSeqSps[i], spId, 
-																					  coalCounts, coalBls,  
-																					  speciesIdLimitForRootPosition, 
-																					  heuristicsLevel, MLindex, 
-																					  true, true, true, true, allSprLimitGeneTree[i]) );
-								delete treeWithSpNames;
-								
-							}
-						}
+                //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
+                std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
+                std::vector< std::vector<unsigned int> > coalCounts3;
+                std::vector< unsigned int > coalCounts4;
+                for (unsigned int j = 0 ; j < 2 ; j++ ) {
+                  coalCounts4.push_back(0);
+                }
+                for (unsigned int j = 0 ; j < tree->getNumberOfNodes() ; j++ ) {
+                  coalCounts3.push_back(coalCounts4);
+                }
+                for (unsigned int j = 0 ; j < 3 ; j++ ) {
+                  coalCounts2.push_back(coalCounts3);
+                }
+                for (unsigned int j = 0 ; j < geneTree->getNumberOfNodes() ; j++ ) {
+                  coalCounts.push_back(coalCounts2);
+                }
+                TreeTemplate<Node> * treeWithSpNames = allUnrootedGeneTrees[i]->clone();
+                std::vector <Node*> leaves = treeWithSpNames->getLeaves();
+                for (unsigned int j =0; j<leaves.size() ; j++) 
+                {
+                  leaves[j]->setName(allSeqSps[i][leaves[j]->getName()]);
+                }
+                
+                treeLikelihoods.push_back( new COALGeneTreeLikelihood(*allUnrootedGeneTrees[i], *allDatasets[i], 
+                                            allModels[i], allDistributions[i], *tree, 
+                                            *allGeneTrees[i], *treeWithSpNames, allSeqSps[i], spId, 
+                                            coalCounts, coalBls,  
+                                            speciesIdLimitForRootPosition, 
+                                            heuristicsLevel, MLindex, 
+                                            true, true, true, true, allSprLimitGeneTree[i]) );
+                delete treeWithSpNames;
+                
+              }
+            }
                     }
                     if (currentStep>=3)// rearrange) //?
                     {
@@ -1619,38 +1608,38 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                             recordGeneTrees=true;
                            // bestIndex=startRecordingTreesFrom;
                         }
-                    }	
+                    } 
                     for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
                     {
                         treeLikelihoods[i]->setSpTree(*tree);
                         treeLikelihoods[i]->setSpId(spId);
                         if (reconciliationModel == "DL") {
-							/*VectorTools::print(duplicationExpectedNumbers);
-							VectorTools::print(lossExpectedNumbers);*/
+              /*VectorTools::print(duplicationExpectedNumbers);
+              VectorTools::print(lossExpectedNumbers);*/
 
                             dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->setExpectedNumbers(duplicationExpectedNumbers, lossExpectedNumbers);
-							//If not using the backuplks
-							if (! dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->isInitialized() ) {
-							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
-							}
-							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->optimizeNumericalParameters(params); //Initial optimization of all numerical parameters
-							dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->initParameters();
+              //If not using the backuplks
+              if (! dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->isInitialized() ) {
+              dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+              }
+              dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->optimizeNumericalParameters(params); //Initial optimization of all numerical parameters
+              dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods[i])->initParameters();
                         }
                         else if (reconciliationModel == "COAL") {
-							if (! dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->isInitialized() ) {
+              if (! dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->isInitialized() ) {
                             dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->setCoalBranchLengths(coalBls);
-							}
-							//If not using the backuplks
-							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
-							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->optimizeNumericalParameters(params); //Initial optimization of all numerical parameters
-							dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->initParameters();
+              }
+              //If not using the backuplks
+              dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
+              dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->optimizeNumericalParameters(params); //Initial optimization of all numerical parameters
+              dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods[i])->initParameters();
                         }
                     }
-					if (timing) 
-					{
-						totalTime = ApplicationTools::getTime() - startingTime;
-						std::cout << "Time for resetting gene tree likelihoods: "<<  totalTime << " s." <<std::endl;
-					}
+          if (timing) 
+          {
+            totalTime = ApplicationTools::getTime() - startingTime;
+            std::cout << "Time for resetting gene tree likelihoods: "<<  totalTime << " s." <<std::endl;
+          }
                 }
                 else 
                 { 
@@ -1668,8 +1657,8 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
                     break;
                 }
             }//End while, END OF MAIN LOOP
-            	for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
-                {  			
+              for (unsigned int i = 0 ; i< assignedFilenames.size()-numDeletedFamilies ; i++) 
+                {       
                     if (allAlphabets[i])
                         delete allAlphabets[i];
 
@@ -1711,14 +1700,14 @@ Petromyzon_marinus),(Ciona_savignyi,Ciona_intestinalis)),Drosophila_melanogaster
             MPI_Barrier(world);  
             MPI::Finalize( );
         }//end if a client node
-	}
-	catch(std::exception & e)
-	{
-		std::cout << e.what() << std::endl;
+  }
+  catch(std::exception & e)
+  {
+    std::cout << e.what() << std::endl;
         MPI::COMM_WORLD.Abort(1);
-		exit(-1);
-	}
-	return (0);
+    exit(-1);
+  }
+  return (0);
 }
 
 
