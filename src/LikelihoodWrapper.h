@@ -58,6 +58,9 @@ extern "C" {
 
 class LikelihoodWrapper {
 private:
+  
+  
+  
   std::string treeFile;
   std::string alignmentFile;
   
