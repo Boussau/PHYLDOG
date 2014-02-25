@@ -1,3 +1,44 @@
+/*
+Copyright or © or Copr. Centre National de la Recherche Scientifique
+contributor : Bastien Boussau (2009-2013)
+
+bastien.boussau@univ-lyon1.fr
+
+This software is a bioinformatics computer program whose purpose is to
+simultaneously build gene and species trees when gene families have
+undergone duplications and losses. It can analyze thousands of gene
+families in dozens of genomes simultaneously, and was presented in
+an article in Genome Research. Trees and parameters are estimated
+in the maximum likelihood framework, by maximizing theprobability
+of alignments given the species tree, the gene trees and the parameters
+of duplication and loss.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software.  You can  use, 
+modify and/ or redistribute the software under the terms of the CeCILL
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info".
+
+As a counterpart to the access to the source code and  rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty  and the software's author,  the holder of the
+economic rights,  and the successive licensors  have only  limited
+liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading,  using,  modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean  that it is complicated to manipulate,  and  that  also
+therefore means  that it is reserved for developers  and  experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and,  more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
+*/
 
 
 
@@ -12,6 +53,7 @@ extern "C" {
 
 
 using namespace std;
+using namespace bpp;
 
 
 LikelihoodWrapper::initializePLL(){
@@ -45,8 +87,7 @@ LikelihoodWrapper::loadPLLalignment(char* path)
   pllAlignmentData * alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path);
   if (!alignmentData)
   {
-    cerr << "PLL: Error while parsing " << path << std::endl;
-    return (EXIT_FAILURE);
+    throw Exception("PLL: Error while parsing " + path);
   }
 }
 
@@ -56,14 +97,11 @@ LikelihoodWrapper::loadPLLtree(char* path)
   newick_PLL = pllNewickParseFile(path);
   if (!newick_PLL)
   {
-    cerr << "PLL: Error while parsing newick file" << std::endl;
-    return (EXIT_FAILURE);
+    throw Exception("PLL: Error while parsing newick file");
   }
   if (!pllValidateNewick (newick_PLL))  /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */
   {
-    cerr << "Invalid phylogenetic tree" << endl;
-    cerr << errno << endl;
-    return (EXIT_FAILURE);
+    throw Exception("PLL: Invalid phylogenetic tree.");
   }
 }
 
@@ -75,8 +113,7 @@ LikelihoodWrapper::loadPLLpartitions(char* path)
   /* Validate the partitions */
   if (!pllPartitionsValidate (partitionInfo_PLL, alignmentData_PLL))
   {
-    cerr << "Error: Partitions do not cover all sites\n";
-    return (EXIT_FAILURE);
+    throw Exception("Error: Partitions do not cover all sites.");
   }
   
   /* Commit the partitions and build a partitions structure */
@@ -87,5 +124,17 @@ LikelihoodWrapper::loadPLLpartitions(char* path)
   
   /* eliminate duplicate sites from the alignment and update weights vector */
   pllAlignmentRemoveDups (alignmentData_PLL, partitions_PLL);
+}
+
+LikelihoodWrapper::updatePLLtreeWithPLLnewick()
+{
+  pllTreeInitTopologyNewick (tr_PLL, newick_PLL, PLL_FALSE);
+    
+  // cout << "PLL: Connect the alignment and partition structure with the tree structure" << std::endl ;
+  /* Connect the alignment and partition structure with the tree structure */
+  if (!pllLoadAlignment (tr_PLL, alignmentData_PLL, partitions_PLL, PLL_DEEP_COPY))
+  {
+    throw Exception("PLL: Incompatible tree/alignment combination.");
+  }
 }
 

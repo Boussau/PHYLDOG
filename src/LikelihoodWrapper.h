@@ -127,6 +127,12 @@ private:
   */
   initializePLL();
   
+  /**
+  Updating the PLL tree with PLL newick.
+  */
+  updatePLLtreeWithPLLnewick();
+  
+  
   
   ///@}
   
