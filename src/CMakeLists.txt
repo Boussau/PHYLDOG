@@ -18,6 +18,8 @@ SET(PHYLDOG_SRCS
   GeneTreeAlgorithms.cpp
   FastRHomogeneousTreeLikelihood.h
   FastRHomogeneousTreeLikelihood.cpp
+  ClientComputingGeneLikelihoods.h
+  ClientComputingGeneLikelihoods.cpp
   )
 ADD_EXECUTABLE(phyldog ReconcileDuplications.cpp ${PHYLDOG_SRCS})
 target_link_libraries(phyldog 

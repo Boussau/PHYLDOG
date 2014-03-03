@@ -318,7 +318,8 @@ void SpeciesTreeLikelihood::parseOptions()
         if (!tree_->isRooted()) 
         {
             std::cout << "The tree is not rooted, midpoint-rooting it!\n";
-            TreeTools::midpointRooting(*tree_);
+            //TreeTools::midpointRooting(*tree_); //DEPRECATED in latest Bio++ versions
+	    TreeTemplateTools::midRoot(*tree_, "sum of squares");
         }
     }
     //We build a random species tree
@@ -347,7 +348,9 @@ void SpeciesTreeLikelihood::parseOptions()
         }
         tree_ = TreeTemplateTools::getRandomTree(spNames);
         tree_->setBranchLengths(1.0);
-        TreeTools::midpointRooting(*tree_);
+	//        TreeTools::midpointRooting(*tree_); //DEPRECATED in latest Bio++ versions
+	  TreeTemplateTools::midRoot(*tree_, "sum of squares");
+
     }
     else throw Exception("Unknown init.species.tree method.");
 	//Now, root the tree according to the list of outgroup species if these have been given
