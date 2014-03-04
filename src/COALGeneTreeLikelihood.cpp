@@ -390,13 +390,13 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     //If the NNI is around a branch where a duplication was found, 
     //or if we just try all branches because the starting gene trees are parsimonious in
     //numbers of DL.
-    if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| _DLStartingGeneTree*/) {
+    if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
         TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
         
         tentativeMLindex_ = MLindex_;
-        /* _tentativeLossNumbers = _lossNumbers;
-         _tentativeDuplicationNumbers = _duplicationNumbers;
-         _tentativeBranchNumbers = _branchNumbers;*/
+        /* tentativeLossNumbers_ = lossNumbers_;
+         tentativeDuplicationNumbers_ = duplicationNumbers_;
+         tentativeBranchNumbers_ = branchNumbers_;*/
         _tentativeCoalCounts = _coalCounts;
 
         tentativeNodesToTryInNNISearch_.clear();

@@ -93,16 +93,16 @@ GeneTreeLikelihood(tree,
 		   sprLimit)
 
 {
-  _lossProbabilities = lossProbabilities;
-  _duplicationProbabilities = duplicationProbabilities;
-  _num0Lineages=num0Lineages;
-  _num1Lineages=num1Lineages;
-  _num2Lineages=num2Lineages;
-  _tentativeNum0Lineages =num0Lineages;
-  _tentativeNum1Lineages =num1Lineages; 
-  _tentativeNum2Lineages =num2Lineages;
+  lossExpectedNumbers_ = lossProbabilities;
+  duplicationExpectedNumbers_ = duplicationProbabilities;
+  num0Lineages_=num0Lineages;
+  num1Lineages_=num1Lineages;
+  num2Lineages_=num2Lineages;
+  tentativeNum0Lineages_ =num0Lineages;
+  tentativeNum1Lineages_ =num1Lineages; 
+  tentativeNum2Lineages_ =num2Lineages;
   tentativeMLindex_ = MLindex;
-  _DLStartingGeneTree = DLStartingGeneTree;
+  DLStartingGeneTree_ = DLStartingGeneTree;
 }
 
 /******************************************************************************/
@@ -150,15 +150,15 @@ GeneTreeLikelihood(tree,
 		   considerSequenceLikelihood, 
 		   sprLimit)
 {
-  _lossProbabilities = lossProbabilities;
-  _duplicationProbabilities = duplicationProbabilities; 
-  _num0Lineages=num0Lineages;
-  _num1Lineages=num1Lineages;
-  _num2Lineages=num2Lineages;
-  _tentativeNum0Lineages =num0Lineages;
-  _tentativeNum1Lineages =num1Lineages; 
-  _tentativeNum2Lineages =num2Lineages;
-  _DLStartingGeneTree = DLStartingGeneTree;
+  lossExpectedNumbers_ = lossProbabilities;
+  duplicationExpectedNumbers_ = duplicationProbabilities; 
+  num0Lineages_=num0Lineages;
+  num1Lineages_=num1Lineages;
+  num2Lineages_=num2Lineages;
+  tentativeNum0Lineages_ =num0Lineages;
+  tentativeNum1Lineages_ =num1Lineages; 
+  tentativeNum2Lineages_ =num2Lineages;
+  DLStartingGeneTree_ = DLStartingGeneTree;
 }
 
 /******************************************************************************/
@@ -166,15 +166,15 @@ GeneTreeLikelihood(tree,
 DLGeneTreeLikelihood::DLGeneTreeLikelihood(const DLGeneTreeLikelihood & lik):
 GeneTreeLikelihood(lik)
 {
-  _lossProbabilities = lik._lossProbabilities;
-  _duplicationProbabilities = lik._duplicationProbabilities; 
-  _num0Lineages=lik._num0Lineages;
-  _num1Lineages=lik._num1Lineages;
-  _num2Lineages=lik._num2Lineages;
-  _tentativeNum0Lineages =lik._tentativeNum0Lineages;
-  _tentativeNum1Lineages =lik._tentativeNum1Lineages;
-  _tentativeNum2Lineages =lik._tentativeNum2Lineages;
-  _DLStartingGeneTree = lik._DLStartingGeneTree;
+  lossExpectedNumbers_ = lik.lossExpectedNumbers_;
+  duplicationExpectedNumbers_ = lik.duplicationExpectedNumbers_; 
+  num0Lineages_=lik.num0Lineages_;
+  num1Lineages_=lik.num1Lineages_;
+  num2Lineages_=lik.num2Lineages_;
+  tentativeNum0Lineages_ =lik.tentativeNum0Lineages_;
+  tentativeNum1Lineages_ =lik.tentativeNum1Lineages_;
+  tentativeNum2Lineages_ =lik.tentativeNum2Lineages_;
+  DLStartingGeneTree_ = lik.DLStartingGeneTree_;
 }
 
 /******************************************************************************/
@@ -182,15 +182,15 @@ GeneTreeLikelihood(lik)
 DLGeneTreeLikelihood & DLGeneTreeLikelihood::operator=(const DLGeneTreeLikelihood & lik)
 {
   GeneTreeLikelihood::operator=(lik);
-  _lossProbabilities = lik._lossProbabilities;
-  _duplicationProbabilities = lik._duplicationProbabilities;
-  _num0Lineages=lik._num0Lineages;
-  _num1Lineages=lik._num1Lineages;
-  _num2Lineages=lik._num2Lineages;
-  _tentativeNum0Lineages =lik._tentativeNum0Lineages;
-  _tentativeNum1Lineages =lik._tentativeNum1Lineages;
-  _tentativeNum2Lineages =lik._tentativeNum2Lineages;
-  _DLStartingGeneTree = lik._DLStartingGeneTree;
+  lossExpectedNumbers_ = lik.lossExpectedNumbers_;
+  duplicationExpectedNumbers_ = lik.duplicationExpectedNumbers_;
+  num0Lineages_=lik.num0Lineages_;
+  num1Lineages_=lik.num1Lineages_;
+  num2Lineages_=lik.num2Lineages_;
+  tentativeNum0Lineages_ =lik.tentativeNum0Lineages_;
+  tentativeNum1Lineages_ =lik.tentativeNum1Lineages_;
+  tentativeNum2Lineages_ =lik.tentativeNum2Lineages_;
+  DLStartingGeneTree_ = lik.DLStartingGeneTree_;
   return *this;
 }
 
@@ -220,16 +220,16 @@ void DLGeneTreeLikelihood::initParameters()
   if (heuristicsLevel_>0) {
     std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
     exit(-1);
-    //    scenarioLikelihood_ = findMLReconciliation (&spTree_, &rootedTree_, seqSp_, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, MLindex_, _branchNumbers, _speciesIdLimitForRootPosition_, heuristicsLevel_, _num0Lineages, _num1Lineages, _num2Lineages, nodesToTryInNNISearch_); 
+    //    scenarioLikelihood_ = findMLReconciliation (&spTree_, &rootedTree_, seqSp_, lossNumbers_, lossExpectedNumbers_, duplicationNumbers_, duplicationExpectedNumbers_, MLindex_, branchNumbers_, _speciesIdLimitForRootPosition_, heuristicsLevel_, num0Lineages_, num1Lineages_, num2Lineages_, nodesToTryInNNISearch_); 
   }
   else {
     //  std::cout << "in initParameters 2"<<std::endl;
     
     scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_, 
-						  seqSp_, spId_, _lossProbabilities, 
-						  _duplicationProbabilities, MLindex_, 
-						  _num0Lineages, _num1Lineages,
-						  _num2Lineages, nodesToTryInNNISearch_); 
+						  seqSp_, spId_, lossExpectedNumbers_, 
+						  duplicationExpectedNumbers_, MLindex_, 
+						  num0Lineages_, num1Lineages_,
+						  num2Lineages_, nodesToTryInNNISearch_); 
     //Rooting bestTree as in TreeForSPR:
     //std::cout << "in initParameters 3"<<std::endl;
     
@@ -258,7 +258,7 @@ void DLGeneTreeLikelihood::initParameters()
     }
   }
   MLindex_ = -1;
-  // std::cout << "in ReconciliationTreeLikelihood::initParameters : _num0Lineages, _num1Lineages, _num2Lineages : "<< TextTools::toString(VectorTools::sum(_num0Lineages))<<" "<<TextTools::toString(VectorTools::sum(_num1Lineages))<<" "<< TextTools::toString(VectorTools::sum(_num2Lineages))<<std::endl;
+  // std::cout << "in ReconciliationTreeLikelihood::initParameters : num0Lineages_, num1Lineages_, num2Lineages_ : "<< TextTools::toString(VectorTools::sum(num0Lineages_))<<" "<<TextTools::toString(VectorTools::sum(num1Lineages_))<<" "<< TextTools::toString(VectorTools::sum(num2Lineages_))<<std::endl;
   
   //    std::cout <<"INITIAL scenarioLikelihood_ "<<scenarioLikelihood_ <<" nniLk_->getLogLikelihood(): "<< nniLk_->getLogLikelihood()<<std::endl;
 }
@@ -381,24 +381,24 @@ void DLGeneTreeLikelihood::computeSequenceLikelihood()
 
 void DLGeneTreeLikelihood::computeReconciliationLikelihood()
 {
-  resetLossesAndDuplications(*spTree_, /*_lossNumbers, */_lossProbabilities, /*_duplicationNumbers, */_duplicationProbabilities);
+  resetLossesAndDuplications(*spTree_, /*lossNumbers_, */lossExpectedNumbers_, /*duplicationNumbers_, */duplicationExpectedNumbers_);
   if (heuristicsLevel_>0) {
     std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
     exit(-1);
-    //    scenarioLikelihood_ = findMLReconciliation (&spTree_, &rootedTree_, seqSp_, _lossNumbers, _lossProbabilities, _duplicationNumbers, _duplicationProbabilities, MLindex_, _branchNumbers, _speciesIdLimitForRootPosition_, heuristicsLevel_, _num0Lineages, _num1Lineages, _num2Lineages, nodesToTryInNNISearch_); 
+    //    scenarioLikelihood_ = findMLReconciliation (&spTree_, &rootedTree_, seqSp_, lossNumbers_, lossExpectedNumbers_, duplicationNumbers_, duplicationExpectedNumbers_, MLindex_, branchNumbers_, _speciesIdLimitForRootPosition_, heuristicsLevel_, num0Lineages_, num1Lineages_, num2Lineages_, nodesToTryInNNISearch_); 
   }
   else {
-    //    scenarioLikelihood_ = findMLReconciliationDR (&spTree_, &rootedTree_, seqSp_, spId_, _lossProbabilities, _duplicationProbabilities, MLindex_, _num0Lineages, _num1Lineages, _num2Lineages, nodesToTryInNNISearch_);
+    //    scenarioLikelihood_ = findMLReconciliationDR (&spTree_, &rootedTree_, seqSp_, spId_, lossExpectedNumbers_, duplicationExpectedNumbers_, MLindex_, num0Lineages_, num1Lineages_, num2Lineages_, nodesToTryInNNISearch_);
     scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_, 
 						  seqSp_, spId_, 
-						  _lossProbabilities, _duplicationProbabilities, 
+						  lossExpectedNumbers_, duplicationExpectedNumbers_, 
 						  tentativeMLindex_, 
-						  _tentativeNum0Lineages, _tentativeNum1Lineages, 
-						  _tentativeNum2Lineages, tentativeNodesToTryInNNISearch_); 
+						  tentativeNum0Lineages_, tentativeNum1Lineages_, 
+						  tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
     MLindex_ = tentativeMLindex_;
-    _num0Lineages = _tentativeNum0Lineages;
-    _num1Lineages = _tentativeNum1Lineages;
-    _num2Lineages = _tentativeNum2Lineages;
+    num0Lineages_ = tentativeNum0Lineages_;
+    num1Lineages_ = tentativeNum1Lineages_;
+    num2Lineages_ = tentativeNum2Lineages_;
     nodesToTryInNNISearch_ = tentativeNodesToTryInNNISearch_;
   }
 }
@@ -430,16 +430,16 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
   //If the NNI is around a branch where a duplication was found, 
   //or if we just try all branches because the starting gene trees are parsimonious in
   //numbers of DL.
-  if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| _DLStartingGeneTree*/) {
+  if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
     TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
     
     tentativeMLindex_ = MLindex_;
-    /* _tentativeLossNumbers = _lossNumbers;
-     *         _tentativeDuplicationNumbers = _duplicationNumbers;
-     *         _tentativeBranchNumbers = _branchNumbers;*/
-    _tentativeNum0Lineages = _num0Lineages;
-    _tentativeNum1Lineages = _num1Lineages;
-    _tentativeNum2Lineages =_num2Lineages;
+    /* tentativeLossNumbers_ = lossNumbers_;
+     *         tentativeDuplicationNumbers_ = duplicationNumbers_;
+     *         tentativeBranchNumbers_ = branchNumbers_;*/
+    tentativeNum0Lineages_ = num0Lineages_;
+    tentativeNum1Lineages_ = num1Lineages_;
+    tentativeNum2Lineages_ =num2Lineages_;
     tentativeNodesToTryInNNISearch_.clear();
     
     //We first estimate the likelihood of the scenario: if not better than the current scenario, no need to estimate the branch length !
@@ -483,20 +483,20 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
      *         if (heuristicsLevel_>0) {
      *         std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
      *         exit(-1);
-     *         // ScenarioMLValue =  findMLReconciliation (&spTree_, treeForNNI, seqSp_, _tentativeLossNumbers, _lossProbabilities, _tentativeDuplicationNumbers, _duplicationProbabilities, tentativeMLindex_, _tentativeBranchNumbers, _speciesIdLimitForRootPosition_, heuristicsLevel_, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, tentativeNodesToTryInNNISearch_); 
+     *         // ScenarioMLValue =  findMLReconciliation (&spTree_, treeForNNI, seqSp_, tentativeLossNumbers_, lossExpectedNumbers_, tentativeDuplicationNumbers_, duplicationExpectedNumbers_, tentativeMLindex_, tentativeBranchNumbers_, _speciesIdLimitForRootPosition_, heuristicsLevel_, tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
   }
   else {
-    ScenarioMLValue =  findMLReconciliationDR (&spTree_, treeForNNI, seqSp_, spId_, _lossProbabilities, _duplicationProbabilities, tentativeMLindex_, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, tentativeNodesToTryInNNISearch_); 
+    ScenarioMLValue =  findMLReconciliationDR (&spTree_, treeForNNI, seqSp_, spId_, lossExpectedNumbers_, duplicationExpectedNumbers_, tentativeMLindex_, tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
   }
   }
   else {
     if (heuristicsLevel_>0) {
       std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
       exit(-1);
-      // ScenarioMLValue =  findMLReconciliation (&spTree_, treeForNNI, seqSp_, _tentativeLossNumbers, _lossProbabilities, _tentativeDuplicationNumbers, _duplicationProbabilities, tentativeMLindex_, _tentativeBranchNumbers, _speciesIdLimitForRootPosition_, heuristicsLevel_, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, tentativeNodesToTryInNNISearch_); 
+      // ScenarioMLValue =  findMLReconciliation (&spTree_, treeForNNI, seqSp_, tentativeLossNumbers_, lossExpectedNumbers_, tentativeDuplicationNumbers_, duplicationExpectedNumbers_, tentativeMLindex_, tentativeBranchNumbers_, _speciesIdLimitForRootPosition_, heuristicsLevel_, tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
   }
   else {
-    ScenarioMLValue =  findMLReconciliationDR (&spTree_, treeForNNI, seqSp_, spId_, _lossProbabilities, _duplicationProbabilities, tentativeMLindex_, _tentativeNum0Lineages, _tentativeNum1Lineages, _tentativeNum2Lineages, tentativeNodesToTryInNNISearch_); 
+    ScenarioMLValue =  findMLReconciliationDR (&spTree_, treeForNNI, seqSp_, spId_, lossExpectedNumbers_, duplicationExpectedNumbers_, tentativeMLindex_, tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
   }
   
   
@@ -505,10 +505,10 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
   }*/
     ScenarioMLValue =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/, 
 					       seqSp_, spId_, 
-					       _lossProbabilities, _duplicationProbabilities, 
+					       lossExpectedNumbers_, duplicationExpectedNumbers_, 
 					       tentativeMLindex_, 
-					       _tentativeNum0Lineages, _tentativeNum1Lineages, 
-					       _tentativeNum2Lineages, tentativeNodesToTryInNNISearch_, false); //false so that _tentativeNum*Lineages are not updated
+					       tentativeNum0Lineages_, tentativeNum1Lineages_, 
+					       tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_, false); //false so that _tentativeNum*Lineages are not updated
     
     
     if (treeForNNI) delete treeForNNI;
@@ -751,46 +751,46 @@ parent->setDistanceToFather(length);
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::getDuplicationNumbers(){
-  return _duplicationNumbers;
+  return duplicationNumbers_;
 }
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::getLossNumbers(){
-  return _lossNumbers;
+  return lossNumbers_;
 }
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::getBranchNumbers(){
-  return _branchNumbers;
+  return branchNumbers_;
 }
 
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::get0LineagesNumbers() const {
-  return _num0Lineages;
+  return num0Lineages_;
 }
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::get1LineagesNumbers() const {
-  return _num1Lineages;
+  return num1Lineages_;
 }
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::get2LineagesNumbers() const {
-  return _num2Lineages;
+  return num2Lineages_;
 }
 
 /*******************************************************************************/
 
 void DLGeneTreeLikelihood::setExpectedNumbers(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities){
   
-  _lossProbabilities = lossProbabilities;
-  _duplicationProbabilities = duplicationProbabilities; 
+  lossExpectedNumbers_ = lossProbabilities;
+  duplicationExpectedNumbers_ = duplicationProbabilities; 
 }
 
 /*******************************************************************************/
@@ -834,9 +834,9 @@ void DLGeneTreeLikelihood::print () const {
   std::cout << "2 lineages numbers"<<std::endl;
   VectorTools::print(get2LineagesNumbers());
   std::cout << "Expected numbers of losses"<<std::endl;
-  VectorTools::print(_lossProbabilities);
+  VectorTools::print(lossExpectedNumbers_);
   std::cout << "Expected numbers of duplications"<<std::endl;
-  VectorTools::print(_duplicationProbabilities);
+  VectorTools::print(duplicationExpectedNumbers_);
   std::cout << "Root index"<<std::endl;
   std::cout << MLindex_ <<std::endl;
   
@@ -1002,12 +1002,12 @@ nniLk_->matchParametersValues(bls);*/
 	  //Compute the DL likelihood
 	  candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForSPR, 
 							 seqSp_, spId_, 
-						  _lossProbabilities, 
-						  _duplicationProbabilities, 
+						  lossExpectedNumbers_, 
+						  duplicationExpectedNumbers_, 
 						  tentativeMLindex_, 
-						  _tentativeNum0Lineages, 
-						  _tentativeNum1Lineages, 
-						  _tentativeNum2Lineages, 
+						  tentativeNum0Lineages_, 
+						  tentativeNum1Lineages_, 
+						  tentativeNum2Lineages_, 
 						  tentativeNodesToTryInNNISearch_, false); 
 	  // std::cout<< "candidate tree: "<< TreeTemplateTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
 	  
@@ -1431,12 +1431,12 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params) {
 	  //Compute the DL likelihood
 	  candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForSPR, 
 							 seqSp_, spId_, 
-						  _lossProbabilities, 
-						  _duplicationProbabilities, 
+						  lossExpectedNumbers_, 
+						  duplicationExpectedNumbers_, 
 						  tentativeMLindex_, 
-						  _tentativeNum0Lineages, 
-						  _tentativeNum1Lineages, 
-						  _tentativeNum2Lineages, 
+						  tentativeNum0Lineages_, 
+						  tentativeNum1Lineages_, 
+						  tentativeNum2Lineages_, 
 						  tentativeNodesToTryInNNISearch_, false); 
 	  
 	  if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
@@ -1791,12 +1791,12 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	  //Compute the DL likelihood
 	  candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForSPR, 
 							 seqSp_, spId_, 
-						  _lossProbabilities, 
-						  _duplicationProbabilities, 
+						  lossExpectedNumbers_, 
+						  duplicationExpectedNumbers_, 
 						  tentativeMLindex_, 
-						  _tentativeNum0Lineages, 
-						  _tentativeNum1Lineages, 
-						  _tentativeNum2Lineages, 
+						  tentativeNum0Lineages_, 
+						  tentativeNum1Lineages_, 
+						  tentativeNum2Lineages_, 
 						  tentativeNodesToTryInNNISearch_, false); 
 	  
 	  if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
@@ -2167,12 +2167,12 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 	  //Compute the DL likelihood
 	  candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForSPR, 
 							 seqSp_, spId_, 
-						  _lossProbabilities, 
-						  _duplicationProbabilities, 
+						  lossExpectedNumbers_, 
+						  duplicationExpectedNumbers_, 
 						  tentativeMLindex_, 
-						  _tentativeNum0Lineages, 
-						  _tentativeNum1Lineages, 
-						  _tentativeNum2Lineages, 
+						  tentativeNum0Lineages_, 
+						  tentativeNum1Lineages_, 
+						  tentativeNum2Lineages_, 
 						  tentativeNodesToTryInNNISearch_, false); 
 	  while (treesToOptimizeSeqLk.count(candidateScenarioLk) > 0 )
 	  {
@@ -2556,12 +2556,12 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
     //Compute the DL likelihood
     candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForSPR, 
 						   seqSp_, spId_, 
-						   _lossProbabilities, 
-						   _duplicationProbabilities, 
+						   lossExpectedNumbers_, 
+						   duplicationExpectedNumbers_, 
 						   tentativeMLindex_, 
-						   _tentativeNum0Lineages, 
-						   _tentativeNum1Lineages, 
-						   _tentativeNum2Lineages, 
+						   tentativeNum0Lineages_, 
+						   tentativeNum1Lineages_, 
+						   tentativeNum2Lineages_, 
 						   tentativeNodesToTryInNNISearch_, false); 
     std::cout <<"Candidate scenario lk for Muffato rearranged tree: "<< candidateScenarioLk <<std::endl;
     
@@ -2901,12 +2901,12 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
 	  //Compute the DL likelihood
 	  candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForSPR, 
 							 seqSp_, spId_, 
-						  _lossProbabilities, 
-						  _duplicationProbabilities, 
+						  lossExpectedNumbers_, 
+						  duplicationExpectedNumbers_, 
 						  tentativeMLindex_, 
-						  _tentativeNum0Lineages, 
-						  _tentativeNum1Lineages, 
-						  _tentativeNum2Lineages, 
+						  tentativeNum0Lineages_, 
+						  tentativeNum1Lineages_, 
+						  tentativeNum2Lineages_, 
 						  tentativeNodesToTryInNNISearch_, false); 
 	  if (allDLLKsAndIndices.find(- candidateScenarioLk) != allDLLKsAndIndices.end() ) {
 	    allDLLKsAndIndices[- candidateScenarioLk].push_back(index);

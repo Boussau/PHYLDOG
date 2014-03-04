@@ -78,21 +78,21 @@ class DLGeneTreeLikelihood:
 public GeneTreeLikelihood
 {
   // NNIHomogeneousTreeLikelihood * nniLk_;
-  std::vector <int> _duplicationNumbers;
-  std::vector <int> _lossNumbers;
-  std::vector <int>  _branchNumbers;        
-  mutable std::vector <double> _duplicationProbabilities;
-  mutable std::vector <double> _lossProbabilities; 
-  std::vector <int> _num0Lineages;
-  std::vector <int> _num1Lineages;
-  std::vector <int> _num2Lineages;
-  mutable std::vector <int> _tentativeDuplicationNumbers;
-  mutable std::vector <int> _tentativeLossNumbers; 
-  mutable std::vector <int> _tentativeBranchNumbers; 
-  mutable std::vector <int> _tentativeNum0Lineages;
-  mutable std::vector <int> _tentativeNum1Lineages; 
-  mutable std::vector <int> _tentativeNum2Lineages;
-  mutable bool _DLStartingGeneTree;
+  std::vector <int> duplicationNumbers_;
+  std::vector <int> lossNumbers_;
+  std::vector <int>  branchNumbers_;        
+  mutable std::vector <double> duplicationExpectedNumbers_;
+  mutable std::vector <double> lossExpectedNumbers_; 
+  std::vector <int> num0Lineages_;
+  std::vector <int> num1Lineages_;
+  std::vector <int> num2Lineages_;
+  mutable std::vector <int> tentativeDuplicationNumbers_;
+  mutable std::vector <int> tentativeLossNumbers_; 
+  mutable std::vector <int> tentativeBranchNumbers_; 
+  mutable std::vector <int> tentativeNum0Lineages_;
+  mutable std::vector <int> tentativeNum1Lineages_; 
+  mutable std::vector <int> tentativeNum2Lineages_;
+  mutable bool DLStartingGeneTree_;
   
 public:
   /**

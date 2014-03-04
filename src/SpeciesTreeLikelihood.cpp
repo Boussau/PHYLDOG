@@ -348,9 +348,11 @@ void SpeciesTreeLikelihood::parseOptions()
         }
         tree_ = TreeTemplateTools::getRandomTree(spNames);
         tree_->setBranchLengths(1.0);
+	
+	std::cout << "HEHEHEHEHEEHEH "<<TreeTemplateTools::treeToParenthesis(*tree_, true);
 	//        TreeTools::midpointRooting(*tree_); //DEPRECATED in latest Bio++ versions
 	  TreeTemplateTools::midRoot(*tree_, "sum of squares");
-
+	std::cout << TreeTemplateTools::treeToParenthesis(*tree_, true);
     }
     else throw Exception("Unknown init.species.tree method.");
 	//Now, root the tree according to the list of outgroup species if these have been given

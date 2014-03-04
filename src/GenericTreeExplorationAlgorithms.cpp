@@ -100,6 +100,10 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
     std::vector<Node*> nodesToUpdate;
 	double dist = 0.1;  
 	
+			         std::cout << "makeSPR 1 " << std::endl;
+				std::cout <<  TreeTemplateTools::treeToParenthesis(tree, true) <<std::endl;
+
+	
 	if (verbose)
 		std::cout <<"\t\t\tMaking a SPR, moving node "<<cutNodeId<< " as brother of node "<< newBrotherId<< std::endl;
 	newBrother = tree.getNode(newBrotherId);

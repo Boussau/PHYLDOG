@@ -70,26 +70,26 @@ class ReconciliationTreeLikelihood:
     TreeTemplate<Node> * rootedTree_;
     const std::map <std::string, std::string> seqSp_;
     std::map <std::string, int> spId_;
-    std::vector <int> _duplicationNumbers;
-    std::vector <int> _lossNumbers;
-    std::vector <int>  _branchNumbers;
+    std::vector <int> duplicationNumbers_;
+    std::vector <int> lossNumbers_;
+    std::vector <int>  branchNumbers_;
 
-    std::vector <double> _duplicationProbabilities;
-    std::vector <double> _lossProbabilities; 
-    std::vector <int> _num0Lineages;
-    std::vector <int> _num1Lineages;
-    std::vector <int> _num2Lineages;
+    std::vector <double> duplicationExpectedNumbers_;
+    std::vector <double> lossExpectedNumbers_; 
+    std::vector <int> num0Lineages_;
+    std::vector <int> num1Lineages_;
+    std::vector <int> num2Lineages_;
     std::set <int> nodesToTryInNNISearch_;
     double scenarioLikelihood_;
     mutable double _sequenceLikelihood;
     int MLindex_;
     bool rootOptimization_;
-    mutable std::vector <int> _tentativeDuplicationNumbers;
-    mutable std::vector <int> _tentativeLossNumbers; 
-    mutable std::vector <int> _tentativeBranchNumbers; 
-    mutable std::vector <int> _tentativeNum0Lineages;
-    mutable std::vector <int> _tentativeNum1Lineages; 
-    mutable std::vector <int> _tentativeNum2Lineages;
+    mutable std::vector <int> tentativeDuplicationNumbers_;
+    mutable std::vector <int> tentativeLossNumbers_; 
+    mutable std::vector <int> tentativeBranchNumbers_; 
+    mutable std::vector <int> tentativeNum0Lineages_;
+    mutable std::vector <int> tentativeNum1Lineages_; 
+    mutable std::vector <int> tentativeNum2Lineages_;
     mutable std::set <int> tentativeNodesToTryInNNISearch_;
     mutable int tentativeMLindex_;
     mutable double tentativeScenarioLikelihood_;
@@ -101,7 +101,7 @@ class ReconciliationTreeLikelihood:
     mutable bool optimizeSequenceLikelihood_;
     mutable bool optimizeReconciliationLikelihood_;
     mutable bool considerSequenceLikelihood_;
-    mutable bool _DLStartingGeneTree;
+    mutable bool DLStartingGeneTree_;
     unsigned int sprLimit_;
 
   public:
