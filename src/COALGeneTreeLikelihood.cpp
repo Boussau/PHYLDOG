@@ -178,9 +178,9 @@ COALGeneTreeLikelihood & COALGeneTreeLikelihood::operator=(const COALGeneTreeLik
 COALGeneTreeLikelihood::~COALGeneTreeLikelihood()
 {
     if (nniLk_) delete nniLk_;
-    if (_spTree) delete _spTree;
-    if (_rootedTree) delete _rootedTree;
-    if (_geneTreeWithSpNames) delete _geneTreeWithSpNames;
+    if (spTree_) delete spTree_;
+    if (rootedTree_) delete rootedTree_;
+    if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
 }
 
 
@@ -190,10 +190,10 @@ COALGeneTreeLikelihood::~COALGeneTreeLikelihood()
 void COALGeneTreeLikelihood::initParameters()
 {
     // std::cout << "in initParameters"<<std::endl;
-    if (_considerSequenceLikelihood) {
+    if (considerSequenceLikelihood_) {
         nniLk_->initParameters();
     }
-    if (_heuristicsLevel>0) {
+    if (heuristicsLevel_>0) {
         std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
         MPI::COMM_WORLD.Abort(1);
         exit(-1);
@@ -201,20 +201,20 @@ void COALGeneTreeLikelihood::initParameters()
     else {
 		/*std::cout << "BEFORE: "<<std::endl;
 		for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
-			if (_spTree->getNode(i)->isLeaf() ) {
+			if (spTree_->getNode(i)->isLeaf() ) {
 				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
 			}
 		}*/
-        _scenarioLikelihood = findMLCoalReconciliationDR (_spTree, _rootedTree, 
-                                    _seqSp, _spId, 
+        scenarioLikelihood_ = findMLCoalReconciliationDR (spTree_, rootedTree_, 
+                                    seqSp_, spId_, 
                                     _coalBl, 
-                                    _MLindex, 
+                                    MLindex_, 
                                     _coalCounts, 
-                                    _nodesToTryInNNISearch);
+                                    nodesToTryInNNISearch_);
 		computeNumLineagesFromCoalCounts ();
 
     }
-    _MLindex = -1;
+    MLindex_ = -1;
 }
 
 
@@ -222,7 +222,7 @@ void COALGeneTreeLikelihood::initParameters()
 /******************************************************************************/
 
 void COALGeneTreeLikelihood::resetMLindex() {
-    _MLindex = -1;
+    MLindex_ = -1;
 }
 
 
@@ -238,7 +238,7 @@ double COALGeneTreeLikelihood::getLogLikelihood() const
     
     //TEST
     /*
-     if ((_sequenceLikelihood == UNLIKELY)||(_optimizeSequenceLikelihood==true)) {
+     if ((_sequenceLikelihood == UNLIKELY)||(optimizeSequenceLikelihood_==true)) {
      Vdouble * lik = & likelihoodData_->getRootRateSiteLikelihoodArray();
      const std::vector<unsigned int> * w = & likelihoodData_->getWeights();
      for(unsigned int i = 0; i < nbDistinctSites_; i++)
@@ -258,23 +258,23 @@ double COALGeneTreeLikelihood::getLogLikelihood() const
      std::cout <<"NOT RECOMPUTING IN GETLOGLIKELIHOOD : "<< _sequenceLikelihood<<std::endl; 
      }*/
     //Now we add the scenario likelihood
-    //  std::cout << "COMPUTING LOGLIKELIHOOD :" << ll  << " SCENARIO LOGLIKELIHOOD :" << _scenarioLikelihood <<" TOTAL : "<< ll + _scenarioLikelihood <<std::endl;
+    //  std::cout << "COMPUTING LOGLIKELIHOOD :" << ll  << " SCENARIO LOGLIKELIHOOD :" << scenarioLikelihood_ <<" TOTAL : "<< ll + scenarioLikelihood_ <<std::endl;
     
     //TEST 16 02 2010
     // DRHomogeneousTreeLikelihood::getLogLikelihood();
     //  setMinuslogLikelihood_ (_sequenceLikelihood);
-    if (_considerSequenceLikelihood) {
-        ll = nniLk_->getLogLikelihood() + _scenarioLikelihood;
+    if (considerSequenceLikelihood_) {
+        ll = nniLk_->getLogLikelihood() + scenarioLikelihood_;
     }
     else {
-        ll = _scenarioLikelihood;
+        ll = scenarioLikelihood_;
     }
     // ll = _sequenceLikelihood ;
     return ll;
 }
 /******************************************************************************/
 //returns -loglikelihood
-//As a reminder: _sequenceLikelihood < 0, _scenarioLikelihood < 0, getValue >0
+//As a reminder: _sequenceLikelihood < 0, scenarioLikelihood_ < 0, getValue >0
 double COALGeneTreeLikelihood::getValue() const  
 throw (Exception)
 {
@@ -282,14 +282,14 @@ throw (Exception)
         if(!nniLk_->isInitialized()) throw Exception("reconciliationTreeLikelihood::getValue(). Instance is not initialized.");
         // return (-getLogLikelihood());
         //TEST 16 02 2010
-        // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " _scenarioLikelihood: "<<_scenarioLikelihood<<std::endl;
-        if (_considerSequenceLikelihood) {
-            return (- nniLk_->getLogLikelihood() - _scenarioLikelihood);
+        // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " scenarioLikelihood_: "<<scenarioLikelihood_<<std::endl;
+        if (considerSequenceLikelihood_) {
+            return (- nniLk_->getLogLikelihood() - scenarioLikelihood_);
         }
         else {
-            return (- _scenarioLikelihood);
+            return (- scenarioLikelihood_);
         }
-        //return (minusLogLik_ - _scenarioLikelihood);
+        //return (minusLogLik_ - scenarioLikelihood_);
         //return (-minusLogLik_);
     }
 }
@@ -301,12 +301,12 @@ throw (Exception)
 
 void COALGeneTreeLikelihood::fireParameterChanged(const ParameterList & params)
 {
-    if (_considerSequenceLikelihood) {
+    if (considerSequenceLikelihood_) {
         nniLk_->applyParameters();
         nniLk_->matchParametersValues(params);
     }
     //If we need to update the reconciliation likelihood
-    if (_optimizeReconciliationLikelihood) {
+    if (optimizeReconciliationLikelihood_) {
         computeReconciliationLikelihood();
     }
     
@@ -319,7 +319,7 @@ void COALGeneTreeLikelihood::fireParameterChanged(const ParameterList & params)
 
 void COALGeneTreeLikelihood::computeSequenceLikelihood()
 {
-    if ( _considerSequenceLikelihood && (_optimizeSequenceLikelihood==true) ) {
+    if ( considerSequenceLikelihood_ && (optimizeSequenceLikelihood_==true) ) {
         nniLk_->computeTreeLikelihood ();
         /*
          nniLk_->computeSubtreeLikelihoodPostfix(dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->getRootNode());
@@ -335,7 +335,7 @@ void COALGeneTreeLikelihood::computeSequenceLikelihood()
 
 void COALGeneTreeLikelihood::computeReconciliationLikelihood()
 {
-    if (_heuristicsLevel>0) {
+    if (heuristicsLevel_>0) {
         std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
         MPI::COMM_WORLD.Abort(1);
         exit(-1);
@@ -344,20 +344,20 @@ void COALGeneTreeLikelihood::computeReconciliationLikelihood()
         //Compute the COAL likelihood
 		/*std::cout << "BEFORE: "<<std::endl;
 		for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
-			if (_spTree->getNode(i)->isLeaf() ) {
+			if (spTree_->getNode(i)->isLeaf() ) {
 				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
 			}
 		}*/
 
-        _scenarioLikelihood = findMLCoalReconciliationDR (_spTree, _rootedTree, 
-                                                           _seqSp, _spId, 
+        scenarioLikelihood_ = findMLCoalReconciliationDR (spTree_, rootedTree_, 
+                                                           seqSp_, spId_, 
                                                            _coalBl, 
-                                                           _tentativeMLindex, 
+                                                           tentativeMLindex_, 
                                                            _tentativeCoalCounts, 
-                                                           _tentativeNodesToTryInNNISearch); 
-        _MLindex = _tentativeMLindex;
+                                                           tentativeNodesToTryInNNISearch_); 
+        MLindex_ = tentativeMLindex_;
         _coalCounts = _tentativeCoalCounts;
-        _nodesToTryInNNISearch = _tentativeNodesToTryInNNISearch;
+        nodesToTryInNNISearch_ = tentativeNodesToTryInNNISearch_;
 		computeNumLineagesFromCoalCounts ();
 
     }
@@ -370,7 +370,7 @@ void COALGeneTreeLikelihood::computeReconciliationLikelihood()
 
 void COALGeneTreeLikelihood::computeTreeLikelihood()
 {
-    if (_considerSequenceLikelihood )
+    if (considerSequenceLikelihood_ )
     {
         computeSequenceLikelihood();
     }
@@ -385,21 +385,21 @@ void COALGeneTreeLikelihood::computeTreeLikelihood()
 double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 {
     //int nodeId = son->getId();
-    //  std::cout<<"IN TESTNNI, nodeId "<< nodeId << "_nodesToTryInNNISearch.size() "<< _nodesToTryInNNISearch.size()<<std::endl;
+    //  std::cout<<"IN TESTNNI, nodeId "<< nodeId << "nodesToTryInNNISearch_.size() "<< nodesToTryInNNISearch_.size()<<std::endl;
     // std::cout << "before "<<TreeTemplateTools::treeToParenthesis (*tree_, true)<<std::endl;
     //If the NNI is around a branch where a duplication was found, 
     //or if we just try all branches because the starting gene trees are parsimonious in
     //numbers of DL.
-    if ((_nodesToTryInNNISearch.count(nodeId)==1) /*|| _DLStartingGeneTree*/) {
+    if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| _DLStartingGeneTree*/) {
         TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
         
-        _tentativeMLindex = _MLindex;
+        tentativeMLindex_ = MLindex_;
         /* _tentativeLossNumbers = _lossNumbers;
          _tentativeDuplicationNumbers = _duplicationNumbers;
          _tentativeBranchNumbers = _branchNumbers;*/
         _tentativeCoalCounts = _coalCounts;
 
-        _tentativeNodesToTryInNNISearch.clear();
+        tentativeNodesToTryInNNISearch_.clear();
         
         //We first estimate the likelihood of the scenario: if not better than the current scenario, no need to estimate the branch length !
         //We use the same procedure as in doNNI !
@@ -426,45 +426,45 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         parentForNNI->addSon(uncleForNNI);
         grandFatherForNNI->addSon(sonForNNI);
         
-        //Now we root the tree sent to findMLReconciliation as in _rootedTree
+        //Now we root the tree sent to findMLReconciliation as in rootedTree_
         int id = treeForNNI->getRootNode()->getId();
-        if(TreeTemplateTools::hasNodeWithId(*(_rootedTree->getRootNode()->getSon(0)),id)) {
-            treeForNNI->newOutGroup(_rootedTree->getRootNode()->getSon(1)->getId());
+        if(TreeTemplateTools::hasNodeWithId(*(rootedTree_->getRootNode()->getSon(0)),id)) {
+            treeForNNI->newOutGroup(rootedTree_->getRootNode()->getSon(1)->getId());
         }
         else {
-            treeForNNI->newOutGroup(_rootedTree->getRootNode()->getSon(0)->getId());
+            treeForNNI->newOutGroup(rootedTree_->getRootNode()->getSon(0)->getId());
         }
         double ScenarioMLValue = 0;
-        _totalIterations = _totalIterations+1;
+        totalIterations_ = totalIterations_+1;
         
          //Compute the COAL likelihood
 	
-        ScenarioMLValue =  findMLCoalReconciliationDR (_spTree, treeForNNI, 
-                                                           _seqSp, _spId, 
+        ScenarioMLValue =  findMLCoalReconciliationDR (spTree_, treeForNNI, 
+                                                           seqSp_, spId_, 
                                                            _coalBl, 
-                                                           _tentativeMLindex, 
+                                                           tentativeMLindex_, 
                                                            _tentativeCoalCounts, 
-                                                           _tentativeNodesToTryInNNISearch, false); 
+                                                           tentativeNodesToTryInNNISearch_, false); 
 
         
         
         if (treeForNNI) delete treeForNNI;
-         //std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< _scenarioLikelihood<<std::endl;
-        if (_considerSequenceLikelihood ) 
+         //std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< scenarioLikelihood_<<std::endl;
+        if (considerSequenceLikelihood_ ) 
         {
-            if  (ScenarioMLValue >  _scenarioLikelihood) 
+            if  (ScenarioMLValue >  scenarioLikelihood_) 
             { //If it is worth computing the sequence likelihood
                 //Retrieving arrays of interest:
                 // std::cout << "before nniLk_->testNNI(nodeId);"<<std::endl;
                 double newLkMinusOldLk = nniLk_->testNNI(nodeId);
 //                 std::cout << "after nniLk_->testNNI(nodeId); "<< newLkMinusOldLk <<std::endl;
 
-                double tot = - ScenarioMLValue + _scenarioLikelihood + newLkMinusOldLk;
+                double tot = - ScenarioMLValue + scenarioLikelihood_ + newLkMinusOldLk;
 		//		std::cout << "TOT: "<<tot<<std::endl;
                 // if (newLkMinusOldLk<0) 
                 if (tot < 0)
                 {
-                    _tentativeScenarioLikelihood=ScenarioMLValue;
+                    tentativeScenarioLikelihood_=ScenarioMLValue;
                 }
                 return tot;
                 // std::cout << "after "<<TreeTemplateTools::treeToParenthesis (tree_, true)<<std::endl;
@@ -472,26 +472,26 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
             }
             else 
             {
-                _tentativeMLindex = -1;
+                tentativeMLindex_ = -1;
                 return 1;
             }
         }
         else 
         {
-            if  (ScenarioMLValue >  _scenarioLikelihood) 
+            if  (ScenarioMLValue >  scenarioLikelihood_) 
             {
-                _tentativeScenarioLikelihood=ScenarioMLValue;
-                return (- ScenarioMLValue + _scenarioLikelihood);
+                tentativeScenarioLikelihood_=ScenarioMLValue;
+                return (- ScenarioMLValue + scenarioLikelihood_);
             }
             else 
             {
-                _tentativeMLindex = -1;
+                tentativeMLindex_ = -1;
                 return 1;
             }
         }
     }
     else {
-        _tentativeMLindex = -1;
+        tentativeMLindex_ = -1;
         return 1;
     }
 }
@@ -531,7 +531,7 @@ void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
      std::string name = "BrLen"+ TextTools::toString(pos);
      
      
-     if (_considerSequenceLikelihood ) 
+     if (considerSequenceLikelihood_ ) 
      {
      if(brLenNNIValues_.find(nodeId) != brLenNNIValues_.end())
      {
@@ -563,31 +563,31 @@ void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     //(It should be also possible to update the pointer in the copy constructor,
     //but we do not need the constraint info here...).
     
-    _MLindex = _tentativeMLindex;
+    MLindex_ = tentativeMLindex_;
     
-    _nodesToTryInNNISearch = _tentativeNodesToTryInNNISearch;
+    nodesToTryInNNISearch_ = tentativeNodesToTryInNNISearch_;
     
-    // std::cout <<"_tentativeScenarioLikelihood: "<<_tentativeScenarioLikelihood<<std::endl;
-    _scenarioLikelihood = _tentativeScenarioLikelihood;// + _brLikFunction->getValue();
+    // std::cout <<"tentativeScenarioLikelihood_: "<<tentativeScenarioLikelihood_<<std::endl;
+    scenarioLikelihood_ = tentativeScenarioLikelihood_;// + _brLikFunction->getValue();
     
-    //Now we need to update _rootedTree
+    //Now we need to update rootedTree_
     TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
-    //First we root this temporary tree as in _rootedTree (same lines as in testNNI)
+    //First we root this temporary tree as in rootedTree_ (same lines as in testNNI)
     int id = tree->getRootNode()->getId();
-    if(TreeTemplateTools::hasNodeWithId(*(_rootedTree->getRootNode()->getSon(0)),id)) {
-        tree->newOutGroup(_rootedTree->getRootNode()->getSon(1)->getId());
+    if(TreeTemplateTools::hasNodeWithId(*(rootedTree_->getRootNode()->getSon(0)),id)) {
+        tree->newOutGroup(rootedTree_->getRootNode()->getSon(1)->getId());
     }
     else {
-        tree->newOutGroup(_rootedTree->getRootNode()->getSon(0)->getId());
+        tree->newOutGroup(rootedTree_->getRootNode()->getSon(0)->getId());
     }
     //Then we root this tree according to MLindex
-    tree->newOutGroup(_MLindex);
-    //We update _rootedTree
-    if (_rootedTree) delete _rootedTree;
-    _rootedTree = tree->clone();
+    tree->newOutGroup(MLindex_);
+    //We update rootedTree_
+    if (rootedTree_) delete rootedTree_;
+    rootedTree_ = tree->clone();
     delete tree;
     //we need to update the sequence likelihood
-    if (_considerSequenceLikelihood ) 
+    if (considerSequenceLikelihood_ ) 
     {
         OptimizeSequenceLikelihood(true);
     }
@@ -603,12 +603,12 @@ std::vector < std::vector < std::vector< std::vector<unsigned int> > > > COALGen
 
 
 void COALGeneTreeLikelihood::computeNumLineagesFromCoalCounts () {  
-//	unsigned int id = _rootedTree->getRootNode()->getId();
+//	unsigned int id = rootedTree_->getRootNode()->getId();
 	//std::cout << "id: "<< id <<std::endl;
 
 	//List all keys supposed to be species
 	/*std::cout << "spIds: "<< std::endl;
-	for (std::map<std::string, int >::iterator it2 = _spId.begin(); it2 != _spId.end(); it2++) {
+	for (std::map<std::string, int >::iterator it2 = spId_.begin(); it2 != spId_.end(); it2++) {
 		std::cout << it2->second << " ";
 	}
 	std::cout << std::endl;*/
@@ -671,7 +671,7 @@ void COALGeneTreeLikelihood::setCoalBranchLengths (std::vector < double > coalBl
 /*******************************************************************************/
 
 int COALGeneTreeLikelihood::getRootNodeindex(){
-    return _MLindex;
+    return MLindex_;
 }
 
 /*******************************************************************************/
@@ -707,7 +707,7 @@ void COALGeneTreeLikelihood::print () const {
     std::cout << "Branch lengths"<<std::endl;
     VectorTools::print(getCoalBranchLengths());
     std::cout << "Root index"<<std::endl;
-    std::cout << _MLindex <<std::endl;
+    std::cout << MLindex_ <<std::endl;
 }
 
 
@@ -717,7 +717,7 @@ void COALGeneTreeLikelihood::print () const {
  ************************************************************************/
 void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     /*  std::cout <<"\t\t\tStarting MLSearch : current tree : "<< std::endl;
-     std::cout<< TreeTemplateTools::treeToParenthesis(*_rootedTree, true)<< std::endl;*/
+     std::cout<< TreeTemplateTools::treeToParenthesis(*rootedTree_, true)<< std::endl;*/
     if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
         //We don't do SPRs
         //std::cout << "WE DONT DO SPRS"<<std::endl;
@@ -784,8 +784,8 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     /*
      bls = nniLk_->getBranchLengthsParameters () ;
      for (unsigned int i  = 0 ; i < bls.size() ; i++) {
-     if (_rootedTree->getNode(i)->hasFather()) {
-     _rootedTree->getNode(i)->setDistanceToFather(bls[i].getValue());
+     if (rootedTree_->getNode(i)->hasFather()) {
+     rootedTree_->getNode(i)->setDistanceToFather(bls[i].getValue());
      }
      }*/
     
@@ -799,11 +799,11 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     // std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
     unsigned int numIterationsWithoutImprovement = 0;
     NNIHomogeneousTreeLikelihood * bestDrlk = 0;
-    breadthFirstreNumber (*_rootedTree);
+    breadthFirstreNumber (*rootedTree_);
     
     
     // DRHomogeneousTreeLikelihood drlk;
-    //  std::cout<< "Starting tree: "<<TreeTemplateTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
+    //  std::cout<< "Starting tree: "<<TreeTemplateTools::treeToParenthesis(*rootedTree_, true)<< std::endl;
     
     string parentDup;
     string nodeDup;
@@ -812,17 +812,17 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     bool computeSequenceLikelihoodForSPR = ApplicationTools::getBooleanParameter("compute.sequence.likelihood.in.sprs", params, true, "", false, false);
     
     
-    while (numIterationsWithoutImprovement < _rootedTree->getNumberOfNodes() - 2)
+    while (numIterationsWithoutImprovement < rootedTree_->getNumberOfNodes() - 2)
     {
         
-        annotateGeneTreeWithDuplicationEvents (*_spTree, 
-                                               *_rootedTree, 
-                                               _rootedTree->getRootNode(), 
-                                               _seqSp, _spId); 
+        annotateGeneTreeWithDuplicationEvents (*spTree_, 
+                                               *rootedTree_, 
+                                               rootedTree_->getRootNode(), 
+                                               seqSp_, spId_); 
         
-        for (int nodeForSPR=_rootedTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
+        for (int nodeForSPR=rootedTree_->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
         {
-            Node * n = _rootedTree->getNode(nodeForSPR);
+            Node * n = rootedTree_->getNode(nodeForSPR);
             /*            if (n->getFather()->hasBranchProperty("Ev")) {
              parentDup = (dynamic_cast<const BppString *>(n->getFather()->getBranchProperty("Ev")))->toSTL() ;
              }*/
@@ -832,19 +832,19 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
             /* else {
              parentDup = "F" ;}*/
             //   std::cout << "parentDup : "<< parentDup <<std::endl;
-            /*  if ( _rootedTree->getNode(nodeForSPR)->hasNodeProperty("D")) { 
-             nodeDup = (dynamic_cast<const BppString *>(_rootedTree->getNode(nodeForSPR)->getNodeProperty("D")))->toSTL() ; }
+            /*  if ( rootedTree_->getNode(nodeForSPR)->hasNodeProperty("D")) { 
+             nodeDup = (dynamic_cast<const BppString *>(rootedTree_->getNode(nodeForSPR)->getNodeProperty("D")))->toSTL() ; }
              else {
              nodeDup = "F" ; }*/
             //if ( parentDup == "D"  /*|| nodeDup == "Y"*/) {
             if ( numLoss != "0"  /*|| nodeDup == "Y"*/) {
                 
-                //CHANGE12 11 2011 buildVectorOfRegraftingNodesLimitedDistance(*_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
-                buildVectorOfRegraftingNodesCoalGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                //CHANGE12 11 2011 buildVectorOfRegraftingNodesLimitedDistance(*rootedTree_, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                buildVectorOfRegraftingNodesCoalGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimit_, nodeIdsToRegraft);
                 
                 /*              
-                 if (_rootedTree->getNode(nodeForSPR)->isLeaf()) {
-                 std::cout << "nodeForSPR: "<< _rootedTree->getNode(nodeForSPR)->getName()<<" ; "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
+                 if (rootedTree_->getNode(nodeForSPR)->isLeaf()) {
+                 std::cout << "nodeForSPR: "<< rootedTree_->getNode(nodeForSPR)->getName()<<" ; "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
                  }
                  else {
                  std::cout << "nodeForSPR: "<< nodeForSPR << "; Node ids to regraft: " <<std::endl;
@@ -859,7 +859,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                         delete treeForSPR;
                         treeForSPR = 0;
                     }
-                    treeForSPR = _rootedTree->clone();
+                    treeForSPR = rootedTree_->clone();
                     // treeForSPR->getRootNode()->getSon(0)->setName("outgroupNode");
                     
                     makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false);
@@ -867,12 +867,12 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                     //breadthFirstreNumber (*treeForSPR);
                     
                     //Compute the COAL likelihood
-                    candidateScenarioLk =  findMLCoalReconciliationDR (_spTree, treeForSPR, 
-                                                                   _seqSp, _spId, 
+                    candidateScenarioLk =  findMLCoalReconciliationDR (spTree_, treeForSPR, 
+                                                                   seqSp_, spId_, 
                                                                    _coalBl, 
-                                                                   _tentativeMLindex, 
+                                                                   tentativeMLindex_, 
                                                                    _tentativeCoalCounts, 
-                                                                   _tentativeNodesToTryInNNISearch, false); 
+                                                                   tentativeNodesToTryInNNISearch_, false); 
                     // std::cout<< "candidate tree: "<< TreeTemplateTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
                     
                     if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
@@ -906,7 +906,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                              std::cout<< TreeTemplateTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;*/
                             
                             //  std::cout << "Good SPR; Sequence lk before optimization: "<< -drlk->getValue() << std::endl;
-                            //  _rootedTree = treeForSPR->clone();
+                            //  rootedTree_ = treeForSPR->clone();
                             // makeSPR(*tree_, nodeForSPR, nodeIdsToRegraft[i]);
                             // tree_->unroot();
                             //  tree_ = treeForSPR->clone();
@@ -1043,13 +1043,13 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                         delete treeForSPR;
                         treeForSPR = 0;
                     }
-                    if (_rootedTree) 
+                    if (rootedTree_) 
                     {
-                        delete _rootedTree;
-                        _rootedTree = 0;
+                        delete rootedTree_;
+                        rootedTree_ = 0;
                     }
-                    _rootedTree = bestTree->clone();
-                    breadthFirstreNumber (*_rootedTree);
+                    rootedTree_ = bestTree->clone();
+                    breadthFirstreNumber (*rootedTree_);
                     
                     if (bestTree) {
                         delete bestTree;
@@ -1060,8 +1060,8 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                      vector<int> drlkNodes = bestTree->getNodesId();
                      
                      for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
-                     if (_rootedTree->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
-                     _rootedTree->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
+                     if (rootedTree_->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
+                     rootedTree_->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
                      }*/
                     
                     /*    std::cout <<"\t\t\tSPRs: Improvement! : "<<numIterationsWithoutImprovement<< std::endl;
@@ -1081,7 +1081,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                     /* std::cout << "NOT ROOTED: "<<std::endl;
                      std::cout<< TreeTemplateTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
                      std::cout << "ROOTED: "<<std::endl;
-                     std::cout<< TreeTemplateTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
+                     std::cout<< TreeTemplateTools::treeToParenthesis(*rootedTree_, true)<< std::endl;
                      */
                 }
                 else 
@@ -1115,16 +1115,16 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
         }
     }
     
-    _scenarioLikelihood = bestScenarioLk;
+    scenarioLikelihood_ = bestScenarioLk;
     //final branch lengths optimization
     
-    _rootedTree->resetNodesId();
+    rootedTree_->resetNodesId();
     if (drlk) {
         delete drlk;
         drlk = 0;
     }
     /*Do we need this extra lk optimization?
-     bestTree = _rootedTree->clone();
+     bestTree = rootedTree_->clone();
      
      drlk = new NNIHomogeneousTreeLikelihood (*bestTree, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
      drlk->initialize();
@@ -1145,23 +1145,23 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
      
      vector<int> drlkNodes = bestTree->getNodesId();
      for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
-     if (_rootedTree->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
-     _rootedTree->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
+     if (rootedTree_->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
+     rootedTree_->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
      }
      */
     //One more reconciliation, to update the "_num*Lineages" vectors.
     computeReconciliationLikelihood();
     
     Nhx *nhx = new Nhx();
-    annotateGeneTreeWithDuplicationEvents (*_spTree, 
-                                           *_rootedTree, 
-                                           _rootedTree->getRootNode(), 
-                                           _seqSp, _spId); 
+    annotateGeneTreeWithDuplicationEvents (*spTree_, 
+                                           *rootedTree_, 
+                                           rootedTree_->getRootNode(), 
+                                           seqSp_, spId_); 
     cout << "Reconciled tree: "<<endl;
-    nhx->write(*_rootedTree, cout);
+    nhx->write(*rootedTree_, cout);
     /*  cout << "unrooted tree: "<<endl;
      nhx->write(*bestTree, cout);*/
-    //    std::cout<< TreeTemplateTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
+    //    std::cout<< TreeTemplateTools::treeToParenthesis(*rootedTree_, true)<< std::endl;
     if (bestTree) {
         delete bestTree;
         bestTree = 0;
@@ -1251,11 +1251,11 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
     // std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
     unsigned int numIterationsWithoutImprovement = 0;
     FastRHomogeneousTreeLikelihood * bestRlk = 0;
-    breadthFirstreNumber (*_rootedTree);
+    breadthFirstreNumber (*rootedTree_);
     
     
     // DRHomogeneousTreeLikelihood drlk;
-    //  std::cout<< "Starting tree: "<<TreeTemplateTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
+    //  std::cout<< "Starting tree: "<<TreeTemplateTools::treeToParenthesis(*rootedTree_, true)<< std::endl;
     
     string parentDup;
     string nodeDup;
@@ -1264,23 +1264,23 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
     bool computeSequenceLikelihoodForSPR = ApplicationTools::getBooleanParameter("compute.sequence.likelihood.in.sprs", params, true, "", false, false);
     
     
-    while (numIterationsWithoutImprovement < _rootedTree->getNumberOfNodes() - 2)
+    while (numIterationsWithoutImprovement < rootedTree_->getNumberOfNodes() - 2)
     {
         
-        annotateGeneTreeWithDuplicationEvents (*_spTree, 
-                                               *_rootedTree, 
-                                               _rootedTree->getRootNode(), 
-                                               _seqSp, _spId); 
+        annotateGeneTreeWithDuplicationEvents (*spTree_, 
+                                               *rootedTree_, 
+                                               rootedTree_->getRootNode(), 
+                                               seqSp_, spId_); 
         
-        for (int nodeForSPR=_rootedTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
+        for (int nodeForSPR=rootedTree_->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
         {
-            Node * n = _rootedTree->getNode(nodeForSPR);
+            Node * n = rootedTree_->getNode(nodeForSPR);
             if (n->hasBranchProperty("L")) {
                 numLoss = (dynamic_cast<const BppString *>(n->getBranchProperty("L")))->toSTL() ;
             }
             if ( numLoss != "0"  ) {
                 
-                buildVectorOfRegraftingNodesCoalGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                buildVectorOfRegraftingNodesCoalGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimit_, nodeIdsToRegraft);
                 
                 betterTree = false;
                 for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
@@ -1290,17 +1290,17 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
                         delete treeForSPR;
                         treeForSPR = 0;
                     }
-                    treeForSPR = _rootedTree->clone();
+                    treeForSPR = rootedTree_->clone();
                     
                     nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
                     
                     //Compute the COAL likelihood
-                    candidateScenarioLk =  findMLCoalReconciliationDR (_spTree, treeForSPR, 
-                                                                       _seqSp, _spId, 
+                    candidateScenarioLk =  findMLCoalReconciliationDR (spTree_, treeForSPR, 
+                                                                       seqSp_, spId_, 
                                                                        _coalBl, 
-                                                                       _tentativeMLindex, 
+                                                                       tentativeMLindex_, 
                                                                        _tentativeCoalCounts, 
-                                                                       _tentativeNodesToTryInNNISearch, false); 
+                                                                       tentativeNodesToTryInNNISearch_, false); 
                     
                     if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the scenario likelihood is not bad
                     {
@@ -1417,14 +1417,14 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
                         delete treeForSPR;
                         treeForSPR = 0;
                     }
-                    if (_rootedTree) 
+                    if (rootedTree_) 
                     {
-                        delete _rootedTree;
-                        _rootedTree = 0;
+                        delete rootedTree_;
+                        rootedTree_ = 0;
                     }
-                    _rootedTree = bestTree->clone();
-                    //  breadthFirstreNumber (*_rootedTree);
-                    breadthFirstreNumberAndResetProperties (*_rootedTree);
+                    rootedTree_ = bestTree->clone();
+                    //  breadthFirstreNumber (*rootedTree_);
+                    breadthFirstreNumberAndResetProperties (*rootedTree_);
                     
                     if (bestTree) {
                         delete bestTree;
@@ -1478,10 +1478,10 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
         }
     }
     
-    _scenarioLikelihood = bestScenarioLk;
+    scenarioLikelihood_ = bestScenarioLk;
     //final branch lengths optimization
     
-    _rootedTree->resetNodesId();
+    rootedTree_->resetNodesId();
     if (rlk) {
         delete rlk;
         rlk = 0;
@@ -1491,12 +1491,12 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
     computeReconciliationLikelihood();
     
     Nhx *nhx = new Nhx();
-    annotateGeneTreeWithDuplicationEvents (*_spTree, 
-                                           *_rootedTree, 
-                                           _rootedTree->getRootNode(), 
-                                           _seqSp, _spId); 
+    annotateGeneTreeWithDuplicationEvents (*spTree_, 
+                                           *rootedTree_, 
+                                           rootedTree_->getRootNode(), 
+                                           seqSp_, spId_); 
     cout << "Reconciled tree: "<<endl;
-    nhx->write(*_rootedTree, cout);
+    nhx->write(*rootedTree_, cout);
     
     if (bestTree) {
         delete bestTree;
@@ -1521,7 +1521,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
  ************************************************************************/
 void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) { 
     /*  std::cout <<"\t\t\tStarting MLSearch : current tree : "<< std::endl;
-     std::cout<< TreeTemplateTools::treeToParenthesis(*_rootedTree, true)<< std::endl;*/
+     std::cout<< TreeTemplateTools::treeToParenthesis(*rootedTree_, true)<< std::endl;*/
     if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
         //We don't do SPRs
         //  std::cout << "WE DONT DO SPRS"<<std::endl;
@@ -1555,11 +1555,11 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
     unsigned int numIterationsWithoutImprovement = 0;
     NNIHomogeneousTreeLikelihood * drlk = 0;
     NNIHomogeneousTreeLikelihood * bestDrlk = 0;
-    breadthFirstreNumber (*_rootedTree);
+    breadthFirstreNumber (*rootedTree_);
     
     
     // DRHomogeneousTreeLikelihood drlk;
-    //  std::cout<< "Starting tree: "<<TreeTemplateTools::treeToParenthesis(*_rootedTree, true)<< std::endl;
+    //  std::cout<< "Starting tree: "<<TreeTemplateTools::treeToParenthesis(*rootedTree_, true)<< std::endl;
     
     string parentDup;
     string nodeDup;
@@ -1568,19 +1568,19 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
     bool computeSequenceLikelihoodForSPR = ApplicationTools::getBooleanParameter("compute.sequence.likelihood.in.sprs", params, true, "", false, false);
     
     
-    while (numIterationsWithoutImprovement < _rootedTree->getNumberOfNodes() - 2)
+    while (numIterationsWithoutImprovement < rootedTree_->getNumberOfNodes() - 2)
     {
         betterTree=false;
         allDLLKsAndIndices.clear();
         allTreesTested.clear();        
         index = 0;
-        annotateGeneTreeWithDuplicationEvents (*_spTree, 
-                                               *_rootedTree, 
-                                               _rootedTree->getRootNode(), 
-                                               _seqSp, _spId); 
-        for (unsigned int nodeForSPR=_rootedTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
+        annotateGeneTreeWithDuplicationEvents (*spTree_, 
+                                               *rootedTree_, 
+                                               rootedTree_->getRootNode(), 
+                                               seqSp_, spId_); 
+        for (unsigned int nodeForSPR=rootedTree_->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
         {
-            Node * n = _rootedTree->getNode(nodeForSPR);
+            Node * n = rootedTree_->getNode(nodeForSPR);
             /*            if (n->getFather()->hasBranchProperty("Ev")) {
              parentDup = (dynamic_cast<const BppString *>(n->getFather()->getBranchProperty("Ev")))->toSTL() ;
              }*/
@@ -1588,7 +1588,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
                 numLoss = (dynamic_cast<const BppString *>(n->getBranchProperty("L")))->toSTL() ;
             }
             if ( numLoss != "0" ) {
-                buildVectorOfRegraftingNodesCoalGeneTree(*_spTree, *_rootedTree, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+                buildVectorOfRegraftingNodesCoalGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimit_, nodeIdsToRegraft);
                 for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
                 {
                     if (treeForSPR) 
@@ -1596,19 +1596,19 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
                         delete treeForSPR;
                         treeForSPR = 0;
                     }
-                    treeForSPR = _rootedTree->clone();
+                    treeForSPR = rootedTree_->clone();
                     
                     makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false);
                     
                     //breadthFirstreNumber (*treeForSPR);
                     
                     //Compute the COAL likelihood
-                    candidateScenarioLk =  findMLCoalReconciliationDR (_spTree, treeForSPR, 
-                                                                       _seqSp, _spId, 
+                    candidateScenarioLk =  findMLCoalReconciliationDR (spTree_, treeForSPR, 
+                                                                       seqSp_, spId_, 
                                                                        _coalBl, 
-                                                                       _tentativeMLindex, 
+                                                                       tentativeMLindex_, 
                                                                        _tentativeCoalCounts, 
-                                                                       _tentativeNodesToTryInNNISearch, false); 
+                                                                       tentativeNodesToTryInNNISearch_, false); 
                     if (allDLLKsAndIndices.find(- candidateScenarioLk) != allDLLKsAndIndices.end() ) {
                         allDLLKsAndIndices[- candidateScenarioLk].push_back(index);
                     }
@@ -1624,7 +1624,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
             else {
                 numIterationsWithoutImprovement++;
             }
-        } //End for (int nodeForSPR=_rootedTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--)
+        } //End for (int nodeForSPR=rootedTree_->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--)
         
         unsigned int numberOfTopologiesToTry = 3;
         
@@ -1706,13 +1706,13 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
                 delete treeForSPR;
                 treeForSPR = 0;
             }
-            if (_rootedTree) 
+            if (rootedTree_) 
             {
-                delete _rootedTree;
-                _rootedTree = 0;
+                delete rootedTree_;
+                rootedTree_ = 0;
             }
-            _rootedTree = bestTree->clone();
-            breadthFirstreNumber (*_rootedTree);
+            rootedTree_ = bestTree->clone();
+            breadthFirstreNumber (*rootedTree_);
             
             if (bestTree) {
                 delete bestTree;
@@ -1728,7 +1728,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
         }
         else 
         {
-            numIterationsWithoutImprovement = _rootedTree->getNumberOfNodes() - 2;
+            numIterationsWithoutImprovement = rootedTree_->getNumberOfNodes() - 2;
         }
         
         if (treeForSPR) 
@@ -1748,18 +1748,18 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
             delete drlk;
             drlk = 0;
         }
-    }// End while (numIterationsWithoutImprovement < _rootedTree->getNumberOfNodes() - 2)
+    }// End while (numIterationsWithoutImprovement < rootedTree_->getNumberOfNodes() - 2)
     
-    _scenarioLikelihood = bestScenarioLk;
+    scenarioLikelihood_ = bestScenarioLk;
     //final branch lengths optimization
     
-    _rootedTree->resetNodesId();
+    rootedTree_->resetNodesId();
     if (drlk) {
         delete drlk;
         drlk = 0;
     }
     
-    bestTree = _rootedTree->clone();
+    bestTree = rootedTree_->clone();
     
     drlk = new NNIHomogeneousTreeLikelihood (*bestTree, 
                                              *(nniLk_->getData()), 
@@ -1790,8 +1790,8 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
     
     vector<int> drlkNodes = bestTree->getNodesId();
     for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
-        if (_rootedTree->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
-            _rootedTree->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
+        if (rootedTree_->getNode(drlkNodes[j])->hasFather() && bestTree->getNode(drlkNodes[j])->hasFather())
+            rootedTree_->getNode(drlkNodes[j])->setDistanceToFather(bestTree->getNode(drlkNodes[j])->getDistanceToFather());
     }
     
     //One more reconciliation, to update the "_num*Lineages" vectors.
@@ -1799,12 +1799,12 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
     computeReconciliationLikelihood();
     
     Nhx *nhx = new Nhx();
-    annotateGeneTreeWithDuplicationEvents (*_spTree, 
-                                           *_rootedTree, 
-                                           _rootedTree->getRootNode(), 
-                                           _seqSp, _spId); 
+    annotateGeneTreeWithDuplicationEvents (*spTree_, 
+                                           *rootedTree_, 
+                                           rootedTree_->getRootNode(), 
+                                           seqSp_, spId_); 
     cout << "Reconciled tree: "<<endl;
-    nhx->write(*_rootedTree, cout);
+    nhx->write(*rootedTree_, cout);
     if (bestTree) {
         delete bestTree;
         bestTree = 0;
@@ -1884,7 +1884,7 @@ void COALGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsi
  * Tells if the gene family is single copy (1 gene per sp)
  ************************************************************************/
 bool COALGeneTreeLikelihood::isSingleCopy() {
-    vector<string> names = TreeTemplateTools::getLeavesNames(*(_geneTreeWithSpNames->getRootNode() ) );
+    vector<string> names = TreeTemplateTools::getLeavesNames(*(geneTreeWithSpNames_->getRootNode() ) );
     vector<string> uniqueNames = VectorTools::unique(names);
     if (uniqueNames.size() == names.size() ) {
         return true;

@@ -609,7 +609,7 @@ int getLimitIdFromNumberOfLevels(std::map<int, std::vector <int> > DepthToIds, i
  * This is therefore an approximate formula (normally, 
  * one should consider all possible counts, from 0 to +infinity).
  **************************************************************************/
-void computeDuplicationAndLossProbabilities (int i, int j, int k, 
+void computeDuplicationAndLossProbabilities (const int i, const int j, const int k, 
                                              double & lossProbability, 
                                              double & duplicationProbability) {
   double id=double(i);
@@ -669,105 +669,6 @@ void computeDuplicationAndLossProbabilities (int i, int j, int k,
     std::cerr<<"A branch loss probability could not be properly estimated. Set to 0.000001 by default. X:"<<X<<" Y:"<<Y<<" Z:"<<Z<<std::endl;
     lossProbability = 0.0000011;
   }
-  
-  
-  
-  
-  
-  /*Old Formulas as of 18 02 2010
-
-  while((id < 1.0)||(jd < 1.0)||(kd < 1.0 )) {
-    id = id*100;
-    jd = jd*100;
-    kd = kd*100;
-  }
-  
-  
-  if (id==kd) {
-    kd=kd-0.00001;
-  }
-  
-  double denom = kd*id-jd*kd-kd*kd+jd*id;
-  if (denom==0) {
-    denom=0.00000001;
-  }
-  double ln ;
-  ln = log ((jd+2*kd)/(id+jd+kd));
-  
-   
-  double temp = -ln*(jd+2*kd)*id/denom;
- 
-  if (!(std::isnan(temp)||std::isinf(temp))) {
-    if (temp<=0) {
-      lossProbability = 0.0001;//SMALLPROBA;
-    }
-     else {
-      lossProbability = temp;
-    }
-  }
-  temp = -ln*kd*(id+jd+kd)/denom;  
- 
-  if (!(std::isnan(temp)||std::isinf(temp))) { 
-    if (temp<=0) {
-      duplicationProbability = 0.0001;//SMALLPROBA;
-    }
-    else {
-      duplicationProbability = temp;
-    }
-  }
-  if (lossProbability <0.0001) {
-    lossProbability = 0.0001;//1e-6;
-  }
-  if (duplicationProbability <0.0001) {
-    duplicationProbability = 0.0001;//1e-6;
-  }
-  */
-/*  
-  //New formulas as of 18 02 2010
-  double sum = id +jd +kd;
-  double X = id/sum;
-  double Y = jd/sum;
-  double Z = kd/sum;
-  
-  double K = 1 - sqrt(1-4*Z/(1-X));
-  
-  double temp = (1/(1 - 2*X/K )) * log( ((X-1)/(Y)) * ((2*X/K)*(1-Y/(1-X))-1));
-  
-  if (!(std::isnan(temp)||std::isinf(temp))) { 
-    if (temp<=0) {
-      duplicationProbability = 0.0001;//SMALLPROBA;
-    }
-    else {  
-      duplicationProbability = temp;
-    }
-  }
-  temp = 2*X*temp/K;
-  
-  if (!(std::isnan(temp)||std::isinf(temp))) {
-    if (temp<=0) {
-      lossProbability = 0.0001;//SMALLPROBA;
-    }
-    else {
-      lossProbability = temp;
-          }
-  }  
- 
-  if (lossProbability <0.0001) {
-    lossProbability = 0.0001;//1e-6;
-  }
-  if (duplicationProbability <0.0001) {
-    duplicationProbability = 0.0001;//1e-6;
-  }
-  */
-    
-  
-  
- /* 
-  std::cout<<"0: "<<i<<" 1: "<<j<<" 2: "<<k<<std::endl;
-std::cout<<"X: "<<X<<" Y: "<<Y<<" Z: "<<Z<<std::endl;
-  std::cout<<" lossProbability: "<<lossProbability <<" duplicationProbability: "<<duplicationProbability<<std::endl;
-  */
- // std::cout <<"in computeDuplicationAndLossProbabilities 2"<<std::endl;
 
   return;
 }
@@ -778,7 +679,7 @@ std::cout<<"X: "<<X<<" Y: "<<Y<<" Z: "<<Z<<std::endl;
 
 
 
-void computeDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> numOGenes, std::vector <int> num1Genes, std::vector <int> num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities) {
+void computeDuplicationAndLossProbabilitiesForAllBranches (const std::vector <int> &numOGenes, const std::vector <int> &num1Genes, const std::vector <int> &num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities) {
   //The trick for the root, already done in alterLineages...:
  /*
   int totNum0=0, totNum12=0;
@@ -796,7 +697,7 @@ void computeDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> num
 }
 
 
-void computeAverageDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> numOGenes, std::vector <int> num1Genes, std::vector <int> num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities) {
+void computeAverageDuplicationAndLossProbabilitiesForAllBranches (const std::vector <int> &numOGenes, const std::vector <int> &num1Genes, const std::vector <int> &num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities) {
   //The trick for the root:
  /* int totNum0=0, totNum12=0;
   for (int i =1 ; i< lossProbabilities.size() ; i++) {
@@ -825,16 +726,16 @@ void computeAverageDuplicationAndLossProbabilitiesForAllBranches (std::vector <i
 /**************************************************************************
  * Computes the probability of a given number of lineages numberOfLineages at the end of a branch given that there was only one at the beginning of the branch. 
  **************************************************************************/
-double computeBranchProbability (double duplicationProbability, double lossProbability, int numberOfLineages) {
+double computeBranchProbability (const double & duplicationProbability, const double & lossProbability, const int numberOfLineages) {
   //Using a linear birth-death process (Bartholomay, 1958)
-  int min ;
+ /* int min ;
   if (numberOfLineages == 0) {
     min = 0; 
   }
   else {
     min = 1;
   }
-  
+  */
   double elm = exp(duplicationProbability - lossProbability);
   double A = elm -1;
   double B = duplicationProbability * elm - lossProbability;
@@ -854,37 +755,13 @@ double computeBranchProbability (double duplicationProbability, double lossProba
     }
   return(res);
 
-  
- /* Old computations as of 21 02 2010
-  if (duplicationProbability==lossProbability) {
-    lossProbability+=0.0000001;
-  }
-  double beta = (1-exp(duplicationProbability-lossProbability))/(lossProbability-duplicationProbability*exp(duplicationProbability-lossProbability));
-  if (std::isnan(beta)) {
-    std::cout <<"ISNAN beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
-  }
-  if (numberOfLineages==0) {
-    return (lossProbability*beta);
-  }
-  else {
-    double temp = (1-duplicationProbability*beta)*pow((duplicationProbability*beta),(numberOfLineages-1)) * (1-lossProbability*beta);
-    if (std::isnan(temp)) {
-      std::cout <<"ISNAN2 beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
-    }
-    else if (temp == 0) {
-     // std::cerr <<"TEMP equals 0; beta :"<<beta<<" duplicationProbability :"<<duplicationProbability<<" lossProbability:"<<lossProbability<<" numberOfLineages :"<<numberOfLineages<<std::endl;
-      temp = NumConstants::VERY_TINY ;
-    }
-    return(temp);
-  }
-  */
 }
 
 
 /**************************************************************************
  * Computes the log of the probability. 
  **************************************************************************/
-double computeLogBranchProbability (double duplicationProbability, double lossProbability, int numberOfLineages) {
+double computeLogBranchProbability (const double & duplicationProbability, const double & lossProbability, const int numberOfLineages) {
   //UNDONE TEST 1409
 /*  if (numberOfLineages<=1) {
     return 0;
@@ -899,7 +776,7 @@ double computeLogBranchProbability (double duplicationProbability, double lossPr
 /**************************************************************************
  * Computes the probability of a given number of lineages numberOfLineages at the end of a branch given that there was 0 at the beginning of the branch. 
  **************************************************************************/
-double computeBranchProbabilityAtRoot (double duplicationProbability, double lossProbability, int numberOfLineages) {
+double computeBranchProbabilityAtRoot (const double &duplicationProbability, double &lossProbability, const int numberOfLineages) {
   if (duplicationProbability==lossProbability) {
     lossProbability+=0.0000001;
   }
@@ -932,7 +809,7 @@ double computeBranchProbabilityAtRoot (double duplicationProbability, double los
  * Now we do not consider gene originations anymore.
  * Therefore events at the root are considered as on any other branch.
  **************************************************************************/
-double computeLogBranchProbabilityAtRoot (double duplicationProbability, double lossProbability, int numberOfLineages) {
+double computeLogBranchProbabilityAtRoot (const double &duplicationProbability, const double &lossProbability, const int numberOfLineages) {
   //UNDONE TEST 1409
  /* if (numberOfLineages<=1) {
     return 0;
@@ -965,8 +842,8 @@ void computeScenarioScore (TreeTemplate<Node> & tree,
                            Node * noeud, 
                            std::vector<int> &branchNumbers, 
                            std::map <int, std::vector <int> > &geneNodeIdToSpeciations, 
-                           std::vector<double>duplicationProbabilities, 
-                           std::vector <double> lossProbabilities, 
+                           const std::vector<double> &duplicationProbabilities, 
+                           const std::vector<double> &lossProbabilities, 
                            std::vector <int> &num0lineages, 
                            std::vector <int> &num1lineages, 
                            std::vector <int> &num2lineages) {
@@ -1054,13 +931,13 @@ void computeScenarioScore (TreeTemplate<Node> & tree,
     if(num==num0||num==num1) { //there is a duplication at this branch
       if (noeud->hasFather()) {
         int fatherNum = (dynamic_cast<const Number<int> *>(noeud->getFather()->getNodeProperty(SPECIESID))->getValue());
-        int brotherNum;
+       /* int brotherNum;
         if (noeud->getFather()->getSon(0)->getId()==noeud->getId()) {
           brotherNum = (dynamic_cast<const Number<int> *>(noeud->getFather()->getSon(1)->getNodeProperty(SPECIESID))->getValue());
         }
         else {
           brotherNum = (dynamic_cast<const Number<int> *>(noeud->getFather()->getSon(0)->getNodeProperty(SPECIESID))->getValue());
-        }
+        }*/
         
         if (fatherNum == num){
           //this is not the first duplication: we cannot compute the score yet
@@ -2325,9 +2202,6 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
                                std::set <int> &nodesToTryInNNISearch, 
                                bool fillTables)
 {
-/*    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
-  */  
     
   if (!geneTree->isRooted()) {
     std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
@@ -2344,16 +2218,10 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   double initialLikelihood;
   //This std::map keeps rootings likelihoods. The key is the likelihood value, and the value is the node to put as outgroup.
   std::map <double, Node*> LksToNodes;
-  
-// std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
-//  std::cout << "IN findMLReconciliationDR "<<TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
-  
-//  std::cout <<"CLOCKBEFOREPOSTORDER "<<clock()<<std::endl;
+ 
   Node * geneRoot = geneTree->getRootNode();
     
-/*  std::cout <<"root number :"<<geneRoot->getId()<<std::endl;
-  std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;*/
-  double START, END;
+
   {
         {
 
@@ -2366,13 +2234,6 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   std::cout << "computeSubtreeLikelihoodPostorder took: "<< "OMP DEACTIVATED"<<std::endl;
 
   
-  /*    VectorTools::print(duplicationRates);
-    std::cout << TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
-    std::cout << "initialLikelihood: "<< initialLikelihood << std::endl;*/
- //  std::cout <<"CLOCKAFTERPOSTORDER "<<clock()<<std::endl;
-//std::cout <<"Postorder tree traversal over: Initial likelihood: "<<initialLikelihood<<std::endl;
-  //computeSubtreeLikelihoodPrefix then computes the other conditional likelihoods, and also returns the best rooting.
   std::vector <Node *> sons = geneRoot->getSons();
 
   if (sons.size()!=2) {
@@ -2390,14 +2251,6 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   dupData[geneRoot->getId()][2] = dupData[geneRoot->getSon(0)->getId()][0];
 
     
-/*  std::cout <<"likelihoodData[geneRoot->getId()][1]"<<likelihoodData[geneRoot->getId()][1]<<std::endl;
-  std::cout <<"likelihoodData[geneRoot->getId()][2]"<<likelihoodData[geneRoot->getId()][2]<<std::endl;
-  
-  for (int i=0 ; i<geneTree->getNumberOfNodes(); i++) {
-    std::cout <<"ID "<<i<<"likelihoodData[ID][0]"<<likelihoodData[i][0]<<std::endl;
-  }
-  */
-
   {
     {
   for (unsigned int i = 0; i< sons.size(); i++){
@@ -2416,15 +2269,6 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
 
     
     
-  /* 
-  std::cout <<"Printing all rooting likelihoods as found by the DR tree traversal"<<std::endl;
-  std::map<double, Node*>::iterator it;
-
-  for ( it=LksToNodes.begin() ; it != LksToNodes.end(); it++ )
-    std::cout << (*it).second->getId() << " => " << (*it).first << std::endl;
-   */
-  //  std::cout << "IN findMLReconciliationDR: "<<TreeTemplateTools::treeToParenthesis (*geneTree, false)<<std::endl;
-
     vector<Node*> nodes = geneTree->getNodes();
     for (unsigned int i = 0 ; i < nodes.size() ; i++ ) {
         if (nodes[i]->hasNodeProperty("outgroupNode") ) {
@@ -2432,15 +2276,9 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
             break;
         }
     }
-//    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, false)<<std::endl;
-
     
     LksToNodes.rbegin()->second->setNodeProperty("outgroupNode", BppString("here") );
-//    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, false)<<std::endl;
 
-    //TEST02052012
-//    geneTree->newOutGroup(LksToNodes.rbegin()->second); //uncomment that if you want to keep gene family trees fixed except for the root
-//    std::cout << TreeTemplateTools::treeToParenthesis (*geneTree, false)<<std::endl;
 
   if (fillTables) {
   
@@ -2453,11 +2291,9 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   // Getting a well-rooted tree
   TreeTemplate<Node > * tree = geneTree->clone();
   
-    //Test25 05 2012: I think we need to reroot the gene tree with the best root
   tree->newOutGroup(LksToNodes.rbegin()->second->getId());
   
   
- //std::cout << TreeTemplateTools::treeToParenthesis (*tree, true)<<std::endl;
 
   nodesToTryInNNISearch.clear();
 
@@ -2467,9 +2303,6 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   resetVector(num2lineages);
 
   
-// std::cout <<"HERE_rooted_tree "<<TreeTemplateTools::treeToParenthesis (*tree, true)<<std::endl;
-//  std::cout <<"HERE_rooted_tree2 "<<TreeTemplateTools::treeToParenthesis (*geneTree, true)<<std::endl;
-//  std::cout <<"HERE_SP_tree "<<TreeTemplateTools::treeToParenthesis (*spTree, true)<<std::endl;
     {
       {
     computeNumbersOfLineagesFromRoot(spTree, tree, 
@@ -2485,20 +2318,9 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
   delete tree;
 
   }
-  
-/*
-  std::cout <<"num0Lineages :"<<std::endl;
-  VectorTools::print(num0lineages);
-  std::cout <<"num1Lineages :"<<std::endl;
-  VectorTools::print(num1lineages);
-  std::cout <<"num2Lineages :"<<std::endl;
-  VectorTools::print(num2lineages);
-  std::cout <<std::endl;
-  */
-  
+    
   //We return the best likelihood
   MLindex = LksToNodes.rbegin()->second->getId();
-// std::cout <<"Bestlikelihood"<< LksToNodes.rbegin()->first<<std::endl;
     
   return LksToNodes.rbegin()->first;
   
@@ -2514,11 +2336,6 @@ double computeAverageLossProportion(std::vector <int> & num0lineages, std::vecto
   double totNum1 = (double)VectorTools::sum(num1lineages);
   double totNum2= (double)VectorTools::sum(num2lineages);
   if (totNum0+totNum1+totNum2==0) {//This happens at the beginning of the program
-  /*  for (int i =0; i<num0lineages.size(); i++) {
-      num0lineages[i]=267;
-      num1lineages[i]=723;
-      num2lineages[i]=10;
-    }*/    
     resetLineageCounts(num0lineages, num1lineages, num2lineages);
   }
   totNum0 = (double)VectorTools::sum(num0lineages);
@@ -2563,16 +2380,16 @@ void extractSubVectorsWithInternalLineages(std::vector <int> & num0lineages,
 //We compute the average loss proportion observed among species tree branches that
 //are not found in "genomeMissing" to have missing data.
 
-void extractSubVectorsWithCompletelySequencedLineages(std::vector <int> & num0lineages, 
-                                                      std::vector <int> & num1lineages, 
-                                                      std::vector <int> & num2lineages, 
-                                                      std::map <std::string, int> & genomeMissing, 
-                                                      TreeTemplate<Node> & tree, 
+void extractSubVectorsWithCompletelySequencedLineages(const std::vector <int> & num0lineages, 
+                                                      const std::vector <int> & num1lineages, 
+                                                      const std::vector <int> & num2lineages, 
+                                                      const std::map <std::string, int> & genomeMissing, 
+                                                      const TreeTemplate<Node> & tree, 
                                                       std::vector <int> & num0, 
                                                       std::vector <int> & num1, 
                                                       std::vector <int> & num2) {
   std::vector <int> branchesToDiscard;
-  for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
+  for( std::map<std::string, int >::const_iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
     if (it->second != 0) {
       branchesToDiscard.push_back(tree.getLeafId(it->first));
     }
@@ -2582,6 +2399,9 @@ void extractSubVectorsWithCompletelySequencedLineages(std::vector <int> & num0li
   
   sort(branchesToDiscard.begin(), branchesToDiscard.end());
   
+  
+  std::cout << "num0lineages.size(): " << num0lineages.size() << std::endl;
+ std::cout <<  branchesToDiscard.size() << branchesToDiscard.size() << std::endl;
   num0 = num0lineages;
   num1 = num1lineages;
   num2 = num2lineages;
@@ -2598,18 +2418,16 @@ void extractSubVectorsWithCompletelySequencedLineages(std::vector <int> & num0li
 
 
 
-double computeAverageLossProportionOnCompletelySequencedLineages(std::vector <int> & num0lineages, 
-                                                                 std::vector <int> & num1lineages, 
-                                                                 std::vector <int> & num2lineages, 
-                                                                 std::map <std::string, int> & genomeMissing, 
-                                                                 TreeTemplate<Node> & tree) {
+double computeAverageLossProportionOnCompletelySequencedLineages(const std::vector <int> & num0lineages, 
+                                                                 const std::vector <int> & num1lineages, 
+                                                                 const std::vector <int> & num2lineages, 
+                                                                 const std::map <std::string, int> & genomeMissing, 
+                                                                 const TreeTemplate<Node> & tree) {
    
   std::vector  <int> num0; 
   std::vector  <int> num1; 
   std::vector  <int> num2; 
-  
-  //sort (myvector.begin()+4, myvector.end()
-  
+    
   extractSubVectorsWithCompletelySequencedLineages(num0lineages, 
                                                    num1lineages, 
                                                    num2lineages, 
@@ -2623,76 +2441,13 @@ double computeAverageLossProportionOnCompletelySequencedLineages(std::vector <in
   double totNum1 = (double)VectorTools::sum(num1);
   double totNum2= (double)VectorTools::sum(num2);
   if (totNum0+totNum1+totNum2==0) {//This happens at the beginning of the program
-  /*  for (int i =0; i<num0lineages.size(); i++) {
-      num0lineages[i]=267;
-      num1lineages[i]=723;
-      num2lineages[i]=10;
-    }*/
     totNum0 = 267;
     totNum1 = 723;
     totNum2 = 10;
   }
- /* totNum0 = (double)VectorTools::sum(num0lineages);
-  totNum1 = (double)VectorTools::sum(num1lineages);
-  totNum2= (double)VectorTools::sum(num2lineages);*/
   double prop = totNum0/(totNum0+totNum1+totNum2);
- // std::cout <<"prop : "<<prop<<std::endl;
   return prop;
 }
-
-
- /**************************************************************************/
-//We increase num0lineages in some external branches to account for the low sequence coverage of some genomes. 
-//We also set num0Lineages in the root branch.
-
-/*
-void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
-  //double propLoss = computeAverageLossProportion(num0lineages, num1lineages, num2lineages);
-  double propLoss = computeAverageLossProportionOnCompletelySequencedLineages(num0lineages, num1lineages, num2lineages, genomeMissing, tree);
-  
-  //At branch 0, by definition, we never count cases where there has been a loss, so we set it to an average value.
-  num0lineages[0] = (int)floor( (propLoss)*((double)num1lineages[0]+(double)num2lineages[0]));
-  std::cout <<"num0Genes "<< num0lineages[0] <<std::endl;
-  
-  
-  
-//  std::cout <<"propLoss "<<propLoss<<std::endl;
-  for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
-  //   std::cout <<"it first "<<it->first<<std::endl;
-    int id = tree.getLeafId(it->first);
-    // std::cout <<"After getLeafId 3"<<std::endl;
-    int percent = it->second;
-//  std::cout <<"it second "<<it->second<<std::endl;
-     
-    // std::cout <<"obs : "<<obs<<std::endl;
-    
-    double percentd = (double)percent/100.0;
-    double totLoss = propLoss +percentd;
-  
-    if (totLoss>0.99) {
-      totLoss=0.99;
-    }
-    std::cout <<"percentd "<<percentd<<" propLoss "<<propLoss<<" totLoss "<<totLoss<<std::endl;
-    
-    while((num1lineages[id] < 10)||(num2lineages[id] < 10)) {
-      num1lineages[id] = num1lineages[id]*100;
-      num2lineages[id] = num2lineages[id]*100;
-      if (num1lineages[id] ==0) {
-        num1lineages[id] =1;
-      }
-      if (num2lineages[id] ==0) {
-        num2lineages[id] =1;
-      }
-    }
-    
- //   std::cout <<"Before :"<<num0lineages[id]<< " num1lineages[id] "<<num1lineages[id]<<" num2lineages[id] "<<num2lineages[id]<<std::endl; 
-    
-    num0lineages[id] = (int)(totLoss * ((double)num1lineages[id]+(double)num2lineages[id]) / (1.0-totLoss));
- //   std::cout <<" after "<<num0lineages[id]<<std::endl;
-      
-  }
-}
-*/
 
 
 /**************************************************************************/
@@ -2701,8 +2456,8 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, std::vect
 void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, 
                                      std::vector <int> & num1lineages, 
                                      std::vector <int> & num2lineages, 
-                                     std::map <std::string, int> & genomeMissing, 
-                                     TreeTemplate<Node> & tree, bool average) {
+                                     const std::map <std::string, int> & genomeMissing, 
+                                     const TreeTemplate<Node> & tree, bool average) {
   std::vector  <int> num0; 
   std::vector  <int> num1; 
   std::vector  <int> num2; 
@@ -2753,7 +2508,7 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages,
   }
     
   //  Now we apply corrections for poorly sequenced genomes
-  for(std::map<std::string, int >::iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
+  for(std::map<std::string, int >::const_iterator it = genomeMissing.begin(); it != genomeMissing.end(); it++){
     int id = tree.getLeafId(it->first);
     int percent = it->second;
     if (percent>0) {
@@ -2779,57 +2534,8 @@ void alterLineageCountsWithCoverages(std::vector <int> & num0lineages,
 }
 
 /**************************************************************************/
-//We average all count values, and increase num0lineages in some external branches to account for the low sequence coverage of some genomes. 
-/*
-void alterLineageCountsWithCoveragesAverage(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
-  //Averaging the std::vectors
-
-  std::vector  <int> num0; 
-  std::vector  <int> num1; 
-  std::vector  <int> num2; 
-  
-  extractSubVectorsWithCompletelySequencedLineages(num0lineages, num1lineages, num2lineages, genomeMissing, tree, num0, num1, num2);
-  
-  
-  double avg0d = VectorTools::mean<int, double>(num0);
-  double avg1d = VectorTools::mean<int, double>(num1);
-  double avg2d = VectorTools::mean<int, double>(num2);
-  
-
-//  std::cout <<"BEFORE "<<avg0d<<" "<<avg1d<<" "<<avg2d<<std::endl;
-  while((avg0d < 10.0)||(avg1d < 10.0)||(avg2d < 10.0 )) {
-    avg0d = avg0d*100;
-    avg1d = avg1d*100;
-    avg2d = avg2d*100;
-    if (avg0d ==0.0) {
-      avg0d =1;
-    }
-    if (avg1d ==0.0) {
-      avg1d =1;
-    }
-    if (avg2d ==0.0) {
-      avg2d =1;
-    }
-  }
-  int avg0 = (int)avg0d;
-  int avg1 = (int)avg1d;
-  int avg2 = (int)avg2d;
-  
-//  std::cout <<"avg0 : "<<avg0<<" avg1 : "<<avg1<< "avg2: "<<avg2<<std::endl;
-  
-  for (int i =0; i<num0lineages.size(); i++) {
-    num0lineages[i]=avg0;
-    num1lineages[i]=avg1;
-    num2lineages[i]=avg2;
-  }
-  alterLineageCountsWithCoverages(num0lineages, num1lineages, num2lineages, genomeMissing, tree);
-
-
-}
-*/
-/**************************************************************************/
 //We set all duplication and loss values to values obtained on a former dataset (loss rate 0.313, duplication rate 0.0159, which corresponds to num0lineages=267, num1lineages=723, num2lineages=10), and increase num0lineages in some external branches to account for the low sequence coverage of some genomes. 
-void alterLineageCountsWithCoveragesInitially(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages, std::map <std::string, int> & genomeMissing, TreeTemplate<Node> & tree) {
+void alterLineageCountsWithCoveragesInitially(std::vector <int> & num0lineages, std::vector <int> & num1lineages, std::vector <int> & num2lineages, const std::map <std::string, int> & genomeMissing, const TreeTemplate<Node> & tree) {
   //Setting initial values for the std::vectors
   resetLineageCounts(num0lineages, num1lineages, num2lineages);
   
@@ -2942,8 +2648,8 @@ void computeDuplicationAndLossRatesForTheSpeciesTreeInitially (std::string &bran
                                                                std::vector <int> & num2Lineages, 
                                                                std::vector<double> & lossProbabilities, 
                                                                std::vector<double> & duplicationProbabilities, 
-                                                               std::map <std::string, int> & genomeMissing, 
-                                                               TreeTemplate<Node> & tree) {
+                                                               const std::map <std::string, int> & genomeMissing, 
+                                                               const TreeTemplate<Node> & tree) {
   std::cout <<"Computing Initial Rates"<<std::endl; 
   alterLineageCountsWithCoveragesInitially(num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree);
   computeDuplicationAndLossProbabilitiesForAllBranches (num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities);

@@ -250,11 +250,11 @@ public:
   
   double getTopologyValue() const throw (Exception) { return getValue(); } 
   
-  double getScenarioLikelihood() const throw (Exception) { return _scenarioLikelihood; }
+  double getScenarioLikelihood() const throw (Exception) { return scenarioLikelihood_; }
   
-  void setSpTree(TreeTemplate<Node> & spTree) { if (_spTree) delete _spTree; _spTree = spTree.clone(); }
+  void setSpTree(TreeTemplate<Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
   
-  void setSpId(std::map <std::string, int> & spId) {_spId = spId;}
+  void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
   
   double testNNI(int nodeId) const throw (NodeException);
   
@@ -269,13 +269,13 @@ public:
   
   ParameterList getParameters() {return nniLk_->getParameters();}
   
-  TreeTemplate<Node> & getSpTree() const {return *_spTree;}
+  TreeTemplate<Node> & getSpTree() const {return *spTree_;}
   
-  TreeTemplate<Node> & getRootedTree() const {return *_rootedTree;}
+  TreeTemplate<Node> & getRootedTree() const {return *rootedTree_;}
   
-  TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *_geneTreeWithSpNames;}
+  TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *geneTreeWithSpNames_;}
   
-  std::map <std::string, std::string> getSeqSp() {return _seqSp;}
+  std::map <std::string, std::string> getSeqSp() {return seqSp_;}
   
   void setExpectedNumbers(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
   
@@ -286,11 +286,11 @@ public:
   double getSequenceLikelihood();
   
   void OptimizeSequenceLikelihood(bool yesOrNo) const  {
-    _optimizeSequenceLikelihood = yesOrNo;
+    optimizeSequenceLikelihood_ = yesOrNo;
   }
   
   void OptimizeReconciliationLikelihood(bool yesOrNo) const {
-    _optimizeReconciliationLikelihood = yesOrNo;
+    optimizeReconciliationLikelihood_ = yesOrNo;
   }
   
   void optimizeNumericalParameters(map<string, string> params) {

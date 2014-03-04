@@ -46,8 +46,8 @@ using namespace bpp;
 
 
 GeneTreeLikelihood::GeneTreeLikelihood() {
-    _totalIterations = 0;
-    _counter = 0;
+    totalIterations_ = 0;
+    counter_ = 0;
 }
 
 
@@ -95,27 +95,27 @@ GeneTreeLikelihood::GeneTreeLikelihood(
                    bool considerSequenceLikelihood, 
                    unsigned int sprLimit)
 throw (Exception):
-nniLk_(0), _spTree(0), _rootedTree(0), _geneTreeWithSpNames(0), _seqSp(seqSp), _spId(spId)
+nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_(seqSp), spId_(spId)
 {
     
     nniLk_ = new NNIHomogeneousTreeLikelihood(tree, model, rDist, checkRooted, verbose); 
-    _spTree = spTree.clone();
-    _rootedTree = rootedTree.clone();
-    _geneTreeWithSpNames = geneTreeWithSpNames.clone();
-    _scenarioLikelihood = UNLIKELY;
+    spTree_ = spTree.clone();
+    rootedTree_ = rootedTree.clone();
+    geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
+    scenarioLikelihood_ = UNLIKELY;
     // _sequenceLikelihood = UNLIKELY;
-    _MLindex = MLindex;
-    _rootOptimization = rootOptimization; 
-    _tentativeMLindex = MLindex;
-    _totalIterations = 0;
-    _counter = 0;
-    _speciesIdLimitForRootPosition = speciesIdLimitForRootPosition;
-    _heuristicsLevel = heuristicsLevel;
-    _optimizeSequenceLikelihood = true;
-    _optimizeReconciliationLikelihood = true;
-    _considerSequenceLikelihood = considerSequenceLikelihood;
+    MLindex_ = MLindex;
+    rootOptimization_ = rootOptimization; 
+    tentativeMLindex_ = MLindex;
+    totalIterations_ = 0;
+    counter_ = 0;
+    _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
+    heuristicsLevel_ = heuristicsLevel;
+    optimizeSequenceLikelihood_ = true;
+    optimizeReconciliationLikelihood_ = true;
+    considerSequenceLikelihood_ = considerSequenceLikelihood;
     sprLimit_ = sprLimit;
-    // _listOfPreviousRoots = new std::vector <int> ();
+    // listOfPreviousRoots_ = new std::vector <int> ();
 }
 
 
@@ -166,23 +166,23 @@ GeneTreeLikelihood::GeneTreeLikelihood(
                    bool considerSequenceLikelihood, 
                    unsigned int sprLimit)
 throw (Exception):
-nniLk_(0), _spTree(0), _rootedTree(0), _geneTreeWithSpNames(0), _seqSp (seqSp), _spId(spId)
+nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_ (seqSp), spId_(spId)
 {
     nniLk_ = new NNIHomogeneousTreeLikelihood(tree, data, model, rDist, checkRooted, verbose);
-    _spTree = spTree.clone();
-    _rootedTree = rootedTree.clone();
-    _geneTreeWithSpNames = geneTreeWithSpNames.clone();
-    _scenarioLikelihood = UNLIKELY;
-    _MLindex = MLindex;
-    _rootOptimization = rootOptimization; 
-    _tentativeMLindex = MLindex;
-    _totalIterations = 0; 
-    _counter = 0;
-    _speciesIdLimitForRootPosition = speciesIdLimitForRootPosition;
-    _heuristicsLevel = heuristicsLevel;
-    _optimizeSequenceLikelihood = true;
-    _optimizeReconciliationLikelihood = true;
-    _considerSequenceLikelihood = considerSequenceLikelihood;
+    spTree_ = spTree.clone();
+    rootedTree_ = rootedTree.clone();
+    geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
+    scenarioLikelihood_ = UNLIKELY;
+    MLindex_ = MLindex;
+    rootOptimization_ = rootOptimization; 
+    tentativeMLindex_ = MLindex;
+    totalIterations_ = 0; 
+    counter_ = 0;
+    _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
+    heuristicsLevel_ = heuristicsLevel;
+    optimizeSequenceLikelihood_ = true;
+    optimizeReconciliationLikelihood_ = true;
+    considerSequenceLikelihood_ = considerSequenceLikelihood;
     sprLimit_ = sprLimit;
 }
 
@@ -191,25 +191,25 @@ nniLk_(0), _spTree(0), _rootedTree(0), _geneTreeWithSpNames(0), _seqSp (seqSp), 
  * @brief Copy constructor.
  */ 
 GeneTreeLikelihood::GeneTreeLikelihood(const GeneTreeLikelihood & lik):
-nniLk_(0), _spTree(0), _rootedTree(0), _geneTreeWithSpNames(0), _seqSp (lik._seqSp), _spId(lik._spId)
+nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_ (lik.seqSp_), spId_(lik.spId_)
 {
     nniLk_ = lik.nniLk_->clone(); 
-    _spTree = dynamic_cast<TreeTemplate<Node> *> (lik._spTree->clone()) ;
-    _rootedTree = dynamic_cast<TreeTemplate<Node> *> (lik._rootedTree->clone()) ;
-    _geneTreeWithSpNames = dynamic_cast<TreeTemplate<Node> *> (lik._geneTreeWithSpNames->clone()) ;
-    _scenarioLikelihood = lik._scenarioLikelihood;
-    _MLindex = lik._MLindex;
-    _rootOptimization = lik._rootOptimization; 
-    _tentativeMLindex = lik._MLindex;
-    _totalIterations = lik._totalIterations;
-    _counter = lik._counter;
-    _speciesIdLimitForRootPosition = lik._speciesIdLimitForRootPosition;
-    _heuristicsLevel = lik._heuristicsLevel;
-    _nodesToTryInNNISearch = lik._nodesToTryInNNISearch;
-    _tentativeNodesToTryInNNISearch = lik._tentativeNodesToTryInNNISearch;
-    _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
-    _optimizeReconciliationLikelihood = lik._optimizeReconciliationLikelihood ;
-    _considerSequenceLikelihood = lik._considerSequenceLikelihood;
+    spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone()) ;
+    rootedTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.rootedTree_->clone()) ;
+    geneTreeWithSpNames_ = dynamic_cast<TreeTemplate<Node> *> (lik.geneTreeWithSpNames_->clone()) ;
+    scenarioLikelihood_ = lik.scenarioLikelihood_;
+    MLindex_ = lik.MLindex_;
+    rootOptimization_ = lik.rootOptimization_; 
+    tentativeMLindex_ = lik.MLindex_;
+    totalIterations_ = lik.totalIterations_;
+    counter_ = lik.counter_;
+    _speciesIdLimitForRootPosition_ = lik._speciesIdLimitForRootPosition_;
+    heuristicsLevel_ = lik.heuristicsLevel_;
+    nodesToTryInNNISearch_ = lik.nodesToTryInNNISearch_;
+    tentativeNodesToTryInNNISearch_ = lik.tentativeNodesToTryInNNISearch_;
+    optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
+    optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
+    considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
     sprLimit_ = lik.sprLimit_;
 }
 
@@ -217,26 +217,26 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
 {
     if (nniLk_) delete nniLk_;
     nniLk_ = lik.nniLk_->clone(); 
-    if (_spTree) delete _spTree;
-    _spTree = dynamic_cast<TreeTemplate<Node> *> (lik._spTree->clone());
-    if (_rootedTree) delete _rootedTree;
-    _rootedTree= dynamic_cast<TreeTemplate<Node> *> (lik._rootedTree->clone());
-    if (_geneTreeWithSpNames) delete _geneTreeWithSpNames;
-    _geneTreeWithSpNames = dynamic_cast<TreeTemplate<Node> *> (lik._geneTreeWithSpNames->clone()) ;
-    _spId = lik._spId;
-    _scenarioLikelihood = lik._scenarioLikelihood;
-    _MLindex = lik._MLindex;
-    _rootOptimization = lik._rootOptimization;
-    _tentativeMLindex = lik._MLindex;
-    _totalIterations = lik._totalIterations;
-    _counter = lik._counter;
-    _speciesIdLimitForRootPosition = lik._speciesIdLimitForRootPosition;
-    _heuristicsLevel = lik._heuristicsLevel;
-    _nodesToTryInNNISearch = lik._nodesToTryInNNISearch;
-    _tentativeNodesToTryInNNISearch = lik._tentativeNodesToTryInNNISearch;
-    _optimizeSequenceLikelihood = lik._optimizeSequenceLikelihood;
-    _optimizeReconciliationLikelihood = lik._optimizeReconciliationLikelihood ;
-    _considerSequenceLikelihood = lik._considerSequenceLikelihood;
+    if (spTree_) delete spTree_;
+    spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone());
+    if (rootedTree_) delete rootedTree_;
+    rootedTree_= dynamic_cast<TreeTemplate<Node> *> (lik.rootedTree_->clone());
+    if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
+    geneTreeWithSpNames_ = dynamic_cast<TreeTemplate<Node> *> (lik.geneTreeWithSpNames_->clone()) ;
+    spId_ = lik.spId_;
+    scenarioLikelihood_ = lik.scenarioLikelihood_;
+    MLindex_ = lik.MLindex_;
+    rootOptimization_ = lik.rootOptimization_;
+    tentativeMLindex_ = lik.MLindex_;
+    totalIterations_ = lik.totalIterations_;
+    counter_ = lik.counter_;
+    _speciesIdLimitForRootPosition_ = lik._speciesIdLimitForRootPosition_;
+    heuristicsLevel_ = lik.heuristicsLevel_;
+    nodesToTryInNNISearch_ = lik.nodesToTryInNNISearch_;
+    tentativeNodesToTryInNNISearch_ = lik.tentativeNodesToTryInNNISearch_;
+    optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
+    optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
+    considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
     sprLimit_ = lik.sprLimit_;
     return *this;
 }

@@ -117,14 +117,14 @@ void resetSpeciesIdsForGivenNodes (TreeTemplate<Node> & tree, std::vector<int > 
 void resetSpeciesIdsForGivenNodes (TreeTemplate<Node> & tree, std::vector<int > nodesToUpdate);
 //void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::vector<int> &branchNumbers, std::map <int,int> & geneNodeIdToDuplications, std::map <int, std::vector <int> > & geneNodeIdToLosses, std::map <int, std::vector <int> > & geneNodeIdToSpeciations) ;
 //void reconcile (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::map<std::string, std::string > seqSp, std::vector<int >  & lossNumbers, std::vector<int > & duplicationNumbers, std::map <int,int> &geneNodeIdToDuplications, std::map <int, std::vector <int> > &geneNodeIdToLosses, std::map <int, std::vector <int> > &geneNodeIdToSpeciations) ;
-void computeDuplicationAndLossProbabilities (int i, int j, int k, double & lossProbability, double & duplicationProbability);
-void computeDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> numOGenes, std::vector <int> num1Genes, std::vector <int> num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities);
-void computeAverageDuplicationAndLossProbabilitiesForAllBranches (std::vector <int> numOGenes, std::vector <int> num1Genes, std::vector <int> num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities);
-double computeBranchProbability (double duplicationProbability, double lossProbability, int numberOfLineages);
-double computeLogBranchProbability (double duplicationProbability, double lossProbability, int numberOfLineages);
-double computeBranchProbabilityAtRoot (double duplicationProbability, double lossProbability, int numberOfLineages);
-double computeLogBranchProbabilityAtRoot (double duplicationProbability, double lossProbability, int numberOfLineages);
-void computeScenarioScore (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::vector<int> &branchNumbers, std::map <int, std::vector <int> > &geneNodeIdToSpeciations, std::vector<double>duplicationProbabilities, std::vector <double> lossProbabilities, std::vector <int> &num0lineages, std::vector <int> &num1lineages, std::vector <int> &num2lineages);
+void computeDuplicationAndLossProbabilities (const int i, const int j, const int k, double & lossProbability, double & duplicationProbability);
+void computeDuplicationAndLossProbabilitiesForAllBranches (const std::vector <int> &numOGenes, const std::vector <int> &num1Genes, const std::vector <int> &num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities);
+void computeAverageDuplicationAndLossProbabilitiesForAllBranches (const std::vector <int> &numOGenes, const std::vector <int> &num1Genes, const std::vector <int> &num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities);
+double computeBranchProbability (const double &duplicationProbability, const double &lossProbability, const int numberOfLineages);
+double computeLogBranchProbability (const double &duplicationProbability, const double &lossProbability, const int numberOfLineages);
+double computeBranchProbabilityAtRoot (const double &duplicationProbability, double &lossProbability, const int numberOfLineages);
+double computeLogBranchProbabilityAtRoot (const double &duplicationProbability, const double &lossProbability, const int numberOfLineages);
+void computeScenarioScore (TreeTemplate<Node> & tree, TreeTemplate<Node> & geneTree, Node * noeud, std::vector<int> &branchNumbers, std::map <int, std::vector <int> > &geneNodeIdToSpeciations, const std::vector<double> &duplicationProbabilities, const std::vector <double> &lossProbabilities, std::vector <int> &num0lineages, std::vector <int> &num1lineages, std::vector <int> &num2lineages);
 std::string nodeToParenthesisWithIntNodeValues(const Tree & tree, int nodeId, bool bootstrap, const std::string & propertyName) throw (NodeNotFoundException);
 std::string treeToParenthesisWithIntNodeValues(const Tree & tree, bool bootstrap, const std::string & propertyName);
 std::string nodeToParenthesisWithDoubleNodeValues(const Tree & tree, int nodeId, bool bootstrap, const std::string & propertyName) throw (NodeNotFoundException);
@@ -266,11 +266,11 @@ double findMLReconciliationDR (TreeTemplate<Node> * spTree,
                                std::vector <int> &num2lineages, 
                                std::set <int> &nodesToTryInNNISearch, 
                                bool fillTables = true);
-double computeAverageLossProportionOnCompletelySequencedLineages(std::vector <int> & num0lineages, 
-                                    std::vector <int> & num1lineages, 
-                                    std::vector <int> & num2lineages, 
-                                    std::map <std::string, int> & genomeMissing, 
-                                    TreeTemplate<Node> & tree);
+double computeAverageLossProportionOnCompletelySequencedLineages(const std::vector <int> & num0lineages, 
+                                   const std::vector <int> & num1lineages, 
+                                   const std::vector <int> & num2lineages, 
+                                   const std::map <std::string, int> & genomeMissing, 
+                                   const TreeTemplate<Node> & tree);
 /*void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, 
                                      std::vector <int> & num1lineages, 
                                      std::vector <int> & num2lineages, 
@@ -279,8 +279,8 @@ double computeAverageLossProportionOnCompletelySequencedLineages(std::vector <in
 void alterLineageCountsWithCoverages(std::vector <int> & num0lineages, 
                                      std::vector <int> & num1lineages, 
                                      std::vector <int> & num2lineages, 
-                                     std::map <std::string, int> & genomeMissing, 
-                                     TreeTemplate<Node> & tree, 
+                                     const std::map <std::string, int> & genomeMissing, 
+                                     const TreeTemplate<Node> & tree, 
                                      bool average);
 /*void alterLineageCountsWithCoveragesAverage(std::vector <int> & num0lineages, 
                                             std::vector <int> & num1lineages, 
@@ -312,8 +312,8 @@ void computeDuplicationAndLossRatesForTheSpeciesTreeInitially (std::string &bran
                                                                std::vector <int> & num2Lineages, 
                                                                std::vector<double> & lossProbabilities, 
                                                                std::vector<double> & duplicationProbabilities, 
-                                                               std::map <std::string, int> & genomeMissing, 
-                                                               TreeTemplate<Node> & tree);
+                                                               const std::map <std::string, int> & genomeMissing, 
+                                                               const TreeTemplate<Node> & tree);
 void removeLeaf(TreeTemplate<Node> & tree, std::string toRemove);
 void cleanVectorOfOptions (std::vector<std::string> & listOptions, bool sizeConstraint);
 bool sortMaxFunction (std::pair <std::string, double> i, std::pair <std::string, double> j);

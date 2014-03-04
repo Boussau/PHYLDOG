@@ -122,15 +122,17 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
 		  }*///TEST170413
 		  
 		  breadthFirstreNumber (*tree);
+		         std::cout << "HEHE 1 " << TreeTemplateTools::treeToParenthesis(*tree, true) <<std::endl;
+
 		  //We set preliminary loss and duplication rates, correcting for genome coverage
 		  computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization, 
-																   num0Lineages, 
-																   num1Lineages, 
-																   num2Lineages, 
-																   lossExpectedNumbers, 
-																   duplicationExpectedNumbers, 
-																   genomeMissing, 
-																   *tree);
+									    num0Lineages, 
+									    num1Lineages, 
+									    num2Lineages, 
+									    lossExpectedNumbers, 
+									    duplicationExpectedNumbers, 
+									    genomeMissing, 
+									    *tree);
 
       computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, 
                                                                          logL, num0Lineages, 
@@ -386,6 +388,8 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
       changeRoot(*tree, nodeIds[i]);
 		
 		breadthFirstreNumber (*tree);
+		       std::cout << "HEHE 2" << TreeTemplateTools::treeToParenthesis(*tree, true) <<std::endl;
+
 		//We set preliminary loss and duplication rates, correcting for genome coverage
 		computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization, 
 																 num0Lineages, 
@@ -635,15 +639,16 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
 		if (!fixedOutgroupSpecies_ || (fixedOutgroupSpecies_ && isTreeRootedWithOutgroup (*tree, outgroupSpecies_) ) )
 		{
        breadthFirstreNumber (*tree); //TEST170413
+       std::cout << "HEHE 0 "<< TreeTemplateTools::treeToParenthesis(*tree, true) <<std::endl;
 			//We set preliminary loss and duplication rates, correcting for genome coverage
 			computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization, 
-																	 num0Lineages, 
-																	 num1Lineages, 
-																	 num2Lineages, 
-																	 lossExpectedNumbers, 
-																	 duplicationExpectedNumbers, 
-																	 genomeMissing, 
-																	 *tree);
+										num0Lineages, 
+										num1Lineages, 
+										num2Lineages, 
+										lossExpectedNumbers, 
+										duplicationExpectedNumbers, 
+										genomeMissing, 
+										*tree);
 
 		/*	if (reconciliationModel == "DL") {
 				breadthFirstreNumber (*tree, duplicationExpectedNumbers, lossExpectedNumbers);

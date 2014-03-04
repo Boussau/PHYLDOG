@@ -657,9 +657,9 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
     directionNode1 = 0; //we use the inferior index
 
 
-    unsigned int directionSon0, directionSon1;
+    unsigned int directionSon0;//, directionSon1;
     directionSon0 = sonNumber+1;
-    directionSon1 = 0;
+  //  directionSon1 = 0;
 	//We will need that for the likelihood computation for this root
 	std::vector< std::vector<unsigned  int > > rootCounts = coalCounts[geneNodeId][directionSon0];
 

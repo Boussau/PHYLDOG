@@ -325,69 +325,6 @@ int main(int args, char ** argv)
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 
-//ATTEMPT 18 02 2010
-//OPTIMIZE RATES
-/*  SpeciesTreeLikelihood *slk = new SpeciesTreeLikelihood (world, server, tree, index, bestIndex, stop, logL, bestlogL, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossExpectedNumbers, duplicationExpectedNumbers, rearrange, numIterationsWithoutImprovement, branchProbaOptimization, genomeMissing);
- 
- slk->getParameters().printParameters (std::cout);
- 
- 
- //Optimization of rates:
- PowellMultiDimensions * optimizer = new PowellMultiDimensions(slk);
- optimizer->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
- optimizer->setProfiler(NULL);
- optimizer->setMessageHandler(NULL);
- optimizer->setVerbose(0);
- 
- optimizer->getStopCondition()->setTolerance(0.1);
- //optimizer_->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
- optimizer->init(slk->getParameters()); 
- optimizer->optimize(); 
- 
- std::cout <<"optimization Done: "<<logL<<std::endl;
- 
- lossExpectedNumbers = lossExpectedNumbers * optimizer->getParameters().getParameter("coefLoss").getValue();
- duplicationExpectedNumbers = duplicationExpectedNumbers * optimizer->getParameters().getParameter("coefDup").getValue();
- 
- std::cout <<"Dup coef: "<<optimizer->getParameters().getParameter("coefDup").getValue() <<" Loss coef: "<<optimizer->getParameters().getParameter("coefLoss").getValue()<<std::endl;
- 
- 
- delete optimizer;
- delete slk; */
-
-
-/*
- //ATTEMPT 18 02 2010
- //OPTIMIZE RATES
- SpeciesTreeLikelihood *slk = new SpeciesTreeLikelihood (world, server, tree, index, bestIndex, stop, logL, bestlogL, num0Lineages, num1Lineages, num2Lineages, bestNum0Lineages, bestNum1Lineages, bestNum2Lineages, allNum0Lineages, allNum1Lineages, allNum2Lineages, lossExpectedNumbers, duplicationExpectedNumbers, rearrange, numIterationsWithoutImprovement, branchProbaOptimization, genomeMissing);
- 
- slk->getParameters().printParameters (std::cout);
- 
- //Optimization:
- PowellMultiDimensions * optimizer = new PowellMultiDimensions(slk);
- optimizer->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
- optimizer->setProfiler(NULL);
- optimizer->setMessageHandler(NULL);
- optimizer->setVerbose(0);
- 
- optimizer->getStopCondition()->setTolerance(0.1);
- //optimizer_->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
- optimizer->init(slk->getParameters()); 
- optimizer->optimize(); 
- 
- std::cout <<"optimization Done: "<<logL<<std::endl;
- 
- lossExpectedNumbers = lossExpectedNumbers * optimizer->getParameters().getParameter("coefLoss").getValue();
- duplicationExpectedNumbers = duplicationExpectedNumbers * optimizer->getParameters().getParameter("coefDup").getValue();
- 
- std::cout <<"Dup coef: "<<optimizer->getParameters().getParameter("coefDup").getValue() <<" Loss coef: "<<optimizer->getParameters().getParameter("coefLoss").getValue()<<std::endl;
- 
- 
- delete optimizer;
- delete slk;
- */
-
-
 
 /*This code permits outputting trees with numbers of duplication or loss events at branches
  //set total numbers of loss and duplications on branches

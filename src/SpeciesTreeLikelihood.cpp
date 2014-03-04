@@ -591,17 +591,17 @@ void SpeciesTreeLikelihood::MLSearch()
   //Indices used in the exploration
   size_t nodeForNNI = 0;
   size_t nodeForRooting = 4;
-  bool noMoreSPR;
+ // bool noMoreSPR;
    /* broadcastsAllInformation(world_, server_, stop_, rearrange_, lossExpectedNumbers_, duplicationExpectedNumbers_, currentSpeciesTree_, currentStep_);*/
 
   if(optimizeSpeciesTreeTopology_) 
     {
     std::cout <<"Optimizing the species tree topology"<<std::endl;
-    noMoreSPR=false; 
+  //  noMoreSPR=false; 
     }
   else 
     {
-        noMoreSPR=true;
+    //    noMoreSPR=true;
         currentStep_ = 4;
     }  
   
@@ -616,7 +616,7 @@ void SpeciesTreeLikelihood::MLSearch()
             //Making SPRs, from leaves to deeper nodes (approximately), plus root changes
             if (currentStep_ >= 3)
             {
-                noMoreSPR = true;
+              //  noMoreSPR = true;
                 rearrange_ = true; //Now we rearrange gene trees
 
             }
@@ -669,7 +669,7 @@ void SpeciesTreeLikelihood::MLSearch()
                                                         rearrange_, numIterationsWithoutImprovement_, 
                                                         server_, branchExpectedNumbersOptimization_, 
                                                         genomeMissing_, sprLimit_, false, currentStep_, 
-														fixedOutgroupSpecies_, outgroupSpecies_);
+							  fixedOutgroupSpecies_, outgroupSpecies_);
 					/*
 					//TEMP PRINTING
 					//For loss rates
@@ -703,7 +703,7 @@ void SpeciesTreeLikelihood::MLSearch()
                             currentStep_ = 1;
                         }
                         else {
-                            noMoreSPR=true;
+                          //  noMoreSPR=true;
                             currentStep_ = 3;
                         }
                     }  
@@ -841,7 +841,7 @@ void SpeciesTreeLikelihood::MLSearch()
                                                         bestIndex_);                      
                     }
                 }
-                noMoreSPR=true;
+              //  noMoreSPR=true;
             }
 /*            }        
             else */

@@ -76,27 +76,27 @@ using namespace bpp;
     protected:
         NNIHomogeneousTreeLikelihood * nniLk_;
         //  TreeTemplate<Node> * _tree;
-        TreeTemplate<Node> * _spTree;
-        TreeTemplate<Node> * _rootedTree;
-        TreeTemplate<Node> * _geneTreeWithSpNames;
-        const std::map <std::string, std::string> _seqSp;
-        std::map <std::string, int> _spId;
-        std::set <int> _nodesToTryInNNISearch;
-        double _scenarioLikelihood;
+        TreeTemplate<Node> * spTree_;
+        TreeTemplate<Node> * rootedTree_;
+        TreeTemplate<Node> * geneTreeWithSpNames_;
+        const std::map <std::string, std::string> seqSp_;
+        std::map <std::string, int> spId_;
+        std::set <int> nodesToTryInNNISearch_;
+        double scenarioLikelihood_;
         //  mutable double _sequenceLikelihood;
-        int _MLindex;
-        bool _rootOptimization;
-        mutable std::set <int> _tentativeNodesToTryInNNISearch;
-        mutable int _tentativeMLindex;
-        mutable double _tentativeScenarioLikelihood;
-        mutable int _totalIterations;
-        mutable int _counter;
-        mutable std::vector <int> _listOfPreviousRoots;
-        int _speciesIdLimitForRootPosition;
-        int _heuristicsLevel;
-        mutable bool _optimizeSequenceLikelihood;
-        mutable bool _optimizeReconciliationLikelihood;
-        mutable bool _considerSequenceLikelihood;
+        int MLindex_;
+        bool rootOptimization_;
+        mutable std::set <int> tentativeNodesToTryInNNISearch_;
+        mutable int tentativeMLindex_;
+        mutable double tentativeScenarioLikelihood_;
+        mutable int totalIterations_;
+        mutable int counter_;
+        mutable std::vector <int> listOfPreviousRoots_;
+        int _speciesIdLimitForRootPosition_;
+        int heuristicsLevel_;
+        mutable bool optimizeSequenceLikelihood_;
+        mutable bool optimizeReconciliationLikelihood_;
+        mutable bool considerSequenceLikelihood_;
         unsigned int sprLimit_;
         
     public:
@@ -214,28 +214,28 @@ using namespace bpp;
 #endif
         clone() const { return new GeneTreeLikelihood(*this); }
                 
-        double getScenarioLikelihood() const throw (Exception) { return _scenarioLikelihood; }
+        double getScenarioLikelihood() const throw (Exception) { return scenarioLikelihood_; }
         
-        void setSpTree(TreeTemplate<Node> & spTree) { if (_spTree) delete _spTree; _spTree = spTree.clone(); }
+        void setSpTree(TreeTemplate<Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
         
-        void setSpId(std::map <std::string, int> & spId) {_spId = spId;}
+        void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
  
         ParameterList getParameters() {return nniLk_->getParameters();}
         
-        TreeTemplate<Node> & getSpTree() const {return *_spTree;}
+        TreeTemplate<Node> & getSpTree() const {return *spTree_;}
         
-        TreeTemplate<Node> & getRootedTree() const {return *_rootedTree;}
+        TreeTemplate<Node> & getRootedTree() const {return *rootedTree_;}
         
-        TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *_geneTreeWithSpNames;}
+        TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *geneTreeWithSpNames_;}
         
-        std::map <std::string, std::string> getSeqSp() {return _seqSp;}
+        std::map <std::string, std::string> getSeqSp() {return seqSp_;}
 
         void OptimizeSequenceLikelihood(bool yesOrNo) const  {
-            _optimizeSequenceLikelihood = yesOrNo;
+            optimizeSequenceLikelihood_ = yesOrNo;
         }
         
         void OptimizeReconciliationLikelihood(bool yesOrNo) const {
-            _optimizeReconciliationLikelihood = yesOrNo;
+            optimizeReconciliationLikelihood_ = yesOrNo;
         }
         
         void optimizeNumericalParameters(map<string, string> params) {

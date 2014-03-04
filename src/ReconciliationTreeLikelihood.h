@@ -66,10 +66,10 @@ class ReconciliationTreeLikelihood:
   {
     
     //  TreeTemplate<Node> * _tree;
-    TreeTemplate<Node> * _spTree;
-    TreeTemplate<Node> * _rootedTree;
-    const std::map <std::string, std::string> _seqSp;
-    std::map <std::string, int> _spId;
+    TreeTemplate<Node> * spTree_;
+    TreeTemplate<Node> * rootedTree_;
+    const std::map <std::string, std::string> seqSp_;
+    std::map <std::string, int> spId_;
     std::vector <int> _duplicationNumbers;
     std::vector <int> _lossNumbers;
     std::vector <int>  _branchNumbers;
@@ -79,28 +79,28 @@ class ReconciliationTreeLikelihood:
     std::vector <int> _num0Lineages;
     std::vector <int> _num1Lineages;
     std::vector <int> _num2Lineages;
-    std::set <int> _nodesToTryInNNISearch;
-    double _scenarioLikelihood;
+    std::set <int> nodesToTryInNNISearch_;
+    double scenarioLikelihood_;
     mutable double _sequenceLikelihood;
-    int _MLindex;
-    bool _rootOptimization;
+    int MLindex_;
+    bool rootOptimization_;
     mutable std::vector <int> _tentativeDuplicationNumbers;
     mutable std::vector <int> _tentativeLossNumbers; 
     mutable std::vector <int> _tentativeBranchNumbers; 
     mutable std::vector <int> _tentativeNum0Lineages;
     mutable std::vector <int> _tentativeNum1Lineages; 
     mutable std::vector <int> _tentativeNum2Lineages;
-    mutable std::set <int> _tentativeNodesToTryInNNISearch;
-    mutable int _tentativeMLindex;
-    mutable double _tentativeScenarioLikelihood;
-    mutable int _totalIterations;
-    mutable int _counter;
-    mutable std::vector <int> _listOfPreviousRoots;
-    int _speciesIdLimitForRootPosition;
-    int _heuristicsLevel;
-    mutable bool _optimizeSequenceLikelihood;
-    mutable bool _optimizeReconciliationLikelihood;
-    mutable bool _considerSequenceLikelihood;
+    mutable std::set <int> tentativeNodesToTryInNNISearch_;
+    mutable int tentativeMLindex_;
+    mutable double tentativeScenarioLikelihood_;
+    mutable int totalIterations_;
+    mutable int counter_;
+    mutable std::vector <int> listOfPreviousRoots_;
+    int _speciesIdLimitForRootPosition_;
+    int heuristicsLevel_;
+    mutable bool optimizeSequenceLikelihood_;
+    mutable bool optimizeReconciliationLikelihood_;
+    mutable bool considerSequenceLikelihood_;
     mutable bool _DLStartingGeneTree;
     unsigned int sprLimit_;
 
@@ -266,11 +266,11 @@ class ReconciliationTreeLikelihood:
     
     double getTopologyValue() const throw (Exception) { return getValue(); } 
     
-    double getScenarioLikelihood() const throw (Exception) { return _scenarioLikelihood; }
+    double getScenarioLikelihood() const throw (Exception) { return scenarioLikelihood_; }
     
-    void setSpTree(TreeTemplate<Node> & spTree) { if (_spTree) delete _spTree; _spTree = spTree.clone(); }
+    void setSpTree(TreeTemplate<Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
     
-    void setSpId(std::map <std::string, int> & spId) {_spId = spId;}
+    void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
     
     double testNNI(int nodeId) const throw (NodeException);
     
@@ -283,11 +283,11 @@ class ReconciliationTreeLikelihood:
     std::vector <int> get1LineagesNumbers() const;
     std::vector <int> get2LineagesNumbers() const;
     
-    TreeTemplate<Node> & getSpTree() const {return *_spTree;}
+    TreeTemplate<Node> & getSpTree() const {return *spTree_;}
     
-    TreeTemplate<Node> & getRootedTree() const {return *_rootedTree;}
+    TreeTemplate<Node> & getRootedTree() const {return *rootedTree_;}
     
-    std::map <std::string, std::string> getSeqSp() {return _seqSp;}
+    std::map <std::string, std::string> getSeqSp() {return seqSp_;}
     
     void setProbabilities(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
     
@@ -298,11 +298,11 @@ class ReconciliationTreeLikelihood:
     double getSequenceLikelihood();
     
     void OptimizeSequenceLikelihood(bool yesOrNo) const  {
-      _optimizeSequenceLikelihood = yesOrNo;
+      optimizeSequenceLikelihood_ = yesOrNo;
     }
 
     void OptimizeReconciliationLikelihood(bool yesOrNo) const {
-      _optimizeReconciliationLikelihood = yesOrNo;
+      optimizeReconciliationLikelihood_ = yesOrNo;
     }
   
     void print() const;

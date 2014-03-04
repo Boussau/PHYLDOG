@@ -593,19 +593,19 @@ throw (Exception)
                 //Initialize BranchLikelihood:
                 brLikFunction->initModel(tl->getSubstitutionModel(), tl->getRateDistribution());
                 brLikFunction->initLikelihoods(&fatherArray, &sonArray);
-                ParameterList parameters;
+                ParameterList params;
                 tl->getParameters().printParameters(std::cout);
                 std::string name = "BrLen" + TextTools::toString(nodes[i]->getId());
                 Parameter brLen = tl->getParameter(name);
                 brLen.setName(name);
-                parameters.addParameter(brLen);
-                brLikFunction->setParameters(parameters);
+                params.addParameter(brLen);
+                brLikFunction->setParameters(params);
                 
                 //Re-estimate branch length:
                 brentOptimizer->setFunction(brLikFunction);
                 brentOptimizer->getStopCondition()->setTolerance(0.1);
                 brentOptimizer->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
-                brentOptimizer->init(parameters);
+                brentOptimizer->init(params);
                 brentOptimizer->optimize();
                 //brLenNNIValues_[nodeId] = brLikFunction_->getParameterValue("BrLen");
                 double length = brentOptimizer->getParameters().getParameter(name).getValue();
