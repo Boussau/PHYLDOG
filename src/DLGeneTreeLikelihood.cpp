@@ -47,6 +47,30 @@ using namespace bpp;
 
 #define FAST 0
 
+
+  /******************************************************************************/
+
+DLGeneTreeLikelihood::DLGeneTreeLikelihood(std::string file, 
+					     std::map<std::string, std::string> params, 
+					     TreeTemplate<Node> & spTree ) 
+  throw (exception) : GeneTreeLikelihood(file, params, spTree)
+  {
+    size_t speciesTreeNodeNumber = spTree.getNumberOfNodes();
+    for (int i=0; i< speciesTreeNodeNumber ; i++) 
+    {
+        //We fill the vectors with 0.1s until they are the right sizes.
+        //DL model:
+        lossExpectedNumbers_.push_back(0.1);
+        duplicationExpectedNumbers_.push_back(0.11);
+        num0Lineages_.push_back(0);
+        num1Lineages_.push_back(0);
+        num2Lineages_.push_back(0);
+    }
+  tentativeNum0Lineages_ =num0Lineages_;
+  tentativeNum1Lineages_ =num1Lineages_; 
+  tentativeNum2Lineages_ =num2Lineages_;
+  }
+
 /******************************************************************************/
 DLGeneTreeLikelihood::DLGeneTreeLikelihood(
   const Tree & tree,
@@ -330,9 +354,12 @@ throw (Exception)
     //TEST 16 02 2010
     // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " scenarioLikelihood_: "<<scenarioLikelihood_<<std::endl;
     if (considerSequenceLikelihood_) {
+      std::cout << "CONSIDERING" <<std::endl;
       return (- nniLk_->getLogLikelihood() - scenarioLikelihood_);
     }
     else {
+            std::cout << "NOT CONSIDERING" <<std::endl;
+
       return (- scenarioLikelihood_);
     }
     //return (minusLogLik_ - scenarioLikelihood_);

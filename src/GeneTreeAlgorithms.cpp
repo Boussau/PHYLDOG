@@ -810,7 +810,7 @@ string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
       leaves[i]->setName(seqtosp->second);
     }
     else {
-      std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+      std::cout <<"Error in geneTreeToParenthesisWithSpeciesNames: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
       exit(-1);
     }
   }
@@ -832,7 +832,7 @@ string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
       leaves[i]->setName(seqtosp->second + "%" + leaves[i]->getName());
     }
     else {
-      std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+      std::cout <<"Error in geneTreeToParenthesisPlusSpeciesNames: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
       exit(-1);
     }
   }
@@ -870,7 +870,7 @@ void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
       leaves[i]->setNodeProperty("S", BppString(seqtosp->second));
     }
     else {
-      std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+      std::cout <<"Error in annotateGeneTreeWithSpeciesNames: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
       exit(-1);
     }
   }

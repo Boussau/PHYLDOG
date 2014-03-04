@@ -1065,7 +1065,7 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
         resetCoalCounts(coalCounts);
 	/*	for (unsigned int i = 0 ; i < coalCounts[0][0].size() ; i++) {
 			if (spTree->getNode(i)->isLeaf() ) {
-				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << coalCounts[0][0][i][1] << std::endl;
+				std::cout << "Leaf i: "<<i<<" coalCounts_[0][0][i][0]: "<< coalCounts[0][0][i][0] <<" coalCounts_[0][0][i][1] " << coalCounts[0][0][i][1] << std::endl;
 			}
 		}*/
 
@@ -1077,7 +1077,7 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
 	/*	std::cout << "JUST AFTER computeSubtreeCoalCountsPostorderAndFillTables STILL INSIDE findMLCoalReconciliationDR: "<<std::endl;
 		for (unsigned int i = 0 ; i < coalCounts[0][0].size() ; i++) {
 			if (spTree->getNode(i)->isLeaf() ) {
-				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << coalCounts[0][0][i][1] << std::endl;
+				std::cout << "Leaf i: "<<i<<" coalCounts_[0][0][i][0]: "<< coalCounts[0][0][i][0] <<" coalCounts_[0][0][i][1] " << coalCounts[0][0][i][1] << std::endl;
 			}
 		}*/
 

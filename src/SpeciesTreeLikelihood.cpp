@@ -511,7 +511,7 @@ void SpeciesTreeLikelihood::parseOptions()
         num0Lineages_.push_back(0);
         num1Lineages_.push_back(0);
         num2Lineages_.push_back(0);
-        //Colescent model:
+        //Coalescent model:
         coalBls_.push_back(1.0);
         num12Lineages_.push_back(0);
         num22Lineages_.push_back(0);

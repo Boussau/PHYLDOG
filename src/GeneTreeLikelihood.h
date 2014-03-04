@@ -9,7 +9,7 @@ simultaneously build gene and species trees when gene families have
 undergone duplications and losses. It can analyze thousands of gene
 families in dozens of genomes simultaneously, and was presented in
 an article in Genome Research. Trees and parameters are estimated
-in the maximum likelihood framework, by maximizing theprobability
+in the maximum likelihood framework, by maximizing the probability
 of alignments given the species tree, the gene trees and the parameters
 of duplication and loss.
 
@@ -44,6 +44,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef GeneTreeLikelihood_h
 #define GeneTreeLikelihood_h
 
+#include <exception>
 
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 #include <Bpp/Phyl/OptimizationTools.h>
@@ -63,11 +64,34 @@ knowledge of the CeCILL license and that you accept its terms.
 //#include "mpi.h" 
 
 
+
+// From core
+#include <Bpp/Text/StringTokenizer.h>
+
+// From SeqLib:
+#include <Bpp/Seq/Alphabet/Alphabet.h>
+#include <Bpp/Seq/Container/VectorSiteContainer.h>
+#include <Bpp/Seq/Container/SiteContainerTools.h>
+#include <Bpp/Seq/SiteTools.h>
+#include <Bpp/Seq/SequenceTools.h>
+#include <Bpp/Seq/App/SequenceApplicationTools.h>
+
+
+//From the BOOST library 
+#include <boost/mpi.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/mpi/communicator.hpp>
+
+
+namespace mpi = boost::mpi;
+
+
 using namespace bpp;
 
 /*namespace bpp 
 {
   */  
+
     /**
      * @brief This class adds support for reconciliation to a species tree to the NNIHomogeneousTreeLikelihood class.
      */
@@ -79,7 +103,7 @@ using namespace bpp;
         TreeTemplate<Node> * spTree_;
         TreeTemplate<Node> * rootedTree_;
         TreeTemplate<Node> * geneTreeWithSpNames_;
-        const std::map <std::string, std::string> seqSp_;
+        std::map <std::string, std::string> seqSp_; //link between sequence and species
         std::map <std::string, int> spId_;
         std::set <int> nodesToTryInNNISearch_;
         double scenarioLikelihood_;
@@ -98,11 +122,23 @@ using namespace bpp;
         mutable bool optimizeReconciliationLikelihood_;
         mutable bool considerSequenceLikelihood_;
         unsigned int sprLimit_;
-        
+	std::map <std::string, std::string > params_;
+        unsigned int sprLimitGeneTree_;
+	
     public:
         
         GeneTreeLikelihood(); 
         
+	/**
+	 * @brief Build a new DLGeneTreeLikelihood object.
+	 *
+	 * @param params The parameters to parse.
+	 * @param spTree The species tree
+	 * @throw Exception if an error occured.
+	 */
+	GeneTreeLikelihood(std::string file , map<string, string> params, TreeTemplate<Node> & spTree ) throw (exception);
+	
+	
         /**
          * @brief Build a new ReconciliationTreeLikelihood object.
          *
@@ -113,21 +149,13 @@ using namespace bpp;
          * @param rootedTree rooted version of the gene tree
          * @param seqSp link between sequence and species names
          * @param spId link between species name and species ID
-         * @param lossNumbers vector to store loss numbers per branch
-         * @param lossProbabilities vector to store expected numbers of losses per branch
-         * @param duplicationNumbers vector to store duplication numbers per branch
-         * @param duplicationProbabilities vector to store expected numbers of duplications per branch
-         * @param branchNumbers vector to store branch numbers in the tree
-         * @param num0Lineages vectors to store numbers of branches ending with a loss
-         * @param num1Lineages vectors to store numbers of branches ending with 1 gene
-         * @param num2Lineages vectors to store numbers of branches ending with 2 genes
          * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
          * @param heuristicsLevel type of heuristics used
          * @param MLindex ML rooting position
          * @param checkRooted Tell if we have to check for the tree to be unrooted.
          * If true, any rooted tree will be unrooted before likelihood computation.
          * @param verbose Should I display some info?
-         * @throw Exception in an error occured.
+         * @throw Exception if an error occured.
          */
         GeneTreeLikelihood(
                              const Tree & tree,
@@ -159,21 +187,13 @@ using namespace bpp;
          * @param rootedTree rooted version of the gene tree
          * @param seqSp link between sequence and species names
          * @param spId link between species name and species ID
-         * @param lossNumbers vector to store loss numbers per branch
-         * @param lossProbabilities vector to store expected numbers of losses per branch
-         * @param duplicationNumbers vector to store duplication numbers per branch
-         * @param duplicationProbabilities vector to store expected numbers of duplications per branch
-         * @param branchNumbers vector to store branch numbers in the tree
-         * @param num0Lineages vectors to store numbers of branches ending with a loss
-         * @param num1Lineages vectors to store numbers of branches ending with 1 gene
-         * @param num2Lineages vectors to store numbers of branches ending with 2 genes
          * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
          * @param heuristicsLevel type of heuristics used
          * @param MLindex ML rooting position     
          * @param checkRooted Tell if we have to check for the tree to be unrooted.
          * If true, any rooted tree will be unrooted before likelihood computation.
          * @param verbose Should I display some info?
-         * @throw Exception in an error occured.
+         * @throw Exception if an error occured.
          */
         GeneTreeLikelihood(
                              const Tree & tree,
@@ -237,6 +257,15 @@ using namespace bpp;
         void OptimizeReconciliationLikelihood(bool yesOrNo) const {
             optimizeReconciliationLikelihood_ = yesOrNo;
         }
+        
+        NNIHomogeneousTreeLikelihood* getSequenceLikelihoodObject() const {
+	  return nniLk_;
+	}
+        
+        unsigned int getSprLimitGeneTree() const {
+	 return sprLimitGeneTree_; 
+	}
+	  
         
         void optimizeNumericalParameters(map<string, string> params) {
             

@@ -95,6 +95,20 @@ public GeneTreeLikelihood
   mutable bool DLStartingGeneTree_;
   
 public:
+  
+  /**
+   * @brief Build a new DLGeneTreeLikelihood object.
+   *
+   * @param file the option file name.
+   * @param params The parameters to parse.	 
+   * @param spTree The species tree.
+   * @throw Exception if an error occured.
+   */
+  DLGeneTreeLikelihood(std::string file, 
+		       std::map<std::string, std::string> params, 
+		       TreeTemplate<Node> & spTree ) throw (exception);
+  
+  
   /**
    * @brief Build a new DLGeneTreeLikelihood object.
    *

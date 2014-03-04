@@ -57,6 +57,8 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "GeneTreeAlgorithms.h"
 #include "GeneTreeLikelihood.h"
+#include "DLGeneTreeLikelihood.h"
+#include "COALGeneTreeLikelihood.h"
 
 #include "mpi.h" 
 
@@ -73,11 +75,11 @@ using namespace bpp;
     public GeneTreeLikelihood
     {
         //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
-        std::vector < std::vector < std::vector < std::vector< unsigned int > > > > _coalCounts;
-        mutable std::vector < std::vector < std::vector < std::vector < unsigned int > > > > _tentativeCoalCounts;
+        std::vector < std::vector < std::vector < std::vector< unsigned int > > > > coalCounts_;
+        mutable std::vector < std::vector < std::vector < std::vector < unsigned int > > > > tentativeCoalCounts_;
 
         //coalBl: length of a branch of the species tree, in coalescent units (1 coalescent unit = N generations)
-        std::vector < double > _coalBl;
+        std::vector < double > coalBl_;
         
         //num12Lineages_ and num22Lineages_: counts of these particular patterns for each branch of the species tree.
         std::vector< unsigned int > num12Lineages_;
@@ -85,6 +87,19 @@ using namespace bpp;
 
         
     public:
+      
+        
+	/**
+	* @brief Build a new COALGeneTreeLikelihood object.
+	*
+	* @param params The parameters to parse.	 
+	* @param spTree The species tree
+	* @throw Exception in an error occured.
+	*/
+	    COALGeneTreeLikelihood(std::string file, 
+				    map<string, string> params, 
+				    TreeTemplate<Node> & spTree) throw (exception) ;
+	    
         /**
          * @brief Build a new ReconciliationTreeLikelihood object.
          *

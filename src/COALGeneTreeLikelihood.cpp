@@ -44,6 +44,58 @@ knowledge of the CeCILL license and that you accept its terms.
 
 using namespace bpp;
 
+
+
+
+/******************************************************************************/
+
+  /**
+   * @brief Build a new COALGeneTreeLikelihood object.
+   *
+   * @param params The parameters to parse.	 
+   * @param spTree The species tree
+   * @throw Exception in an error occured.
+   */
+  COALGeneTreeLikelihood::COALGeneTreeLikelihood(std::string file , 
+					     map<string, string> params, 
+					     TreeTemplate<Node> & spTree) 
+  throw (exception) : GeneTreeLikelihood(file, params, spTree)
+  {
+ 
+    size_t speciesTreeNodeNumber = spTree.getNumberOfNodes();
+    for (int i=0; i< speciesTreeNodeNumber ; i++) 
+    {
+        //Coalescent model:
+        coalBl_.push_back(1.0);
+    }  
+
+	//coalCounts_: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
+    std::vector< std::vector< std::vector< unsigned int > > > coalCounts_2;
+    std::vector< std::vector<unsigned int> > coalCounts_3;
+    std::vector< unsigned int > coalCounts_4;
+    for (unsigned int j = 0 ; j < 2 ; j++ ) {
+	coalCounts_4.push_back(0);
+    }
+    for (unsigned int j = 0 ; j < spTree_->getNumberOfNodes() ; j++ ) {
+	coalCounts_3.push_back(coalCounts_4);
+    }
+    for (unsigned int j = 0 ; j < 3 ; j++ ) {
+	coalCounts_2.push_back(coalCounts_3);
+    }
+    for (unsigned int j = 0 ; j < rootedTree_->getNumberOfNodes() ; j++ ) {
+	coalCounts_.push_back(coalCounts_2);
+    }
+   tentativeCoalCounts_ = coalCounts_;
+    for (unsigned int i = 0 ; i < coalBl_.size() ; i++) {
+        num12Lineages_.push_back(0);
+        num22Lineages_.push_back(0);
+    }
+    computeNumLineagesFromCoalCounts ();
+    
+  }
+
+
+
 /******************************************************************************/
 COALGeneTreeLikelihood::COALGeneTreeLikelihood(
                        const Tree & tree,
@@ -82,10 +134,10 @@ GeneTreeLikelihood(tree,
                    considerSequenceLikelihood, 
                    sprLimit)
 {
-    _coalBl = coalBl;
-    _coalCounts = coalCounts;
-    _tentativeCoalCounts = coalCounts;
-    for (unsigned int i = 0 ; i < _coalBl.size() ; i++) {
+    coalBl_ = coalBl;
+    coalCounts_ = coalCounts;
+    tentativeCoalCounts_ = coalCounts;
+    for (unsigned int i = 0 ; i < coalBl_.size() ; i++) {
         num12Lineages_.push_back(0);
         num22Lineages_.push_back(0);
     }
@@ -133,10 +185,10 @@ GeneTreeLikelihood(tree,
                    considerSequenceLikelihood, 
                    sprLimit)
 {
-    _coalBl = coalBl;
-    _coalCounts = coalCounts;
-    _tentativeCoalCounts = coalCounts;
-    for (unsigned int i = 0 ; i < _coalBl.size() ; i++) {
+    coalBl_ = coalBl;
+    coalCounts_ = coalCounts;
+    tentativeCoalCounts_ = coalCounts;
+    for (unsigned int i = 0 ; i < coalBl_.size() ; i++) {
         num12Lineages_.push_back(0);
         num22Lineages_.push_back(0);
     }
@@ -149,9 +201,9 @@ GeneTreeLikelihood(tree,
 COALGeneTreeLikelihood::COALGeneTreeLikelihood(const COALGeneTreeLikelihood & lik):
 GeneTreeLikelihood(lik)
 {
-    _coalBl = lik._coalBl;
-    _coalCounts = lik._coalCounts;
-    _tentativeCoalCounts = lik._tentativeCoalCounts;
+    coalBl_ = lik.coalBl_;
+    coalCounts_ = lik.coalCounts_;
+    tentativeCoalCounts_ = lik.tentativeCoalCounts_;
     num12Lineages_ = lik.num12Lineages_;
     num22Lineages_ = lik.num22Lineages_;
 
@@ -162,9 +214,9 @@ GeneTreeLikelihood(lik)
 COALGeneTreeLikelihood & COALGeneTreeLikelihood::operator=(const COALGeneTreeLikelihood & lik)
 {
     GeneTreeLikelihood::operator=(lik);
-    _coalBl = lik._coalBl;
-    _coalCounts = lik._coalCounts;
-    _tentativeCoalCounts = lik._tentativeCoalCounts;
+    coalBl_ = lik.coalBl_;
+    coalCounts_ = lik.coalCounts_;
+    tentativeCoalCounts_ = lik.tentativeCoalCounts_;
     num12Lineages_ = lik.num12Lineages_;
     num22Lineages_ = lik.num22Lineages_;
     return *this;
@@ -200,16 +252,16 @@ void COALGeneTreeLikelihood::initParameters()
      }
     else {
 		/*std::cout << "BEFORE: "<<std::endl;
-		for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
+		for (unsigned int i = 0 ; i < coalCounts_[0][0].size() ; i++) {
 			if (spTree_->getNode(i)->isLeaf() ) {
-				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
+				std::cout << "Leaf i: "<<i<<" coalCounts_[0][0][i][0]: "<< coalCounts_[0][0][i][0] <<" coalCounts_[0][0][i][1] " << coalCounts_[0][0][i][1] << std::endl;
 			}
 		}*/
         scenarioLikelihood_ = findMLCoalReconciliationDR (spTree_, rootedTree_, 
                                     seqSp_, spId_, 
-                                    _coalBl, 
+                                    coalBl_, 
                                     MLindex_, 
-                                    _coalCounts, 
+                                    coalCounts_, 
                                     nodesToTryInNNISearch_);
 		computeNumLineagesFromCoalCounts ();
 
@@ -343,20 +395,20 @@ void COALGeneTreeLikelihood::computeReconciliationLikelihood()
     else {
         //Compute the COAL likelihood
 		/*std::cout << "BEFORE: "<<std::endl;
-		for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
+		for (unsigned int i = 0 ; i < coalCounts_[0][0].size() ; i++) {
 			if (spTree_->getNode(i)->isLeaf() ) {
-				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< _coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << _coalCounts[0][0][i][1] << std::endl;
+				std::cout << "Leaf i: "<<i<<" coalCounts_[0][0][i][0]: "<< coalCounts_[0][0][i][0] <<" coalCounts_[0][0][i][1] " << coalCounts_[0][0][i][1] << std::endl;
 			}
 		}*/
 
         scenarioLikelihood_ = findMLCoalReconciliationDR (spTree_, rootedTree_, 
                                                            seqSp_, spId_, 
-                                                           _coalBl, 
+                                                           coalBl_, 
                                                            tentativeMLindex_, 
-                                                           _tentativeCoalCounts, 
+                                                           tentativeCoalCounts_, 
                                                            tentativeNodesToTryInNNISearch_); 
         MLindex_ = tentativeMLindex_;
-        _coalCounts = _tentativeCoalCounts;
+        coalCounts_ = tentativeCoalCounts_;
         nodesToTryInNNISearch_ = tentativeNodesToTryInNNISearch_;
 		computeNumLineagesFromCoalCounts ();
 
@@ -397,7 +449,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         /* tentativeLossNumbers_ = lossNumbers_;
          tentativeDuplicationNumbers_ = duplicationNumbers_;
          tentativeBranchNumbers_ = branchNumbers_;*/
-        _tentativeCoalCounts = _coalCounts;
+        tentativeCoalCounts_ = coalCounts_;
 
         tentativeNodesToTryInNNISearch_.clear();
         
@@ -441,9 +493,9 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 	
         ScenarioMLValue =  findMLCoalReconciliationDR (spTree_, treeForNNI, 
                                                            seqSp_, spId_, 
-                                                           _coalBl, 
+                                                           coalBl_, 
                                                            tentativeMLindex_, 
-                                                           _tentativeCoalCounts, 
+                                                           tentativeCoalCounts_, 
                                                            tentativeNodesToTryInNNISearch_, false); 
 
         
@@ -597,7 +649,7 @@ void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 /*******************************************************************************/
 
 std::vector < std::vector < std::vector< std::vector<unsigned int> > > > COALGeneTreeLikelihood::getCoalCounts() const{
-    return _coalCounts;
+    return coalCounts_;
 }
 
 
@@ -613,12 +665,12 @@ void COALGeneTreeLikelihood::computeNumLineagesFromCoalCounts () {
 	}
 	std::cout << std::endl;*/
 
-   for (unsigned int i = 0 ; i < _coalCounts[0][0].size() ; i++) {
-       /* if ( _coalCounts[0][0][i][0]  == 1 && _coalCounts[0][0][i][1] == 2) {
+   for (unsigned int i = 0 ; i < coalCounts_[0][0].size() ; i++) {
+       /* if ( coalCounts_[0][0][i][0]  == 1 && coalCounts_[0][0][i][1] == 2) {
             num12Lineages_[i] = 1; 
             num22Lineages_[i] = 0; 
         }
-        else if (_coalCounts[0][0][i][0]  == 2 && _coalCounts[0][0][i][1] == 2) {
+        else if (coalCounts_[0][0][i][0]  == 2 && coalCounts_[0][0][i][1] == 2) {
             num12Lineages_[i] = 0; 
             num22Lineages_[i] = 1; 
         }
@@ -626,11 +678,11 @@ void COALGeneTreeLikelihood::computeNumLineagesFromCoalCounts () {
 			num12Lineages_[i] = 0; 
             num22Lineages_[i] = 0; 
 		}*/
-	   if ( _coalCounts[0][0][i][0]  == 1 && _coalCounts[0][0][i][1] == 2 ) {
+	   if ( coalCounts_[0][0][i][0]  == 1 && coalCounts_[0][0][i][1] == 2 ) {
 		   num12Lineages_[i] = 1; 
 		   num22Lineages_[i] = 0; 
 	   }
-	   else  if ( _coalCounts[0][0][i][0]  == _coalCounts[0][0][i][1]  && _coalCounts[0][0][i][1] != 1 ){
+	   else  if ( coalCounts_[0][0][i][0]  == coalCounts_[0][0][i][1]  && coalCounts_[0][0][i][1] != 1 ){
 		   num12Lineages_[i] = 0; 
 		   num22Lineages_[i] = 1; 
 	   }
@@ -658,14 +710,14 @@ std::vector< unsigned int > COALGeneTreeLikelihood::getNum22Lineages() const {
 /*******************************************************************************/
 
 std::vector <double> COALGeneTreeLikelihood::getCoalBranchLengths() const{
-    return _coalBl;
+    return coalBl_;
 }
 
 /*******************************************************************************/
 
 void COALGeneTreeLikelihood::setCoalBranchLengths (std::vector < double > coalBl)
 {    
-    _coalBl = coalBl;
+    coalBl_ = coalBl;
 }
 
 /*******************************************************************************/
@@ -869,9 +921,9 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                     //Compute the COAL likelihood
                     candidateScenarioLk =  findMLCoalReconciliationDR (spTree_, treeForSPR, 
                                                                    seqSp_, spId_, 
-                                                                   _coalBl, 
+                                                                   coalBl_, 
                                                                    tentativeMLindex_, 
-                                                                   _tentativeCoalCounts, 
+                                                                   tentativeCoalCounts_, 
                                                                    tentativeNodesToTryInNNISearch_, false); 
                     // std::cout<< "candidate tree: "<< TreeTemplateTools::treeToParenthesis(*treeForSPR, true)<< std::endl;
                     
@@ -1297,9 +1349,9 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
                     //Compute the COAL likelihood
                     candidateScenarioLk =  findMLCoalReconciliationDR (spTree_, treeForSPR, 
                                                                        seqSp_, spId_, 
-                                                                       _coalBl, 
+                                                                       coalBl_, 
                                                                        tentativeMLindex_, 
-                                                                       _tentativeCoalCounts, 
+                                                                       tentativeCoalCounts_, 
                                                                        tentativeNodesToTryInNNISearch_, false); 
                     
                     if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the scenario likelihood is not bad
@@ -1605,9 +1657,9 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
                     //Compute the COAL likelihood
                     candidateScenarioLk =  findMLCoalReconciliationDR (spTree_, treeForSPR, 
                                                                        seqSp_, spId_, 
-                                                                       _coalBl, 
+                                                                       coalBl_, 
                                                                        tentativeMLindex_, 
-                                                                       _tentativeCoalCounts, 
+                                                                       tentativeCoalCounts_, 
                                                                        tentativeNodesToTryInNNISearch_, false); 
                     if (allDLLKsAndIndices.find(- candidateScenarioLk) != allDLLKsAndIndices.end() ) {
                         allDLLKsAndIndices[- candidateScenarioLk].push_back(index);

@@ -78,7 +78,7 @@ knowledge of the CeCILL license and that you accept its terms.
 //#include "GeneTreeAlgorithms.h"
 
 
-#include "GeneTreeLikelihood.h"
+//#include "GeneTreeLikelihood.h"
 #include "DLGeneTreeLikelihood.h"
 #include "COALGeneTreeLikelihood.h"
 
@@ -101,7 +101,7 @@ namespace bpp
     std::vector<std::string>  assignedFilenames_; 
     unsigned int  numDeletedFamilies_; 
     TreeTemplate<Node> * geneTree_; 
-    TreeTemplate<Node>* tree_; 
+    TreeTemplate<Node>* spTree_; 
     std::vector <int> num0Lineages_;
     std::vector <int>  num1Lineages_; 
     std::vector <int>  num2Lineages_; 
@@ -131,9 +131,9 @@ namespace bpp
     std::vector <double>  allLogLs_; 
     std::vector <GeneTreeLikelihood *>  treeLikelihoods_;
     std::vector <std::map<std::string, std::string> >  allParams_; 
-     std::vector <std::map<std::string, std::string> >  allParamsBackup_;
-    std::vector <Alphabet *>  allAlphabets_; 
-    std::vector <VectorSiteContainer *>  allDatasets_; 
+    std::vector <std::map<std::string, std::string> >  allParamsBackup_;
+   // std::vector <Alphabet *>  allAlphabets_; 
+    std::vector <SiteContainer *>  allDatasets_; 
     std::vector <SubstitutionModel *>  allModels_; 
     std::vector <DiscreteDistribution *>  allDistributions_; 
     std::vector <TreeTemplate<Node> *>  allGeneTrees_; 
@@ -157,7 +157,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     assignedFilenames_(), 
     numDeletedFamilies_ (0), 
     geneTree_(0),
-    tree_ (0),
+    spTree_ (0),
     num0Lineages_(), 
     num1Lineages_(), 
     num2Lineages_(), 
@@ -188,7 +188,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     treeLikelihoods_(),
     allParams_(),
     allParamsBackup_(),
-    allAlphabets_(),
+   // allAlphabets_(),
     allDatasets_(),
     allModels_(),
     allDistributions_(),
@@ -213,7 +213,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     assignedFilenames_(c.assignedFilenames_), 
     numDeletedFamilies_ (c.numDeletedFamilies_), 
     geneTree_(c.geneTree_),
-    tree_(c.tree_),
+    spTree_(c.spTree_),
     num0Lineages_(c.num0Lineages_), 
     num1Lineages_(c.num1Lineages_), 
     num2Lineages_(c.num2Lineages_), 
@@ -243,7 +243,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     treeLikelihoods_(c.treeLikelihoods_),
     allParams_(c.allParams_),
     allParamsBackup_(c.allParamsBackup_),
-    allAlphabets_(c.allAlphabets_),
+  //  allAlphabets_(c.allAlphabets_),
     allDatasets_(c.allDatasets_),
     allModels_(c.allModels_),
     allDistributions_(c.allDistributions_),
@@ -268,7 +268,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
       assignedFilenames_ = c.assignedFilenames_; 
       numDeletedFamilies_  = c.numDeletedFamilies_; 
       geneTree_ = c.geneTree_;
-      tree_ = c.tree_;
+      spTree_ = c.spTree_;
       num0Lineages_ = c.num0Lineages_; 
       num1Lineages_ = c.num1Lineages_; 
       num2Lineages_ = c.num2Lineages_; 
@@ -298,7 +298,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
       treeLikelihoods_ = c.treeLikelihoods_;
       allParams_ = c.allParams_;
       allParamsBackup_ = c.allParamsBackup_;
-      allAlphabets_ = c.allAlphabets_;
+    //  allAlphabets_ = c.allAlphabets_;
       allDatasets_ = c.allDatasets_;
       allModels_ = c.allModels_;
       allDistributions_ = c.allDistributions_;
@@ -318,11 +318,11 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     virtual ~ClientComputingGeneLikelihoods() 
     {			
       if (geneTree_) delete geneTree_;
-      if (tree_) delete tree_;
+      if (spTree_) delete spTree_;
       for (unsigned int i = 0 ; i< assignedFilenames_.size()-numDeletedFamilies_ ; i++) 
       {       
-	if (allAlphabets_[i])
-	  delete allAlphabets_[i];
+	/*if (allAlphabets_[i])
+	  delete allAlphabets_[i];*/
 	if (allDatasets_[i])
 	  delete allDatasets_[i];
 	if (allModels_[i])
@@ -352,6 +352,8 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     
     //Get the logL of the species tree according to the gene families handled by the client
     double getValue() const throw (Exception) { return logL_; }
+    int unrootedGeneTree;
+   // COALGeneTreeLikelihood* tl;
     
     
     
