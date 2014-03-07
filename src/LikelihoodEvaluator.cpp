@@ -49,14 +49,14 @@ extern "C" {
 #include<iostream>
 
 
-#include "LikelihoodWrapper.h"
+#include "LikelihoodEvaluator.h"
 
 
 using namespace std;
 using namespace bpp;
 
 
-LikelihoodWrapper::initializePLL(){
+LikelihoodEvaluator::initializePLLtree(){
   
   // PLL
   /* Set the PLL instance attributes */
@@ -72,16 +72,16 @@ LikelihoodWrapper::initializePLL(){
 }
 
 
-LikelihoodWrapper::LikelihoodWrapper(string treeFile, string alignmentFile):
+LikelihoodEvaluator::LikelihoodEvaluator(string treeFile, string alignmentFile):
   treeFile(treeFile),
   alignmentFile(alignmentFile)
 {
   // For PLL
-  initializePLL();
+  initializePLLtree();
 }
 
 
-LikelihoodWrapper::loadPLLalignment(char* path)
+LikelihoodEvaluator::loadPLLalignment(char* path)
 {
   /* Parse a PHYLIP/FASTA file */
   pllAlignmentData * alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path);
@@ -92,7 +92,7 @@ LikelihoodWrapper::loadPLLalignment(char* path)
 }
 
 
-LikelihoodWrapper::loadPLLtree(char* path)
+LikelihoodEvaluator::loadPLLnewick(char* path)
 {
   newick_PLL = pllNewickParseFile(path);
   if (!newick_PLL)
@@ -105,7 +105,7 @@ LikelihoodWrapper::loadPLLtree(char* path)
   }
 }
 
-LikelihoodWrapper::loadPLLpartitions(char* path)
+LikelihoodEvaluator::loadPLLpartitions(char* path)
 {
   /* Parse the partitions file into a partition queue structure */
   partitionInfo_PLL = pllPartitionParse (path);
@@ -126,7 +126,7 @@ LikelihoodWrapper::loadPLLpartitions(char* path)
   pllAlignmentRemoveDups (alignmentData_PLL, partitions_PLL);
 }
 
-LikelihoodWrapper::updatePLLtreeWithPLLnewick()
+LikelihoodEvaluator::updatePLLtreeWithPLLnewick()
 {
   pllTreeInitTopologyNewick (tr_PLL, newick_PLL, PLL_FALSE);
     
@@ -138,3 +138,13 @@ LikelihoodWrapper::updatePLLtreeWithPLLnewick()
   }
 }
 
+
+LikelihoodEvaluator::initializeBPP_nniLk()
+{
+  nniLk_ = new NNIHomogeneousTreeLikelihood(tree, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
+}
+
+LikelihoodEvaluator* LikelihoodEvaluator::clone()
+{
+  return(new LikelihoodEvaluator(this));
+}

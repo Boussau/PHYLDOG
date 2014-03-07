@@ -41,13 +41,14 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 
 
-#ifndef LikelihoodWrapper_hpp
-#define LikelihoodWrapper_hpp
+#ifndef LikelihoodEvaluator_hpp
+#define LikelihoodEvaluator_hpp
 
 #include<string>
 
 #include<Bpp/Phyl/Node.h>
 #include<Bpp/Phyl/TreeTemplate.h>
+#include<Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 
 
 extern "C" {
@@ -56,7 +57,10 @@ extern "C" {
 
 
 
-class LikelihoodWrapper {
+class LikelihoodEvaluator:
+public bpp::Clonable
+{
+  
 private:
   
   
@@ -115,7 +119,7 @@ private:
   /**
   Loads the PLL tree.
   */
-  loadPLLtree(char* path);
+  loadPLLnewick(char* path);
   
   /**
   Initializing partitions for PLL.
@@ -125,7 +129,7 @@ private:
   /**
   Initializing PLL tree: tr_PLL.
   */
-  initializePLL();
+  initializePLLtree();
   
   /**
   Updating the PLL tree with PLL newick.
@@ -167,6 +171,7 @@ private:
   
   /** @name Original BPP Data
   *  BPP data are used as reference in this wrapper
+  */
   ///@{
   
   /**
@@ -190,11 +195,68 @@ private:
   std::map<std::string,std::string> strictToReal;
 
   ///@}
+  
+  
+  /** @name Likelihood management with BPP
+  *  BPP methods using NNIHomogeneousTreeLikelihood
+  */
+  ///@{
+  
+  bpp::NNIHomogeneousTreeLikelihood nniLk;
+  
+  
+  /**
+   * @brief initialize the NNIHomogeneousTreeLikelihood object for BPP management
+   */
+  initialize_BPP_nniLk();
+  
+  /**
+   * @brief substitution model managed by BPP
+   */
+  bpp::SubstitutionModel * substitutionModel;
+  
+  /**
+   * @brief discrete distribution managed by BPP
+   * GeneTreeLikelihood correspondance: *rDist* The rate across sites distribution to use
+   */
+  bpp::DiscreteDistribution * rateDistribution;
+  
+  /**
+   * @brief discrete distribution managed by BPP
+   */
+  bool mustUnrootTrees;
+  
+  
+  
+  ///@}
+  
+  
+  
 public:
   
-  LikelihoodWrapper(std::string treeFile, std::string alignmentFile);
+  enum LikelihoodMethod{PLL,BPP};
   
-  double getLikelihood();
+  LikelihoodEvaluator(std::string treeFile, std::string alignmentFile);
+  LikelihoodEvaluator();
+  
+  /**
+  * @brief returns the Log Likelihood computed with the default method
+  * @return double log likelihood
+  */
+  double getLogLikelihood();
+  
+  /**
+  * @brief returns the Log Likelihood computed with specified method
+  * @param likelihood the likelihood method
+  * @return double log likelihood
+  */
+  double getLogLikelihood(LikelihoodEvaluator::LikelihoodMethod likelihoodMethod);
+  
+  
+  
+  
+  LikelihoodEvaluator* clone();
+  LikelihoodEvaluator();
   
   
   
@@ -203,6 +265,6 @@ public:
 
 #else
 
-class LikelihoodWrapper;
+class LikelihoodEvaluator;
 
 #endif

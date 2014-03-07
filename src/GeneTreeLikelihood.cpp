@@ -58,7 +58,7 @@ class geneTreeLikelihoodException: public exception
 
 
 GeneTreeLikelihood::GeneTreeLikelihood():
-nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_(), spId_(), heuristicsLevel_(0) {
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_(), heuristicsLevel_(0) {
     totalIterations_ = 0;
     counter_ = 0;
 }
@@ -67,7 +67,7 @@ nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_(), spId_(
 GeneTreeLikelihood::GeneTreeLikelihood(std::string file , 
 		   map<string, string> params, 
 		   TreeTemplate<Node> & spTree ) throw (exception):
-    nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_(), spId_(), 
+    levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_(), 
     params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true) {
     totalIterations_ = 0;
     counter_ = 0;
