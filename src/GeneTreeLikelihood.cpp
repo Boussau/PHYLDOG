@@ -73,72 +73,19 @@ GeneTreeLikelihood::GeneTreeLikelihood(std::string file ,
     counter_ = 0;
     spTree_ = spTree.clone();
     spId_ = computeSpeciesNamesToIdsMap(*spTree_);
-    SubstitutionModel*    model    = 0;
-    DiscreteDistribution* rDist    = 0;
-    TreeTemplate<Node> * unrootedGeneTree = 0;
+   // SubstitutionModel*    model    = 0;
+  //  DiscreteDistribution* rDist    = 0;
+    
     bool avoidFamily = false;
     std::vector <std::string> spNames;
 
-            //Sequences and model of evolution
-      Alphabet *alphabet = SequenceApplicationTools::getAlphabet(params_, "", false);
-      std::string seqFile = ApplicationTools::getStringParameter("input.sequence.file",params_,"none");
-      if(!FileTools::fileExists(seqFile))
-      {
-          std::cerr << "Error: Sequence file "<< seqFile <<" not found." << std::endl;
-          MPI::COMM_WORLD.Abort(1);
-          exit(-1);
-      }
-      VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params_);       
-      
-      unsigned int numSites = allSites->getNumberOfSites();
-      ApplicationTools::displayResult("Number of sequences", TextTools::toString(allSites->getNumberOfSequences()));
-      ApplicationTools::displayResult("Number of sites", TextTools::toString(numSites));
+   Alphabet *alphabet =  getAlphabetFromOptions(params_);
+   VectorSiteContainer * sites = getSequencesFromOptions(params_, alphabet);
+   SubstitutionModel*    model    = getModelFromOptions(params_, alphabet, sites);
+    if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
+    DiscreteDistribution* rDist    = getRateDistributionFromOptions(params_, model);
     
-    std::vector <std::string> seqsToRemove;
-    VectorSiteContainer * sites;
     
-    if (numSites == 0 ) {
-      std::cout<<"WARNING: Discarding a family whose alignment is 0 site long: "<< seqFile <<std::endl;
-      avoidFamily = true;
-      delete allSites;   
-    }
-    if (!avoidFamily) {
-      unsigned int minPercentSequence = ApplicationTools::getIntParameter("sequence.removal.threshold",params_,0);
-      unsigned int threshold = (int) ((double)minPercentSequence * (double)numSites / 100 );
-      
-      
-      if (minPercentSequence > 0) {
-        for ( int j = allSites->getNumberOfSequences()-1 ; j >= 0 ; j--) {
-          if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(j) ) < threshold ) {
-            ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(j).getName()  );
-            // allSites->deleteSequence(i);
-            seqsToRemove.push_back(allSites->getSequence(j).getName());
-          }
-        }
-      }
-      
-      for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
-      {
-        std::vector <std::string> seqNames = allSites->getSequencesNames();
-        if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
-        {
-          allSites->deleteSequence(seqsToRemove[j]);
-        }
-        else 
-          std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
-      }
-      
-      
-      ApplicationTools::displayResult("# sequences post size-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
-      seqsToRemove.clear();
-      
-      if (allSites->getNumberOfSequences() <= 1 ) {
-        std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
-        avoidFamily = true;
-      }
-      sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params_);     
-      delete allSites;   
-    }
       
       //method to optimize the gene tree root; only useful if heuristics.level!=0.
       bool rootOptimization = false;
@@ -233,109 +180,15 @@ GeneTreeLikelihood::GeneTreeLikelihood(std::string file ,
               else 
                   std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
           }
-          
-          /****************************************************************************
-           //Then we need to get the substitution model.
-           *****************************************************************************/
 
-          model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, 00, sites, params_); 
-
-          if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
-
-          if (model->getNumberOfStates() > model->getAlphabet()->getSize())
-          {
-              // Markov-modulated Markov model!
-              rDist = new ConstantDistribution(1.);
-          }
-          else
-          {
-              rDist = PhylogeneticsApplicationTools::getRateDistribution(params_);
-          }
-          
           /****************************************************************************
            * Then we need to get the file containing the gene tree, 
            * or build the gene tree.
            *****************************************************************************/
-          // Get the initial gene tree
-          string initTree = ApplicationTools::getStringParameter("init.gene.tree", params_, "user", "", false, false);
-          ApplicationTools::displayResult("Input gene tree", initTree);
           try 
           {
-              if(initTree == "user")
-              {
-                  std::string geneTree_File =ApplicationTools::getStringParameter("gene.tree.file",params_,"none");
-                  if (geneTree_File=="none" )
-                  {
-                      std::cout << "\n\nNo Gene tree was provided. The option init.gene.tree is set to user (by default), which means that the option gene.tree.file must be filled with the path of a valid tree file. \nIf you do not have a gene tree file, the program can start from a random tree, if you set init.gene.tree at random, or can build a gene tree with BioNJ or a PhyML-like algorithm with options bionj or phyml.\n\n" << std::endl;
-                      MPI::COMM_WORLD.Abort(1);
-                      exit(-1);
-                  }
-                  Newick newick(true);
-                  if(!FileTools::fileExists(geneTree_File))
-                  {
-                      std::cerr << "Error: geneTree_File "<< geneTree_File <<" not found." << std::endl;
-                      std::cerr << "Building a bionj tree instead for gene " << geneTree_File << std::endl;
-                      unrootedGeneTree = buildBioNJTree (params_, sites, model, rDist, alphabet);
-                      if (rootedTree_) 
-                      {
-                          delete rootedTree_;
-                          rootedTree_ =0;
-                      }            
-                      rootedTree_ = unrootedGeneTree->clone();
-                      rootedTree_->newOutGroup(0); 
-                      //exit(-1);
-                  }
-                  else {
-                      if (rootedTree_) 
-                      {
-                          delete rootedTree_;
-                          rootedTree_ =0;
-                      }            
-                      rootedTree_ = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTree_File));
-                  }
-                  if (!rootedTree_->isRooted()) 
-                  {
-                      if (unrootedGeneTree) {
-                          delete unrootedGeneTree;
-                          unrootedGeneTree = 0;
-                      }
-                      unrootedGeneTree = rootedTree_->clone();
-                      //std::cout << "The gene tree is not rooted ; the root will be searched."<<std::endl;
-                      rootedTree_->newOutGroup(0);
-                  }
-                  else 
-                  {
-                      if (unrootedGeneTree) {
-                          delete unrootedGeneTree;
-                          unrootedGeneTree = 0;
-                      }
-                      unrootedGeneTree = rootedTree_->clone();
-                      unrootedGeneTree->unroot();
-                  }
-                  ApplicationTools::displayResult("Gene Tree file", geneTree_File);
-                  ApplicationTools::displayResult("Number of leaves", TextTools::toString(rootedTree_->getNumberOfLeaves()));
-              }
-              else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
-              {
-                  unrootedGeneTree = buildBioNJTree (params_, sites, model, rDist, alphabet);
-
-                  if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
-                  { 
-                      refineGeneTreeUsingSequenceLikelihoodOnly (params_, unrootedGeneTree, sites, model, rDist, file, alphabet);
-                  }
-                  if (rootedTree_) 
-                  {
-                      delete rootedTree_;
-                      rootedTree_ = 0;
-                  }        
-                  rootedTree_ = unrootedGeneTree->clone(); 
-          breadthFirstreNumber (*rootedTree_);
-        //  std::cout << " Problem tree? : "<<TreeTemplateTools::treeToParenthesis(*rootedTree_, true) << std::endl;
-          
-          rootedTree_->newOutGroup( rootedTree_->getLeavesId()[0] ); 
-              }
-              else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
-          }
+	      getTreeFromOptions(params_, alphabet, sites, model, rDist);
+	  }
           catch (std::exception& e)
           {
               std::cout << e.what() <<"; Unable to get a proper gene tree for family "<<file<<"; avoiding this family."<<std::endl;

@@ -354,5 +354,29 @@ bool cmp( int a, int b );
 bool anticmp( int a, int b ) ;
 
 
+
+ Alphabet* getAlphabetFromOptions(map <string, <string>  params) {
+         Alphabet *alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
+
+   return alphabet;
+ }
+
+ 
+//reads an alignment from a file and parses it according to options 
+VectorSiteContainer *  getSequencesFromOptions(map <string, <string>  params, Alphabet* alphabet) ;
+
+//constructs a substitution model according to options 
+SubstitutionModel*   getModelFromOptions(map <string, <string> params, Alphabet *alphabet, VectorSiteContainer *sites) ;
+            
+//constructs a rate heterogeneity distribution according to options 
+DiscreteDistribution* getRateDistributionFromOptions (map <string, <string> params, SubstitutionModel* model) ;
+      
+//reads a tree from a file or builds it according to options
+TreeTemplate<Node> * getTreeFromOptions ( map <string, <string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist ) ;
+
+
+
+
+
 #endif  //_RECONCILIATIONTOOLS_H_
 

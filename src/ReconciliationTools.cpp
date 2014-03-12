@@ -3406,6 +3406,186 @@ bool anticmp( int a, int b ) {
 
 
 
+ Alphabet* getAlphabetFromOptions(map <string, <string>  params) {
+         Alphabet *alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
+
+   return alphabet;
+ }
+
+ 
+ 
+VectorSiteContainer *  getSequencesFromOptions(map <string, <string>  params, Alphabet* alphabet) {
+             //Sequences and model of evolution
+      std::string seqFile = ApplicationTools::getStringParameter("input.sequence.file",params,"none");
+      if(!FileTools::fileExists(seqFile))
+      {
+          std::cerr << "Error: Sequence file "<< seqFile <<" not found." << std::endl;
+          MPI::COMM_WORLD.Abort(1);
+          exit(-1);
+      }
+      VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer(alphabet, params);       
+      
+      unsigned int numSites = allSites->getNumberOfSites();
+      ApplicationTools::displayResult("Number of sequences", TextTools::toString(allSites->getNumberOfSequences()));
+      ApplicationTools::displayResult("Number of sites", TextTools::toString(numSites));
+    
+    std::vector <std::string> seqsToRemove;
+    VectorSiteContainer * sites;
+    
+    if (numSites == 0 ) {
+      std::cout<<"WARNING: Discarding a family whose alignment is 0 site long: "<< seqFile <<std::endl;
+      avoidFamily = true;
+      delete allSites;   
+    }
+    if (!avoidFamily) {
+      unsigned int minPercentSequence = ApplicationTools::getIntParameter("sequence.removal.threshold",params,0);
+      unsigned int threshold = (int) ((double)minPercentSequence * (double)numSites / 100 );
+      
+      
+      if (minPercentSequence > 0) {
+        for ( int j = allSites->getNumberOfSequences()-1 ; j >= 0 ; j--) {
+          if (SequenceTools::getNumberOfCompleteSites(allSites->getSequence(j) ) < threshold ) {
+            ApplicationTools::displayResult("Removing a short sequence:", allSites->getSequence(j).getName()  );
+            // allSites->deleteSequence(i);
+            seqsToRemove.push_back(allSites->getSequence(j).getName());
+          }
+        }
+      }
+      
+      for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
+      {
+        std::vector <std::string> seqNames = allSites->getSequencesNames();
+        if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
+        {
+          allSites->deleteSequence(seqsToRemove[j]);
+        }
+        else 
+          std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
+      }
+      
+      
+      ApplicationTools::displayResult("# sequences post size-based removal:", TextTools::toString(allSites->getNumberOfSequences()));
+      seqsToRemove.clear();
+      
+      if (allSites->getNumberOfSequences() <= 1 ) {
+        std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
+        avoidFamily = true;
+      }
+      sites = SequenceApplicationTools::getSitesToAnalyse(*allSites, params);     
+      delete allSites;   
+    }
+return sites; 
+  
+}
+
+ SubstitutionModel*   getModelFromOptions(map <string, <string> params, Alphabet *alphabet, VectorSiteContainer *sites) {
+           /****************************************************************************
+           //Then we need to get the substitution model.
+           *****************************************************************************/
+       SubstitutionModel* model = PhylogeneticsApplicationTools::getSubstitutionModel(alphabet, 00, sites, params); 
+      return model;      
+      }
+      
+      
+      
+DiscreteDistribution* getRateDistributionFromOptions (map <string, <string> params, SubstitutionModel* model) {
+  DiscreteDistribution* rDist    = 0;
+  if (model->getNumberOfStates() > model->getAlphabet()->getSize())
+          {
+              // Markov-modulated Markov model!
+              rDist = new ConstantDistribution(1.);
+          }
+          else
+          {
+              rDist = PhylogeneticsApplicationTools::getRateDistribution(params);
+          }
+      return rDist;
+      }
+      
+      
+TreeTemplate<Node> * getTreeFromOptions ( map <string, <string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist ) {
+ TreeTemplate<Node> *  rootedTree;
+  // Get the initial gene tree
+          string initTree = ApplicationTools::getStringParameter("init.gene.tree", params, "user", "", false, false);
+          ApplicationTools::displayResult("Input gene tree", initTree);
+	  TreeTemplate<Node> * unrootedGeneTree = 0;
+              if(initTree == "user")
+              {
+                  std::string geneTree_File =ApplicationTools::getStringParameter("gene.tree.file",params,"none");
+                  if (geneTree_File=="none" )
+                  {
+                      std::cout << "\n\nNo Gene tree was provided. The option init.gene.tree is set to user (by default), which means that the option gene.tree.file must be filled with the path of a valid tree file. \nIf you do not have a gene tree file, the program can start from a random tree, if you set init.gene.tree at random, or can build a gene tree with BioNJ or a PhyML-like algorithm with options bionj or phyml.\n\n" << std::endl;
+                      MPI::COMM_WORLD.Abort(1);
+                      exit(-1);
+                  }
+                  Newick newick(true);
+                  if(!FileTools::fileExists(geneTree_File))
+                  {
+                      std::cerr << "Error: geneTree_File "<< geneTree_File <<" not found." << std::endl;
+                      std::cerr << "Building a bionj tree instead for gene " << geneTree_File << std::endl;
+                      unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, alphabet);
+                      if (rootedTree) 
+                      {
+                          delete rootedTree;
+                          rootedTree =0;
+                      }            
+                      rootedTree = unrootedGeneTree->clone();
+                      rootedTree->newOutGroup(0); 
+                      //exit(-1);
+                  }
+                  else {
+                      if (rootedTree) 
+                      {
+                          delete rootedTree;
+                          rootedTree =0;
+                      }            
+                      rootedTree = dynamic_cast < TreeTemplate < Node > * > (newick.read(geneTree_File));
+                  }
+                  if (!rootedTree->isRooted()) 
+                  {
+                      if (unrootedGeneTree) {
+                          delete unrootedGeneTree;
+                          unrootedGeneTree = 0;
+                      }
+                      unrootedGeneTree = rootedTree->clone();
+                      //std::cout << "The gene tree is not rooted ; the root will be searched."<<std::endl;
+                      rootedTree->newOutGroup(0);
+                  }
+                  else 
+                  {
+                      if (unrootedGeneTree) {
+                          delete unrootedGeneTree;
+                          unrootedGeneTree = 0;
+                      }
+                      unrootedGeneTree = rootedTree->clone();
+                      unrootedGeneTree->unroot();
+                  }
+                  ApplicationTools::displayResult("Gene Tree file", geneTree_File);
+                  ApplicationTools::displayResult("Number of leaves", TextTools::toString(rootedTree->getNumberOfLeaves()));
+              }
+              else if ( (initTree == "bionj") || (initTree == "phyml") ) //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
+              {
+                  unrootedGeneTree = buildBioNJTree (params, sites, model, rDist, alphabet);
+
+                  if (initTree == "phyml")//refine the tree using PhyML algorithm (2003)
+                  { 
+                      refineGeneTreeUsingSequenceLikelihoodOnly (params, unrootedGeneTree, sites, model, rDist, file, alphabet);
+                  }
+                  if (rootedTree) 
+                  {
+                      delete rootedTree;
+                      rootedTree = 0;
+                  }        
+                  rootedTree = unrootedGeneTree->clone(); 
+          breadthFirstreNumber (*rootedTree);
+        //  std::cout << " Problem tree? : "<<TreeTemplateTools::treeToParenthesis(*rootedTree, true) << std::endl;
+          
+          rootedTree->newOutGroup( rootedTree->getLeavesId()[0] ); 
+              }
+              else throw Exception("Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'.");
+       //   } 
+      return rootedTree;
+    }
 
 
 
