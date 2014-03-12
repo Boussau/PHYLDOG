@@ -77,7 +77,7 @@ using namespace bpp;
 class DLGeneTreeLikelihood:
 public GeneTreeLikelihood
 {
-  // NNIHomogeneousTreeLikelihood * nniLk_;
+  // NNIHomogeneousTreeLikelihood * levaluator_;
   std::vector <int> duplicationNumbers_;
   std::vector <int> lossNumbers_;
   std::vector <int>  branchNumbers_;        
@@ -281,7 +281,7 @@ public:
   std::vector <int> get1LineagesNumbers() const;
   std::vector <int> get2LineagesNumbers() const;
   
-  ParameterList getParameters() {return nniLk_->getParameters();}
+  ParameterList getParameters() {return levaluator_->getParameters();}
   
   TreeTemplate<Node> & getSpTree() const {return *spTree_;}
   
@@ -313,7 +313,7 @@ public:
     bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
     params[ std::string("optimization.max_number_f_eval")] = 100;
     params[ std::string("optimization.topology")] = "false";
-    PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(nniLk_), nniLk_->getParameters(), params, "", true, false);
+    PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(levaluator_), levaluator_->getParameters(), params, "", true, false);
     params[ std::string("optimization.max_number_f_eval")] = backup;
     params[ std::string("optimization.topology")] = backupOpt;
     
@@ -321,7 +321,7 @@ public:
     
     /* auto_ptr<BackupListener> backupListener;
      *            unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", optArgs, 1, "", true, false);
-     *            OptimizationTools::optimizeNumericalParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(nniLk_), nniLk_->getParameters(), backupListener.get(), nstep, );*/
+     *            OptimizationTools::optimizeNumericalParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(levaluator_), levaluator_->getParameters(), backupListener.get(), nstep, );*/
   };
   
   void initialize();

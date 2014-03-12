@@ -229,7 +229,7 @@ COALGeneTreeLikelihood & COALGeneTreeLikelihood::operator=(const COALGeneTreeLik
 
 COALGeneTreeLikelihood::~COALGeneTreeLikelihood()
 {
-    if (nniLk_) delete nniLk_;
+    if (levaluator_) delete levaluator_;
     if (spTree_) delete spTree_;
     if (rootedTree_) delete rootedTree_;
     if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
@@ -243,7 +243,7 @@ void COALGeneTreeLikelihood::initParameters()
 {
     // std::cout << "in initParameters"<<std::endl;
     if (considerSequenceLikelihood_) {
-        nniLk_->initParameters();
+        levaluator_->getnniLk()->initParameters();
     }
     if (heuristicsLevel_>0) {
         std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
@@ -316,7 +316,7 @@ double COALGeneTreeLikelihood::getLogLikelihood() const
     // DRHomogeneousTreeLikelihood::getLogLikelihood();
     //  setMinuslogLikelihood_ (_sequenceLikelihood);
     if (considerSequenceLikelihood_) {
-        ll = nniLk_->getLogLikelihood() + scenarioLikelihood_;
+        ll = levaluator_->getnniLk()->getLogLikelihood() + scenarioLikelihood_;
     }
     else {
         ll = scenarioLikelihood_;
@@ -331,12 +331,12 @@ double COALGeneTreeLikelihood::getValue() const
 throw (Exception)
 {
     {
-        if(!nniLk_->isInitialized()) throw Exception("reconciliationTreeLikelihood::getValue(). Instance is not initialized.");
+        if(!levaluator_->getnniLk()->isInitialized()) throw Exception("reconciliationTreeLikelihood::getValue(). Instance is not initialized.");
         // return (-getLogLikelihood());
         //TEST 16 02 2010
         // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " scenarioLikelihood_: "<<scenarioLikelihood_<<std::endl;
         if (considerSequenceLikelihood_) {
-            return (- nniLk_->getLogLikelihood() - scenarioLikelihood_);
+            return (- levaluator_->getnniLk()->getLogLikelihood() - scenarioLikelihood_);
         }
         else {
             return (- scenarioLikelihood_);
@@ -354,8 +354,8 @@ throw (Exception)
 void COALGeneTreeLikelihood::fireParameterChanged(const ParameterList & params)
 {
     if (considerSequenceLikelihood_) {
-        nniLk_->applyParameters();
-        nniLk_->matchParametersValues(params);
+        levaluator_->getnniLk()->applyParameters();
+        levaluator_->getnniLk()->matchParametersValues(params);
     }
     //If we need to update the reconciliation likelihood
     if (optimizeReconciliationLikelihood_) {
@@ -372,11 +372,11 @@ void COALGeneTreeLikelihood::fireParameterChanged(const ParameterList & params)
 void COALGeneTreeLikelihood::computeSequenceLikelihood()
 {
     if ( considerSequenceLikelihood_ && (optimizeSequenceLikelihood_==true) ) {
-        nniLk_->computeTreeLikelihood ();
+        levaluator_->getnniLk()->computeTreeLikelihood ();
         /*
-         nniLk_->computeSubtreeLikelihoodPostfix(dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->getRootNode());
-         nniLk_->computeSubtreeLikelihoodPrefix(nniLk_->getTree().getRootNode());
-         nniLk_->computeRootLikelihood();*/
+         levaluator_->getnniLk()->computeSubtreeLikelihoodPostfix(dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->getRootNode());
+         levaluator_->getnniLk()->computeSubtreeLikelihoodPrefix(levaluator_->getnniLk()->getTree().getRootNode());
+         levaluator_->getnniLk()->computeRootLikelihood();*/
     }
 }
 
@@ -443,7 +443,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     //or if we just try all branches because the starting gene trees are parsimonious in
     //numbers of DL.
     if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
-        TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
+        TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->clone();
         
         tentativeMLindex_ = MLindex_;
         /* tentativeLossNumbers_ = lossNumbers_;
@@ -455,7 +455,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         
         //We first estimate the likelihood of the scenario: if not better than the current scenario, no need to estimate the branch length !
         //We use the same procedure as in doNNI !
-        const Node * son    = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->getNode(nodeId);
+        const Node * son    = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->getNode(nodeId);
         
         
         if(!son->hasFather()) throw NodeException("COALGeneTreeLikelihood::testNNI(). Node 'son' must not be the root node.", nodeId);
@@ -507,9 +507,9 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
             if  (ScenarioMLValue >  scenarioLikelihood_) 
             { //If it is worth computing the sequence likelihood
                 //Retrieving arrays of interest:
-                // std::cout << "before nniLk_->testNNI(nodeId);"<<std::endl;
-                double newLkMinusOldLk = nniLk_->testNNI(nodeId);
-//                 std::cout << "after nniLk_->testNNI(nodeId); "<< newLkMinusOldLk <<std::endl;
+                // std::cout << "before levaluator_->getnniLk()->testNNI(nodeId);"<<std::endl;
+                double newLkMinusOldLk = levaluator_->getnniLk()->testNNI(nodeId);
+//                 std::cout << "after levaluator_->getnniLk()->testNNI(nodeId); "<< newLkMinusOldLk <<std::endl;
 
                 double tot = - ScenarioMLValue + scenarioLikelihood_ + newLkMinusOldLk;
 		//		std::cout << "TOT: "<<tot<<std::endl;
@@ -556,10 +556,10 @@ void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     //std::cout << TreeTemplateTools::treeToParenthesis(*tree_, true) << std::endl;
     //Perform the topological move, the likelihood array will have to be recomputed...
     
-    nniLk_->doNNI(nodeId);
+    levaluator_->getnniLk()->doNNI(nodeId);
     
     /*
-     Node * son    = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->getNode(nodeId);
+     Node * son    = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->getNode(nodeId);
      if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", nodeId);
      Node * parent = son->getFather();
      if(!parent->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'parent' must not be the root node.", parent->getId());
@@ -623,7 +623,7 @@ void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
     scenarioLikelihood_ = tentativeScenarioLikelihood_;// + _brLikFunction->getValue();
     
     //Now we need to update rootedTree_
-    TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
+    TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->clone();
     //First we root this temporary tree as in rootedTree_ (same lines as in testNNI)
     int id = tree->getRootNode()->getId();
     if(TreeTemplateTools::hasNodeWithId(*(rootedTree_->getRootNode()->getSon(0)),id)) {
@@ -735,12 +735,12 @@ int COALGeneTreeLikelihood::getRootNodeindex(){
 /*******************************************************************************/
 
 double COALGeneTreeLikelihood::getSequenceLikelihood() {
-    return nniLk_->getValue(); 
+    return levaluator_->getnniLk()->getValue(); 
 }
 /*******************************************************************************/
 
 void COALGeneTreeLikelihood::initialize() {
-    nniLk_->initialize();
+    levaluator_->getnniLk()->initialize();
     return;
 }
 
@@ -753,7 +753,7 @@ void COALGeneTreeLikelihood::print () const {
     std::cout << "Gene family rooted tree:"<<std::endl;
     std::cout << TreeTemplateTools::treeToParenthesis (getRootedTree(), true)<<std::endl;
     std::cout << "Gene family tree:"<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis (nniLk_->getTree(), true)<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis (levaluator_->getnniLk()->getTree(), true)<<std::endl;
     /*std::cout << "Counts of coalescence events"<<std::endl;
     VectorTools::print(getCoalCounts());*/
     std::cout << "Branch lengths"<<std::endl;
@@ -788,17 +788,17 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     double logL = getLogLikelihood();
     //std::cout << "logL before mapping: " <<getSequenceLikelihood()<<std::endl;
     //initial perturbation of branch lengths, to use suboptimal ones for speed
-    /*ParameterList bls = nniLk_->getBranchLengthsParameters () ;
+    /*ParameterList bls = levaluator_->getnniLk()->getBranchLengthsParameters () ;
      for (unsigned int i  = 0 ; i < bls.size()/3 ; i++) {
      bls[i].setValue(0.1);
      }
-     nniLk_->matchParametersValues(bls);*/
+     levaluator_->getnniLk()->matchParametersValues(bls);*/
     //  std::cout << "logL before mapping 2: " <<getSequenceLikelihood()<<std::endl;    
     //TEST 14 03 2012, if it works, it's inefficient
     
     NNIHomogeneousTreeLikelihood * drlk = 0;
-    drlk = nniLk_->clone();
-    // optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (nniLk_), 0.1, params);
+    drlk = levaluator_->getnniLk()->clone();
+    // optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (levaluator_), 0.1, params);
     
     /*
      int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
@@ -821,20 +821,20 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     
     
     
-    delete nniLk_;
-    nniLk_ = drlk->clone();
+    delete levaluator_;
+    levaluator_ = drlk->clone();
     
     delete drlk;
     drlk = 0;
     
-    /*  optimizeBLForSPRs(dynamic_cast<DRTreeLikelihood*> (nniLk_),
+    /*  optimizeBLForSPRs(dynamic_cast<DRTreeLikelihood*> (levaluator_),
      0.1, params);*/
     
     
     
-    // std::cout<< "Unrooted starting tree: "<<TreeTemplateTools::treeToParenthesis(nniLk_->getTree(), true)<< std::endl;
+    // std::cout<< "Unrooted starting tree: "<<TreeTemplateTools::treeToParenthesis(levaluator_->getnniLk()->getTree(), true)<< std::endl;
     /*
-     bls = nniLk_->getBranchLengthsParameters () ;
+     bls = levaluator_->getnniLk()->getBranchLengthsParameters () ;
      for (unsigned int i  = 0 ; i < bls.size() ; i++) {
      if (rootedTree_->getNode(i)->hasFather()) {
      rootedTree_->getNode(i)->setDistanceToFather(bls[i].getValue());
@@ -939,15 +939,15 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                             }
                             // std::cout << "COMPUTING SEQLK: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, true) <<std::endl;
                             drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, 
-                                                                      *(nniLk_->getData()), 
-                                                                      nniLk_->getSubstitutionModel(), 
-                                                                      nniLk_->getRateDistribution(), 
+                                                                      *(levaluator_->getnniLk()->getData()), 
+                                                                      levaluator_->getnniLk()->getSubstitutionModel(), 
+                                                                      levaluator_->getnniLk()->getRateDistribution(), 
                                                                       true, false);
-                            //  drlk  = new DRTreeLikelihood (*treeForSPR, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
+                            //  drlk  = new DRTreeLikelihood (*treeForSPR, *(levaluator_->getnniLk()->getData()), levaluator_->getnniLk()->getSubstitutionModel(), levaluator_->getnniLk()->getRateDistribution(), true, false);
                             
                             
-                            //drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
-                            /*          ParameterList bls = nniLk_->getBranchLengthsParameters () ;
+                            //drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, levaluator_->getnniLk()->getSubstitutionModel(), levaluator_->getnniLk()->getRateDistribution(), true, false);
+                            /*          ParameterList bls = levaluator_->getnniLk()->getBranchLengthsParameters () ;
                              for (unsigned int i  = 0 ; i < bls.size()/3 ; i++) {
                              bls[i].setValue(0.1);
                              }
@@ -1060,7 +1060,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                         
                         /*
                          bestTree = treeForSPR->clone();
-                         //                        bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();                                                                             
+                         //                        bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->clone();                                                                             
                          
                          //Putting optimized branch lengths onto bestTree                                                                                                                                           
                          vector<int> drlkNodes = bestTree->getNodesId();
@@ -1124,11 +1124,11 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
                      bestTree = 0;
                      }*/
                     if (computeSequenceLikelihoodForSPR) {                        
-                        if (nniLk_) {
-                            delete nniLk_;
-                            nniLk_ = 0;
+                        if (levaluator_) {
+                            delete levaluator_;
+                            levaluator_ = 0;
                         }
-                        nniLk_ = bestDrlk->clone();                        
+                        levaluator_ = bestDrlk->clone();                        
                     }
                     /* std::cout << "NOT ROOTED: "<<std::endl;
                      std::cout<< TreeTemplateTools::treeToParenthesis(drlk->getTree(), true)<< std::endl;
@@ -1178,22 +1178,22 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs(map<string, string> params) {
     /*Do we need this extra lk optimization?
      bestTree = rootedTree_->clone();
      
-     drlk = new NNIHomogeneousTreeLikelihood (*bestTree, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
+     drlk = new NNIHomogeneousTreeLikelihood (*bestTree, *(levaluator_->getnniLk()->getData()), levaluator_->getnniLk()->getSubstitutionModel(), levaluator_->getnniLk()->getRateDistribution(), true, false);
      drlk->initialize();
      
      PhylogeneticsApplicationTools::optimizeParameters(drlk, drlk->getParameters(), params, "", true, false);
      
-     if (nniLk_) {
-     delete nniLk_;
-     nniLk_ = 0;
+     if (levaluator_) {
+     delete levaluator_;
+     levaluator_ = 0;
      }
      
-     nniLk_ = drlk->clone();
+     levaluator_ = drlk->clone();
      if (bestTree) {
      delete bestTree;
      bestTree = 0;
      }
-     bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
+     bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->clone();
      
      vector<int> drlkNodes = bestTree->getNodesId();
      for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
@@ -1259,10 +1259,10 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
     double logL = getLogLikelihood();
     
     FastRHomogeneousTreeLikelihood * rlk = 0;
-    rlk = new FastRHomogeneousTreeLikelihood (nniLk_->getTree(), 
-                                              *(nniLk_->getData()), 
-                                              nniLk_->getSubstitutionModel(), 
-                                              nniLk_->getRateDistribution(), 
+    rlk = new FastRHomogeneousTreeLikelihood (levaluator_->getnniLk()->getTree(), 
+                                              *(levaluator_->getnniLk()->getData()), 
+                                              levaluator_->getnniLk()->getSubstitutionModel(), 
+                                              levaluator_->getnniLk()->getRateDistribution(), 
                                               true, false);
     
     rlk->initialize();
@@ -1280,15 +1280,15 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
     
     
     
-    delete nniLk_;
-    nniLk_ = new NNIHomogeneousTreeLikelihood (rlk->getTree(), 
+    delete levaluator_;
+    levaluator_ = new NNIHomogeneousTreeLikelihood (rlk->getTree(), 
                                                *(rlk->getData()), 
                                                rlk->getSubstitutionModel(), 
                                                rlk->getRateDistribution(), 
                                                true, false);
-    nniLk_->initialize();
+    levaluator_->getnniLk()->initialize();
     
-    //  nniLk_->reInit();//To update the likelihood data vectors
+    //  levaluator_->getnniLk()->reInit();//To update the likelihood data vectors
     delete rlk;
     rlk = 0;
     
@@ -1387,9 +1387,9 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
                             }
                             
                             rlk  = new FastRHomogeneousTreeLikelihood (*treeForSPR, 
-                                                                       *(nniLk_->getData()), 
-                                                                       nniLk_->getSubstitutionModel(), 
-                                                                       nniLk_->getRateDistribution(), 
+                                                                       *(levaluator_->getnniLk()->getData()), 
+                                                                       levaluator_->getnniLk()->getSubstitutionModel(), 
+                                                                       levaluator_->getnniLk()->getRateDistribution(), 
                                                                        true, false);
                             
                             rlk->initialize();
@@ -1485,17 +1485,17 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
                     
                     
                     if (computeSequenceLikelihoodForSPR) {                        
-                        if (nniLk_) {
-                            delete nniLk_;
-                            nniLk_ = 0;
+                        if (levaluator_) {
+                            delete levaluator_;
+                            levaluator_ = 0;
                         }
-                        nniLk_ = new NNIHomogeneousTreeLikelihood (bestRlk->getTree(), 
+                        levaluator_ = new NNIHomogeneousTreeLikelihood (bestRlk->getTree(), 
                                                                    *(bestRlk->getData()), 
                                                                    bestRlk->getSubstitutionModel(), 
                                                                    bestRlk->getRateDistribution(), 
                                                                    true, false);
-                        nniLk_->initialize();
-                        // nniLk_->fireParameterChanged(nniLk_->getParameters()); //To update the likelihood data vectors
+                        levaluator_->getnniLk()->initialize();
+                        // levaluator_->getnniLk()->fireParameterChanged(levaluator_->getnniLk()->getParameters()); //To update the likelihood data vectors
                         
                     }
                 }
@@ -1595,7 +1595,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
     std::vector< TreeTemplate<Node>* > allTreesTested;
     unsigned int index = 0;
     
-    optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (nniLk_),
+    optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (levaluator_),
                              0.1, params);
     logL = getLogLikelihood();
     
@@ -1711,7 +1711,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
                     drlk = 0;
                 }
                 // std::cout << "COMPUTING SEQLK: " << TreeTemplateTools::treeToParenthesis(*treeForSPR, true) <<std::endl;
-                drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, *(nniLk_->getData()), nniLk_->getSubstitutionModel(), nniLk_->getRateDistribution(), true, false);
+                drlk  = new NNIHomogeneousTreeLikelihood (*treeForSPR, *(levaluator_->getnniLk()->getData()), levaluator_->getnniLk()->getSubstitutionModel(), levaluator_->getnniLk()->getRateDistribution(), true, false);
                 drlk->initialize();
                 optimizeBLMappingForSPRs(dynamic_cast<DRHomogeneousTreeLikelihood*> (drlk),
                                          0.1, params);
@@ -1771,11 +1771,11 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
                 bestTree = 0;
             }
             if (computeSequenceLikelihoodForSPR) {                        
-                if (nniLk_) {
-                    delete nniLk_;
-                    nniLk_ = 0;
+                if (levaluator_) {
+                    delete levaluator_;
+                    levaluator_ = 0;
                 }
-                nniLk_ = bestDrlk->clone();                        
+                levaluator_ = bestDrlk->clone();                        
             }
         }
         else 
@@ -1814,9 +1814,9 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
     bestTree = rootedTree_->clone();
     
     drlk = new NNIHomogeneousTreeLikelihood (*bestTree, 
-                                             *(nniLk_->getData()), 
-                                             nniLk_->getSubstitutionModel(), 
-                                             nniLk_->getRateDistribution(), 
+                                             *(levaluator_->getnniLk()->getData()), 
+                                             levaluator_->getnniLk()->getSubstitutionModel(), 
+                                             levaluator_->getnniLk()->getRateDistribution(), 
                                              true, false);
     drlk->initialize();
     
@@ -1828,17 +1828,17 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRs2(map<string, string> params) {
     params[ std::string("optimization.max_number_f_eval")] = backup;
     params[ std::string("optimization.topology")] = backupOpt;
     
-    if (nniLk_) {
-        delete nniLk_;
-        nniLk_ = 0;
+    if (levaluator_) {
+        delete levaluator_;
+        levaluator_ = 0;
     }
     
-    nniLk_ = drlk->clone();
+    levaluator_ = drlk->clone();
     if (bestTree) {
         delete bestTree;
         bestTree = 0;
     }
-    bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
+    bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->clone();
     
     vector<int> drlkNodes = bestTree->getNodesId();
     for (unsigned int j = 0 ; j < drlkNodes.size() ; j++) {
@@ -1887,7 +1887,7 @@ void COALGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsi
     bool test = true;
     do
     { 
-        TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
+        TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getnniLk()->getTree()))->clone();
         vector<Node *> nodes = tree->getNodes();
         
         vector<Node *> nodesSub = nodes;
@@ -1921,8 +1921,8 @@ void COALGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsi
                 }
                 doNNI(node->getId());
                 test = true;
-                nniLk_->topologyChangeTested( 	TopologyChangeEvent ());
-                nniLk_->topologyChangeSuccessful( 	TopologyChangeEvent ());
+                levaluator_->getnniLk()->topologyChangeTested( 	TopologyChangeEvent ());
+                levaluator_->getnniLk()->topologyChangeSuccessful( 	TopologyChangeEvent ());
                 if(verbose >= 1)
                     ApplicationTools::displayResult("   Current value", TextTools::toString(getValue(), 10));
             }

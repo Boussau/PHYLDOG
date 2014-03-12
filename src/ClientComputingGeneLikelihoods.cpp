@@ -204,17 +204,17 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
       double startingFamilyTime = ApplicationTools::getTime();  
       std::cout <<"Examining family "<<assignedFilenames_[i]<<std::endl;
       avoidFamily = false;
-      std::string file = assignedFilenames_[i];
-      if(!FileTools::fileExists(file))
+      std::string familySpecificOptionsFile = assignedFilenames_[i];
+      if(!FileTools::fileExists(familySpecificOptionsFile))
       {
-          std::cerr << "Error: Parameter file "<< file <<" not found." << std::endl;
+          std::cerr << "Error: Parameter file "<< familySpecificOptionsFile <<" not found." << std::endl;
           fflush(0);
           MPI::COMM_WORLD.Abort(1);
           exit(-1);
       }
       else
       {
-          famSpecificParams = AttributesTools::getAttributesMapFromFile(file, "=");
+          famSpecificParams = AttributesTools::getAttributesMapFromFile(familySpecificOptionsFile, "=");
           AttributesTools::resolveVariables(famSpecificParams);
       }
       
@@ -226,7 +226,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
       if (reconciliationModel_ == "DL")
               {
 		try {
-		tl = new DLGeneTreeLikelihood(file, params_, *spTree_);
+		tl = new DLGeneTreeLikelihood(familySpecificOptionsFile, params_, *spTree_);
 		}
 		catch (exception& e)
 		{
@@ -252,7 +252,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
               else if (reconciliationModel_ == "COAL")
               {
 		try {
-		 tl = new COALGeneTreeLikelihood( file, params_, *spTree_ );
+		 tl = new COALGeneTreeLikelihood( familySpecificOptionsFile, params_, *spTree_ );
 		 }
 		catch (exception& e)
 		{

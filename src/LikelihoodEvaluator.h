@@ -177,7 +177,7 @@ private:
   /**
   Alignment strictly formatted for PLL
   */
-  bpp::TreeTemplate<bpp::Node> tree;
+  bpp::TreeTemplate<bpp::Node> * tree;
   
   /**
   Newick strictly formatted for PLL
@@ -202,7 +202,7 @@ private:
   */
   ///@{
   
-  bpp::NNIHomogeneousTreeLikelihood nniLk;
+  bpp::NNIHomogeneousTreeLikelihood * nniLk;
   
   
   /**
@@ -231,13 +231,42 @@ private:
   ///@}
   
   
+  bool verbose;
+  
+  
   
 public:
   
   enum LikelihoodMethod{PLL,BPP};
   
-  LikelihoodEvaluator(std::string treeFile, std::string alignmentFile);
+  
+  
+  /** @name Constructors
+  */
+  ///@{
+  
+  /**
+  * @brief nnilk like contructor number 1
+  */
+  LikelihoodEvaluator(bpp::TreeTemplate<bpp::Node> * tree, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
+  
+  
+  /**
+  * @brief nnilk like contructor number 2
+  */
+  LikelihoodEvaluator(bpp::TreeTemplate<bpp::Node> * tree, bpp::SiteContainer data, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
+  
+  /**
+  * @brief empty contructor
+  */
   LikelihoodEvaluator();
+  
+  /**
+  * @brief copy from another object
+  */
+  LikelihoodEvaluator(LikelihoodEvaluator const &leval);
+  
+  ///@}
   
   /**
   * @brief returns the Log Likelihood computed with the default method
@@ -252,13 +281,20 @@ public:
   */
   double getLogLikelihood(LikelihoodEvaluator::LikelihoodMethod likelihoodMethod);
   
-  
+  /**
+  * @brief returns the params of the nnilk member
+  * @return parameters
+  */
+  bpp::ParameterList getParameters();
   
   
   LikelihoodEvaluator* clone();
-  LikelihoodEvaluator();
   
-  
+  /**
+  * @brief Temporary way to directly access the associated nniLk
+  * @return a pointer to the associated nniLk of this object
+  */
+  bpp::NNIHomogeneousTreeLikelihood * getnniLk();
   
   
 };

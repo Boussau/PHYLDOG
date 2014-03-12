@@ -100,11 +100,6 @@ class GeneTreeLikelihood
 {
 protected:
   /***
-   * The historical implementation of a likelihood estimator
-   */
-  NNIHomogeneousTreeLikelihood * nniLk_;
-  
-  /***
    * The new implementation of a likelihood estimator
    */
   LikelihoodEvaluator * levaluator_;

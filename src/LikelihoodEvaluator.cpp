@@ -77,9 +77,13 @@ LikelihoodEvaluator::LikelihoodEvaluator(string treeFile, string alignmentFile):
   alignmentFile(alignmentFile)
 {
   // For PLL
-  initializePLLtree();
+//   initializePLLtree();
 }
 
+LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator &levaluator){
+  nniLk = levaluator.nniLk->clone();
+  tree = levaluator.tree->clone();
+}
 
 LikelihoodEvaluator::loadPLLalignment(char* path)
 {
@@ -141,10 +145,24 @@ LikelihoodEvaluator::updatePLLtreeWithPLLnewick()
 
 LikelihoodEvaluator::initializeBPP_nniLk()
 {
-  nniLk_ = new NNIHomogeneousTreeLikelihood(tree, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
+  nniLk = new NNIHomogeneousTreeLikelihood(tree, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
 }
+
 
 LikelihoodEvaluator* LikelihoodEvaluator::clone()
 {
   return(new LikelihoodEvaluator(this));
 }
+
+
+bpp::ParameterList LikelihoodEvaluator::getParameters()
+{
+  return(this->nniLk->getParameters());
+}
+
+
+NNIHomogeneousTreeLikelihood * LikelihoodEvaluator::getnniLk()
+{
+  return(this->nniLk);
+}
+

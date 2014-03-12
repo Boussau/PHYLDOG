@@ -520,7 +520,7 @@ GeneTreeLikelihood::GeneTreeLikelihood(std::string file ,
           }// This has not been implemented!
           else if(optimizeClock == "no")
           {
-	    nniLk_ = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true); 
+	    levaluator_ = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true); 
 
               
           }
@@ -576,10 +576,10 @@ GeneTreeLikelihood::GeneTreeLikelihood(
                    bool considerSequenceLikelihood, 
                    unsigned int sprLimit)
 throw (Exception):
-nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_(seqSp), spId_(spId), heuristicsLevel_(0)
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(seqSp), spId_(spId), heuristicsLevel_(0)
 {
     
-    nniLk_ = new NNIHomogeneousTreeLikelihood(tree, model, rDist, checkRooted, verbose); 
+    levaluator_ = new LikelihoodEvaluator(tree, model, rDist, checkRooted, verbose); 
     spTree_ = spTree.clone();
     rootedTree_ = rootedTree.clone();
     geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
@@ -639,9 +639,9 @@ GeneTreeLikelihood::GeneTreeLikelihood(
                    bool considerSequenceLikelihood, 
                    unsigned int sprLimit)
 throw (Exception):
-nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0)
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0)
 {
-    nniLk_ = new NNIHomogeneousTreeLikelihood(tree, data, model, rDist, checkRooted, verbose);
+    levaluator_ = new LikelihoodEvaluator(tree, data, model, rDist, checkRooted, verbose);
     spTree_ = spTree.clone();
     rootedTree_ = rootedTree.clone();
     geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
@@ -664,9 +664,9 @@ nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_ (seqSp), 
  * @brief Copy constructor.
  */ 
 GeneTreeLikelihood::GeneTreeLikelihood(const GeneTreeLikelihood & lik):
-nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_ (lik.seqSp_), spId_(lik.spId_), heuristicsLevel_(0)
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (lik.seqSp_), spId_(lik.spId_), heuristicsLevel_(0)
 {
-    nniLk_ = lik.nniLk_->clone(); 
+    levaluator_ = lik.levaluator_->clone(); 
     spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone()) ;
     rootedTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.rootedTree_->clone()) ;
     geneTreeWithSpNames_ = dynamic_cast<TreeTemplate<Node> *> (lik.geneTreeWithSpNames_->clone()) ;
@@ -688,8 +688,8 @@ nniLk_(0), spTree_(0), rootedTree_(0), geneTreeWithSpNames_(0), seqSp_ (lik.seqS
 
 GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & lik)
 {
-    if (nniLk_) delete nniLk_;
-    nniLk_ = lik.nniLk_->clone(); 
+    if (levaluator_) delete levaluator_;
+    levaluator_ = lik.levaluator_->clone(); 
     if (spTree_) delete spTree_;
     spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone());
     if (rootedTree_) delete rootedTree_;
