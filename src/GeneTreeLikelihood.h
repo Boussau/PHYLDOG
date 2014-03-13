@@ -287,6 +287,7 @@ public:
   bool isInitialized() {
     return nniLk_->isInitialized();
   }
+  unsigned int seqsToRemove();
   
   
 };

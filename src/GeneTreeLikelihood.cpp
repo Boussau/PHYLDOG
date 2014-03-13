@@ -73,114 +73,32 @@ GeneTreeLikelihood::GeneTreeLikelihood(std::string file ,
     counter_ = 0;
     spTree_ = spTree.clone();
     spId_ = computeSpeciesNamesToIdsMap(*spTree_);
-   // SubstitutionModel*    model    = 0;
-  //  DiscreteDistribution* rDist    = 0;
     
     bool avoidFamily = false;
     std::vector <std::string> spNames;
-
-   Alphabet *alphabet =  getAlphabetFromOptions(params_);
-   VectorSiteContainer * sites = getSequencesFromOptions(params_, alphabet);
-   SubstitutionModel*    model    = getModelFromOptions(params_, alphabet, sites);
-    if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites);
-    DiscreteDistribution* rDist    = getRateDistributionFromOptions(params_, model);
+    bool continue = false;
+    Alphabet *alphabet =  getAlphabetFromOptions(params_, continue);
+    if (continue)
+      VectorSiteContainer * sites = getSequencesFromOptions(params_, alphabet, continue);
+    if (continue)
+      SubstitutionModel*    model    = getModelFromOptions(params_, alphabet, sites, continue);
+    if (continue) {
+      if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites, continue);
+    }
+    if (continue)
+      DiscreteDistribution* rDist = getRateDistributionFromOptions(params_, model, continue);
     
-    
+      
       
       //method to optimize the gene tree root; only useful if heuristics.level!=0.
-      bool rootOptimization = false;
-      
-      /****************************************************************************
-       //Then we need to get the file containing links between sequences and species.
-       *****************************************************************************/
-      std::string taxaseqFile = ApplicationTools::getStringParameter("taxaseq.file",params_,"none");
-      if (!avoidFamily) {
-          if (taxaseqFile=="none" ){
-              std::cout << "\n\nNo taxaseqfile was provided. Cannot compute a reconciliation between a species tree and a gene tree using sequences if the relation between the sequences and the species is not explicit !\n" << std::endl;
-              std::cout << "phyldog species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
-              MPI::COMM_WORLD.Abort(1);
-              exit(-1);
-          }
-          if(!FileTools::fileExists(taxaseqFile))
-          {
-              std::cerr << "Error: taxaseqfile "<< taxaseqFile <<" not found." << std::endl;
-              MPI::COMM_WORLD.Abort(1);
-              exit(-1);
-          }
-      }
-      //Getting the relations between species and sequence names
-      //In this file, the format is expected to be as follows :
-      /*
-       SpeciesA:sequence1;sequence2
-       SpeciesB:sequence5
-       SpeciesC:sequence3;sequence4;sequence6
-       ...
-       */
-      //We use a std::map to record the links between species names and sequence names
-      //For one species name, we can have several sequence names
-      std::map<std::string, std::deque<std::string> > spSeq;
-      
-      std::ifstream inSpSeq (taxaseqFile.c_str());
-      std::string line;
-      if (!avoidFamily) {
-          while(getline(inSpSeq,line)) {
-              //We divide the line in 2 : first, the species name, second the sequence names
-              StringTokenizer st1 (line, ":", true);
-              //Then we divide the sequence names
-              if (st1.numberOfRemainingTokens ()>1) {
-                  StringTokenizer st2(st1.getToken(1), ";", true);
-                  if (spSeq.find(st1.getToken(0)) == spSeq.end())
-                      spSeq.insert( make_pair(st1.getToken(0),st2.getTokens()));
-                  else {
-                      for (unsigned int j = 0 ; j < (st2.getTokens()).size() ; j++)
-                          spSeq.find(st1.getToken(0))->second.push_back(st2.getTokens()[j]);
-                  }
-              }
-          }
-      }
-      //Printing the contents and building seqSp_ 
-      //At the same time, we gather sequences we will have to remove from the 
-      //alignment and from the gene tree
-      std::vector <std::string> spNamesToTake = spTree_->getLeavesNames(); 
-      if (!avoidFamily) {
-          for(std::map<std::string, std::deque<std::string> >::iterator it = spSeq.begin(); it != spSeq.end(); it++){
-              spNames.push_back(it->first);
-              for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
-                  seqSp_.insert(make_pair(*it2, it->first));
-              }
-              if (!VectorTools::contains(spNamesToTake,it->first)) {
-                  for( std::deque<std::string >::iterator it2 = (it->second).begin(); it2 != (it->second).end(); it2++){
-                      std::cout<<"Removing sequence of species not considered"<<std::endl;
-                      seqsToRemove.push_back(*it2);
-                  }
-              }
-          }
-      }
-      std::map <std::string, std::string> spSelSeq;
-      
-      if (!avoidFamily) {
-          //If we need to remove all sequences or all sequences except one, 
-          //better remove the gene family
-          if (seqsToRemove.size()>=sites->getNumberOfSequences()-1) {
-              avoidFamily=true;
-              std::cout <<"All or almost all sequences have been removed: avoiding family "<< file <<std::endl;
-          }
-      }
-      
-      if (!avoidFamily) {
-          //We need to prune the alignment so that they contain
-          //only sequences from the species under study.
-          for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
-          {
-              std::vector <std::string> seqNames = sites->getSequencesNames();
-              if ( VectorTools::contains(seqNames, seqsToRemove[j]) ) 
-              {
-                  sites->deleteSequence(seqsToRemove[j]);
-              }
-              else 
-                  std::cout<<"Sequence "<<seqsToRemove[j] <<"is not present in the gene alignment."<<std::endl;
-          }
+	bool rootOptimization = false;
+	if (continue)
+	 seqSp_ = getCorrespondanceSequenceSpeciesFromOptions(params_, continue);
+	
+	if (continue)
+	  removeUselessSequencesFromAlignment( spTree_, sites, continue ) ;
 
+      	if (continue) {
           /****************************************************************************
            * Then we need to get the file containing the gene tree, 
            * or build the gene tree.
@@ -192,58 +110,18 @@ GeneTreeLikelihood::GeneTreeLikelihood(std::string file ,
           catch (std::exception& e)
           {
               std::cout << e.what() <<"; Unable to get a proper gene tree for family "<<file<<"; avoiding this family."<<std::endl;
-              avoidFamily=true;
+              continue=false;
           }
-      }
 
-      if (!avoidFamily) 
+	}
+       
+      if (continue) 
       { //This family is phylogenetically informative
-
-          //Going through the gene tree to see if leaves have branches that are too long.
-          std::vector <Node*> leaves = rootedTree_->getLeaves();
-         // std::cout << "leaves.size(): "<<leaves.size() <<std::endl;
-          for (unsigned int j = 0 ; j < leaves.size() ; j++) {
-              if ( leaves[j] -> hasFather() && leaves[j]->getDistanceToFather() >= 2.0 ) {
-                  std::cout << "WARNING: Removing sequence "<< leaves[j]->getName() <<" from family "<<file<< " because its branch is unreasonably long (>=2.0)."<<std::endl;
-                  seqsToRemove.push_back( leaves[j]->getName() );
-                  //removing the corresponding sequence, if present
-                  if (sites->hasSequence(leaves[j]->getName() ) )
-                      sites->deleteSequence( leaves[j]->getName() );
-              }
-          }
-
-          if (sites->getNumberOfSequences() >1) {
-              //Pruning sequences from the gene tree
-              for (unsigned int j =0 ; j<seqsToRemove.size(); j++) 
-              {
-                  std::vector <std::string> leafNames = rootedTree_->getLeavesNames();
-                  if ( VectorTools::contains(leafNames, seqsToRemove[j]) )
-                  {
-                      removeLeaf(*rootedTree_, seqsToRemove[j]);
-                      if (unrootedGeneTree) {
-                          delete unrootedGeneTree;
-                          unrootedGeneTree = 0;
-                      }
-                      unrootedGeneTree = rootedTree_->clone();
-                      if (!rootedTree_->isRooted()) {
-                          std::cout <<"gene tree is not rooted!!! "<< taxaseqFile<<std::endl;
-                      }
-                      unrootedGeneTree->unroot();
-                  }
-                  else 
-                      std::cout<<"Sequence "<<seqsToRemove[j] <<" is not present in the gene tree."<<std::endl;
-              }
-          }
-          //If we have only one sequence in the end, we do not make a tree
-          else {
-              avoidFamily=true;
-              std::cout <<"All or almost all sequences have been removed: avoiding family "<< file <<std::endl;
-          }
+	qualityControlGeneTree ( rootedTree_, sites, continue ) ;
       }
-      if (!avoidFamily) 
+      if (continue) 
       { //This family is phylogenetically informative
-
-      
+     
           /************************************************************************************************************/
           /********************************************COMPUTING LIKELIHOOD********************************************/
           /************************************************************************************************************/
@@ -308,6 +186,11 @@ GeneTreeLikelihood::GeneTreeLikelihood(std::string file ,
           }
           */
 	  
+	  TreeTemplate<Node> * unrootedGeneTree = rootedTree_->clone();
+	  if (!rootedTree_->isRooted()) {
+	      std::cout <<"gene tree is not rooted!!! "<< file <<std::endl;
+	  }
+	  unrootedGeneTree->unroot();
 	  
           //printing the gene trees with the species names instead of the sequence names
           //This is useful to build an input for duptree for instance
