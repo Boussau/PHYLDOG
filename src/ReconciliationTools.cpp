@@ -3478,7 +3478,7 @@ return sites;
   
 }
 
- SubstitutionModel*   getModelFromOptions(map <string, <string> params, Alphabet *alphabet, VectorSiteContainer *sites) {
+SubstitutionModel*   getModelFromOptions(map <string,string> params, Alphabet *alphabet, VectorSiteContainer *sites) {
            /****************************************************************************
            //Then we need to get the substitution model.
            *****************************************************************************/
@@ -3488,7 +3488,7 @@ return sites;
       
       
       
-DiscreteDistribution* getRateDistributionFromOptions (map <string, <string> params, SubstitutionModel* model) {
+DiscreteDistribution* getRateDistributionFromOptions (map <string,string> params, SubstitutionModel* model) {
   DiscreteDistribution* rDist    = 0;
   if (model->getNumberOfStates() > model->getAlphabet()->getSize())
           {
@@ -3503,7 +3503,7 @@ DiscreteDistribution* getRateDistributionFromOptions (map <string, <string> para
       }
       
       
-TreeTemplate<Node> * getTreeFromOptions ( map <string, <string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist ) {
+TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist ) {
  TreeTemplate<Node> *  rootedTree;
   // Get the initial gene tree
           string initTree = ApplicationTools::getStringParameter("init.gene.tree", params, "user", "", false, false);
