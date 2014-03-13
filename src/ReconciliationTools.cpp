@@ -3414,7 +3414,7 @@ bool anticmp( int a, int b ) {
 
  
  
-VectorSiteContainer *  getSequencesFromOptions(map <string, <string>  params, Alphabet* alphabet) {
+VectorSiteContainer *  getSequencesFromOptions(map <string, string>  params, Alphabet* alphabet) {
              //Sequences and model of evolution
       std::string seqFile = ApplicationTools::getStringParameter("input.sequence.file",params,"none");
       if(!FileTools::fileExists(seqFile))

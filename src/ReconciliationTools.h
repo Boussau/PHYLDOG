@@ -57,6 +57,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <Bpp/Seq/Alphabet.all>
 #include <Bpp/Seq/Alphabet/CodonAlphabet.h>
+#include <Bpp/Seq/App/SequenceApplicationTools.h>
 
 
 // From NumCalc:
@@ -355,24 +356,24 @@ bool anticmp( int a, int b ) ;
 
 
 
- Alphabet* getAlphabetFromOptions(map <string, <string>  params) {
-         Alphabet *alphabet = SequenceApplicationTools::getAlphabet(params, "", false);
+bpp::Alphabet* getAlphabetFromOptions(std::map <std::string, std::string>  params) {
+         Alphabet *alphabet = bpp::SequenceApplicationTools::getAlphabet(params, "", false);
 
    return alphabet;
- }
+}
 
  
 //reads an alignment from a file and parses it according to options 
-VectorSiteContainer *  getSequencesFromOptions(map <string, <string>  params, Alphabet* alphabet) ;
+bpp::VectorSiteContainer *  getSequencesFromOptions(std::map <std::string, std::string>  params, bpp::Alphabet* alphabet) ;
 
 //constructs a substitution model according to options 
-SubstitutionModel*   getModelFromOptions(map <string, <string> params, Alphabet *alphabet, VectorSiteContainer *sites) ;
+bpp::SubstitutionModel*   getModelFromOptions(std::map <std::string, std::string> params, bpp::Alphabet *alphabet, bpp::VectorSiteContainer *sites) ;
             
 //constructs a rate heterogeneity distribution according to options 
-DiscreteDistribution* getRateDistributionFromOptions (map <string, <string> params, SubstitutionModel* model) ;
+bpp::DiscreteDistribution* getRateDistributionFromOptions (std::map <std::string,std::string> params, SubstitutionModel* model) ;
       
 //reads a tree from a file or builds it according to options
-TreeTemplate<Node> * getTreeFromOptions ( map <string, <string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist ) ;
+bpp::TreeTemplate<bpp::Node> * getTreeFromOptions (std::map <std::string,std::string> params, bpp::Alphabet *alphabet, bpp::VectorSiteContainer * sites, bpp::SubstitutionModel* model, bpp::DiscreteDistribution* rDist ) ;
 
 
 
