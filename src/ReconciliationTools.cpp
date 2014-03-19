@@ -3340,20 +3340,20 @@ bool anticmp ( int a, int b ) {
 
 
 /**************************************************************************/
-Alphabet* getAlphabetFromOptions ( map <string, <string>  params, bool& continue ) {
+Alphabet* getAlphabetFromOptions ( map <string, string>  params, bool& cont ) {
     Alphabet *alphabet = SequenceApplicationTools::getAlphabet ( params, "", false );
-    continue = true;
+    cont = true;
     return alphabet;
     }
 
 
 /**************************************************************************/
-VectorSiteContainer *  getSequencesFromOptions ( map <string, string>  params, Alphabet* alphabet, bool& continue ) {
+VectorSiteContainer *  getSequencesFromOptions ( map <string, string>  params, Alphabet* alphabet, bool& cont ) {
     //Sequences and model of evolution
     std::string seqFile = ApplicationTools::getStringParameter ( "input.sequence.file",params,"none" );
     if ( !FileTools::fileExists ( seqFile ) ) {
         std::cerr << "Error: Sequence file "<< seqFile <<" not found." << std::endl;
-        continue = false;
+        cont = false;
         /*          MPI::COMM_WORLD.Abort(1);
                   exit(-1);*/
         }
@@ -3369,7 +3369,7 @@ VectorSiteContainer *  getSequencesFromOptions ( map <string, string>  params, A
 
         if ( numSites == 0 ) {
             std::cout<<"WARNING: Discarding a family whose alignment is 0 site long: "<< seqFile <<std::endl;
-            continue = false;
+            cont = false;
             delete allSites;
             }
         else {
@@ -3401,13 +3401,13 @@ VectorSiteContainer *  getSequencesFromOptions ( map <string, string>  params, A
 
             if ( allSites->getNumberOfSequences() <= 1 ) {
                 std::cout << "Only one sequence left: discarding gene family "<< file<<std::endl;
-                continue = false;
+                cont = false;
                 }
             else {
                 sites = SequenceApplicationTools::getSitesToAnalyse ( *allSites, params );
                 delete allSites;
 
-                continue = true;
+                cont = true;
                 }
             }
         }
@@ -3417,19 +3417,19 @@ VectorSiteContainer *  getSequencesFromOptions ( map <string, string>  params, A
 
 
 /**************************************************************************/
-SubstitutionModel*   getModelFromOptions ( map <string,string> params, Alphabet *alphabet, VectorSiteContainer *sites, bool& continue ) {
+SubstitutionModel*   getModelFromOptions ( map <string,string> params, Alphabet *alphabet, VectorSiteContainer *sites, bool& cont ) {
     /****************************************************************************
     //Then we need to get the substitution model.
     *****************************************************************************/
     SubstitutionModel* model = PhylogeneticsApplicationTools::getSubstitutionModel ( alphabet, 00, sites, params );
-    continue = true;
+    cont = true;
 
     return model;
     }
 
 
 /**************************************************************************/
-DiscreteDistribution* getRateDistributionFromOptions ( map <string,string> params, SubstitutionModel* model, bool& continue ) {
+DiscreteDistribution* getRateDistributionFromOptions ( map <string,string> params, SubstitutionModel* model, bool& cont ) {
     DiscreteDistribution* rDist    = 0;
     if ( model->getNumberOfStates() > model->getAlphabet()->getSize() ) {
         // Markov-modulated Markov model!
@@ -3438,13 +3438,13 @@ DiscreteDistribution* getRateDistributionFromOptions ( map <string,string> param
     else {
         rDist = PhylogeneticsApplicationTools::getRateDistribution ( params );
         }
-    continue = true;
+    cont = true;
     return rDist;
     }
 
 
 /**************************************************************************/
-TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, bool& continue ) {
+TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, bool& cont ) {
     TreeTemplate<Node> *  rootedTree;
     // Get the initial gene tree
     string initTree = ApplicationTools::getStringParameter ( "init.gene.tree", params, "user", "", false, false );
@@ -3515,14 +3515,14 @@ TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *
         }
     else throw Exception ( "Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'." );
     //   }
-    continue = true;
+    cont = true;
     return rootedTree;
     }
 
 
 
 /**************************************************************************/
-map <string, string> getCorrespondanceSequenceSpeciesFromOptions ( map<string, string> params, bool& continue ) {
+map <string, string> getCorrespondanceSequenceSpeciesFromOptions ( map<string, string> params, bool& cont ) {
     /****************************************************************************
     //Then we need to get the file containing links between sequences and species.
     *****************************************************************************/
@@ -3532,19 +3532,19 @@ map <string, string> getCorrespondanceSequenceSpeciesFromOptions ( map<string, s
         std::cout << "phyldog species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
         std::cerr << "\n\nNo taxaseqfile was provided. Cannot compute a reconciliation between a species tree and a gene tree using sequences if the relation between the sequences and the species is not explicit !\n" << std::endl;
         std::cerr << "phyldog species.tree.file=bigtree taxaseq.file=taxaseqlist gene.tree.file= genetree sequence.file=sequences.fa output.tree.file=outputtree\n"<<std::endl;
-        continue = false;
+        cont = false;
         /* MPI::COMM_WORLD.Abort(1);
             exit(-1);*/
         }
     if ( !FileTools::fileExists ( taxaseqFile ) ) {
         std::cerr << "Error: taxaseqfile "<< taxaseqFile <<" not found." << std::endl;
         std::cout << "Error: taxaseqfile "<< taxaseqFile <<" not found." << std::endl;
-        continue = false;
+        cont = false;
         /*  MPI::COMM_WORLD.Abort(1);
           exit(-1);*/
         }
 
-    if ( continue ) {
+    if ( cont ) {
         //Getting the relations between species and sequence names
         //In this file, the format is expected to be as follows :
         /*
@@ -3587,7 +3587,7 @@ map <string, string> getCorrespondanceSequenceSpeciesFromOptions ( map<string, s
 
 
 /**************************************************************************/
-void removeUselessSequencesFromAlignment ( const TreeTemplate<Node>* spTree, bpp::VectorSiteContainer * sites, bool& continue ) {
+void removeUselessSequencesFromAlignment ( const TreeTemplate<Node>* spTree, bpp::VectorSiteContainer * sites, bool& cont ) {
     //At the same time, we gather sequences we will have to remove from the
     //alignment and from the gene tree
     std::vector <std::string> spNamesToTake = spTree->getLeavesNames();
@@ -3602,11 +3602,11 @@ void removeUselessSequencesFromAlignment ( const TreeTemplate<Node>* spTree, bpp
     //If we need to remove all sequences or all sequences except one,
     //better remove the gene family
     if ( seqsToRemove.size() >=sites->getNumberOfSequences()-1 ) {
-        continue=false;
+        cont=false;
         std::cout <<"All or almost all sequences have been removed: avoiding family "<< file <<std::endl;
         }
 
-    if ( continue ) {
+    if ( cont ) {
         //We need to prune the alignment so that they contain
         //only sequences from the species under study.
         for ( unsigned int j =0 ; j<seqsToRemove.size(); j++ ) {
@@ -3625,7 +3625,7 @@ void removeUselessSequencesFromAlignment ( const TreeTemplate<Node>* spTree, bpp
 /**************************************************************************/
 
 
-void qualityControlGeneTree ( TreeTemplate<Node>* geneTree, bpp::VectorSiteContainer * sites, bool& continue ) {
+void qualityControlGeneTree ( TreeTemplate<Node>* geneTree, bpp::VectorSiteContainer * sites, bool& cont ) {
     //Going through the gene tree to see if leaves have branches that are too long.
     std::vector <Node*> leaves = geneTree->getLeaves();
     // std::cout << "leaves.size(): "<<leaves.size() <<std::endl;
@@ -3661,7 +3661,7 @@ void qualityControlGeneTree ( TreeTemplate<Node>* geneTree, bpp::VectorSiteConta
         }
     //If we have only one sequence in the end, we do not make a tree
     else {
-        continue=false;
+        cont=false;
         std::cout <<"All or almost all sequences have been removed: avoiding family "<< file <<std::endl;
         }
     return;

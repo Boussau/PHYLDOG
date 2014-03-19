@@ -356,33 +356,32 @@ bool anticmp ( int a, int b ) ;
 
 
 
-bpp::Alphabet* getAlphabetFromOptions ( std::map <std::string, std::string>  params, bool& continue ) {
+bpp::Alphabet* getAlphabetFromOptions ( std::map <std::string, std::string>  params, bool& cont) {
     Alphabet *alphabet = bpp::SequenceApplicationTools::getAlphabet ( params, "", false );
-
     return alphabet;
     }
 
 
 //reads an alignment from a file and parses it according to options
-bpp::VectorSiteContainer *  getSequencesFromOptions ( std::map <std::string, std::string>  params, bpp::Alphabet* alphabet, bool& continue ) ;
+bpp::VectorSiteContainer *  getSequencesFromOptions ( std::map <std::string, std::string>  params, bpp::Alphabet* alphabet, bool& cont ) ;
 
 //constructs a substitution model according to options
-bpp::SubstitutionModel*   getModelFromOptions ( std::map <std::string, std::string> params, bpp::Alphabet *alphabet, bpp::VectorSiteContainer *sites, bool& continue ) ;
+bpp::SubstitutionModel*   getModelFromOptions ( std::map <std::string, std::string> params, bpp::Alphabet *alphabet, bpp::VectorSiteContainer *sites, bool& cont ) ;
 
 //constructs a rate heterogeneity distribution according to options
-bpp::DiscreteDistribution* getRateDistributionFromOptions ( std::map <std::string,std::string> params, SubstitutionModel* model, bool& continue ) ;
+bpp::DiscreteDistribution* getRateDistributionFromOptions ( std::map <std::string,std::string> params, SubstitutionModel* model, bool& cont ) ;
 
 //reads a tree from a file or builds it according to options
-bpp::TreeTemplate<bpp::Node> * getTreeFromOptions ( std::map <std::string,std::string> params, bpp::Alphabet *alphabet, bpp::VectorSiteContainer * sites, bpp::SubstitutionModel* model, bpp::DiscreteDistribution* rDist, bool& continue ) ;
+bpp::TreeTemplate<bpp::Node> * getTreeFromOptions ( std::map <std::string,std::string> params, bpp::Alphabet *alphabet, bpp::VectorSiteContainer * sites, bpp::SubstitutionModel* model, bpp::DiscreteDistribution* rDist, bool& cont ) ;
 
 //Gets the map between sequence names and species names from options
-map <string, string> getCorrespondanceSequenceSpeciesFromOptions ( map<string, string> params, bool& continue ) ;
+map <string, string> getCorrespondanceSequenceSpeciesFromOptions ( map<string, string> params, bool& cont ) ;
 
 //Remove sequences from the alignment, e.g. if they come from species we are not interested in
-void removeUselessSequencesFromAlignment ( const bpp::TreeTemplate<Node>* spTree, bpp::VectorSiteContainer * sites, bool& continue ) ;
+void removeUselessSequencesFromAlignment ( const bpp::TreeTemplate<Node>* spTree, bpp::VectorSiteContainer * sites, bool& cont ) ;
 
 //Remove sequences from both the alignment and gene tree in case they have a very long branch
-void qualityControlGeneTree ( bpp::TreeTemplate<Node>* geneTree, bpp::VectorSiteContainer * sites, bool& continue ) ;
+void qualityControlGeneTree ( bpp::TreeTemplate<Node>* geneTree, bpp::VectorSiteContainer * sites, bool& cont ) ;
 
 
 #endif  //_RECONCILIATIONTOOLS_H_

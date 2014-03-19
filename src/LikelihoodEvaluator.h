@@ -254,7 +254,7 @@ public:
   /**
   * @brief nnilk like contructor number 2
   */
-  LikelihoodEvaluator(bpp::TreeTemplate<bpp::Node> * tree, bpp::SiteContainer data, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
+  LikelihoodEvaluator(bpp::TreeTemplate<bpp::Node> * tree, bpp::SiteContainer* data, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
   
   /**
   * @brief empty contructor
