@@ -1,43 +1,43 @@
 /*
-Copyright or © or Copr. Centre National de la Recherche Scientifique
-contributor : Bastien Boussau (2009-2013)
-
-bastien.boussau@univ-lyon1.fr
-
-This software is a computer program whose purpose is to simultaneously build 
-gene and species trees when gene families have undergone duplications and 
-losses. It can analyze thousands of gene families in dozens of genomes 
-simultaneously, and was presented in an article in Genome Research. Trees and 
-parameters are estimated in the maximum likelihood framework, by maximizing 
-theprobability of alignments given the species tree, the gene trees and the 
-parameters of duplication and loss.
-
-This software is governed by the CeCILL license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
-modify and/ or redistribute the software under the terms of the CeCILL
-license as circulated by CEA, CNRS and INRIA at the following URL
-"http://www.cecill.info".
-
-As a counterpart to the access to the source code and  rights to copy,
-modify and redistribute granted by the license, users are provided only
-with a limited warranty  and the software's author,  the holder of the
-economic rights,  and the successive licensors  have only  limited
-liability. 
-
-In this respect, the user's attention is drawn to the risks associated
-with loading,  using,  modifying and/or developing or reproducing the
-software by the user in light of its specific status of free software,
-that may mean  that it is complicated to manipulate,  and  that  also
-therefore means  that it is reserved for developers  and  experienced
-professionals having in-depth computer knowledge. Users are therefore
-encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
-
-The fact that you are presently reading this means that you have had
-knowledge of the CeCILL license and that you accept its terms.
-*/
+ * Copyright or © or Copr. Centre National de la Recherche Scientifique
+ * contributor : Bastien Boussau (2009-2013)
+ * 
+ * bastien.boussau@univ-lyon1.fr
+ * 
+ * This software is a computer program whose purpose is to simultaneously build 
+ * gene and species trees when gene families have undergone duplications and 
+ * losses. It can analyze thousands of gene families in dozens of genomes 
+ * simultaneously, and was presented in an article in Genome Research. Trees and 
+ * parameters are estimated in the maximum likelihood framework, by maximizing 
+ * theprobability of alignments given the species tree, the gene trees and the 
+ * parameters of duplication and loss.
+ * 
+ * This software is governed by the CeCILL license under French law and
+ * abiding by the rules of distribution of free software.  You can  use, 
+ * modify and/ or redistribute the software under the terms of the CeCILL
+ * license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
+ * 
+ * As a counterpart to the access to the source code and  rights to copy,
+ * modify and redistribute granted by the license, users are provided only
+ * with a limited warranty  and the software's author,  the holder of the
+ * economic rights,  and the successive licensors  have only  limited
+ * liability. 
+ * 
+ * In this respect, the user's attention is drawn to the risks associated
+ * with loading,  using,  modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software,
+ * that may mean  that it is complicated to manipulate,  and  that  also
+ * therefore means  that it is reserved for developers  and  experienced
+ * professionals having in-depth computer knowledge. Users are therefore
+ * encouraged to load and test the software's suitability as regards their
+ * requirements in conditions enabling the security of their systems and/or 
+ * data to be ensured and,  more generally, to use and operate it in the 
+ * same conditions as regards security. 
+ * 
+ * The fact that you are presently reading this means that you have had
+ * knowledge of the CeCILL license and that you accept its terms.
+ */
 
 #include <iostream>
 #include "GeneTreeLikelihood.h"
@@ -59,220 +59,225 @@ class geneTreeLikelihoodException: public exception
 
 GeneTreeLikelihood::GeneTreeLikelihood():
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_(), heuristicsLevel_(0) {
-    totalIterations_ = 0;
-    counter_ = 0;
+  totalIterations_ = 0;
+  counter_ = 0;
 }
 
 
-GeneTreeLikelihood::GeneTreeLikelihood(std::string file , 
-		   map<string, string> params, 
-		   TreeTemplate<Node> & spTree ) throw (exception):
-    levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_(), 
-    params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true) {
-    totalIterations_ = 0;
-    counter_ = 0;
-    spTree_ = spTree.clone();
-    spId_ = computeSpeciesNamesToIdsMap(*spTree_);
-    
-    bool avoidFamily = false;
-    std::vector <std::string> spNames;
-    bool continue = false;
-    Alphabet *alphabet =  getAlphabetFromOptions(params_, continue);
-    if (continue)
-      VectorSiteContainer * sites = getSequencesFromOptions(params_, alphabet, continue);
-    if (continue)
-      SubstitutionModel*    model    = getModelFromOptions(params_, alphabet, sites, continue);
-    if (continue) {
-      if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites, continue);
+GeneTreeLikelihood::GeneTreeLikelihood(
+  std::string file ,
+  map<string, string> params,
+  TreeTemplate<Node> & spTree )
+throw (exception):
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_(), 
+params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
+{
+  totalIterations_ = 0;
+  counter_ = 0;
+  spTree_ = spTree.clone();
+  spId_ = computeSpeciesNamesToIdsMap(*spTree_);
+  
+  bool avoidFamily = false;
+  std::vector <std::string> spNames;
+  bool cont = false;
+  Alphabet *alphabet =  getAlphabetFromOptions(params_, cont);
+  if (cont)
+    VectorSiteContainer * sites = getSequencesFromOptions(params_, alphabet, cont);
+  if (cont)
+    SubstitutionModel* model = getModelFromOptions(params_, alphabet, sites, cont);
+  if (cont) {
+    if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites, cont);
+  }
+  if (cont)
+    DiscreteDistribution* rDist = getRateDistributionFromOptions(params_, model, cont);
+  
+  
+  
+  //method to optimize the gene tree root; only useful if heuristics.level!=0.
+  bool rootOptimization = false;
+  if (cont)
+    seqSp_ = getCorrespondanceSequenceSpeciesFromOptions(params_, cont);
+  
+  if (cont)
+    removeUselessSequencesFromAlignment( spTree_, sites, cont ) ;
+  
+  if (cont) {
+    /****************************************************************************
+     * Then we need to get the file containing the gene tree, 
+     * or build the gene tree.
+     *****************************************************************************/
+    try 
+    {
+      getTreeFromOptions(params_, alphabet, sites, model, rDist);
     }
-    if (continue)
-      DiscreteDistribution* rDist = getRateDistributionFromOptions(params_, model, continue);
+    catch (std::exception& e)
+    {
+      std::cout << e.what() <<"; Unable to get a proper gene tree for family "<<file<<"; avoiding this family."<<std::endl;
+      cont=false;
+    }
     
+  }
+  
+  if (cont) 
+  { //This family is phylogenetically informative
+    qualityControlGeneTree ( rootedTree_, sites, cont ) ;
+  }
+  if (cont) 
+  { //This family is phylogenetically informative
+    
+    /************************************************************************************************************/
+    /********************************************COMPUTING LIKELIHOOD********************************************/
+    /************************************************************************************************************/
+    bool computeLikelihood = ApplicationTools::getBooleanParameter("compute.likelihood", params_, true, "", false, false);
+    if(!computeLikelihood)
+    {
+      if (alphabet)
+        delete alphabet;
+      if (sites)
+        delete sites;
+      if (spTree_)
+        delete spTree_;
+      std::cout << "PHYLDOG's done. Bye." << std::endl;
+      MPI::COMM_WORLD.Abort(1);
+      exit(-1);
+    }
+
+    
+    
+    
+    /****************************************************************************
+     *           //Then we can change the gene tree so that its topology minimizes the number of duplications and losses.
+     *****************************************************************************/
+    /*
+     *          std::string alterStartingTopologyWithDL = ApplicationTools::getStringParameter("DL.starting.gene.tree.optimization", params_, "no", "", true, false);
+     *          
+     *          
+     *          bool DLStartingGeneTree;
+     *          if (alterStartingTopologyWithDL == "yes") 
+     *          {
+     *              DLStartingGeneTree = true;
+     * }
+     * else 
+     * {
+     * DLStartingGeneTree = false;
+     * }
+     * 
+     * if (DLStartingGeneTree)
+     * {
+     * //we temporarily build a ReconciliationTreeLikelihood object, 
+     * //but won't consider sequences, to save computational time
+     * std::cout << "Changing the starting gene tree to minimize the numbers of duplications and losses"<<std::endl;
+     * std::set <int> nodesToTryInNNISearch;
+     * refineGeneTreeDLOnly (tree_, 
+     * geneTree_, 
+     * seqSp,
+     * spId_,
+     * lossExpectedNumbers_, 
+     * duplicationExpectedNumbers_, 
+     * MLindex_, 
+     * allNum0Lineages_[i-numDeletedFamilies_], 
+     * allNum1Lineages_[i-numDeletedFamilies_], 
+     * allNum2Lineages_[i-numDeletedFamilies_], 
+     * nodesToTryInNNISearch);
+     * if (unrootedGeneTree) {
+     * d ele**te unrootedGeneTree;
+     * unrootedGeneTree = 0;
+  }
+  unrootedGeneTree = geneTree_->clone();
+  unrootedGeneTree->unroot();
+  
+  //Refining branch lengths for this altered gene tree.
+  refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (params_, unrootedGeneTree, sites, model, rDist, file, alphabet);
+  }
+  */
+    
+    TreeTemplate<Node> * unrootedGeneTree = rootedTree_->clone();
+    if (!rootedTree_->isRooted()) {
+      std::cout <<"gene tree is not rooted!!! "<< file <<std::endl;
+    }
+    unrootedGeneTree->unroot();
+    
+    //printing the gene trees with the species names instead of the sequence names
+    //This is useful to build an input for duptree for instance
+    geneTreeWithSpNames_ = unrootedGeneTree->clone();
+    std::vector <Node*> leaves = geneTreeWithSpNames_->getLeaves();
+    for (unsigned int j =0; j<leaves.size() ; j++) 
+    {
+      leaves[j]->setName(seqSp_[leaves[j]->getName()]);
+    }
+    //Now we have a gene tree with species names and bootstrap values and branch lengths
+    std::vector <Node *> nodes =  geneTreeWithSpNames_->getNodes();
+    for (unsigned int j =0; j<nodes.size() ; j++) 
+    {
+      if (nodes[j]->hasFather()) 
+      {
+        nodes[j]->deleteDistanceToFather(); 
+      }
+      if (nodes[j]->hasBootstrapValue()) 
+      {
+        nodes[j]->deleteBranchProperty(TreeTools::BOOTSTRAP); 
+      }
+    }
+    
+    //Outputting the starting tree, with species names, and with sequence names
+    Newick newick(true);
+    std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params_,"none");
+    try
+    {
+      Nhx *nhx = new Nhx();
+      annotateGeneTreeWithDuplicationEvents (*spTree_, 
+                                             *rootedTree_, 
+                                             rootedTree_->getRootNode(), 
+                                             seqSp_, spId_); 
+      nhx->write(*rootedTree_, startingGeneTreeFile, true);
+      
+      // newick.write(*geneTree_, startingGeneTreeFile, true);
+    }
+    catch (IOException e)
+    {
+      cout << "Problem writing tree to file "<< startingGeneTreeFile <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
+    }
+    try
+    {
+      newick.write(*geneTreeWithSpNames_, startingGeneTreeFile+"_sp_names", true);
+    }
+    catch (IOException e)
+    {
+      cout << "Problem writing tree to file "<< startingGeneTreeFile+"_sp_names" <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
+    }
+    //std::cout << " Rooted tree? : "<<TreeTemplateTools::treeToParenthesis(*geneTree_, true) << std::endl;
+    
+    GeneTreeLikelihood* tl;
+    std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params_, "no", "", true, false);
+    
+    sprLimitGeneTree_ = ApplicationTools::getIntParameter("SPR.limit.gene.tree", params_, 2, "", false, false);  
+    //ApplicationTools::displayResult("Clock", optimizeClock);
+    
+    if(optimizeClock == "global")
+    {
+      std::cout<<"Sorry, clocklike trees have not been implemented yet."<<std::endl;
+      MPI::COMM_WORLD.Abort(1);
+      exit(0);
+    }// This has not been implemented!
+    else if(optimizeClock == "no")
+    {
+      levaluator_ = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true); 
       
       
-      //method to optimize the gene tree root; only useful if heuristics.level!=0.
-	bool rootOptimization = false;
-	if (continue)
-	 seqSp_ = getCorrespondanceSequenceSpeciesFromOptions(params_, continue);
-	
-	if (continue)
-	  removeUselessSequencesFromAlignment( spTree_, sites, continue ) ;
-
-      	if (continue) {
-          /****************************************************************************
-           * Then we need to get the file containing the gene tree, 
-           * or build the gene tree.
-           *****************************************************************************/
-          try 
-          {
-	      getTreeFromOptions(params_, alphabet, sites, model, rDist);
-	  }
-          catch (std::exception& e)
-          {
-              std::cout << e.what() <<"; Unable to get a proper gene tree for family "<<file<<"; avoiding this family."<<std::endl;
-              continue=false;
-          }
-
-	}
-       
-      if (continue) 
-      { //This family is phylogenetically informative
-	qualityControlGeneTree ( rootedTree_, sites, continue ) ;
-      }
-      if (continue) 
-      { //This family is phylogenetically informative
-     
-          /************************************************************************************************************/
-          /********************************************COMPUTING LIKELIHOOD********************************************/
-          /************************************************************************************************************/
-          bool computeLikelihood = ApplicationTools::getBooleanParameter("compute.likelihood", params_, true, "", false, false);
-          if(!computeLikelihood)
-          {
-              if (alphabet)
-                  delete alphabet;
-              if (sites)
-                  delete sites;
-              if (spTree_)
-                  delete spTree_;
-              std::cout << "PHYLDOG's done. Bye." << std::endl;
-              MPI::COMM_WORLD.Abort(1);
-              exit(-1);
-          }
-          
-          
-          /****************************************************************************
-           //Then we can change the gene tree so that its topology minimizes the number of duplications and losses.
-           *****************************************************************************/
-	  /*
-          std::string alterStartingTopologyWithDL = ApplicationTools::getStringParameter("DL.starting.gene.tree.optimization", params_, "no", "", true, false);
-          
-          
-          bool DLStartingGeneTree;
-          if (alterStartingTopologyWithDL == "yes") 
-          {
-              DLStartingGeneTree = true;
-          }
-          else 
-          {
-              DLStartingGeneTree = false;
-          }
-          
-          if (DLStartingGeneTree)
-          {
-              //we temporarily build a ReconciliationTreeLikelihood object, 
-              //but won't consider sequences, to save computational time
-              std::cout << "Changing the starting gene tree to minimize the numbers of duplications and losses"<<std::endl;
-              std::set <int> nodesToTryInNNISearch;
-              refineGeneTreeDLOnly (tree_, 
-                                    geneTree_, 
-                                    seqSp,
-                                    spId_,
-                                    lossExpectedNumbers_, 
-                                    duplicationExpectedNumbers_, 
-                                    MLindex_, 
-                                    allNum0Lineages_[i-numDeletedFamilies_], 
-                                    allNum1Lineages_[i-numDeletedFamilies_], 
-                                    allNum2Lineages_[i-numDeletedFamilies_], 
-                                    nodesToTryInNNISearch);
-              if (unrootedGeneTree) {
-                  delete unrootedGeneTree;
-                  unrootedGeneTree = 0;
-              }
-              unrootedGeneTree = geneTree_->clone();
-              unrootedGeneTree->unroot();
-              
-              //Refining branch lengths for this altered gene tree.
-              refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (params_, unrootedGeneTree, sites, model, rDist, file, alphabet);
-          }
-          */
-	  
-	  TreeTemplate<Node> * unrootedGeneTree = rootedTree_->clone();
-	  if (!rootedTree_->isRooted()) {
-	      std::cout <<"gene tree is not rooted!!! "<< file <<std::endl;
-	  }
-	  unrootedGeneTree->unroot();
-	  
-          //printing the gene trees with the species names instead of the sequence names
-          //This is useful to build an input for duptree for instance
-          geneTreeWithSpNames_ = unrootedGeneTree->clone();
-          std::vector <Node*> leaves = geneTreeWithSpNames_->getLeaves();
-          for (unsigned int j =0; j<leaves.size() ; j++) 
-          {
-              leaves[j]->setName(seqSp_[leaves[j]->getName()]);
-          }
-          //Now we have a gene tree with species names and bootstrap values and branch lengths
-          std::vector <Node *> nodes =  geneTreeWithSpNames_->getNodes();
-          for (unsigned int j =0; j<nodes.size() ; j++) 
-          {
-              if (nodes[j]->hasFather()) 
-              {
-                  nodes[j]->deleteDistanceToFather(); 
-              }
-              if (nodes[j]->hasBootstrapValue()) 
-              {
-                  nodes[j]->deleteBranchProperty(TreeTools::BOOTSTRAP); 
-              }
-          }
-          
-          //Outputting the starting tree, with species names, and with sequence names
-          Newick newick(true);
-          std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params_,"none");
-      try
-      {
-        Nhx *nhx = new Nhx();
-        annotateGeneTreeWithDuplicationEvents (*spTree_, 
-                           *rootedTree_, 
-                           rootedTree_->getRootNode(), 
-                           seqSp_, spId_); 
-        nhx->write(*rootedTree_, startingGeneTreeFile, true);
-
-       // newick.write(*geneTree_, startingGeneTreeFile, true);
-      }
-      catch (IOException e)
-      {
-        cout << "Problem writing tree to file "<< startingGeneTreeFile <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
-      }
-      try
-      {
-        newick.write(*geneTreeWithSpNames_, startingGeneTreeFile+"_sp_names", true);
-      }
-      catch (IOException e)
-      {
-        cout << "Problem writing tree to file "<< startingGeneTreeFile+"_sp_names" <<"\n Is the file path correct and do you have the proper authorizations? "  << endl;
-      }
-          //std::cout << " Rooted tree? : "<<TreeTemplateTools::treeToParenthesis(*geneTree_, true) << std::endl;
-          
-          GeneTreeLikelihood* tl;
-          std::string optimizeClock = ApplicationTools::getStringParameter("optimization.clock", params_, "no", "", true, false);
-
-          sprLimitGeneTree_ = ApplicationTools::getIntParameter("SPR.limit.gene.tree", params_, 2, "", false, false);  
-          //ApplicationTools::displayResult("Clock", optimizeClock);
-          
-          if(optimizeClock == "global")
-          {
-              std::cout<<"Sorry, clocklike trees have not been implemented yet."<<std::endl;
-              MPI::COMM_WORLD.Abort(1);
-              exit(0);
-          }// This has not been implemented!
-          else if(optimizeClock == "no")
-          {
-	    levaluator_ = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true); 
-
-              
-          }
-          else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
- 
-      }
-      else 
-      {
-          if (sites)
-              delete sites;
-          if (alphabet)
-              delete alphabet;
-	  throw geneTreeLikelihoodEx;
-      }
-
-      
+    }
+    else throw Exception("Unknown option for optimization.clock: " + optimizeClock);
+    
+  }
+  else 
+  {
+    if (sites)
+      delete sites;
+    if (alphabet)
+      delete alphabet;
+    throw geneTreeLikelihoodEx;
+  }
+  
+  
   
 }
 
@@ -295,44 +300,44 @@ GeneTreeLikelihood::GeneTreeLikelihood(std::string file ,
  * @throw Exception if an error occured.
  */
 GeneTreeLikelihood::GeneTreeLikelihood(
-                   const Tree & tree,
-                   SubstitutionModel * model,
-                   DiscreteDistribution * rDist,
-                   TreeTemplate<Node> & spTree,  
-                   TreeTemplate<Node> & rootedTree, 
-                   TreeTemplate<Node> & geneTreeWithSpNames,
-                   const std::map <std::string, std::string> seqSp,
-                   std::map <std::string,int> spId,
-                   int speciesIdLimitForRootPosition,
-                   int heuristicsLevel,
-                   int & MLindex, 
-                   bool checkRooted,
-                   bool verbose,
-                   bool rootOptimization, 
-                   bool considerSequenceLikelihood, 
-                   unsigned int sprLimit)
+  const Tree & tree,
+  SubstitutionModel * model,
+  DiscreteDistribution * rDist,
+  TreeTemplate<Node> & spTree,  
+  TreeTemplate<Node> & rootedTree, 
+  TreeTemplate<Node> & geneTreeWithSpNames,
+  const std::map <std::string, std::string> seqSp,
+  std::map <std::string,int> spId,
+  int speciesIdLimitForRootPosition,
+  int heuristicsLevel,
+  int & MLindex, 
+  bool checkRooted,
+  bool verbose,
+  bool rootOptimization, 
+  bool considerSequenceLikelihood, 
+  unsigned int sprLimit)
 throw (Exception):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(seqSp), spId_(spId), heuristicsLevel_(0)
 {
-    
-    levaluator_ = new LikelihoodEvaluator(tree, model, rDist, checkRooted, verbose); 
-    spTree_ = spTree.clone();
-    rootedTree_ = rootedTree.clone();
-    geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
-    scenarioLikelihood_ = UNLIKELY;
-    // _sequenceLikelihood = UNLIKELY;
-    MLindex_ = MLindex;
-    rootOptimization_ = rootOptimization; 
-    tentativeMLindex_ = MLindex;
-    totalIterations_ = 0;
-    counter_ = 0;
-    _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
-    heuristicsLevel_ = heuristicsLevel;
-    optimizeSequenceLikelihood_ = true;
-    optimizeReconciliationLikelihood_ = true;
-    considerSequenceLikelihood_ = considerSequenceLikelihood;
-    sprLimit_ = sprLimit;
-    // listOfPreviousRoots_ = new std::vector <int> ();
+  
+  levaluator_ = new LikelihoodEvaluator(tree, model, rDist, checkRooted, verbose); 
+  spTree_ = spTree.clone();
+  rootedTree_ = rootedTree.clone();
+  geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
+  scenarioLikelihood_ = UNLIKELY;
+  // _sequenceLikelihood = UNLIKELY;
+  MLindex_ = MLindex;
+  rootOptimization_ = rootOptimization; 
+  tentativeMLindex_ = MLindex;
+  totalIterations_ = 0;
+  counter_ = 0;
+  _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
+  heuristicsLevel_ = heuristicsLevel;
+  optimizeSequenceLikelihood_ = true;
+  optimizeReconciliationLikelihood_ = true;
+  considerSequenceLikelihood_ = considerSequenceLikelihood;
+  sprLimit_ = sprLimit;
+  // listOfPreviousRoots_ = new std::vector <int> ();
 }
 
 
@@ -357,42 +362,42 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(
  */
 
 GeneTreeLikelihood::GeneTreeLikelihood(
-                   const Tree & tree,
-                   const SiteContainer & data,
-                   SubstitutionModel * model,
-                   DiscreteDistribution * rDist,
-                   TreeTemplate<Node> & spTree,  
-                   TreeTemplate<Node> & rootedTree,  
-                   TreeTemplate<Node> & geneTreeWithSpNames,
-                   const std::map <std::string, std::string> seqSp,
-                   std::map <std::string,int> spId,
-                   int speciesIdLimitForRootPosition,  
-                   int heuristicsLevel,
-                   int & MLindex, 
-                   bool checkRooted,
-                   bool verbose, 
-                   bool rootOptimization, 
-                   bool considerSequenceLikelihood, 
-                   unsigned int sprLimit)
+  const Tree & tree,
+  const SiteContainer & data,
+  SubstitutionModel * model,
+  DiscreteDistribution * rDist,
+  TreeTemplate<Node> & spTree,  
+  TreeTemplate<Node> & rootedTree,  
+  TreeTemplate<Node> & geneTreeWithSpNames,
+  const std::map <std::string, std::string> seqSp,
+  std::map <std::string,int> spId,
+  int speciesIdLimitForRootPosition,  
+  int heuristicsLevel,
+  int & MLindex, 
+  bool checkRooted,
+  bool verbose, 
+  bool rootOptimization, 
+  bool considerSequenceLikelihood, 
+  unsigned int sprLimit)
 throw (Exception):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0)
 {
-    levaluator_ = new LikelihoodEvaluator(tree, data, model, rDist, checkRooted, verbose);
-    spTree_ = spTree.clone();
-    rootedTree_ = rootedTree.clone();
-    geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
-    scenarioLikelihood_ = UNLIKELY;
-    MLindex_ = MLindex;
-    rootOptimization_ = rootOptimization; 
-    tentativeMLindex_ = MLindex;
-    totalIterations_ = 0; 
-    counter_ = 0;
-    _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
-    heuristicsLevel_ = heuristicsLevel;
-    optimizeSequenceLikelihood_ = true;
-    optimizeReconciliationLikelihood_ = true;
-    considerSequenceLikelihood_ = considerSequenceLikelihood;
-    sprLimit_ = sprLimit;
+  levaluator_ = new LikelihoodEvaluator(tree, data, model, rDist, checkRooted, verbose);
+  spTree_ = spTree.clone();
+  rootedTree_ = rootedTree.clone();
+  geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
+  scenarioLikelihood_ = UNLIKELY;
+  MLindex_ = MLindex;
+  rootOptimization_ = rootOptimization; 
+  tentativeMLindex_ = MLindex;
+  totalIterations_ = 0; 
+  counter_ = 0;
+  _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
+  heuristicsLevel_ = heuristicsLevel;
+  optimizeSequenceLikelihood_ = true;
+  optimizeReconciliationLikelihood_ = true;
+  considerSequenceLikelihood_ = considerSequenceLikelihood;
+  sprLimit_ = sprLimit;
 }
 
 
@@ -402,52 +407,52 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
 GeneTreeLikelihood::GeneTreeLikelihood(const GeneTreeLikelihood & lik):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (lik.seqSp_), spId_(lik.spId_), heuristicsLevel_(0)
 {
-    levaluator_ = lik.levaluator_->clone(); 
-    spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone()) ;
-    rootedTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.rootedTree_->clone()) ;
-    geneTreeWithSpNames_ = dynamic_cast<TreeTemplate<Node> *> (lik.geneTreeWithSpNames_->clone()) ;
-    scenarioLikelihood_ = lik.scenarioLikelihood_;
-    MLindex_ = lik.MLindex_;
-    rootOptimization_ = lik.rootOptimization_; 
-    tentativeMLindex_ = lik.MLindex_;
-    totalIterations_ = lik.totalIterations_;
-    counter_ = lik.counter_;
-    _speciesIdLimitForRootPosition_ = lik._speciesIdLimitForRootPosition_;
-    heuristicsLevel_ = lik.heuristicsLevel_;
-    nodesToTryInNNISearch_ = lik.nodesToTryInNNISearch_;
-    tentativeNodesToTryInNNISearch_ = lik.tentativeNodesToTryInNNISearch_;
-    optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
-    optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
-    considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
-    sprLimit_ = lik.sprLimit_;
+  levaluator_ = lik.levaluator_->clone(); 
+  spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone()) ;
+  rootedTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.rootedTree_->clone()) ;
+  geneTreeWithSpNames_ = dynamic_cast<TreeTemplate<Node> *> (lik.geneTreeWithSpNames_->clone()) ;
+  scenarioLikelihood_ = lik.scenarioLikelihood_;
+  MLindex_ = lik.MLindex_;
+  rootOptimization_ = lik.rootOptimization_; 
+  tentativeMLindex_ = lik.MLindex_;
+  totalIterations_ = lik.totalIterations_;
+  counter_ = lik.counter_;
+  _speciesIdLimitForRootPosition_ = lik._speciesIdLimitForRootPosition_;
+  heuristicsLevel_ = lik.heuristicsLevel_;
+  nodesToTryInNNISearch_ = lik.nodesToTryInNNISearch_;
+  tentativeNodesToTryInNNISearch_ = lik.tentativeNodesToTryInNNISearch_;
+  optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
+  optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
+  considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
+  sprLimit_ = lik.sprLimit_;
 }
 
 GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & lik)
 {
-    if (levaluator_) delete levaluator_;
-    levaluator_ = lik.levaluator_->clone(); 
-    if (spTree_) delete spTree_;
-    spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone());
-    if (rootedTree_) delete rootedTree_;
-    rootedTree_= dynamic_cast<TreeTemplate<Node> *> (lik.rootedTree_->clone());
-    if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
-    geneTreeWithSpNames_ = dynamic_cast<TreeTemplate<Node> *> (lik.geneTreeWithSpNames_->clone()) ;
-    spId_ = lik.spId_;
-    scenarioLikelihood_ = lik.scenarioLikelihood_;
-    MLindex_ = lik.MLindex_;
-    rootOptimization_ = lik.rootOptimization_;
-    tentativeMLindex_ = lik.MLindex_;
-    totalIterations_ = lik.totalIterations_;
-    counter_ = lik.counter_;
-    _speciesIdLimitForRootPosition_ = lik._speciesIdLimitForRootPosition_;
-    heuristicsLevel_ = lik.heuristicsLevel_;
-    nodesToTryInNNISearch_ = lik.nodesToTryInNNISearch_;
-    tentativeNodesToTryInNNISearch_ = lik.tentativeNodesToTryInNNISearch_;
-    optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
-    optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
-    considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
-    sprLimit_ = lik.sprLimit_;
-    return *this;
+  if (levaluator_) delete levaluator_;
+  levaluator_ = lik.levaluator_->clone(); 
+  if (spTree_) delete spTree_;
+  spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone());
+  if (rootedTree_) delete rootedTree_;
+  rootedTree_= dynamic_cast<TreeTemplate<Node> *> (lik.rootedTree_->clone());
+  if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
+  geneTreeWithSpNames_ = dynamic_cast<TreeTemplate<Node> *> (lik.geneTreeWithSpNames_->clone()) ;
+  spId_ = lik.spId_;
+  scenarioLikelihood_ = lik.scenarioLikelihood_;
+  MLindex_ = lik.MLindex_;
+  rootOptimization_ = lik.rootOptimization_;
+  tentativeMLindex_ = lik.MLindex_;
+  totalIterations_ = lik.totalIterations_;
+  counter_ = lik.counter_;
+  _speciesIdLimitForRootPosition_ = lik._speciesIdLimitForRootPosition_;
+  heuristicsLevel_ = lik.heuristicsLevel_;
+  nodesToTryInNNISearch_ = lik.nodesToTryInNNISearch_;
+  tentativeNodesToTryInNNISearch_ = lik.tentativeNodesToTryInNNISearch_;
+  optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
+  optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
+  considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
+  sprLimit_ = lik.sprLimit_;
+  return *this;
 }
 
 
