@@ -48,8 +48,13 @@ extern "C" {
 
 #include<iostream>
 
+#include <Bpp/Seq/Container/SiteContainerTools.h>
+
 
 #include "LikelihoodEvaluator.h"
+#include "ReconciliationTools.h"
+
+
 
 
 using namespace std;
@@ -72,12 +77,47 @@ LikelihoodEvaluator::initializePLLtree(){
 }
 
 
-LikelihoodEvaluator::LikelihoodEvaluator(string treeFile, string alignmentFile):
-  treeFile(treeFile),
-  alignmentFile(alignmentFile)
+LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
+  params(params)
 {
-  // For PLL
-//   initializePLLtree();
+ 
+  // loading data, imported from GeneTreeLikelihood (Bastien)
+  
+  std::vector <std::string> spNames;
+  bool cont = false;
+  alphabet =  getAlphabetFromOptions(params, cont);
+
+  if (!cont)
+    throw(Exception("Unable to load this family"));
+ 
+  sites = getSequencesFromOptions(params, alphabet, cont);
+
+  if (!cont)
+    throw(Exception("Unable to load this family"));
+ 
+  substitutionModel = getModelFromOptions(params, alphabet, sites, cont);
+
+  if (!cont)
+    throw(Exception("Unable to load this family"));
+    
+  if (substitutionModel->getName() != "RE08")
+    SiteContainerTools::changeGapsToUnknownCharacters(*sites, cont);
+ 
+  if (!cont)
+    throw(Exception("Unable to load this family"));
+ 
+  rateDistribution = getRateDistributionFromOptions(params, substitutionModel, cont);
+  
+  try 
+  {
+    tree = getTreeFromOptions(params, alphabet, sites, substitutionModel, rateDistribution);
+  }
+  catch (std::exception& e)
+  {
+    std::cout << e.what() <<"; Unable to get a proper gene tree for family "<<file<<"; avoiding this family."<<std::endl;
+    cont=false;
+  }
+    
 }
 
 LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator &levaluator){
@@ -143,9 +183,12 @@ LikelihoodEvaluator::updatePLLtreeWithPLLnewick()
 }
 
 
-LikelihoodEvaluator::initializeBPP_nniLk()
+LikelihoodEvaluator::initialize_BPP_nniLk()
 {
-  nniLk = new NNIHomogeneousTreeLikelihood(tree, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
+  nniLk = new NNIHomogeneousTreeLikelihood(tree, sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
+//   with *sites*, found in GeneTreeLikelihood
+//    new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, levaluator_->getSubstitutionModel(), levaluator_->getRateDistribution(), true, true); 
+  nniLk->initParameters();
 }
 
 
@@ -161,8 +204,80 @@ bpp::ParameterList LikelihoodEvaluator::getParameters()
 }
 
 
-NNIHomogeneousTreeLikelihood * LikelihoodEvaluator::getnniLk()
+NNIHomogeneousTreeLikelihood * LikelihoodEvaluator::getNniLk()
 {
   return(this->nniLk);
+}
+
+
+LikelihoodEvaluator::~LikelihoodEvaluator()
+{
+  delete nniLk;
+}
+
+NNIHomogeneousTreeLikelihood* LikelihoodEvaluator::initialize()
+{
+  //for the moment, BPP only
+  initialize_BPP_nniLk();
+}
+
+
+void LikelihoodEvaluator::setAlternativeTree(TreeTemplate* newAlternative)
+{
+  if(alternativeTree != 00)
+    delete alternativeTree;
+  alternativeTree = newAlternative->clone();
+}
+
+void LikelihoodEvaluator::acceptAlternativeTree()
+{
+  delete tree;
+  tree = alternativeTree;
+  delete nniLk;
+  nniLk = nniLkAlternative;
+}
+
+
+
+
+
+TreeTemplate* LikelihoodEvaluator::getAlternativeTree()
+{
+  return alternativeTree;
+}
+
+bool LikelihoodEvaluator::isInitialized()
+{
+  return initialized;
+}
+
+Alphabet* LikelihoodEvaluator::getAlphabet()
+{
+  return alphabet;
+}
+
+double LikelihoodEvaluator::getAlternativeLogLikelihood()
+{
+  return lastAlternativeLikelihood;
+}
+
+double LikelihoodEvaluator::getLogLikelihood()
+{
+  return lastLikelihood;
+}
+
+DiscreteDistribution* LikelihoodEvaluator::getRateDistribution()
+{
+  return rateDistribution;
+}
+
+VectorSiteContainer* LikelihoodEvaluator::getSites()
+{
+  return sites;
+}
+
+SubstitutionModel* LikelihoodEvaluator::getTree()
+{
+  return tree;
 }
 

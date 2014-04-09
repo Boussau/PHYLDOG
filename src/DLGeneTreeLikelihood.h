@@ -327,12 +327,7 @@ public:
   void initialize();
   
   void print() const;
-  
-  /************************************************************************
-   * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
-   * and executes the ones with the highest likelihood. 
-   ************************************************************************/
-  void refineGeneTreeSPRs(map<string, string> params);
+
   
   /************************************************************************
    * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
@@ -340,13 +335,9 @@ public:
    * To do all this as fast as possible, we optimize only a few branch lengths on the SPR tree, 
    * and we use a simple recursion for that.
    ************************************************************************/
-  void refineGeneTreeSPRsFast(map<string, string> params);
   void refineGeneTreeSPRsFast2(map<string, string> params);
   void refineGeneTreeSPRsFast3 (map<string, string> params);
   void refineGeneTreeMuffato (map<string, string> params);
-  
-  //Not up to date anymore, do not use without checking the code.
-  void refineGeneTreeSPRs2(map<string, string> params);
   
   
   /************************************************************************

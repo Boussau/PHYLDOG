@@ -78,49 +78,38 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   spId_ = computeSpeciesNamesToIdsMap(*spTree_);
   
   bool avoidFamily = false;
-  std::vector <std::string> spNames;
-  bool cont = false;
-  Alphabet *alphabet =  getAlphabetFromOptions(params_, cont);
-  if (cont)
-    VectorSiteContainer * sites = getSequencesFromOptions(params_, alphabet, cont);
-  if (cont)
-    SubstitutionModel* model = getModelFromOptions(params_, alphabet, sites, cont);
-  if (cont) {
-    if (model->getName() != "RE08") SiteContainerTools::changeGapsToUnknownCharacters(*sites, cont);
-  }
-  if (cont)
-    DiscreteDistribution* rDist = getRateDistributionFromOptions(params_, model, cont);
   
+  // instanciating a new likelihood evaluator with params :
   
+  // this will load the tree & the alignemnts
   
+  levaluator_ = new LikelihoodEvaluator(params_);
+
+  
+  //TODO: dirty cont to eliminate
+  bool cont = true;
   //method to optimize the gene tree root; only useful if heuristics.level!=0.
   bool rootOptimization = false;
-  if (cont)
-    seqSp_ = getCorrespondanceSequenceSpeciesFromOptions(params_, cont);
+  if (!cont)
+      throw(Exception("Unable to load this family"));
+  seqSp_ = getCorrespondanceSequenceSpeciesFromOptions(params_, cont);
   
-  if (cont)
-    removeUselessSequencesFromAlignment( spTree_, sites, cont ) ;
+  if (!cont)
+    throw(Exception("Unable to load this family"));
+  removeUselessSequencesFromAlignment( spTree_, levaluator_->getSites(), cont ) ;
   
   if (cont) {
     /****************************************************************************
      * Then we need to get the file containing the gene tree, 
      * or build the gene tree.
      *****************************************************************************/
-    try 
-    {
-      getTreeFromOptions(params_, alphabet, sites, model, rDist);
-    }
-    catch (std::exception& e)
-    {
-      std::cout << e.what() <<"; Unable to get a proper gene tree for family "<<file<<"; avoiding this family."<<std::endl;
-      cont=false;
-    }
+    
     
   }
   
   if (cont) 
   { //This family is phylogenetically informative
-    qualityControlGeneTree ( rootedTree_, sites, cont ) ;
+    qualityControlGeneTree ( rootedTree_, levaluator_->getSites(), cont ) ;
   }
   if (cont) 
   { //This family is phylogenetically informative
@@ -131,18 +120,14 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
     bool computeLikelihood = ApplicationTools::getBooleanParameter("compute.likelihood", params_, true, "", false, false);
     if(!computeLikelihood)
     {
-      if (alphabet)
-        delete alphabet;
-      if (sites)
-        delete sites;
-      if (spTree_)
-        delete spTree_;
+      if (levaluator_)
+        delete levaluator_;
       std::cout << "PHYLDOG's done. Bye." << std::endl;
       MPI::COMM_WORLD.Abort(1);
       exit(-1);
     }
 
-    
+    levaluator_->initialize();
     
     
     /****************************************************************************
@@ -221,7 +206,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
     
     //Outputting the starting tree, with species names, and with sequence names
     Newick newick(true);
-    std::string startingGeneTreeFile =ApplicationTools::getStringParameter("output.starting.gene.tree.file",params_,"none");
+    std::string startingGeneTreeFile = ApplicationTools::getStringParameter("output.starting.gene.tree.file",params_,"none");
     try
     {
       Nhx *nhx = new Nhx();
@@ -261,7 +246,8 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
     }// This has not been implemented!
     else if(optimizeClock == "no")
     {
-      levaluator_ = new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true, true); 
+      levaluator_->initialize();
+      
       
       
     }

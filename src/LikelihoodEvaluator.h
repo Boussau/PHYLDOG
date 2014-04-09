@@ -58,17 +58,33 @@ extern "C" {
 
 
 class LikelihoodEvaluator:
+
+
+/** TODO
+ * 
+ * - déraciner les arbres proposés.
+ */
+
+/**
+ * A little explanation about how this class works. It is a replacement to
+ * NNIHomogeneousTreeLikelihood.
+ * First step: one constructs the object with the parameters (tree and
+ * alignment path).
+ * Second step: one can modify the tree and/or the alignment accordingly
+ * to one’s criterias, then the estimator has to be initialized.
+ * 
+ * Once initialized, there always is a computed likelihood for the main tree
+ * and if available, for the alternative tree.
+ * 
+ */
+
+
 public bpp::Clonable
 {
   
 private:
   
-  
-  
-  std::string treeFile;
-  std::string alignmentFile;
-  
-  
+    
   /** @name Data and commands for PLL
   *  PLL specific objects and routine calls.
   */
@@ -169,15 +185,20 @@ private:
   ///@}
   
   
-  /** @name Original BPP Data
+  /** @name Internal BPP Data
   *  BPP data are used as reference in this wrapper
   */
   ///@{
   
   /**
-  Alignment strictly formatted for PLL
+  The BPP tree
   */
   bpp::TreeTemplate<bpp::Node> * tree;
+  
+  /**
+  An alternative tree to be tested
+  */
+  bpp::TreeTemplate<bpp::Node> * alternativeTree;
   
   /**
   Newick strictly formatted for PLL
@@ -185,15 +206,20 @@ private:
   std::string newickForPLL;
   
   /**
-  Defines the real sequences names to simplified ones for PLL
+  Map of parameters string -> string, BPP style
   */
-  std::map<std::string,std::string> realToStrict;
+  std::map<std::string, std::string> params;
   
   /**
-  Defines simplified names for PLL to real sequence ones
+  last computed likelihood whatever the method was
   */
-  std::map<std::string,std::string> strictToReal;
-
+  double lastLikelihood;
+  
+  /**
+  last computed likelihood for the alternative tree whatever the method was
+  */
+  double lastAlternativeLikelihood;
+  
   ///@}
   
   
@@ -201,9 +227,15 @@ private:
   *  BPP methods using NNIHomogeneousTreeLikelihood
   */
   ///@{
-  
+  /**
+    * @brief NniLk of the tree
+    */
   bpp::NNIHomogeneousTreeLikelihood * nniLk;
   
+  /**
+  * @brief NniLk of the alternative tree
+  */
+  bpp::NNIHomogeneousTreeLikelihood * nniLkAlternative;
   
   /**
    * @brief initialize the NNIHomogeneousTreeLikelihood object for BPP management
@@ -226,6 +258,16 @@ private:
    */
   bool mustUnrootTrees;
   
+  /**
+   * @brief sites of the sequences used by bpp
+   */
+  bpp::VectorSiteContainer * sites;
+  
+  /**
+   * @brief alphabet of the sequences used by bpp
+   */
+  bpp::Alphabet * alphabet;
+  
   
   
   ///@}
@@ -233,15 +275,84 @@ private:
   
   bool verbose;
   
+  bool initialized;
+  
   
   
 public:
   
   enum LikelihoodMethod{PLL,BPP};
   
+  /** @name Accessors
+  * let the outside acces to our data in order to perform filtering operations
+  */
+  ///@{
   
   
-  /** @name Constructors
+  /**
+   * @brief alphabet of the sequences used by bpp
+   */
+  bpp::Alphabet* getAlphabet();
+  
+  /**
+  * @brief sites of the sequences used by bpp
+  */
+  bpp::VectorSiteContainer* getSites();
+  
+  /**
+   * @brief discrete distribution managed by BPP
+   * GeneTreeLikelihood correspondance: *rDist* The rate across sites distribution to use
+   */
+  bpp::DiscreteDistribution * getRateDistribution();
+  
+  /**
+   * @brief substitution model managed by BPP
+   */
+  bpp::SubstitutionModel * getSubstitutionModel();
+  
+  /**
+   * @brief tree, managed by BPP
+   */
+  bpp::SubstitutionModel * getTree();
+  
+  ///@}
+  
+  
+  /** @name Alternative Tree
+  * managing and testing the alternative tree
+  */
+  ///@{
+  
+  /**
+   * @brief alternative tree, managed by BPP
+   */
+  bpp::TreeTemplate<N> * getAlternativeTree();
+  
+  /**
+  * @brief set the alternative tree to a new one
+  */
+  void setAlternativeTree(bpp::TreeTemplate<N>* newAlternative);
+  
+
+  /**
+  * @brief get the likelihood of the alternative tree
+  */
+  double getAlternativeLogLikelihood();
+  
+  /**
+  * @brief replace the main tree by the alternative one
+  */
+  void acceptAlternativeTree();
+  
+
+  
+  
+   
+  
+  
+  ///@}
+  
+  /** @name Constructors, Destructor and validation functions
   */
   ///@{
   
@@ -262,9 +373,37 @@ public:
   LikelihoodEvaluator();
   
   /**
+  * @brief default constructor with params
+  * @param params map of parameters (string -> string), BPP style
+  */
+  LikelihoodEvaluator(std::map<std::string, std::string> params);
+  
+  
+  /**
   * @brief copy from another object
   */
   LikelihoodEvaluator(LikelihoodEvaluator const &leval);
+  
+  /**
+  * @brief destuctor
+  */
+  ~LikelihoodEvaluator();
+  
+  /**
+  @brief this method is triggered once the tree and the aligment
+  * have been filtered by the extrenal accessors
+  * Once executed, it is not possible to modify the alignment.
+  */
+  void initializeEvaluator();
+  
+  
+  /**
+  @brief has initializeEvaluator() been launched?
+  @return the boolean value
+  */
+  bool isInitialized();
+  
+  
   
   ///@}
   
@@ -294,7 +433,10 @@ public:
   * @brief Temporary way to directly access the associated nniLk
   * @return a pointer to the associated nniLk of this object
   */
-  bpp::NNIHomogeneousTreeLikelihood * getnniLk();
+  bpp::NNIHomogeneousTreeLikelihood * getNniLk();
+
+  
+  
   
   
 };
