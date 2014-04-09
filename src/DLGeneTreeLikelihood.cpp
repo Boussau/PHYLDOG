@@ -1332,7 +1332,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
  * 
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
-  //    std::cout <<"Here "<<std::endl;
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do SPRs
     std::cout << "WE DONT DO SPRS"<<std::endl;
@@ -1404,35 +1403,28 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
       levaluator_->setAlternativeTree(treeForSPR);
       
       logL = candidateScenarioLk - levaluator_->getAlternativeLogLikelihood();
-      //  std::cout <<"Here 17b"<<std::endl;
       
-      //  std::cout << "SPR seqLk: "<< rlk->getValue()<<" compared to best rlk: "<< bestRlk->getValue() <<std::endl;
       //If the candidate tree has a DL + sequence Lk better than the current best
       if (logL - 0.1 > bestlogL) 
       {
+        // then we accept the tree
+        levaluator_->acceptAlternativeTree();
+        
 	std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
 	betterTree = true;
 	bestlogL = logL;
 	bestScenarioLk = candidateScenarioLk;
 	if (computeSequenceLikelihoodForSPR) {
-	  bestSequenceLogL = rlk->getValue();
-	  if (bestRlk && rlk) {
-	    delete bestRlk;
-	    bestRlk = 0;
-	  }
-	  if (rlk)
-	    bestRlk = dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood *> (rlk->clone());
+	  bestSequenceLogL = levaluator_->getAlternativeLogLikelihood();
 	}
-	//  std::cout <<"Here 17c"<<std::endl;
 	
 	if (bestTree) {
 	  delete bestTree;
 	  bestTree = 0;
 	}
-	bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(bestRlk->getTree()))->clone();
+	bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
 	//Rooting bestTree as in TreeForSPR:
 	vector<Node*> rlkNodes = bestTree->getNodes();
-	//  std::cout <<"Here 17d"<<std::endl;
 	
 	for (unsigned int j = 0 ; j < rlkNodes.size() ; j++) {
 	  if (rlkNodes[j]->hasNodeProperty("outgroupNode")) {
@@ -1446,33 +1438,24 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 	      }
 	    };
 	    bestTree->newOutGroup( rlkNodes[j] );
-	    //  std::cout << "FOUND"<<std::endl;
 	    break;
 	  }
 	}
 	writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree_, seqSp_, true ) ;
-	//  std::cout <<"Here 17e"<<std::endl;
 	
       }
       else {
 	break;
 	
-	//        std::cout <<"Here 17f"<<std::endl;
-	
-	//   copyContentsFrom(*bestTreeLogLk);
-	//  std::cout << "\t\t\tSPRs: No improvement : "<< logL << " compared to current best: "<< bestlogL << std::endl;
       }
     }
     else {
-      //      std::cout <<"Here 17g"<<std::endl;
       
       logL = candidateScenarioLk - bestSequenceLogL;
     }
-    //  std::cout <<"Here 17h"<<std::endl;
     
     if (betterTree) //If, among all the SPRs tried, a better tree has been found 
     {
-      //      std::cout <<"Here 17i"<<std::endl;
       
       logL = bestlogL; 
       numIterationsWithoutImprovement = 0;
@@ -1481,91 +1464,30 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 	delete treeForSPR;
 	treeForSPR = 0;
       }
-      //  std::cout <<"Here 17i2"<<std::endl;
       
       if (rootedTree_) 
       {
 	delete rootedTree_;
 	rootedTree_ = 0;
       }
-      //      std::cout <<"Here 17i3"<<std::endl;
       
       rootedTree_ = bestTree->clone();
-      //  std::cout <<"Here 17i31"<<std::endl;
-      //  std::cout << "rootedTree_: " << TreeTemplateTools::treeToParenthesis(*rootedTree_, true) <<std::endl;
-      
       scenarioLikelihood_ = bestScenarioLk;
-      //  std::cout <<"Here 17i32"<<std::endl;
-      
-      //  breadthFirstreNumber (*rootedTree_);
       breadthFirstreNumberAndResetProperties (*rootedTree_);
-      //  std::cout <<"Here 17i4"<<std::endl;
       
       if (bestTree) {
 	delete bestTree;
 	bestTree = 0;
       }
-      //      std::cout <<"Here 17j"<<std::endl;
-      /*TEST
-       *      if (computeSequenceLikelihoodForSPR) {                        
-       *        if (nniLk_) {
-       *          delete nniLk_;
-       *          nniLk_ = 0;
-    }
-    
-    nniLk_ = new NNIHomogeneousTreeLikelihood (bestRlk->getTree(), 
-    *(bestRlk->getData()), 
-    bestRlk->getSubstitutionModel(0,0), 
-    bestRlk->getRateDistribution(), 
-    true, false);
-    
-    nniLk_->initialize();
-    
-    }*/
+      
     }
     else {
       break;
     }
-    //  std::cout <<"Here 18"<<std::endl;
   }
   
   rootedTree_->resetNodesId();
-  if (rlk) {
-    delete rlk;
-    rlk = 0;
-  }
-  if (bestRlk) {
-    delete bestRlk;
-    bestRlk = 0;
-  }
   
-  //One more full sequence likelihood optimization:
-  #ifdef FAST
-  bestRlk = new FastRHomogeneousTreeLikelihood (nniLk_->getTree(), 
-						*(nniLk_->getData()), 
-						nniLk_->getSubstitutionModel(), 
-						nniLk_->getRateDistribution(), 
-						true, false);
-  #else
-  bestRlk = new RHomogeneousTreeLikelihood (nniLk_->getTree(), 
-					    *(nniLk_->getData()), 
-					    nniLk_->getSubstitutionModel(), 
-					    nniLk_->getRateDistribution(), 
-					    true, false);
-  #endif
-  bestRlk->initialize();
-  OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (bestRlk), 
-						     bestRlk->getParameters(), backupListener.get(), 
-						     tolerance, tlEvalMax, messageHandler, messageHandler, 0);
-  //  std::cout << "bestRlk tree: " << TreeTemplateTools::treeToParenthesis(bestRlk->getTree(), false) <<std::endl;
-  
-  delete nniLk_;
-  nniLk_ = new NNIHomogeneousTreeLikelihood (bestRlk->getTree(), 
-					     *(bestRlk->getData()), 
-					     bestRlk->getSubstitutionModel(0,0), 
-					     bestRlk->getRateDistribution(), 
-					     true, false);
-  nniLk_->initialize();
   
   //One more reconciliation, to update the "_num*Lineages" vectors.
   computeReconciliationLikelihood();
@@ -1582,15 +1504,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
     delete bestTree;
     bestTree = 0;
   }
-  if (rlk) {
-    delete rlk;
-    rlk = 0;
-  }
-  if (bestRlk) {
-    delete bestRlk;
-    bestRlk = 0;
-  }
-  
+
   if (nhx) delete nhx;
   
 }
