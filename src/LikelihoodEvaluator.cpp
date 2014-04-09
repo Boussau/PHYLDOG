@@ -276,7 +276,7 @@ VectorSiteContainer* LikelihoodEvaluator::getSites()
   return sites;
 }
 
-SubstitutionModel* LikelihoodEvaluator::getTree()
+bpp::TreeTemplate<N>* LikelihoodEvaluator::getTree()
 {
   return tree;
 }

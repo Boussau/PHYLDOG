@@ -413,9 +413,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
     
     tentativeMLindex_ = MLindex_;
-    /* tentativeLossNumbers_ = lossNumbers_;
-     *         tentativeDuplicationNumbers_ = duplicationNumbers_;
-     *         tentativeBranchNumbers_ = branchNumbers_;*/
     tentativeNum0Lineages_ = num0Lineages_;
     tentativeNum1Lineages_ = num1Lineages_;
     tentativeNum2Lineages_ =num2Lineages_;
@@ -454,51 +451,50 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     else {
       treeForNNI->newOutGroup(rootedTree_->getRootNode()->getSon(0)->getId());
     }
-    double ScenarioMLValue = 0;
+    double candidateScenarioLk = 0;
     totalIterations_ = totalIterations_+1;
     
 
-    ScenarioMLValue =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/, 
+    candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/, 
 					       seqSp_, spId_, 
 					       lossExpectedNumbers_, duplicationExpectedNumbers_, 
 					       tentativeMLindex_, 
 					       tentativeNum0Lineages_, tentativeNum1Lineages_, 
 					       tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_, false); //false so that _tentativeNum*Lineages are not updated
     
-    
-    if (treeForNNI) delete treeForNNI;
     if (considerSequenceLikelihood_ ) 
     {
-      if  (ScenarioMLValue >  scenarioLikelihood_) 
+      if  (candidateScenarioLk >  scenarioLikelihood_) 
       { //If it is worth computing the sequence likelihood
-	//Retrieving arrays of interest:
-	double newLkMinusOldLk = levaluator_->getNniLk()->testNNI(nodeId);
+                levaluator_->setAlternativeTree(treeForNNI);             
 
-	double tot = - ScenarioMLValue + scenarioLikelihood_ + newLkMinusOldLk;
+    double newLkMinusOldLk = levaluator_->getAlternativeLogLikelihood() -   getSequenceLikelihood();
+
+	double tot = - candidateScenarioLk + scenarioLikelihood_ + newLkMinusOldLk;
 	if (tot < 0)
 	{
-	  tentativeScenarioLikelihood_=ScenarioMLValue;
+	  tentativeScenarioLikelihood_= candidateScenarioLk;
 	}
 	return tot;
 	
       }
       else 
       {
-	tentativeMLindex_ = -1;
-	return 1;
+        tentativeMLindex_ = -1;
+        return 1;
       }
     }
     else 
     {
-      if  (ScenarioMLValue >  scenarioLikelihood_) 
+      if  (candidateScenarioLk >  scenarioLikelihood_) 
       {
-	tentativeScenarioLikelihood_=ScenarioMLValue;
-	return (- ScenarioMLValue + scenarioLikelihood_);
+        tentativeScenarioLikelihood_= candidateScenarioLk;
+        return (- candidateScenarioLk + scenarioLikelihood_);
       }
       else 
       {
-	tentativeMLindex_ = -1;
-	return 1;
+        tentativeMLindex_ = -1;
+        return 1;
       }
     }
   }
@@ -512,10 +508,8 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 
 void DLGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
-  //TODO write the NNI here.
-  
-  levaluator_->getNniLk()->doNNI(nodeId);
-  
+     levaluator_->acceptAlternativeTree();
+
 
   //In case of copy of this object, we must remove the constraint associated to this stored parameter:
   //(It should be also possible to update the pointer in the copy constructor,
@@ -702,7 +696,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
     {
       Node * n = rootedTree_->getNode(nodeForSPR);
       if (n->hasBranchProperty("L")) {
-	numLoss = (dynamic_cast<const BppString *>(n->getBranchProperty("L")))->toSTL() ;
+        numLoss = (dynamic_cast<const BppString *>(n->getBranchProperty("L")))->toSTL() ;
       }
       if ( numLoss != "0"  ) {
 	
@@ -732,27 +726,20 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 						  tentativeNodesToTryInNNISearch_, false); 
 	  
 	  if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
-	  {
-	    
-	    if (computeSequenceLikelihoodForSPR) {
-	      
+	  {    
+	    if (computeSequenceLikelihoodForSPR) {     
 	      levaluator_->setAlternativeTree(treeForSPR);
-            
-	      
-	      logL = candidateScenarioLk - levaluator_->getAlternativeLogLikelihood();
-	      
+ 	      logL = candidateScenarioLk - levaluator_->getAlternativeLogLikelihood();
 	    }
 	    else {
 	      logL = candidateScenarioLk - bestSequenceLogL;
 	    }
-	    
 	  }
 	  else { 
-	    
 	    logL =logL - 10;
 	  }
-	  //If the candidate tree has a DL + sequence Lk better than the current best
 	  
+	  //If the candidate tree has a DL + sequence Lk better than the current best
 	  if (logL - 0.01 > bestlogL) 
 	  {
             levaluator_->acceptAlternativeTree();
@@ -763,7 +750,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	    bestScenarioLk = candidateScenarioLk;
 	    if (computeSequenceLikelihoodForSPR) {
 	      bestSequenceLogL = levaluator_->getAlternativeLogLikelihood();
-
 	    }
 	    if (bestTree) {
 	      delete bestTree;
@@ -1011,10 +997,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 		writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree_, seqSp_, true ) ;
 		break; //If we have found one topology better than the current one for seqlk+scenlk
 	      }
-	      else {
-		//   copyContentsFrom(*bestTreeLogLk);
-		//  std::cout << "\t\t\tSPRs: No improvement : "<< logL << " compared to current best: "<< bestlogL << std::endl;
-	      }
 	    }
 	    else {
 	      logL = candidateScenarioLk - bestSequenceLogL;
@@ -1118,9 +1100,6 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
   
   computeReconciliationLikelihood();
   
-  double logL = getLogLikelihood();
-  
-  double bestlogL = logL;
   double candidateScenarioLk ;
   double bestSequenceLogL = getSequenceLikelihood();
   double bestScenarioLk = getScenarioLikelihood();
@@ -1335,8 +1314,8 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
 	}
 	doNNI(node->getId());
 	test = true;
-	nniLk_->topologyChangeTested(   TopologyChangeEvent ());
-	nniLk_->topologyChangeSuccessful(   TopologyChangeEvent ());
+//	nniLk_->topologyChangeTested(   TopologyChangeEvent ());
+//	nniLk_->topologyChangeSuccessful(   TopologyChangeEvent ());
 	if(verbose >= 1)
 	  ApplicationTools::displayResult("   Current value", TextTools::toString(getValue(), 10));
       }

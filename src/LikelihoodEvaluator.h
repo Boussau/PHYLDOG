@@ -313,7 +313,7 @@ public:
   /**
    * @brief tree, managed by BPP
    */
-  bpp::SubstitutionModel * getTree();
+  bpp::TreeTemplate<N> * getTree();
   
   ///@}
   
