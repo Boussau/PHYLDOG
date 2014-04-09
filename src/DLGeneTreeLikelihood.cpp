@@ -225,7 +225,7 @@ DLGeneTreeLikelihood & DLGeneTreeLikelihood::operator=(const DLGeneTreeLikelihoo
 
 DLGeneTreeLikelihood::~DLGeneTreeLikelihood()
 {
-  if (nniLk_) delete nniLk_;
+  if (levaluator_) delete levaluator_;
   if (spTree_) delete spTree_;
   if (rootedTree_) delete rootedTree_;
   if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
@@ -239,15 +239,14 @@ void DLGeneTreeLikelihood::initParameters()
 {
   //     std::cout << "in initParameters"<<std::endl;
   if (considerSequenceLikelihood_) {
-    nniLk_->initParameters();
+    //TODO What to do here with levaluator?
+    //nniLk_->initParameters();
   }
   if (heuristicsLevel_>0) {
     std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
     exit(-1);
-    //    scenarioLikelihood_ = findMLReconciliation (&spTree_, &rootedTree_, seqSp_, lossNumbers_, lossExpectedNumbers_, duplicationNumbers_, duplicationExpectedNumbers_, MLindex_, branchNumbers_, _speciesIdLimitForRootPosition_, heuristicsLevel_, num0Lineages_, num1Lineages_, num2Lineages_, nodesToTryInNNISearch_); 
   }
   else {
-    //  std::cout << "in initParameters 2"<<std::endl;
     
     scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_, 
 						  seqSp_, spId_, lossExpectedNumbers_, 
@@ -255,16 +254,12 @@ void DLGeneTreeLikelihood::initParameters()
 						  num0Lineages_, num1Lineages_,
 						  num2Lineages_, nodesToTryInNNISearch_); 
     //Rooting bestTree as in TreeForSPR:
-    //std::cout << "in initParameters 3"<<std::endl;
     
     vector<Node*> nodes = rootedTree_->getNodes();
-    //  std::cout << "in initParameters 4"<<std::endl;
     
     for (unsigned int j = 0 ; j < nodes.size() ; j++) {
-      // std::cout << "in initParameters 5"<<std::endl;
       
       if (nodes[j]->hasNodeProperty("outgroupNode")) {
-	//    std::cout << "in initParameters 6"<<std::endl;
 	
 	if (rootedTree_->getRootNode() == nodes[j]) {
 	  if (j < nodes.size()-1) 
@@ -276,15 +271,12 @@ void DLGeneTreeLikelihood::initParameters()
 	  }
 	};
 	rootedTree_->newOutGroup( nodes[j] );
-	//    std::cout << "FOUND"<<std::endl;
 	break;
       }
     }
   }
   MLindex_ = -1;
-  // std::cout << "in ReconciliationTreeLikelihood::initParameters : num0Lineages_, num1Lineages_, num2Lineages_ : "<< TextTools::toString(VectorTools::sum(num0Lineages_))<<" "<<TextTools::toString(VectorTools::sum(num1Lineages_))<<" "<< TextTools::toString(VectorTools::sum(num2Lineages_))<<std::endl;
-  
-  //    std::cout <<"INITIAL scenarioLikelihood_ "<<scenarioLikelihood_ <<" nniLk_->getLogLikelihood(): "<< nniLk_->getLogLikelihood()<<std::endl;
+
 }
 
 
@@ -303,43 +295,14 @@ void DLGeneTreeLikelihood::resetMLindex() {
 double DLGeneTreeLikelihood::getLogLikelihood() const
 {
   double ll = 0;
-  // _sequenceLikelihood=UNLIKELY;
-  //  if (_sequenceLikelihood ==UNLIKELY) {
+
   
-  //TEST
-  /*
-   *     if ((_sequenceLikelihood == UNLIKELY)||(optimizeSequenceLikelihood_==true)) {
-   *     Vdouble * lik = & likelihoodData_->getRootRateSiteLikelihoodArray();
-   *     const std::vector<unsigned int> * w = & likelihoodData_->getWeights();
-   *     for(unsigned int i = 0; i < nbDistinctSites_; i++)
-   *     {
-   *     ll += (* w)[i] * log((* lik)[i]);
-   *     //std::cout << i << "\t" << (* w)[i] << "\t" << log((* lik)[i]) << std::endl;
-}
-_sequenceLikelihood = ll;
-// std::cout <<"getLogLikelihood _sequenceLikelihood "<< _sequenceLikelihood<<std::endl;
-}
-*/
-  //END TEST
-  
-  // ll = getValue();
-  
-  /* else {
-   *     std::cout <<"NOT RECOMPUTING IN GETLOGLIKELIHOOD : "<< _sequenceLikelihood<<std::endl; 
-}*/
-  //Now we add the scenario likelihood
-  //  std::cout << "COMPUTING LOGLIKELIHOOD :" << ll  << " SCENARIO LOGLIKELIHOOD :" << scenarioLikelihood_ <<" TOTAL : "<< ll + scenarioLikelihood_ <<std::endl;
-  
-  //TEST 16 02 2010
-  // DRHomogeneousTreeLikelihood::getLogLikelihood();
-  //  setMinuslogLikelihood_ (_sequenceLikelihood);
   if (considerSequenceLikelihood_) {
     ll = levaluator_->getLogLikelihood() + scenarioLikelihood_;
   }
   else {
     ll = scenarioLikelihood_;
   }
-  // ll = _sequenceLikelihood ;
   return ll;
 }
 /******************************************************************************/
@@ -362,8 +325,6 @@ throw (Exception)
 
       return (- scenarioLikelihood_);
     }
-    //return (minusLogLik_ - scenarioLikelihood_);
-    //return (-minusLogLik_);
   }
 }
 
@@ -394,10 +355,6 @@ void DLGeneTreeLikelihood::computeSequenceLikelihood()
 {
   if ( considerSequenceLikelihood_ && (optimizeSequenceLikelihood_==true) ) {
     levaluator_->getNniLk()->computeTreeLikelihood ();
-    /*
-     *        nniLk_->computeSubtreeLikelihoodPostfix(dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->getRootNode());
-     *        nniLk_->computeSubtreeLikelihoodPrefix(nniLk_->getTree().getRootNode());
-     *        nniLk_->computeRootLikelihood();*/
   }
 }
 
@@ -412,10 +369,8 @@ void DLGeneTreeLikelihood::computeReconciliationLikelihood()
   if (heuristicsLevel_>0) {
     std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
     exit(-1);
-    //    scenarioLikelihood_ = findMLReconciliation (&spTree_, &rootedTree_, seqSp_, lossNumbers_, lossExpectedNumbers_, duplicationNumbers_, duplicationExpectedNumbers_, MLindex_, branchNumbers_, _speciesIdLimitForRootPosition_, heuristicsLevel_, num0Lineages_, num1Lineages_, num2Lineages_, nodesToTryInNNISearch_); 
   }
   else {
-    //    scenarioLikelihood_ = findMLReconciliationDR (&spTree_, &rootedTree_, seqSp_, spId_, lossExpectedNumbers_, duplicationExpectedNumbers_, MLindex_, num0Lineages_, num1Lineages_, num2Lineages_, nodesToTryInNNISearch_);
     scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_, 
 						  seqSp_, spId_, 
 						  lossExpectedNumbers_, duplicationExpectedNumbers_, 
@@ -451,9 +406,6 @@ void DLGeneTreeLikelihood::computeTreeLikelihood()
  */
 double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 {
-  //int nodeId = son->getId();
-  //  std::cout<<"IN TESTNNI, nodeId "<< nodeId << "nodesToTryInNNISearch_.size() "<< nodesToTryInNNISearch_.size()<<std::endl;
-  // std::cout << "before "<<TreeTemplateTools::treeToParenthesis (*tree_, true)<<std::endl;
   //If the NNI is around a branch where a duplication was found, 
   //or if we just try all branches because the starting gene trees are parsimonious in
   //numbers of DL.
@@ -505,31 +457,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     double ScenarioMLValue = 0;
     totalIterations_ = totalIterations_+1;
     
-    /* //If we want to optimize the root or if we are at the first try
-     *         if (rootOptimization_){
-     *         if (heuristicsLevel_>0) {
-     *         std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
-     *         exit(-1);
-     *         // ScenarioMLValue =  findMLReconciliation (&spTree_, treeForNNI, seqSp_, tentativeLossNumbers_, lossExpectedNumbers_, tentativeDuplicationNumbers_, duplicationExpectedNumbers_, tentativeMLindex_, tentativeBranchNumbers_, _speciesIdLimitForRootPosition_, heuristicsLevel_, tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
-  }
-  else {
-    ScenarioMLValue =  findMLReconciliationDR (&spTree_, treeForNNI, seqSp_, spId_, lossExpectedNumbers_, duplicationExpectedNumbers_, tentativeMLindex_, tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
-  }
-  }
-  else {
-    if (heuristicsLevel_>0) {
-      std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
-      exit(-1);
-      // ScenarioMLValue =  findMLReconciliation (&spTree_, treeForNNI, seqSp_, tentativeLossNumbers_, lossExpectedNumbers_, tentativeDuplicationNumbers_, duplicationExpectedNumbers_, tentativeMLindex_, tentativeBranchNumbers_, _speciesIdLimitForRootPosition_, heuristicsLevel_, tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
-  }
-  else {
-    ScenarioMLValue =  findMLReconciliationDR (&spTree_, treeForNNI, seqSp_, spId_, lossExpectedNumbers_, duplicationExpectedNumbers_, tentativeMLindex_, tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_); 
-  }
-  
-  
-  
-  
-  }*/
+
     ScenarioMLValue =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/, 
 					       seqSp_, spId_, 
 					       lossExpectedNumbers_, duplicationExpectedNumbers_, 
@@ -539,116 +467,19 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     
     
     if (treeForNNI) delete treeForNNI;
-    // std::cout<<"???WORTH computing the sequence likelihood "<< ScenarioMLValue<< " "<< scenarioLikelihood_<<std::endl;
     if (considerSequenceLikelihood_ ) 
     {
       if  (ScenarioMLValue >  scenarioLikelihood_) 
       { //If it is worth computing the sequence likelihood
 	//Retrieving arrays of interest:
-	// std::cout << "before nniLk_->testNNI(nodeId);"<<std::endl;
 	double newLkMinusOldLk = levaluator_->getNniLk()->testNNI(nodeId);
-	// std::cout << "after nniLk_->testNNI(nodeId);"<<std::endl;
-	
-	
-	/*
-	 *                const DRASDRTreeLikelihoodNodeData * parentData = & nniLk_->getLikelihoodData()->getNodeData(parent->getId());
-	 *                const VVVdouble                    * sonArray   = & parentData->getLikelihoodArrayForNeighbor(son->getId());
-	 *                std::vector<const Node *> parentNeighbors = TreeTemplateTools::getRemainingNeighbors(parent, grandFather, son);
-	 *                unsigned int nbParentNeighbors = parentNeighbors.size();
-	 *                std::vector<const VVVdouble *> parentArrays(nbParentNeighbors);
-	 *                std::vector<const VVVdouble *> parentTProbs(nbParentNeighbors);
-	 *                for(unsigned int k = 0; k < nbParentNeighbors; k++)
-	 *                {
-	 *                    const Node * n = parentNeighbors[k]; // This neighbor
-	 *                    parentArrays[k] = & parentData->getLikelihoodArrayForNeighbor(n->getId()); 
-	 *                    parentTProbs[k] = & pxy_[n->getId()];
-      }
-      const DRASDRTreeLikelihoodNodeData * grandFatherData = & nniLk_->getLikelihoodData()->getNodeData(grandFather->getId());
-      const VVVdouble                    * uncleArray      = & grandFatherData->getLikelihoodArrayForNeighbor(uncle->getId()); 
-      std::vector<const Node *> grandFatherNeighbors = TreeTemplateTools::getRemainingNeighbors(grandFather, parent, uncle);
-      unsigned int nbGrandFatherNeighbors = grandFatherNeighbors.size();
-      
-      std::vector<const VVVdouble *> grandFatherArrays;
-      std::vector<const VVVdouble *> grandFatherTProbs;
-      for(unsigned int k = 0; k < nbGrandFatherNeighbors; k++)
-      {
-      const Node * n = grandFatherNeighbors[k]; // This neighbor
-      if(grandFather->getFather() == NULL || n != grandFather->getFather())
-      {
-      grandFatherArrays.push_back(& grandFatherData->getLikelihoodArrayForNeighbor(n->getId())); 
-      grandFatherTProbs.push_back(& pxy_[n->getId()]);
-      }
-      }
-      //Compute array 1: grand father array
-      VVVdouble array1 = *sonArray;
-      resetLikelihoodArray(array1);
-      grandFatherArrays.push_back(sonArray);
-      grandFatherTProbs.push_back(& pxy_[son->getId()]);
-      if(grandFather->hasFather())
-      {
-      computeLikelihoodFromArrays(grandFatherArrays, grandFatherTProbs, & grandFatherData->getLikelihoodArrayForNeighbor(grandFather->getFather()->getId()), & pxy_[grandFather->getId()], array1, nbGrandFatherNeighbors, nbDistinctSites_, nbClasses_, nbStates_, false); 
-      
-      }  
-      else
-      {
-      computeLikelihoodFromArrays(grandFatherArrays, grandFatherTProbs, array1, nbGrandFatherNeighbors + 1, nbDistinctSites_, nbClasses_, nbStates_, false); 
-      
-      //This is the root node, we have to account for the ancestral frequencies:
-      for(unsigned int i = 0; i < nbDistinctSites_; i++)
-      {
-      for(unsigned int j = 0; j < nbClasses_; j++)
-      {
-      for(unsigned int x = 0; x < nbStates_; x++)
-	array1[i][j][x] *= rootFreqs_[x];
-      }
-      }
-      }
-      
-      
-      //Compute array 2: parent array
-      VVVdouble array2 = *uncleArray;
-      resetLikelihoodArray(array2);
-      parentArrays.push_back(uncleArray);
-      parentTProbs.push_back(& pxy_[uncle->getId()]);
-      computeLikelihoodFromArrays(parentArrays, parentTProbs, array2, nbParentNeighbors + 1, nbDistinctSites_, nbClasses_, nbStates_, false); 
-      //Initialize BranchLikelihood:
-      brLikFunction_->initModel(nniLk->getModel(), nniLk->getRateDistribution());
-      brLikFunction_->initLikelihoods(&array1, &array2);
-      ParameterList parameters; 
-      unsigned int pos = 0;
-      while (pos < nodes_.size() && nodes_[pos]->getId() != parent->getId()) pos++;
-      if(pos == nodes_.size()) throw Exception("NNIHomogeneousTreeLikelihood::testNNI. Invalid node id.");
-      Parameter brLen = getParameter("BrLen" + TextTools::toString(pos));
-      brLen.setName("BrLen");
-      parameters.addParameter(brLen);
-      brLikFunction_->setParameters(parameters);
-      //Re-estimate branch length:
-      brentOptimizer_->setMessageHandler(NULL);
-      brentOptimizer_->setFunction(brLikFunction_);
-      brentOptimizer_->getStopCondition()->setTolerance(0.1);
-      brentOptimizer_->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
-      brentOptimizer_->init(parameters); 
-      brentOptimizer_->optimize(); 
-      brLenNNIValues_[nodeId] = brentOptimizer_->getParameters().getParameter("BrLen").getValue();
-      brLikFunction_->resetLikelihoods(); //Array1 and Array2 will be destroyed after this function call.
-      //We should not keep pointers towards them...
-      */
-	
-	//Return the resulting likelihood:
-	//   double temp = getValue() ; 
-	
-	//std::cout<<"temp "<< temp<< "; brLikFunction_->getValue()"<< brLikFunction_->getValue()<<std::endl;
-	
-	//      double tot = brLikFunction_->getValue() - ScenarioMLValue - temp; // -newsequencelogLk - (newscenariologLk) - (-currenttotallogLk); if <0, worth doing 
-	//     if (tot<0) 
+
 	double tot = - ScenarioMLValue + scenarioLikelihood_ + newLkMinusOldLk;
-	// if (newLkMinusOldLk<0) 
 	if (tot < 0)
 	{
 	  tentativeScenarioLikelihood_=ScenarioMLValue;
 	}
 	return tot;
-	// std::cout << "after "<<TreeTemplateTools::treeToParenthesis (tree_, true)<<std::endl;
 	
       }
       else 
@@ -681,65 +512,11 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 
 void DLGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
-  //std::cout<<"\t\t\tIN DONNI "<< std::endl;
-  //std::cout << TreeTemplateTools::treeToParenthesis(*tree_, true) << std::endl;
-  //Perform the topological move, the likelihood array will have to be recomputed...
+  //TODO write the NNI here.
   
   levaluator_->getNniLk()->doNNI(nodeId);
   
-  /*
-   *    Node * son    = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->getNode(nodeId);
-   *    if(!son->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'son' must not be the root node.", nodeId);
-   *    Node * parent = son->getFather();
-   *    if(!parent->hasFather()) throw NodeException("DRHomogeneousTreeLikelihood::doNNI(). Node 'parent' must not be the root node.", parent->getId());
-   *    Node * grandFather = parent->getFather();
-   *    //From here: Bifurcation assumed.
-   *    //In case of multifurcation, an arbitrary uncle is chosen.
-   *    //If we are at root node with a trifurcation, this does not matter, since 2 NNI are possible (see doc of the NNISearchable interface).
-   *    unsigned int parentPosition = grandFather->getSonPosition(parent);
-   *    Node * uncle = grandFather->getSon(parentPosition > 1 ? 0 : 1 - parentPosition);
-   *    //Swap nodes:
-   *    parent->removeSon(son);
-   *    grandFather->removeSon(uncle);
-   *    parent->addSon(uncle);
-   *    grandFather->addSon(son);
-   *    unsigned int pos = 0;
-   *    while(pos < nodes_.size() && nodes_[pos]->getId() != parent->getId()) pos++;
-   *    if(pos == nodes_.size()) throw Exception("ReconciliationTreeLikelihood::doNNI. Invalid node id.");
-   *    
-   *    //Julien Proposition :
-   *    
-   *    std::string name = "BrLen"+ TextTools::toString(pos);
-   * 
-   *    
-   *    if (considerSequenceLikelihood_ ) 
-   *    {
-   *        if(brLenNNIValues_.find(nodeId) != brLenNNIValues_.end())
-   *        {
-   *            double length = brLenNNIValues_[nodeId];
-   *            brLenParameters_.setParameterValue(name, length);
-   *            getParameter_(name).setValue(length);
-   *            parent->setDistanceToFather(length);
-}
-else std::cerr << "ERROR, branch not found: " << nodeId << std::endl;
-try { brLenNNIParams_.addParameter(brLenParameters_.getParameter(name)); }
-catch(ParameterException & ex)
-{
-std::cerr << "DEBUG:" << std::endl;
-brLenNNIParams_.printParameters(std::cerr);
-std::cerr << "DEBUG:" << name << std::endl;
-}
-brLenNNIParams_[brLenNNIParams_.size()-1].removeConstraint();
-}
-else 
-{
-double length = 0.1;
-// brLenParameters_.setParameterValue(name, length);
-// getParameter_(name).setValue(length);
-parent->setDistanceToFather(length);
-}
 
-*/
   //In case of copy of this object, we must remove the constraint associated to this stored parameter:
   //(It should be also possible to update the pointer in the copy constructor,
   //but we do not need the constraint info here...).
@@ -885,11 +662,9 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
   
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do SPRs
-    //std::cout << "WE DONT DO SPRS"<<std::endl;
     computeReconciliationLikelihood();
     return;
   }
-  //   std::cout << "WE DO SPRS; seq lk: "<< getSequenceLikelihood()  <<std::endl;
   std::vector<Node*> nodesToUpdate;
   std::vector <int> nodeIdsToRegraft;
   bool betterTree;
@@ -1035,7 +810,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	    rootedTree_ = 0;
 	  }
 	  rootedTree_ = bestTree->clone();
-	  //  breadthFirstreNumber (*rootedTree_);
 	  breadthFirstreNumberAndResetProperties (*rootedTree_);
 	  
 	  if (bestTree) {
@@ -1047,9 +821,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	}
 	else 
 	{
-	  // logL = bestlogL;  
 	  numIterationsWithoutImprovement++;
-	  //  std::cout <<"\t\t\tSPRs: Number of iterations without improvement : "<<numIterationsWithoutImprovement << "; Total number  of iterations: "<< index << std::endl;
 	}
 	
 	if (treeForSPR) 
