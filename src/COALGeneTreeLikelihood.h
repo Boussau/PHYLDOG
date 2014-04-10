@@ -219,15 +219,15 @@ using namespace bpp;
         
         double getLogLikelihood() const;
         
-        void computeSequenceLikelihood();
+//         void computeSequenceLikelihood();
         
         void computeReconciliationLikelihood();
         
-        void computeTreeLikelihood();
+//         void computeTreeLikelihood();
         
         double getValue() const throw (Exception);
         
-        void fireParameterChanged(const ParameterList & params);
+//         void fireParameterChanged(const ParameterList & params);
         
         double getTopologyValue() const throw (Exception) { return getValue(); } 
         

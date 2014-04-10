@@ -312,7 +312,7 @@ double DLGeneTreeLikelihood::getValue() const
 throw (Exception)
 {
   {
-    if(!levaluator_->getNniLk()->isInitialized()) throw Exception("reconciliationTreeLikelihood::getValue(). Instance is not initialized.");
+    if(!levaluator_->isInitialized()) throw Exception("reconciliationTreeLikelihood::getValue(). Instance is not initialized.");
     // return (-getLogLikelihood());
     //TEST 16 02 2010
     // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " scenarioLikelihood_: "<<scenarioLikelihood_<<std::endl;
@@ -331,33 +331,35 @@ throw (Exception)
 
 
 /******************************************************************************/
+/*
+ * was for BPP optimizable objects
+ * 
 
-
-void DLGeneTreeLikelihood::fireParameterChanged(const ParameterList & params)
-{
-  if (considerSequenceLikelihood_) {
-    levaluator_->getNniLk()->applyParameters();
-    levaluator_->getNniLk()->matchParametersValues(params);
-  }
-  //If we need to update the reconciliation likelihood
-  if (optimizeReconciliationLikelihood_) {
-    computeReconciliationLikelihood();
-  }
-  
-  
-}
+// void DLGeneTreeLikelihood::fireParameterChanged(const ParameterList & params)
+// {
+//   if (considerSequenceLikelihood_) {
+//     levaluator_->getNniLk()->applyParameters();
+//     levaluator_->getNniLk()->matchParametersValues(params);
+//   }
+//   //If we need to update the reconciliation likelihood
+//   if (optimizeReconciliationLikelihood_) {
+//     computeReconciliationLikelihood();
+//   }
+//   
+//   
+// }*/
 
 
 /******************************************************************************/
 
-
-void DLGeneTreeLikelihood::computeSequenceLikelihood()
-{
-  if ( considerSequenceLikelihood_ && (optimizeSequenceLikelihood_==true) ) {
-    levaluator_->getNniLk()->computeTreeLikelihood ();
-  }
-}
-
+// /*
+// void DLGeneTreeLikelihood::computeSequenceLikelihood()
+// {
+//   if ( considerSequenceLikelihood_ && (optimizeSequenceLikelihood_==true) ) {
+//     levaluator_->getNniLk()->computeTreeLikelihood ();
+//   }
+// }
+// */
 
 
 
