@@ -245,7 +245,7 @@ void COALGeneTreeLikelihood::initParameters()
 {
   // std::cout << "in initParameters"<<std::endl;
   if (considerSequenceLikelihood_) {
-    levaluator_->initializeEvaluator();
+    levaluator_->initialize();
   }
   if (heuristicsLevel_>0) {
     std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
@@ -456,7 +456,6 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       if  (candidateScenarioLk >  scenarioLikelihood_) 
       { //If it is worth computing the sequence likelihood
         //Retrieving arrays of interest:
-        // std::cout << "before levaluator_->getnniLk()->testNNI(nodeId);"<<std::endl;
         
         levaluator_->setAlternativeTree(treeForNNI);             
         double newLkMinusOldLk = levaluator_->getAlternativeLogLikelihood() -   getSequenceLikelihood();
@@ -509,11 +508,11 @@ void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   
   nodesToTryInNNISearch_ = tentativeNodesToTryInNNISearch_;
   
-  // std::cout <<"tentativeScenarioLikelihood_: "<<tentativeScenarioLikelihood_<<std::endl;
   scenarioLikelihood_ = tentativeScenarioLikelihood_;// + _brLikFunction->getValue();
   
   //Now we need to update rootedTree_
   TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+  
   //First we root this temporary tree as in rootedTree_ (same lines as in testNNI)
   int id = tree->getRootNode()->getId();
   if(TreeTemplateTools::hasNodeWithId(*(rootedTree_->getRootNode()->getSon(0)),id)) {
@@ -606,12 +605,12 @@ double COALGeneTreeLikelihood::getSequenceLikelihood() {
   //TODO différence entre getValue et getLogLikelihood
   //a priori question de signe
   //dispensable ?
-  return levaluator_->getNniLk()->getValue(); 
+  return levaluator_->getValue();
 }
 /*******************************************************************************/
 
 void COALGeneTreeLikelihood::initialize() {
-  levaluator_->initializeEvaluator();
+  levaluator_->initialize();
   return;
 }
 
@@ -625,8 +624,6 @@ void COALGeneTreeLikelihood::print () const {
   std::cout << TreeTemplateTools::treeToParenthesis (getRootedTree(), true)<<std::endl;
   std::cout << "Gene family tree:"<<std::endl;
   std::cout << TreeTemplateTools::treeToParenthesis (levaluator_->getTree(), true)<<std::endl;
-  /*std::cout << "Counts of coalescence events"<<std::endl;
-   *    VectorTools::print(getCoalCounts());*/
   std::cout << "Branch lengths"<<std::endl;
   VectorTools::print(getCoalBranchLengths());
   std::cout << "Root index"<<std::endl;
@@ -808,10 +805,6 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
   //final branch lengths optimization
   
   rootedTree_->resetNodesId();
-  if (rlk) {
-    delete rlk;
-    rlk = 0;
-  }
   
   //One more reconciliation, to update the "_num*Lineages" vectors.
   computeReconciliationLikelihood();
@@ -882,8 +875,7 @@ void COALGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsi
         }
         doNNI(node->getId());
         test = true;
-        //  levaluator_->getNniLk()->topologyChangeTested( 	TopologyChangeEvent ());
-        //  levaluator_->getNniLk()->topologyChangeSuccessful( 	TopologyChangeEvent ());
+        
         if(verbose >= 1)
           ApplicationTools::displayResult("   Current value", TextTools::toString(getValue(), 10));
       }

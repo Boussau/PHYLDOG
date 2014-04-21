@@ -82,8 +82,15 @@ class LikelihoodEvaluator:
 public bpp::Clonable
 {
   
+  
+public:
+  
+  enum LikelihoodMethod{PLL,BPP};
+  
+  
 private:
   
+  LikelihoodMethod method;
     
   /** @name Data and commands for PLL
   *  PLL specific objects and routine calls.
@@ -159,13 +166,25 @@ private:
   
   /** @name Translation data
   *  Data used for conversion purposes BPP <-> PLL
+  * 
+  * Here, strict data is a copy of data, designed for pll: just alphanum chars in names
   */
   ///@{
   
   /**
+  Main tree, strict version
+  */
+  bpp::TreeTemplate<bpp::Node>* strictTree;
+  
+  /**
+  Alternative tree, strict version
+  */
+  bpp::TreeTemplate<bpp::Node>* strictAlternativeTree;
+  
+  /**
   Alignment strictly formatted for PLL
   */
-  std::string fastaForPLL;
+  VectorSiteContainer* fastaForPLL;
   
   /**
   Newick strictly formatted for PLL
@@ -181,6 +200,39 @@ private:
   Defines simplified names for PLL to real sequence ones
   */
   std::map<std::string,std::string> strictToReal;
+  
+
+  /**
+  * Loads the names of the sequences and fill the strict vector
+  */
+  void loadStrictNamesFromAlignment();
+
+  /**
+  * Assign the strict name to the leaves of the tree
+  * @param targetTree modify the tree in place and set the leaves names to their
+  * strict version.
+  */
+  void convertTreeToStrict(bpp::TreeTemplate< bpp::Node >& targetTree);
+  
+  /**
+  * Assign the strict name to the leaves of the alternative tree
+  */
+  void updateStrictTree();
+  
+  
+  /**
+  * Assign the strict name to the leaves of the alternative tree
+  */
+  void updateStrictAlternativeTree();
+  
+  /**
+  * Initialize PLL with the right data
+  */
+  void initialize_PLL();
+  
+  
+
+  
 
   ///@}
   
@@ -218,7 +270,7 @@ private:
   /**
   last computed likelihood for the alternative tree whatever the method was
   */
-  double lastAlternativeLikelihood;
+  double alternativeLikelihood;
   
   ///@}
   
@@ -391,10 +443,10 @@ public:
   
   /**
   @brief this method is triggered once the tree and the aligment
-  * have been filtered by the extrenal accessors
+  * have been (optionaly) filtered by the extrenal accessors
   * Once executed, it is not possible to modify the alignment.
   */
-  void initializeEvaluator();
+  void initialize();
   
   
   /**
@@ -420,21 +472,9 @@ public:
   */
   double getLogLikelihood(LikelihoodEvaluator::LikelihoodMethod likelihoodMethod);
   
-  /**
-  * @brief returns the params of the nnilk member
-  * @return parameters
-  */
-  bpp::ParameterList getParameters();
-  
+
   
   LikelihoodEvaluator* clone();
-  
-  /**
-  * @brief Temporary way to directly access the associated nniLk
-  * @return a pointer to the associated nniLk of this object
-  */
-  bpp::NNIHomogeneousTreeLikelihood * getNniLk();
-
   
   
   

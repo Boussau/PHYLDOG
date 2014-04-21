@@ -46,9 +46,12 @@ extern "C" {
 #include <pll/pll.h>
 }
 
-#include<iostream>
+#include <iostream>
+#include <string>
+#include <boost/graph/graph_traits.hpp>
 
 #include <Bpp/Seq/Container/SiteContainerTools.h>
+#include <Bpp/Phyl/Node.h>
 
 
 #include "LikelihoodEvaluator.h"
@@ -80,7 +83,11 @@ LikelihoodEvaluator::initializePLLtree(){
 LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   params(params)
 {
- 
+  initialized=false;
+  
+  string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
+  method = (methodString == "PLL"? PLL:BPP);
+  
   // loading data, imported from GeneTreeLikelihood (Bastien)
   
   std::vector <std::string> spNames;
@@ -114,7 +121,7 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   }
   catch (std::exception& e)
   {
-    std::cout << e.what() <<"; Unable to get a proper gene tree for family "<<file<<"; avoiding this family."<<std::endl;
+    std::cout << e.what() <<"; Unable to get a proper gene tree for family <<file<< avoiding this family."<<std::endl;
     cont=false;
   }
     
@@ -186,10 +193,22 @@ LikelihoodEvaluator::updatePLLtreeWithPLLnewick()
 LikelihoodEvaluator::initialize_BPP_nniLk()
 {
   nniLk = new NNIHomogeneousTreeLikelihood(tree, sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
-//   with *sites*, found in GeneTreeLikelihood
-//    new NNIHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, levaluator_->getSubstitutionModel(), levaluator_->getRateDistribution(), true, true); 
+  
   nniLk->initParameters();
+  nniLk->initialize();
 }
+
+void LikelihoodEvaluator::initialize_PLL()
+{
+  // must have the strict names loaded
+  loadStrictNamesFromAlignment();
+  
+  // copy and convert the tree to strict version
+  strictTree = tree->clone();
+  convertTreeToStrict(strictTree);
+  
+}
+
 
 
 LikelihoodEvaluator* LikelihoodEvaluator::clone()
@@ -198,27 +217,29 @@ LikelihoodEvaluator* LikelihoodEvaluator::clone()
 }
 
 
-bpp::ParameterList LikelihoodEvaluator::getParameters()
-{
-  return(this->nniLk->getParameters());
-}
-
-
-NNIHomogeneousTreeLikelihood * LikelihoodEvaluator::getNniLk()
-{
-  return(this->nniLk);
-}
-
-
 LikelihoodEvaluator::~LikelihoodEvaluator()
 {
-  delete nniLk;
+  if(method == PLL){
+    
+  else {
+    delete nniLk;
+    if(nniLkAlternative)
+      delete nniLkAlternative;
+    //TODO delete all the trees, etc
+  }
 }
 
 NNIHomogeneousTreeLikelihood* LikelihoodEvaluator::initialize()
 {
-  //for the moment, BPP only
-  initialize_BPP_nniLk();
+  //common requirements for initialization
+
+  if(method == PLL)
+    initialize_PLL();
+  else
+    initialize_BPP_nniLk();
+  
+  //
+  initialized = true;
 }
 
 
@@ -227,14 +248,26 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate* newAlternative)
   if(alternativeTree != 00)
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
+  if(method == PLL){
+    updateStrictAlternativeTree();
+    //TODO: evaluate alternative tree
+  }
+  else
+  {
+    delete nniLkAlternative;
+    nniLkAlternative =  new NNIHomogeneousTreeLikelihood (alternativeTree, sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
+    alternativeLikelihood = nniLkAlternative->getLogLikelihood();
+  }
 }
 
 void LikelihoodEvaluator::acceptAlternativeTree()
 {
   delete tree;
-  tree = alternativeTree;
+  tree = alternativeTree->clone();
   delete nniLk;
-  nniLk = nniLkAlternative;
+  nniLk = nniLkAlternative->clone;
+  delete strictTree;
+  strictTree = strictAlternativeTree->clone();
 }
 
 
@@ -279,5 +312,42 @@ VectorSiteContainer* LikelihoodEvaluator::getSites()
 bpp::TreeTemplate<N>* LikelihoodEvaluator::getTree()
 {
   return tree;
+}
+
+void LikelihoodEvaluator::loadStrictNamesFromAlignment()
+{
+  vector<string> seqNames = sites->getSequencesNames();
+  string currStrictName, currName;
+  for(unsigned int currIdx = 0; currIdx != seqNames.size(); currIdx++)
+  {
+    currName = seqNames.at(currIdx);
+    currStrictName = "seq" + currIdx;
+    realToStrict[currName] = currStrictName;
+    strictToReal[currStrictName] = currName;
+  }
+  
+}
+
+void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >& targetTree)
+{
+  vector<Node*> leaves = targetTree.getLeaves();
+  for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf = leaves.end(); currLeaf++){
+    (*currLeaf)->setName(realToStrict[(*currLeaf)->getName()]);
+  }
+}
+
+void LikelihoodEvaluator::updateStrictTree()
+{
+  delete strictTree;
+  strictTree = tree->clone();
+  convertTreeToStrict(strictTree);
+}
+
+void LikelihoodEvaluator::updateStrictAlternativeTree()
+{
+  if(strictAlternativeTree)
+    delete strictAlternativeTree;
+  strictAlternativeTree = alternativeTree->clone();
+  convertTreeToStrict(strictAlternativeTree);
 }
 

@@ -130,52 +130,6 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
     levaluator_->initialize();
     
     
-    /****************************************************************************
-     *           //Then we can change the gene tree so that its topology minimizes the number of duplications and losses.
-     *****************************************************************************/
-    /*
-     *          std::string alterStartingTopologyWithDL = ApplicationTools::getStringParameter("DL.starting.gene.tree.optimization", params_, "no", "", true, false);
-     *          
-     *          
-     *          bool DLStartingGeneTree;
-     *          if (alterStartingTopologyWithDL == "yes") 
-     *          {
-     *              DLStartingGeneTree = true;
-     * }
-     * else 
-     * {
-     * DLStartingGeneTree = false;
-     * }
-     * 
-     * if (DLStartingGeneTree)
-     * {
-     * //we temporarily build a ReconciliationTreeLikelihood object, 
-     * //but won't consider sequences, to save computational time
-     * std::cout << "Changing the starting gene tree to minimize the numbers of duplications and losses"<<std::endl;
-     * std::set <int> nodesToTryInNNISearch;
-     * refineGeneTreeDLOnly (tree_, 
-     * geneTree_, 
-     * seqSp,
-     * spId_,
-     * lossExpectedNumbers_, 
-     * duplicationExpectedNumbers_, 
-     * MLindex_, 
-     * allNum0Lineages_[i-numDeletedFamilies_], 
-     * allNum1Lineages_[i-numDeletedFamilies_], 
-     * allNum2Lineages_[i-numDeletedFamilies_], 
-     * nodesToTryInNNISearch);
-     * if (unrootedGeneTree) {
-     * d ele**te unrootedGeneTree;
-     * unrootedGeneTree = 0;
-  }
-  unrootedGeneTree = geneTree_->clone();
-  unrootedGeneTree->unroot();
-  
-  //Refining branch lengths for this altered gene tree.
-  refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (params_, unrootedGeneTree, sites, model, rDist, file, alphabet);
-  }
-  */
-    
     TreeTemplate<Node> * unrootedGeneTree = rootedTree_->clone();
     if (!rootedTree_->isRooted()) {
       std::cout <<"gene tree is not rooted!!! "<< file <<std::endl;
