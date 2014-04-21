@@ -48,6 +48,7 @@ extern "C" {
 
 #include <iostream>
 #include <string>
+#include <fstream>
 #include <boost/graph/graph_traits.hpp>
 
 #include <Bpp/Seq/Container/SiteContainerTools.h>
@@ -64,19 +65,18 @@ using namespace std;
 using namespace bpp;
 
 
-LikelihoodEvaluator::initializePLLtree(){
+LikelihoodEvaluator::PLL_initializeTree(){
   
   // PLL
   /* Set the PLL instance attributes */
-  pllInstanceAttr attr;
-  attr.rateHetModel     = PLL_GAMMA;
-  attr.fastScaling      = PLL_TRUE;
-  attr.saveMemory       = PLL_FALSE;
-  attr.useRecom         = PLL_FALSE;
-  attr.randomNumberSeed = 0xDEADBEEF;
-  attr.numberOfThreads  = 8;            /* This only affects the pthreads version */
+  attr_PLL.rateHetModel     = PLL_GAMMA;
+  attr_PLL.fastScaling      = PLL_TRUE;
+  attr_PLL.saveMemory       = PLL_FALSE;
+  attr_PLL.useRecom         = PLL_FALSE;
+  attr_PLL.randomNumberSeed = 0xDEADBEEF;
+  attr_PLL.numberOfThreads  = 8;            /* This only affects the pthreads version */
   
-  tr_PLL = pllCreateInstance (&attr);
+  tr_PLL = pllCreateInstance (&attr_PLL);
 }
 
 
@@ -132,7 +132,7 @@ LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator &levaluator){
   tree = levaluator.tree->clone();
 }
 
-LikelihoodEvaluator::loadPLLalignment(char* path)
+LikelihoodEvaluator::PLL_loadAlignment(char* path)
 {
   /* Parse a PHYLIP/FASTA file */
   pllAlignmentData * alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path);
@@ -143,7 +143,7 @@ LikelihoodEvaluator::loadPLLalignment(char* path)
 }
 
 
-LikelihoodEvaluator::loadPLLnewick(char* path)
+LikelihoodEvaluator::PLL_loadNewick(char* path)
 {
   newick_PLL = pllNewickParseFile(path);
   if (!newick_PLL)
@@ -351,3 +351,21 @@ void LikelihoodEvaluator::updateStrictAlternativeTree()
   convertTreeToStrict(strictAlternativeTree);
 }
 
+void LikelihoodEvaluator::writeAlignmentFilesForPLL(string prefix)
+{
+  ofstream alignementFile(prefix + "alignment.fasta", std::ofstream::out);
+  
+  //preparing the file for the alignment
+  Sequence currSequence;
+  for(unsigned int currSeqIndex = 0; currSeqIndex != sites->getNumberOfSequences(); currSeqIndex++)
+  {
+    currSequence = sites->getSequence(currSeqIndex);
+    alignementFile << ">" << realToStrict[currSequence.getName()] << "\n" << currSequence.toString() << "\n";
+  }
+  alignementFile.close();
+  
+  ofstream partitionFile(prefix + "partition.txt", std::ofstream::out);
+  //TODO: take into account the alphabet
+  partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
+  partitionFile.close();
+}

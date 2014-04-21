@@ -136,23 +136,23 @@ private:
   /**
   Loads the PLL alignment
   */
-  loadPLLalignment(char* path);
+  PLL_loadAlignment(char* path);
   
   
   /**
   Loads the PLL tree.
   */
-  loadPLLnewick(char* path);
+  PLL_loadNewick(char* path);
   
   /**
   Initializing partitions for PLL.
   */
-  loadPLLpartitions(char* path);
+  PLL_loadPartitions(char* path);
   
   /**
   Initializing PLL tree: tr_PLL.
   */
-  initializePLLtree();
+  PLL_initializeTree();
   
   /**
   Updating the PLL tree with PLL newick.
@@ -230,7 +230,19 @@ private:
   */
   void initialize_PLL();
   
+  /**
+   * Writes alignment files for PLL: the alignment and the partition file
+   * @param prefix the family name, so many alignment/partitions files can
+   * 			co-exist in the same working directory.
+   */
+  void writeAlignmentFilesForPLL(std::string prefix);
   
+  /**
+   * Transform the tree to a clean string, send it to PLL and get the LLK
+   * then destroy temporary objects.
+   * @param prefix a BPP tree
+   */
+  double optimizeBranchLengthAndReturnLogLikelihood(bpp::TreeTemplate<bpp::Node>);
 
   
 
@@ -251,11 +263,6 @@ private:
   An alternative tree to be tested
   */
   bpp::TreeTemplate<bpp::Node> * alternativeTree;
-  
-  /**
-  Newick strictly formatted for PLL
-  */
-  std::string newickForPLL;
   
   /**
   Map of parameters string -> string, BPP style
