@@ -201,11 +201,10 @@ LikelihoodEvaluator::initialize_BPP_nniLk()
 void LikelihoodEvaluator::initialize_PLL()
 {
   // must have the strict names loaded
-  loadStrictNamesFromAlignment();
+  loadStrictNamesFromAlignment_forPLL();
   
-  // copy and convert the tree to strict version
-  strictTree = tree->clone();
-  convertTreeToStrict(strictTree);
+  writeAlignmentFilesForPLL()
+  PLL_loadAlignment();
   
 }
 
@@ -220,8 +219,10 @@ LikelihoodEvaluator* LikelihoodEvaluator::clone()
 LikelihoodEvaluator::~LikelihoodEvaluator()
 {
   if(method == PLL){
-    
-  else {
+    delete tree;
+  }
+  else
+  {
     delete nniLk;
     if(nniLkAlternative)
       delete nniLkAlternative;
@@ -229,7 +230,7 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
   }
 }
 
-NNIHomogeneousTreeLikelihood* LikelihoodEvaluator::initialize()
+void LikelihoodEvaluator::initialize()
 {
   //common requirements for initialization
 
@@ -249,14 +250,13 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate* newAlternative)
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
   if(method == PLL){
-    updateStrictAlternativeTree();
     //TODO: evaluate alternative tree
   }
   else
   {
     delete nniLkAlternative;
     nniLkAlternative =  new NNIHomogeneousTreeLikelihood (alternativeTree, sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
-    alternativeLikelihood = nniLkAlternative->getLogLikelihood();
+    alternativeLogLikelihood = nniLkAlternative->getLogLikelihood();
   }
 }
 
@@ -264,10 +264,14 @@ void LikelihoodEvaluator::acceptAlternativeTree()
 {
   delete tree;
   tree = alternativeTree->clone();
-  delete nniLk;
-  nniLk = nniLkAlternative->clone;
-  delete strictTree;
-  strictTree = strictAlternativeTree->clone();
+  if(method == PLL)
+  {
+    delete nniLk;
+  }
+  else
+  {
+    nniLk = nniLkAlternative->clone;
+  }
 }
 
 
@@ -291,12 +295,12 @@ Alphabet* LikelihoodEvaluator::getAlphabet()
 
 double LikelihoodEvaluator::getAlternativeLogLikelihood()
 {
-  return lastAlternativeLikelihood;
+  return alternativeLogLikelihood;
 }
 
 double LikelihoodEvaluator::getLogLikelihood()
 {
-  return lastLikelihood;
+  return logLikelihood;
 }
 
 DiscreteDistribution* LikelihoodEvaluator::getRateDistribution()
@@ -314,7 +318,7 @@ bpp::TreeTemplate<N>* LikelihoodEvaluator::getTree()
   return tree;
 }
 
-void LikelihoodEvaluator::loadStrictNamesFromAlignment()
+void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 {
   vector<string> seqNames = sites->getSequencesNames();
   string currStrictName, currName;
@@ -334,21 +338,6 @@ void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >& targetTree)
   for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf = leaves.end(); currLeaf++){
     (*currLeaf)->setName(realToStrict[(*currLeaf)->getName()]);
   }
-}
-
-void LikelihoodEvaluator::updateStrictTree()
-{
-  delete strictTree;
-  strictTree = tree->clone();
-  convertTreeToStrict(strictTree);
-}
-
-void LikelihoodEvaluator::updateStrictAlternativeTree()
-{
-  if(strictAlternativeTree)
-    delete strictAlternativeTree;
-  strictAlternativeTree = alternativeTree->clone();
-  convertTreeToStrict(strictAlternativeTree);
 }
 
 void LikelihoodEvaluator::writeAlignmentFilesForPLL(string prefix)

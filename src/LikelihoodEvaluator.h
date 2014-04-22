@@ -155,9 +155,12 @@ private:
   PLL_initializeTree();
   
   /**
-  Updating the PLL tree with PLL newick.
-  */
-  updatePLLtreeWithPLLnewick();
+   * Transform the tree to a clean string, send it to PLL and get the LLK
+   * then destroy temporary objects.
+   * @param prefix a BPP tree
+   */
+  double PLL_optimizeBranchLengthAndReturnLogLikelihood(bpp::TreeTemplate<bpp::Node>);
+
   
   
   
@@ -170,26 +173,7 @@ private:
   * Here, strict data is a copy of data, designed for pll: just alphanum chars in names
   */
   ///@{
-  
-  /**
-  Main tree, strict version
-  */
-  bpp::TreeTemplate<bpp::Node>* strictTree;
-  
-  /**
-  Alternative tree, strict version
-  */
-  bpp::TreeTemplate<bpp::Node>* strictAlternativeTree;
-  
-  /**
-  Alignment strictly formatted for PLL
-  */
-  VectorSiteContainer* fastaForPLL;
-  
-  /**
-  Newick strictly formatted for PLL
-  */
-  std::string newickForPLL;
+
   
   /**
   Defines the real sequences names to simplified ones for PLL
@@ -204,6 +188,8 @@ private:
 
   /**
   * Loads the names of the sequences and fill the strict vector
+  * This method must be run during the class initialization
+  * (after some optional tree/alignemnt modification by the user)
   */
   void loadStrictNamesFromAlignment();
 
@@ -213,18 +199,7 @@ private:
   * strict version.
   */
   void convertTreeToStrict(bpp::TreeTemplate< bpp::Node >& targetTree);
-  
-  /**
-  * Assign the strict name to the leaves of the alternative tree
-  */
-  void updateStrictTree();
-  
-  
-  /**
-  * Assign the strict name to the leaves of the alternative tree
-  */
-  void updateStrictAlternativeTree();
-  
+
   /**
   * Initialize PLL with the right data
   */
@@ -237,13 +212,7 @@ private:
    */
   void writeAlignmentFilesForPLL(std::string prefix);
   
-  /**
-   * Transform the tree to a clean string, send it to PLL and get the LLK
-   * then destroy temporary objects.
-   * @param prefix a BPP tree
-   */
-  double optimizeBranchLengthAndReturnLogLikelihood(bpp::TreeTemplate<bpp::Node>);
-
+  
   
 
   ///@}
@@ -272,12 +241,12 @@ private:
   /**
   last computed likelihood whatever the method was
   */
-  double lastLikelihood;
+  double logLikelihood;
   
   /**
   last computed likelihood for the alternative tree whatever the method was
   */
-  double alternativeLikelihood;
+  double alternativeLogLikelihood;
   
   ///@}
   
@@ -472,14 +441,6 @@ public:
   */
   double getLogLikelihood();
   
-  /**
-  * @brief returns the Log Likelihood computed with specified method
-  * @param likelihood the likelihood method
-  * @return double log likelihood
-  */
-  double getLogLikelihood(LikelihoodEvaluator::LikelihoodMethod likelihoodMethod);
-  
-
   
   LikelihoodEvaluator* clone();
   
