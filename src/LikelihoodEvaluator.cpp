@@ -65,18 +65,17 @@ using namespace std;
 using namespace bpp;
 
 
-LikelihoodEvaluator::PLL_initializeTree(){
+LikelihoodEvaluator::PLL_initializePLLInstance(){
   
-  // PLL
   /* Set the PLL instance attributes */
-  attr_PLL.rateHetModel     = PLL_GAMMA;
-  attr_PLL.fastScaling      = PLL_TRUE;
-  attr_PLL.saveMemory       = PLL_FALSE;
-  attr_PLL.useRecom         = PLL_FALSE;
-  attr_PLL.randomNumberSeed = 0xDEADBEEF;
-  attr_PLL.numberOfThreads  = 8;            /* This only affects the pthreads version */
+  PLL_attributes.rateHetModel     = PLL_GAMMA;
+  PLL_attributes.fastScaling      = PLL_TRUE;
+  PLL_attributes.saveMemory       = PLL_FALSE;
+  PLL_attributes.useRecom         = PLL_FALSE;
+  PLL_attributes.randomNumberSeed = 0xDEADBEEF;
+  PLL_attributes.numberOfThreads  = 8;            /* This only affects the pthreads version */
   
-  tr_PLL = pllCreateInstance (&attr_PLL);
+  PLL_instance = pllCreateInstance (&PLL_attributes);
 }
 
 
@@ -132,10 +131,10 @@ LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator &levaluator){
   tree = levaluator.tree->clone();
 }
 
-LikelihoodEvaluator::PLL_loadAlignment(char* path)
+LikelihoodEvaluator::PLL_loadAlignment(string path)
 {
   /* Parse a PHYLIP/FASTA file */
-  pllAlignmentData * alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path);
+  pllAlignmentData * alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path.c_str());
   if (!alignmentData)
   {
     throw Exception("PLL: Error while parsing " + path);
@@ -143,47 +142,61 @@ LikelihoodEvaluator::PLL_loadAlignment(char* path)
 }
 
 
-LikelihoodEvaluator::PLL_loadNewick(char* path)
+LikelihoodEvaluator::PLL_loadNewick_fromFile(string path)
 {
-  newick_PLL = pllNewickParseFile(path);
-  if (!newick_PLL)
+  PLL_newick = pllNewickParseFile(path.c_str());
+  if (!PLL_newick)
   {
     throw Exception("PLL: Error while parsing newick file");
   }
-  if (!pllValidateNewick (newick_PLL))  /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */
+  if (!pllValidateNewick (PLL_newick))  /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */
   {
     throw Exception("PLL: Invalid phylogenetic tree.");
   }
 }
 
-LikelihoodEvaluator::loadPLLpartitions(char* path)
+LikelihoodEvaluator::PLL_loadNewick_fromString(string newick)
+{
+  PLL_newick = pllNewickParseString (newick.c_str());
+  if (!PLL_newick)
+  {
+    throw Exception("PLL: Error while parsing newick string: " + newick);
+  }
+  if (!pllValidateNewick (PLL_newick))  /* check whether the valid newick tree is also a tree that can be processed with our nodeptr structure */
+  {
+    throw Exception("PLL: Invalid phylogenetic tree.");
+  }
+}
+
+
+LikelihoodEvaluator::loadPLLpartitions(string path)
 {
   /* Parse the partitions file into a partition queue structure */
-  partitionInfo_PLL = pllPartitionParse (path);
+  PLL_partitionInfo = pllPartitionParse (path.c_str());
   
   /* Validate the partitions */
-  if (!pllPartitionsValidate (partitionInfo_PLL, alignmentData_PLL))
+  if (!pllPartitionsValidate (PLL_partitionInfo, PLL_alignmentData))
   {
-    throw Exception("Error: Partitions do not cover all sites.");
+    throw Exception("PLL: Partitions do not cover all sites.");
   }
   
   /* Commit the partitions and build a partitions structure */
-  partitions_PLL = pllPartitionsCommit (partitionInfo_PLL, alignmentData_PLL);
+  PLL_partitions = pllPartitionsCommit (PLL_partitionInfo, PLL_alignmentData);
   
   /* We don't need the the intermedia partition queue structure anymore */
-  pllQueuePartitionsDestroy (&partitionInfo_PLL);
+  pllQueuePartitionsDestroy (&PLL_partitionInfo);
   
   /* eliminate duplicate sites from the alignment and update weights vector */
-  pllAlignmentRemoveDups (alignmentData_PLL, partitions_PLL);
+  pllAlignmentRemoveDups (PLL_alignmentData, PLL_partitions);
 }
 
 LikelihoodEvaluator::updatePLLtreeWithPLLnewick()
 {
-  pllTreeInitTopologyNewick (tr_PLL, newick_PLL, PLL_FALSE);
+  pllTreeInitTopologyNewick (PLL_instance, PLL_newick, PLL_FALSE);
     
   // cout << "PLL: Connect the alignment and partition structure with the tree structure" << std::endl ;
   /* Connect the alignment and partition structure with the tree structure */
-  if (!pllLoadAlignment (tr_PLL, alignmentData_PLL, partitions_PLL, PLL_DEEP_COPY))
+  if (!pllLoadAlignment (PLL_instance, PLL_alignmentData, PLL_partitions, PLL_DEEP_COPY))
   {
     throw Exception("PLL: Incompatible tree/alignment combination.");
   }
@@ -200,11 +213,15 @@ LikelihoodEvaluator::initialize_BPP_nniLk()
 
 void LikelihoodEvaluator::initialize_PLL()
 {
+  // #1 PREPARING
   // must have the strict names loaded
   loadStrictNamesFromAlignment_forPLL();
+  writeAlignmentFilesForPLL();
   
-  writeAlignmentFilesForPLL()
-  PLL_loadAlignment();
+  
+  PLL_initializePLLInstance();
+  PLL_loadAlignment(string(fileNamePrefix + "alignment.fasta").c_str());
+  PLL_loadPartitions(string(fileNamePrefix + "partition.txt").c_str());
   
 }
 
@@ -232,8 +249,12 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
 
 void LikelihoodEvaluator::initialize()
 {
-  //common requirements for initialization
-
+  // ### common requirements for initialization
+  // make a name for this family from the alignemnt file name
+  istringstream ss_alignFile(ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL"));
+  while(getline(ss_alignFile,name,'/'))
+    ; // do nothing
+  
   if(method == PLL)
     initialize_PLL();
   else
@@ -266,10 +287,11 @@ void LikelihoodEvaluator::acceptAlternativeTree()
   tree = alternativeTree->clone();
   if(method == PLL)
   {
-    delete nniLk;
+    
   }
   else
   {
+    delete nniLk;
     nniLk = nniLkAlternative->clone;
   }
 }
@@ -340,9 +362,10 @@ void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >& targetTree)
   }
 }
 
-void LikelihoodEvaluator::writeAlignmentFilesForPLL(string prefix)
+void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
-  ofstream alignementFile(prefix + "alignment.fasta", std::ofstream::out);
+  fileNamePrefix = name + "_" ;
+  ofstream alignementFile(fileNamePrefix + "alignment.fasta", std::ofstream::out);
   
   //preparing the file for the alignment
   Sequence currSequence;
@@ -353,7 +376,7 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL(string prefix)
   }
   alignementFile.close();
   
-  ofstream partitionFile(prefix + "partition.txt", std::ofstream::out);
+  ofstream partitionFile(fileNamePrefix + "partition.txt", std::ofstream::out);
   //TODO: take into account the alphabet
   partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
   partitionFile.close();

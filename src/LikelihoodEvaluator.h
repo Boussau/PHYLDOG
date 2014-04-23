@@ -93,7 +93,10 @@ private:
   LikelihoodMethod method;
     
   /** @name Data and commands for PLL
-  *  PLL specific objects and routine calls.
+  * PLL specific objects and routine calls.
+  * The attributes starting with PLL_ prefix are PLL types
+  * The methods strarting with PLL_ call pll methods, but manage
+  * mixed type objects.
   */
   ///@{
   
@@ -105,54 +108,59 @@ private:
     attr.useRecom         = PLL_FALSE;
     attr.randomNumberSeed = 0xDEADBEEF;
   */
-  pllInstanceAttr attr_PLL;
+  pllInstanceAttr PLL_attributes;
   
   /**
   The PLL tree.
   */
-  pllInstance * tr_PLL;
+  pllInstance * PLL_instance;
   
   /**
   The PLL alignment.
   */
-  pllAlignmentData * alignmentData_PLL;
+  pllAlignmentData * PLL_alignmentData;
   
   /**
   The PLL newick data.
   */
-  pllNewickTree * newick_PLL;
+  pllNewickTree * PLL_newick;
   
   /**
   The PLL partitions list.
   */
-  partitionList * partitions_PLL;
+  partitionList * PLL_partitions;
   
   /**
   The PLL partition information.
   */  
-  pllQueue * partitionInfo_PLL;
+  pllQueue * PLL_partitionInfo;
     
   
   /**
   Loads the PLL alignment
   */
-  PLL_loadAlignment(char* path);
+  void PLL_loadAlignment(std::string path);
   
   
   /**
-  Loads the PLL tree.
+  Loads the PLL tree from a file.
   */
-  PLL_loadNewick(char* path);
+  void PLL_loadNewick_fromFile(std::string path);
+  
+  /**
+  Loads the PLL tree from a newick string.
+  */
+  void PLL_loadNewick_fromString(std::string newick);
   
   /**
   Initializing partitions for PLL.
   */
-  PLL_loadPartitions(char* path);
+  void PLL_loadPartitions(std::string path);
   
   /**
   Initializing PLL tree: tr_PLL.
   */
-  PLL_initializeTree();
+  void PLL_initializePLLInstance();
   
   /**
    * Transform the tree to a clean string, send it to PLL and get the LLK
@@ -174,6 +182,10 @@ private:
   */
   ///@{
 
+  /**
+  *Defines string prefix before the file names.
+  */
+  std::string fileNamePrefix;
   
   /**
   Defines the real sequences names to simplified ones for PLL
@@ -191,7 +203,7 @@ private:
   * This method must be run during the class initialization
   * (after some optional tree/alignemnt modification by the user)
   */
-  void loadStrictNamesFromAlignment();
+  void loadStrictNamesFromAlignment_forPLL();
 
   /**
   * Assign the strict name to the leaves of the tree
@@ -210,7 +222,7 @@ private:
    * @param prefix the family name, so many alignment/partitions files can
    * 			co-exist in the same working directory.
    */
-  void writeAlignmentFilesForPLL(std::string prefix);
+  void writeAlignmentFilesForPLL();
   
   
   
@@ -222,6 +234,11 @@ private:
   *  BPP data are used as reference in this wrapper
   */
   ///@{
+  
+  /**
+   * A name for this evaluator; is used as a prefix for temp files writing
+   */
+  std::string name;
   
   /**
   The BPP tree
