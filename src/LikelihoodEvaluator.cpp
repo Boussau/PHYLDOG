@@ -131,7 +131,7 @@ LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator &levaluator){
   tree = levaluator.tree->clone();
 }
 
-LikelihoodEvaluator::PLL_loadAlignment(string path)
+void LikelihoodEvaluator::PLL_loadAlignment(string path)
 {
   /* Parse a PHYLIP/FASTA file */
   pllAlignmentData * alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path.c_str());
@@ -142,7 +142,7 @@ LikelihoodEvaluator::PLL_loadAlignment(string path)
 }
 
 
-LikelihoodEvaluator::PLL_loadNewick_fromFile(string path)
+void LikelihoodEvaluator::PLL_loadNewick_fromFile(string path)
 {
   PLL_newick = pllNewickParseFile(path.c_str());
   if (!PLL_newick)
@@ -155,7 +155,7 @@ LikelihoodEvaluator::PLL_loadNewick_fromFile(string path)
   }
 }
 
-LikelihoodEvaluator::PLL_loadNewick_fromString(string newick)
+void LikelihoodEvaluator::PLL_loadNewick_fromString(string newick)
 {
   PLL_newick = pllNewickParseString (newick.c_str());
   if (!PLL_newick)
@@ -169,7 +169,7 @@ LikelihoodEvaluator::PLL_loadNewick_fromString(string newick)
 }
 
 
-LikelihoodEvaluator::loadPLLpartitions(string path)
+void LikelihoodEvaluator::PLL_loadPartitions(string path)
 {
   /* Parse the partitions file into a partition queue structure */
   PLL_partitionInfo = pllPartitionParse (path.c_str());
@@ -190,7 +190,7 @@ LikelihoodEvaluator::loadPLLpartitions(string path)
   pllAlignmentRemoveDups (PLL_alignmentData, PLL_partitions);
 }
 
-LikelihoodEvaluator::updatePLLtreeWithPLLnewick()
+void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
 {
   pllTreeInitTopologyNewick (PLL_instance, PLL_newick, PLL_FALSE);
     
@@ -203,7 +203,7 @@ LikelihoodEvaluator::updatePLLtreeWithPLLnewick()
 }
 
 
-LikelihoodEvaluator::initialize_BPP_nniLk()
+void LikelihoodEvaluator::initialize_BPP_nniLk()
 {
   nniLk = new NNIHomogeneousTreeLikelihood(tree, sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
   
@@ -218,11 +218,37 @@ void LikelihoodEvaluator::initialize_PLL()
   loadStrictNamesFromAlignment_forPLL();
   writeAlignmentFilesForPLL();
   
+  // preparing the tree
   
+  // PLL process
   PLL_initializePLLInstance();
-  PLL_loadAlignment(string(fileNamePrefix + "alignment.fasta").c_str());
-  PLL_loadPartitions(string(fileNamePrefix + "partition.txt").c_str());
+  PLL_loadAlignment(fileNamePrefix + "alignment.fasta");
+  PLL_loadPartitions(fileNamePrefix + "partition.txt");
   
+  logLikelihood = PLL_evaluate(tree);
+  
+}
+
+double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
+{
+  // preparing the tree
+  TreeTemplate<Node>* treeForPLL = treeToEvaluate->clone();
+  convertTreeToStrict(treeForPLL);
+  Newick outputTreeForPll();
+  ostringstream newickForPll;
+  outputTreeForPll.write(outputTreeForPll,newickForPll);
+  PLL_loadNewick_fromString(newickForPll.str());
+  delete treeForPLL;
+  
+  // processing by PLL
+  PLL_connectTreeAndAlignment();
+  pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
+  
+  // getting the new tree with now branch lengths
+  string treeFromPll(PLL_instance->tree_string);
+  
+  
+  return(PLL_instance->likelihood);
 }
 
 

@@ -162,12 +162,19 @@ private:
   */
   void PLL_initializePLLInstance();
   
+  
   /**
-   * Transform the tree to a clean string, send it to PLL and get the LLK
-   * then destroy temporary objects.
-   * @param prefix a BPP tree
+   * Linking PLL tree with PLL alignment
    */
-  double PLL_optimizeBranchLengthAndReturnLogLikelihood(bpp::TreeTemplate<bpp::Node>);
+  void PLL_connectTreeAndAlignment();
+  
+  /**
+   * Get the log likelihood of a tree and modify this tree to match
+   * the new branch lengths.
+   * @param prefix a BPP tree
+   * @return the logLikelihood
+   */
+  double PLL_evaluate(bpp::TreeTemplate<bpp::Node> treeToEvaluate);
 
   
   
