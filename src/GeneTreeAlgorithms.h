@@ -43,36 +43,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #ifndef _GENETREEALGORITHMS_H_
 #define _GENETREEALGORITHMS_H_
 
-
-// From SeqLib:
-/*#include <Bpp/Seq/Container/VectorSiteContainer.h>
-#include <Bpp/Seq/SiteTools.h>
-#include <Bpp/Seq/App/SequenceApplicationTools.h>
-*/
-
 // From PhylLib:
-/*#include <Bpp/Phyl/Tree.h>
-#include <Bpp/Phyl/Likelihood.all>
-#include <Bpp/Phyl/PatternTools.h>
-#include <Bpp/Phyl/App/PhylogeneticsApplicationTools.h>
-#include <Bpp/Phyl/Likelihood/MarginalAncestralStateReconstruction.h>
-#include <Bpp/Phyl/Likelihood/RASTools.h>
-#include <Bpp/Phyl/Io/Newick.h>
-#include <Bpp/Phyl/TreeTools.h>
-#include <Bpp/Phyl/Distance/BioNJ.h>
-#include <Bpp/Phyl/OptimizationTools.h>
-#include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
-*/
-
-//#include <Bpp/Phyl/Io/Nhx.h>
-//#include <Bpp/Phyl/Mapping.all>
 #include <Bpp/Phyl/Likelihood/DRTreeLikelihoodTools.h>
 #include <Bpp/Phyl/Likelihood/PseudoNewtonOptimizer.h>
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 #include <Bpp/Phyl/OptimizationTools.h>
-
-//#include <Bpp/Phyl/OptimizationTools.h>
-
 
 // From NumCalc:
 #include <Bpp/Numeric/Prob/DiscreteDistribution.h>
@@ -105,22 +80,22 @@ knowledge of the CeCILL license and that you accept its terms.
  * This function creates a sequence tree from a species tree and a std::map 
  * containing the link between the species and their sequences.
  **************************************************************************/
-TreeTemplate<Node> * buildARandomSequenceTreeFromASpeciesTree (std::map <std::string, 
+TreeTemplate<bpp::Node> * buildARandomSequenceTreeFromASpeciesTree (std::map <std::string, 
                                                                std::deque<std::string> > & spSeqs, 
-                                                               TreeTemplate<Node> & tree, 
+                                                               TreeTemplate<bpp::Node> & tree, 
                                                                std::map <std::string, std::string> & spSelectedSeq);
 /**************************************************************************
  * This function creates a sequence tree from a species tree and the std::map 
  * containing the link between the species and the putative orthologous sequence.
  **************************************************************************/
-TreeTemplate<Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondanceMap (TreeTemplate<Node> & tree, 
+TreeTemplate<bpp::Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondanceMap (TreeTemplate<bpp::Node> & tree, 
                                                                              std::map <std::string, 
                                                                              std::string> & spSelectedSeq);
 /******************************************************************************/
 // This function refines branch lengths of a gene tree.
 /******************************************************************************/
 double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
-                                                             TreeTemplate<Node>  *& unrootedGeneTree, 
+                                                             TreeTemplate<bpp::Node>  *& unrootedGeneTree, 
                                                              VectorSiteContainer * sites, 
                                                              SubstitutionModel* model, 
                                                              DiscreteDistribution* rDist, 
@@ -150,20 +125,20 @@ void optimizeBLMapping(
 /******************************************************************************/
 void optimizeBLMappingForSPRs(
                               DRTreeLikelihood* tl,
-                              double precision, map<string, string> params);
+                              double precision, std::map<std::string, std::string> params);
 
 /******************************************************************************/
 // This function optimizes branch lengths in a gene tree without substitution mapping
 /******************************************************************************/
 void optimizeBLForSPRs(
                        DRTreeLikelihood* tl,
-                       double precision, map<string, string> params);
+                       double precision, std::map<std::string, std::string> params);
 
 
 /******************************************************************************/
 // This function builds a bionj tree
 /******************************************************************************/
-TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & params, 
+TreeTemplate<bpp::Node>  * buildBioNJTree (std::map<std::string, std::string> & params, 
                                       SiteContainer * sites, 
                                       SubstitutionModel* model, 
                                       DiscreteDistribution* rDist, 
@@ -173,56 +148,48 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
 // algorithm.
 /******************************************************************************/
 void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
-                                                TreeTemplate<Node>  *& unrootedGeneTree, 
+                                                TreeTemplate<bpp::Node>  *& unrootedGeneTree, 
                                                 VectorSiteContainer * sites, 
                                                 SubstitutionModel* model, 
                                                 DiscreteDistribution* rDist, 
-                                                string file, 
+                                                std::string file, 
                                                 Alphabet *alphabet);
 
-
-/*
-string parenthesisWithSpeciesNamesToGeneTree (TreeTemplate<Node> * geneTree,
-                                              std::map<std::string, std::string > seqSp ) {  
-  //,                                             std::vector<string> &geneNames) {
-  
-}
-*/
 
 /**************************************************************************
  * This function produces a string version of a gene tree, 
  * with gene names replaced by species names. 
  **************************************************************************/
-string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
+std::string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<bpp::Node> * geneTree,
                                               std::map<std::string, std::string > seqSp );
 
 /**************************************************************************
  * This function produces a gene tree from a string version in which 
  * gene names have been changed to include species names. 
  **************************************************************************/
-TreeTemplate<Node> * parenthesisPlusSpeciesNamesToGeneTree (string geneTreeStr) ;
+TreeTemplate<bpp::Node> * parenthesisPlusSpeciesNamesToGeneTree (std::string geneTreeStr) ;
   
 
 /**************************************************************************
  * This function produces a string version of a gene tree, 
  * with gene names changed to include species names. 
  **************************************************************************/
-string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
+std::string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<bpp::Node> * geneTree,
                                               std::map<std::string, std::string > seqSp );
 
 
 /**************************************************************************
  * This function produces a gene tree with leaves annotated with species names.
  **************************************************************************/
-void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
+void annotateGeneTreeWithSpeciesNames (TreeTemplate<bpp::Node> * geneTree,
                                        std::map<std::string, std::string > seqSp ) ;
 
 /**************************************************************************
  * This function optimizes a gene tree based on the reconciliation score only.
  * It uses SPRs and NNIs, and calls findMLReconciliationDR to compute the likelihood.
  **************************************************************************/
-double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
-                             TreeTemplate<Node> *& geneTree, 
+double refineGeneTreeDLOnly (TreeTemplate<bpp::Node> * spTree, 
+                             TreeTemplate<bpp::Node> *& geneTree, 
                              std::map<std::string, std::string > seqSp,
                              std::map<std::string, int > spID,
                              std::vector< double> &lossExpectedNumbers, 
@@ -237,8 +204,8 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
  * This function returns a vector of branching points that may diminish the number of duplications/losses.
  * The gene tree has to be rooted and annotated with species numbers.
  **************************************************************************/
-void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree, 
-                                          TreeTemplate<Node> &tree, 
+void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<bpp::Node> &spTree, 
+                                          TreeTemplate<bpp::Node> &tree, 
                                           int nodeForSPR, 
                                           int distance, 
                                           std::vector <int> & nodeIdsToRegraft) ;
@@ -247,7 +214,7 @@ void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
  * This function returns a vector of branching points that may diminish the number of duplications/losses.
  * The gene tree has to be rooted and annotated with species numbers.
  **************************************************************************/
-void getAllCandidateBranchingPointsFromSpeciesID (TreeTemplate<Node> &tree, 
+void getAllCandidateBranchingPointsFromSpeciesID (TreeTemplate<bpp::Node> &tree, 
                                                   std::vector <std::string> spIds, 
                                                   std::vector <int> & allNodeIds) ;
 
@@ -256,29 +223,29 @@ void getAllCandidateBranchingPointsFromSpeciesID (TreeTemplate<Node> &tree,
  * The gene tree has to be rooted and annotated with species numbers.
  **************************************************************************/
 
-void getNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <int> & allNodeIds);
+void getNodesWithSimilarSpeciesIds(bpp::Node * node, std::string spId, std::vector <int> & allNodeIds);
 
 /**************************************************************************
  * This recursive function returns node ids with a given species id, upstream from Node node.
  * The gene tree has to be rooted and annotated with species numbers.
  **************************************************************************/
 
-void getNodesWithSimilarSpeciesIdsUpstream(Node * node, string spId, std::vector <int> & allNodeIds);
+void getNodesWithSimilarSpeciesIdsUpstream(bpp::Node * node, std::string spId, std::vector <int> & allNodeIds);
 
 
 /**************************************************************************
  * This recursive function returns node ids sons of nodes with a given species id.
  * The gene tree has to be rooted and annotated with species numbers.
  **************************************************************************/
-void getSonsOfNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <int> & allNodeIds) ;
+void getSonsOfNodesWithSimilarSpeciesIds(bpp::Node * node, std::string spId, std::vector <int> & allNodeIds) ;
 
 /**************************************************************************
  * This function returns a vector of branching points for gene tree SPR in the coalescent framework.
  * The gene tree has to be rooted and annotated with species numbers.
  **************************************************************************/
 
-void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree, 
-											  TreeTemplate<Node> &tree, 
+void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<bpp::Node> &spTree, 
+											  TreeTemplate<bpp::Node> &tree, 
 											  int nodeForSPR, 
 											  int distance, 
 											  std::vector <int> & nodeIdsToRegraft) ;
@@ -322,13 +289,13 @@ throw (Exception);
 /**************************************************************************                                                                                                                                                                                                                                                                                               *
   **************************************************************************/
 
-void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree, 
-				 TreeTemplate<Node> & geneTree,
-				 Node * node,
+void editDuplicationNodesMuffato(TreeTemplate<bpp::Node> & spTree, 
+				 TreeTemplate<bpp::Node> & geneTree,
+				 bpp::Node * node,
 				 double editionThreshold) ;
-void recoverSAndSpPresentInSubtree ( TreeTemplate<Node> & spTree, Node * node ) ;
+void recoverSAndSpPresentInSubtree ( TreeTemplate<bpp::Node> & spTree, bpp::Node * node ) ;
 
-Node * removeNodesWithDegree1 ( Node * node) ;
+bpp::Node * removeNodesWithDegree1 ( bpp::Node * node) ;
 
 
 #endif //_GENETREEALGORITHMS_H_

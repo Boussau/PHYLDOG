@@ -245,7 +245,7 @@ public:
   
   void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
   
-  ParameterList getParameters() {return nniLk_->getParameters();}
+//   ParameterList getParameters() {return nniLk_->getParameters();}
   
   TreeTemplate<Node> & getSpTree() const {return *spTree_;}
   
@@ -263,29 +263,29 @@ public:
     optimizeReconciliationLikelihood_ = yesOrNo;
   }
   
-  NNIHomogeneousTreeLikelihood* getSequenceLikelihoodObject() const {
-    return nniLk_;
-  }
+//   NNIHomogeneousTreeLikelihood* getSequenceLikelihoodObject() const {
+//     return nniLk_;
+//   }
   
   unsigned int getSprLimitGeneTree() const {
     return sprLimitGeneTree_; 
   }
   
   
-  void optimizeNumericalParameters(map<string, string> params) {
-    
-    int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
-    bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = 100;
-    params[ std::string("optimization.topology")] = "false";
-    PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(nniLk_), nniLk_->getParameters(), params, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = backup;
-    params[ std::string("optimization.topology")] = backupOpt;
-    
-  };
+//   void optimizeNumericalParameters(map<string, string> params) {
+//     
+//     int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+//     bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
+//     params[ std::string("optimization.max_number_f_eval")] = 100;
+//     params[ std::string("optimization.topology")] = "false";
+//     PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(nniLk_), nniLk_->getParameters(), params, "", true, false);
+//     params[ std::string("optimization.max_number_f_eval")] = backup;
+//     params[ std::string("optimization.topology")] = backupOpt;
+//     
+//   };
   
   bool isInitialized() {
-    return nniLk_->isInitialized();
+    return levaluator_->isInitialized();
   }
   unsigned int seqsToRemove();
   

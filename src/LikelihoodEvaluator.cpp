@@ -53,6 +53,7 @@ extern "C" {
 
 #include <Bpp/Seq/Container/SiteContainerTools.h>
 #include <Bpp/Phyl/Node.h>
+#include <Bpp/Phyl/TreeTemplateTools.h>
 
 
 #include "LikelihoodEvaluator.h"
@@ -65,7 +66,7 @@ using namespace std;
 using namespace bpp;
 
 
-LikelihoodEvaluator::PLL_initializePLLInstance(){
+void LikelihoodEvaluator::PLL_initializePLLInstance(){
   
   /* Set the PLL instance attributes */
   PLL_attributes.rateHetModel     = PLL_GAMMA;
@@ -106,8 +107,8 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   if (!cont)
     throw(Exception("Unable to load this family"));
     
-  if (substitutionModel->getName() != "RE08")
-    SiteContainerTools::changeGapsToUnknownCharacters(*sites, cont);
+//   if (substitutionModel->getName() != "RE08")
+//     SiteContainerTools::changeGapsToUnknownCharacters(*sites, cont);
  
   if (!cont)
     throw(Exception("Unable to load this family"));
@@ -116,7 +117,8 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   
   try 
   {
-    tree = getTreeFromOptions(params, alphabet, sites, substitutionModel, rateDistribution);
+    bool cont = true;
+    tree = getTreeFromOptions(params, alphabet, sites, substitutionModel, rateDistribution, cont);
   }
   catch (std::exception& e)
   {
@@ -126,10 +128,11 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
     
 }
 
-LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator &levaluator){
-  nniLk = levaluator.nniLk->clone();
-  tree = levaluator.tree->clone();
-}
+// TODO: is clonable?
+// LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator &levaluator){
+//   nniLk = levaluator.nniLk->clone();
+//   tree = levaluator.tree->clone();
+// }
 
 void LikelihoodEvaluator::PLL_loadAlignment(string path)
 {
@@ -205,7 +208,7 @@ void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
 
 void LikelihoodEvaluator::initialize_BPP_nniLk()
 {
-  nniLk = new NNIHomogeneousTreeLikelihood(tree, sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
+  nniLk = new NNIHomogeneousTreeLikelihood(*tree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
   
   nniLk->initParameters();
   nniLk->initialize();
@@ -234,10 +237,27 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
   // preparing the tree
   TreeTemplate<Node>* treeForPLL = treeToEvaluate->clone();
   convertTreeToStrict(treeForPLL);
-  Newick outputTreeForPll();
-  ostringstream newickForPll;
-  outputTreeForPll.write(outputTreeForPll,newickForPll);
-  PLL_loadNewick_fromString(newickForPll.str());
+  
+  // getting the root
+  bool wasRooted = (treeForPLL->isRooted() ? true : false);
+  set<Node*> leaves1, leaves2;
+  if(wasRooted)
+  {
+    Node* root = treeForPLL->getRootNode();
+    Node* son1 = root->getSon(0);
+    Node* son2 = root->getSon(1);
+    vector<Node*> leaves1Vector = TreeTemplateTools::getLeaves<Node>(*son1);
+    vector<Node*> leaves2Vector = TreeTemplateTools::getLeaves<Node>(*son1);
+    leaves1.insert(leaves1Vector.begin(),leaves1Vector.end());
+    leaves2.insert(leaves2Vector.begin(),leaves2Vector.end());
+    treeForPLL->unroot();
+  }
+  
+  
+  Newick newickForPll;
+  stringstream newickStingForPll;
+  newickForPll.write(*treeToEvaluate,newickStingForPll);
+  PLL_loadNewick_fromString(newickStingForPll.str());
   delete treeForPLL;
   
   // processing by PLL
@@ -245,18 +265,41 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
   pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
   
   // getting the new tree with now branch lengths
-  string treeFromPll(PLL_instance->tree_string);
+  newickStingForPll.str(PLL_instance->tree_string);
+  delete treeToEvaluate;
+  treeToEvaluate = newickForPll.read(newickStingForPll);
   
+  
+  //re-rooting if needed
+  if(wasRooted)
+  {
+    // the plyogenetic root is between the current topological
+    // root and one of the three sons
+    // so, one of the three sons of a root is the outgroup
+    vector<Node*> rootSons = treeToEvaluate->getRootNode()->getSons();
+    for(vector<Node*>::iterator currSon = rootSons.begin(); currSon != rootSons.end(); currSon++)
+    {
+      vector<Node*> currLeavesVector = TreeTemplateTools::getLeaves<Node>(**currSon);
+      set<Node*> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+      if(currLeavesSet == leaves1 || currLeavesSet == leaves2)
+        treeToEvaluate->newOutGroup(*currSon);
+    }
+    if(!treeToEvaluate->isRooted())
+      throw Exception("Unable to re-root the tree.");
+    
+  }
+  
+  restoreTreeFromStrict(treeToEvaluate);
   
   return(PLL_instance->likelihood);
 }
 
 
-
-LikelihoodEvaluator* LikelihoodEvaluator::clone()
-{
-  return(new LikelihoodEvaluator(this));
-}
+// CLONABLE?
+// LikelihoodEvaluator* LikelihoodEvaluator::clone()
+// {
+//   return(new LikelihoodEvaluator(this));
+// }
 
 
 LikelihoodEvaluator::~LikelihoodEvaluator()
@@ -291,18 +334,18 @@ void LikelihoodEvaluator::initialize()
 }
 
 
-void LikelihoodEvaluator::setAlternativeTree(TreeTemplate* newAlternative)
+void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternative)
 {
   if(alternativeTree != 00)
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
   if(method == PLL){
-    //TODO: evaluate alternative tree
+    alternativeLogLikelihood = PLL_evaluate(alternativeTree);
   }
   else
   {
     delete nniLkAlternative;
-    nniLkAlternative =  new NNIHomogeneousTreeLikelihood (alternativeTree, sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
+    nniLkAlternative =  new NNIHomogeneousTreeLikelihood (*alternativeTree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
     alternativeLogLikelihood = nniLkAlternative->getLogLikelihood();
   }
 }
@@ -311,14 +354,11 @@ void LikelihoodEvaluator::acceptAlternativeTree()
 {
   delete tree;
   tree = alternativeTree->clone();
-  if(method == PLL)
-  {
-    
-  }
-  else
+  logLikelihood = alternativeLogLikelihood;
+  if(method == BPP)
   {
     delete nniLk;
-    nniLk = nniLkAlternative->clone;
+    nniLk = nniLkAlternative->clone();
   }
 }
 
@@ -326,7 +366,7 @@ void LikelihoodEvaluator::acceptAlternativeTree()
 
 
 
-TreeTemplate* LikelihoodEvaluator::getAlternativeTree()
+TreeTemplate< Node >* LikelihoodEvaluator::getAlternativeTree()
 {
   return alternativeTree;
 }
@@ -361,7 +401,7 @@ VectorSiteContainer* LikelihoodEvaluator::getSites()
   return sites;
 }
 
-bpp::TreeTemplate<N>* LikelihoodEvaluator::getTree()
+TreeTemplate< Node >* LikelihoodEvaluator::getTree()
 {
   return tree;
 }
@@ -380,21 +420,30 @@ void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
   
 }
 
-void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >& targetTree)
+void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >* targetTree)
 {
-  vector<Node*> leaves = targetTree.getLeaves();
-  for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf = leaves.end(); currLeaf++){
+  vector<Node*> leaves = targetTree->getLeaves();
+  for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++){
     (*currLeaf)->setName(realToStrict[(*currLeaf)->getName()]);
   }
 }
 
+void LikelihoodEvaluator::restoreTreeFromStrict(TreeTemplate< Node >* targetTree)
+{
+  vector<Node*> leaves = targetTree->getLeaves();
+  for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++){
+    (*currLeaf)->setName(strictToReal[(*currLeaf)->getName()]);
+  }
+}
+
+
 void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
   fileNamePrefix = name + "_" ;
-  ofstream alignementFile(fileNamePrefix + "alignment.fasta", std::ofstream::out);
+  ofstream alignementFile(string(fileNamePrefix + "alignment.fasta").c_str(), ofstream::out);
   
   //preparing the file for the alignment
-  Sequence currSequence;
+  BasicSequence currSequence(sites->getAlphabet());
   for(unsigned int currSeqIndex = 0; currSeqIndex != sites->getNumberOfSequences(); currSeqIndex++)
   {
     currSequence = sites->getSequence(currSeqIndex);
@@ -402,7 +451,7 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   }
   alignementFile.close();
   
-  ofstream partitionFile(fileNamePrefix + "partition.txt", std::ofstream::out);
+  ofstream partitionFile(string(fileNamePrefix + "partition.txt").c_str(), ofstream::out);
   //TODO: take into account the alphabet
   partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
   partitionFile.close();

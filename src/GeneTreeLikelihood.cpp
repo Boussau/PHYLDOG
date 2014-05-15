@@ -65,7 +65,7 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(
 
 
 GeneTreeLikelihood::GeneTreeLikelihood(
-  std::string file ,
+  std::string file,
   map<string, string> params,
   TreeTemplate<Node> & spTree )
 throw (exception):
@@ -92,11 +92,13 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   bool rootOptimization = false;
   if (!cont)
       throw(Exception("Unable to load this family"));
-  seqSp_ = getCorrespondanceSequenceSpeciesFromOptions(params_, cont);
+  
+  std::map<std::string, std::deque<std::string> > spSeq;
+  getCorrespondanceSequenceSpeciesFromOptions(params_, cont, seqSp_, spSeq );
   
   if (!cont)
     throw(Exception("Unable to load this family"));
-  removeUselessSequencesFromAlignment( spTree_, levaluator_->getSites(), cont ) ;
+  removeUselessSequencesFromAlignment( spTree_, levaluator_->getSites(), cont , spSeq, file) ;
   
   if (cont) {
     /****************************************************************************
@@ -109,7 +111,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   
   if (cont) 
   { //This family is phylogenetically informative
-    qualityControlGeneTree ( rootedTree_, levaluator_->getSites(), cont ) ;
+    qualityControlGeneTree ( rootedTree_, levaluator_->getSites(), cont , file) ;
   }
   if (cont) 
   { //This family is phylogenetically informative

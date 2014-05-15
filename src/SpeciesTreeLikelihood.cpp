@@ -319,7 +319,7 @@ void SpeciesTreeLikelihood::parseOptions()
         {
             std::cout << "The tree is not rooted, midpoint-rooting it!\n";
             //TreeTools::midpointRooting(*tree_); //DEPRECATED in latest Bio++ versions
-	    TreeTemplateTools::midRoot(*tree_, "sum of squares", true);
+	    TreeTemplateTools::midRoot(*tree_, TreeTemplateTools::MIDROOT_SUM_OF_SQUARES, true);
         }
     }
     //We build a random species tree
@@ -351,7 +351,7 @@ void SpeciesTreeLikelihood::parseOptions()
 	
 	std::cout << "HEHEHEHEHEEHEH "<<TreeTemplateTools::treeToParenthesis(*tree_, true);
 	//        TreeTools::midpointRooting(*tree_); //DEPRECATED in latest Bio++ versions
-	  TreeTemplateTools::midRoot(*tree_, "sum of squares", true);
+	  TreeTemplateTools::midRoot(*tree_, TreeTemplateTools::MIDROOT_SUM_OF_SQUARES, true);
 	std::cout << TreeTemplateTools::treeToParenthesis(*tree_, true);
     }
     else throw Exception("Unknown init.species.tree method.");

@@ -57,13 +57,8 @@ extern "C" {
 
 
 
-class LikelihoodEvaluator:
+class LikelihoodEvaluator
 
-
-/** TODO
- * 
- * - déraciner les arbres proposés.
- */
 
 /**
  * A little explanation about how this class works. It is a replacement to
@@ -79,7 +74,6 @@ class LikelihoodEvaluator:
  */
 
 
-public bpp::Clonable
 {
   
   
@@ -174,7 +168,7 @@ private:
    * @param prefix a BPP tree
    * @return the logLikelihood
    */
-  double PLL_evaluate(bpp::TreeTemplate<bpp::Node> treeToEvaluate);
+  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>* treeToEvaluate);
 
   
   
@@ -217,8 +211,15 @@ private:
   * @param targetTree modify the tree in place and set the leaves names to their
   * strict version.
   */
-  void convertTreeToStrict(bpp::TreeTemplate< bpp::Node >& targetTree);
+  void convertTreeToStrict(bpp::TreeTemplate< bpp::Node >* targetTree);
 
+  /**
+  * Restore the original names to the leaves of the tree
+  * @param targetTree modify the tree in place and set the leaves names to their
+  * original version.
+  */
+  void restoreTreeFromStrict(bpp::TreeTemplate< bpp::Node >* targetTree);
+  
   /**
   * Initialize PLL with the right data
   */
@@ -292,7 +293,7 @@ private:
   /**
    * @brief initialize the NNIHomogeneousTreeLikelihood object for BPP management
    */
-  initialize_BPP_nniLk();
+  void initialize_BPP_nniLk();
   
   /**
    * @brief substitution model managed by BPP
@@ -332,9 +333,7 @@ private:
   
   
 public:
-  
-  enum LikelihoodMethod{PLL,BPP};
-  
+    
   /** @name Accessors
   * let the outside acces to our data in order to perform filtering operations
   */
@@ -365,7 +364,7 @@ public:
   /**
    * @brief tree, managed by BPP
    */
-  bpp::TreeTemplate<N> * getTree();
+  bpp::TreeTemplate<bpp::Node> * getTree();
   
   ///@}
   
@@ -378,12 +377,12 @@ public:
   /**
    * @brief alternative tree, managed by BPP
    */
-  bpp::TreeTemplate<N> * getAlternativeTree();
+  bpp::TreeTemplate<bpp::Node> * getAlternativeTree();
   
   /**
   * @brief set the alternative tree to a new one
   */
-  void setAlternativeTree(bpp::TreeTemplate<N>* newAlternative);
+  void setAlternativeTree(bpp::TreeTemplate<bpp::Node>* newAlternative);
   
 
   /**

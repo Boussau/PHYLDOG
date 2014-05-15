@@ -251,7 +251,7 @@ using namespace bpp;
 
         std::vector <double> getCoalBranchLengths() const;
         
-        ParameterList getParameters() {return nniLk_->getParameters();}
+//         ParameterList getParameters() {return nniLk_->getParameters();}
         
         TreeTemplate<Node> & getSpTree() const {return *spTree_;}
         

@@ -58,11 +58,12 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Seq/Alphabet.all>
 #include <Bpp/Seq/Alphabet/CodonAlphabet.h>
 #include <Bpp/Seq/App/SequenceApplicationTools.h>
-
+#include <Bpp/Seq/SequenceTools.h>
 
 // From NumCalc:
 #include <Bpp/Numeric/VectorTools.h>
 #include <Bpp/Numeric/NumConstants.h>
+#include <Bpp/Numeric/Prob/ConstantDistribution.h>
 
 // From Utils:
 #include <Bpp/Utils/AttributesTools.h>
@@ -76,6 +77,10 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/BppVector.h>
 #include <Bpp/Text/KeyvalTools.h>
 #include <Bpp/Text/TextTools.h>
+
+#include "GeneTreeAlgorithms.h"
+
+
 
 using namespace bpp;
 
@@ -356,11 +361,7 @@ bool anticmp ( int a, int b ) ;
 
 
 
-bpp::Alphabet* getAlphabetFromOptions ( std::map <std::string, std::string>  params, bool& cont) {
-    Alphabet *alphabet = bpp::SequenceApplicationTools::getAlphabet ( params, "", false );
-    return alphabet;
-    }
-
+bpp::Alphabet* getAlphabetFromOptions ( std::map <std::string, std::string>  params, bool& cont);
 
 //reads an alignment from a file and parses it according to options
 bpp::VectorSiteContainer *  getSequencesFromOptions ( std::map <std::string, std::string>  params, bpp::Alphabet* alphabet, bool& cont ) ;
@@ -375,14 +376,12 @@ bpp::DiscreteDistribution* getRateDistributionFromOptions ( std::map <std::strin
 bpp::TreeTemplate<bpp::Node> * getTreeFromOptions ( std::map <std::string,std::string> params, bpp::Alphabet *alphabet, bpp::VectorSiteContainer * sites, bpp::SubstitutionModel* model, bpp::DiscreteDistribution* rDist, bool& cont ) ;
 
 //Gets the map between sequence names and species names from options
-map <string, string> getCorrespondanceSequenceSpeciesFromOptions ( map<string, string> params, bool& cont ) ;
-
+void getCorrespondanceSequenceSpeciesFromOptions ( std::map< std::string, std::string > params, bool& cont, std::map <std::string, std::string> &seqSp, std::map<std::string, std::deque<std::string> > &spSeq );
 //Remove sequences from the alignment, e.g. if they come from species we are not interested in
-void removeUselessSequencesFromAlignment ( const bpp::TreeTemplate<Node>* spTree, bpp::VectorSiteContainer * sites, bool& cont ) ;
+void removeUselessSequencesFromAlignment ( const TreeTemplate<Node>* spTree, bpp::VectorSiteContainer * sites, bool& cont, std::map<std::string, std::deque<std::string> > &spSeq, std::string file);
 
 //Remove sequences from both the alignment and gene tree in case they have a very long branch
-void qualityControlGeneTree ( bpp::TreeTemplate<Node>* geneTree, bpp::VectorSiteContainer * sites, bool& cont ) ;
-
+void qualityControlGeneTree ( bpp::TreeTemplate<bpp::Node>* geneTree, bpp::VectorSiteContainer * sites, bool& cont, std::string file);
 
 #endif  //_RECONCILIATIONTOOLS_H_
 

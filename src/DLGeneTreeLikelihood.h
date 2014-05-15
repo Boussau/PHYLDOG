@@ -281,7 +281,7 @@ public:
   std::vector <int> get1LineagesNumbers() const;
   std::vector <int> get2LineagesNumbers() const;
   
-  ParameterList getParameters() {return levaluator_->getParameters();}
+//   ParameterList getParameters() {return levaluator_->getParameters();}
   
   TreeTemplate<Node> & getSpTree() const {return *spTree_;}
   
@@ -307,22 +307,22 @@ public:
     optimizeReconciliationLikelihood_ = yesOrNo;
   }
   
-  void optimizeNumericalParameters(map<string, string> params) {
-    
-    int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
-    bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = 100;
-    params[ std::string("optimization.topology")] = "false";
-    PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(levaluator_), levaluator_->getParameters(), params, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = backup;
-    params[ std::string("optimization.topology")] = backupOpt;
-    
-    
-    
-    /* auto_ptr<BackupListener> backupListener;
-     *            unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", optArgs, 1, "", true, false);
-     *            OptimizationTools::optimizeNumericalParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(levaluator_), levaluator_->getParameters(), backupListener.get(), nstep, );*/
-  };
+//   void optimizeNumericalParameters(map<string, string> params) {
+//     
+//     int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+//     bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
+//     params[ std::string("optimization.max_number_f_eval")] = 100;
+//     params[ std::string("optimization.topology")] = "false";
+//     PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(levaluator_), levaluator_->getParameters(), params, "", true, false);
+//     params[ std::string("optimization.max_number_f_eval")] = backup;
+//     params[ std::string("optimization.topology")] = backupOpt;
+//     
+//     
+//     
+//     /* auto_ptr<BackupListener> backupListener;
+//      *            unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", optArgs, 1, "", true, false);
+//      *            OptimizationTools::optimizeNumericalParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(levaluator_), levaluator_->getParameters(), backupListener.get(), nstep, );*/
+//   };
   
   void initialize();
   
