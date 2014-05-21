@@ -352,14 +352,15 @@ throw (Exception)
 
 /******************************************************************************/
 
-// /*
-// void DLGeneTreeLikelihood::computeSequenceLikelihood()
-// {
-//   if ( considerSequenceLikelihood_ && (optimizeSequenceLikelihood_==true) ) {
-//     levaluator_->getNniLk()->computeTreeLikelihood ();
-//   }
-// }
-// */
+
+void DLGeneTreeLikelihood::computeSequenceLikelihood()
+{
+  if ( considerSequenceLikelihood_ && (optimizeSequenceLikelihood_==true) ) {
+//     with likelihood evaluator, likelihood are always computed when the tree is modified
+//     nniLk()->computeTreeLikelihood ();
+  }
+}
+
 
 
 
@@ -412,7 +413,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
   //or if we just try all branches because the starting gene trees are parsimonious in
   //numbers of DL.
   if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
-    TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+    TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
     
     tentativeMLindex_ = MLindex_;
     tentativeNum0Lineages_ = num0Lineages_;
@@ -422,7 +423,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     
     //We first estimate the likelihood of the scenario: if not better than the current scenario, no need to estimate the branch length !
     //We use the same procedure as in doNNI !
-    const Node * son    = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->getNode(nodeId);
+    const Node * son    = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->getNode(nodeId);
     
     
     if(!son->hasFather()) throw NodeException("DLGeneTreeLikelihood::testNNI(). Node 'son' must not be the root node.", nodeId);
@@ -470,7 +471,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       { //If it is worth computing the sequence likelihood
                 levaluator_->setAlternativeTree(treeForNNI);             
 
-    double newLkMinusOldLk = levaluator_->getAlternativeLogLikelihood() -   getSequenceLikelihood();
+    double newLkMinusOldLk = (levaluator_->getAlternativeLogLikelihood() - getSequenceLikelihood());
 
 	double tot = - candidateScenarioLk + scenarioLikelihood_ + newLkMinusOldLk;
 	if (tot < 0)
@@ -525,7 +526,7 @@ void DLGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   scenarioLikelihood_ = tentativeScenarioLikelihood_;// + _brLikFunction->getValue();
   
   //Now we need to update rootedTree_
-  TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+  TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
   //First we root this temporary tree as in rootedTree_ (same lines as in testNNI)
   int id = tree->getRootNode()->getId();
   if(TreeTemplateTools::hasNodeWithId(*(rootedTree_->getRootNode()->getSon(0)),id)) {
@@ -607,13 +608,13 @@ int DLGeneTreeLikelihood::getRootNodeindex(){
  */
 /*******************************************************************************/
 
-double DLGeneTreeLikelihood::getSequenceLikelihood() {
+double DLGeneTreeLikelihood::getSequenceLikelihood() const {
   return levaluator_->getLogLikelihood(); 
 }
 /*******************************************************************************/
 
 void DLGeneTreeLikelihood::initialize() {
-  levaluator_->getNniLk()->initialize();
+  levaluator_->initialize();
   return;
 }
 
@@ -626,7 +627,7 @@ void DLGeneTreeLikelihood::print () const {
   std::cout << "Gene family rooted tree:"<<std::endl;
   std::cout << TreeTemplateTools::treeToParenthesis (getRootedTree(), true)<<std::endl;
   std::cout << "Gene family tree:"<<std::endl;
-  std::cout << TreeTemplateTools::treeToParenthesis (levaluator_->getTree(), true)<<std::endl;
+  std::cout << TreeTemplateTools::treeToParenthesis (*(levaluator_->getTree()), true)<<std::endl;
   std::cout << "0 lineage numbers"<<std::endl;
   VectorTools::print(get0LineagesNumbers());
   std::cout << "1 lineage numbers"<<std::endl;
@@ -758,7 +759,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	      bestTree = 0;
 	    }
 	    
-	    bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+	    bestTree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
 	    //Rooting bestTree as in TreeForSPR:
 	    vector<Node*> rlkNodes = bestTree->getNodes();
 	    for (unsigned int j = 0 ; j < rlkNodes.size() ; j++) {
@@ -977,7 +978,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 		  delete bestTree;
 		  bestTree = 0;
 		}
-		bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+		bestTree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
 		//Rooting bestTree as in TreeForSPR:
 		vector<Node*> rlkNodes = bestTree->getNodes();
 		for (unsigned int j = 0 ; j < rlkNodes.size() ; j++) {
@@ -1117,6 +1118,8 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
   //double bestCurrentCandidateScenarioLk;
   bool computeSequenceLikelihoodForSPR = ApplicationTools::getBooleanParameter("compute.sequence.likelihood.in.sprs", params, true, "", false, false);
   
+  double logL = 0;
+  double bestlogL = 0;
   
   while (1)
   {
@@ -1175,7 +1178,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 	  delete bestTree;
 	  bestTree = 0;
 	}
-	bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+	bestTree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
 	//Rooting bestTree as in TreeForSPR:
 	vector<Node*> rlkNodes = bestTree->getNodes();
 	
@@ -1282,7 +1285,7 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
   bool test = true;
   do
   { 
-    TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(nniLk_->getTree()))->clone();
+    TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
     vector<Node *> nodes = tree->getNodes();
     
     vector<Node *> nodesSub = nodes;

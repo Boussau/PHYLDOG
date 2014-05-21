@@ -395,7 +395,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
   //or if we just try all branches because the starting gene trees are parsimonious in
   //numbers of DL.
   if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
-    TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+    TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
     
     tentativeMLindex_ = MLindex_;
     tentativeCoalCounts_ = coalCounts_;
@@ -404,7 +404,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     
     //We first estimate the likelihood of the scenario: if not better than the current scenario, no need to estimate the branch length !
     //We use the same procedure as in doNNI !
-    const Node * son    = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->getNode(nodeId);
+    const Node * son    = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->getNode(nodeId);
     
     
     if(!son->hasFather()) throw NodeException("COALGeneTreeLikelihood::testNNI(). Node 'son' must not be the root node.", nodeId);
@@ -511,7 +511,7 @@ void COALGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
   scenarioLikelihood_ = tentativeScenarioLikelihood_;// + _brLikFunction->getValue();
   
   //Now we need to update rootedTree_
-  TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+  TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
   
   //First we root this temporary tree as in rootedTree_ (same lines as in testNNI)
   int id = tree->getRootNode()->getId();
@@ -601,11 +601,11 @@ int COALGeneTreeLikelihood::getRootNodeindex(){
  */
 /*******************************************************************************/
 
-double COALGeneTreeLikelihood::getSequenceLikelihood() {
+double COALGeneTreeLikelihood::getSequenceLikelihood() const {
   //TODO différence entre getValue et getLogLikelihood
   //a priori question de signe
   //dispensable ?
-  return levaluator_->getValue();
+  return levaluator_->getLogLikelihood();
 }
 /*******************************************************************************/
 
@@ -623,7 +623,7 @@ void COALGeneTreeLikelihood::print () const {
   std::cout << "Gene family rooted tree:"<<std::endl;
   std::cout << TreeTemplateTools::treeToParenthesis (getRootedTree(), true)<<std::endl;
   std::cout << "Gene family tree:"<<std::endl;
-  std::cout << TreeTemplateTools::treeToParenthesis (levaluator_->getTree(), true)<<std::endl;
+  std::cout << TreeTemplateTools::treeToParenthesis (*(levaluator_->getTree()), true)<<std::endl;
   std::cout << "Branch lengths"<<std::endl;
   VectorTools::print(getCoalBranchLengths());
   std::cout << "Root index"<<std::endl;
@@ -739,7 +739,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
               delete bestTree;
               bestTree = 0;
             }                     
-            bestTree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+            bestTree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
             
             //Rooting bestTree as in TreeForSPR:
             vector<Node*> rlkNodes = bestTree->getNodes();
@@ -841,7 +841,7 @@ void COALGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsi
   bool test = true;
   do
   { 
-    TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (&(levaluator_->getTree()))->clone();
+    TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
     vector<Node *> nodes = tree->getNodes();
     
     vector<Node *> nodesSub = nodes;

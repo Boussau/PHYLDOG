@@ -28,6 +28,7 @@ target_link_libraries(phyldog
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_MPI_LIBRARY}
   ${MPI_LIBRARIES}
+  ${PLL_LIBRARIES}
   ${LIBS}
 )
 

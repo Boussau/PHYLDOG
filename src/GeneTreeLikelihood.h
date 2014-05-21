@@ -263,9 +263,9 @@ public:
     optimizeReconciliationLikelihood_ = yesOrNo;
   }
   
-//   NNIHomogeneousTreeLikelihood* getSequenceLikelihoodObject() const {
-//     return nniLk_;
-//   }
+  LikelihoodEvaluator* getSequenceLikelihoodObject() const {
+    return levaluator_;
+  }
   
   unsigned int getSprLimitGeneTree() const {
     return sprLimitGeneTree_; 

@@ -43,6 +43,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Seq/GeneticCode/StandardGeneticCode.h>
 
+using namespace bpp;
+using namespace std;
+
 /**************************************************************************
  * This function creates a sequence tree from a species tree and a std::map 
  * containing the link between the species and their sequences.

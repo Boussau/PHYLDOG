@@ -267,7 +267,7 @@ using namespace bpp;
         
         //void resetSequenceLikelihood();
         
-        double getSequenceLikelihood();
+        double getSequenceLikelihood() const;
         
         void OptimizeSequenceLikelihood(bool yesOrNo) const  {
             optimizeSequenceLikelihood_ = yesOrNo;

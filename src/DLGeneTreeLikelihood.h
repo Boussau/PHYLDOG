@@ -252,7 +252,7 @@ public:
   
   double getLogLikelihood() const;
   
-//   void computeSequenceLikelihood();
+  void computeSequenceLikelihood();
   
   void computeReconciliationLikelihood();
   
@@ -297,7 +297,7 @@ public:
   
   //void resetSequenceLikelihood();
   
-  double getSequenceLikelihood();
+  double getSequenceLikelihood() const;
   
   void OptimizeSequenceLikelihood(bool yesOrNo) const  {
     optimizeSequenceLikelihood_ = yesOrNo;

@@ -283,11 +283,11 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
           treeLikelihoods_.push_back(tl);          
           allParams_.push_back( params_ ); 
          // allAlphabets_.push_back(alphabet);
-          allDatasets_.push_back(tl->getSequenceLikelihoodObject()->getData()->clone());
+          allDatasets_.push_back(tl->getSequenceLikelihoodObject()->getSites()->clone());
           allModels_.push_back(tl->getSequenceLikelihoodObject()->getSubstitutionModel ());
           allDistributions_.push_back(tl->getSequenceLikelihoodObject()->getRateDistribution ());
           allGeneTrees_.push_back(tl->getRootedTree().clone());
-          allUnrootedGeneTrees_.push_back(new TreeTemplate<Node> (tl->getSequenceLikelihoodObject()->getTree() ) );
+          allUnrootedGeneTrees_.push_back(new TreeTemplate<Node>(*(tl->getSequenceLikelihoodObject()->getTree())) );
 	  allSeqSps_.push_back( tl->getSeqSp() );
 	  allSprLimitGeneTree_.push_back(tl->getSprLimitGeneTree() );
 	  
@@ -393,7 +393,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
         {
             DLGeneTreeLikelihood* tl = dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i]);
             tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
-            tl->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
+//             tl->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
             tl->initParameters();
             allLogLs_.push_back(tl->getValue());
             if(std::isinf(allLogLs_[i]))
@@ -428,7 +428,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
         else if (reconciliationModel_ == "COAL") {
             COALGeneTreeLikelihood* tl = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i] );
             tl->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
-            tl->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
+//             tl->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
             tl->initParameters();
             allLogLs_.push_back(tl->getValue());
             if(std::isinf(allLogLs_[i]))
@@ -746,7 +746,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 						    if (! dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->isInitialized() ) {
 							    dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
 						    }
-						    dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
+// 						    dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
 						    dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->initParameters();
 					    }
 					    else if (reconciliationModel_ == "COAL") {
@@ -755,7 +755,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 						    }
 						    //If not using the backuplks
 						    dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
-						    dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
+// 						    dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
 						    dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->initParameters();
 					    }
 				    }

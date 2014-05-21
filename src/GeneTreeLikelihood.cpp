@@ -212,10 +212,6 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   }
   else 
   {
-    if (sites)
-      delete sites;
-    if (alphabet)
-      delete alphabet;
     throw geneTreeLikelihoodEx;
   }
   
@@ -262,7 +258,7 @@ throw (Exception):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(seqSp), spId_(spId), heuristicsLevel_(0)
 {
   
-  levaluator_ = new LikelihoodEvaluator(tree, model, rDist, checkRooted, verbose); 
+  levaluator_ = new LikelihoodEvaluator(params_); 
   spTree_ = spTree.clone();
   rootedTree_ = rootedTree.clone();
   geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
@@ -324,7 +320,7 @@ GeneTreeLikelihood::GeneTreeLikelihood(
 throw (Exception):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0)
 {
-  levaluator_ = new LikelihoodEvaluator(tree, data, model, rDist, checkRooted, verbose);
+  levaluator_ = new LikelihoodEvaluator(params_);
   spTree_ = spTree.clone();
   rootedTree_ = rootedTree.clone();
   geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
