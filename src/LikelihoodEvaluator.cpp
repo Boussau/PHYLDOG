@@ -406,6 +406,12 @@ TreeTemplate< Node >* LikelihoodEvaluator::getTree()
   return tree;
 }
 
+SubstitutionModel* LikelihoodEvaluator::getSubstitutionModel()
+{
+  return substitutionModel;
+}
+
+
 void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 {
   vector<string> seqNames = sites->getSequencesNames();

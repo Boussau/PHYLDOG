@@ -150,7 +150,7 @@ bpp::TreeTemplate<bpp::Node>  * buildBioNJTree (std::map<std::string, std::strin
 /******************************************************************************/
 void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
                                                 bpp::TreeTemplate<bpp::Node>  *& unrootedGeneTree, 
-                                                bpp::SiteContainer * sites, 
+                                                bpp::VectorSiteContainer * sites, 
                                                 bpp::SubstitutionModel* model, 
                                                 bpp::DiscreteDistribution* rDist, 
                                                 std::string file, 

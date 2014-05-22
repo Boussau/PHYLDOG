@@ -345,7 +345,8 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
 GeneTreeLikelihood::GeneTreeLikelihood(const GeneTreeLikelihood & lik):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (lik.seqSp_), spId_(lik.spId_), heuristicsLevel_(0)
 {
-  levaluator_ = lik.levaluator_->clone(); 
+//   levaluator_ = lik.levaluator_->clone(); 
+  levaluator_ = new LikelihoodEvaluator(params_);
   spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone()) ;
   rootedTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.rootedTree_->clone()) ;
   geneTreeWithSpNames_ = dynamic_cast<TreeTemplate<Node> *> (lik.geneTreeWithSpNames_->clone()) ;
@@ -368,7 +369,9 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
 GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & lik)
 {
   if (levaluator_) delete levaluator_;
-  levaluator_ = lik.levaluator_->clone(); 
+//   levaluator_ = lik.levaluator_->clone(); 
+    levaluator_ = new LikelihoodEvaluator(params_);
+
   if (spTree_) delete spTree_;
   spTree_ = dynamic_cast<TreeTemplate<Node> *> (lik.spTree_->clone());
   if (rootedTree_) delete rootedTree_;
