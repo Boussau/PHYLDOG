@@ -81,6 +81,9 @@ set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 # Source Directory
 add_subdirectory(src ${PHYLDOG_BINARY_DIR})
 
+# Tests
+add_subdirectory(tests)
+
 
 # Packager
 SET(CPACK_PACKAGE_NAME "phyldog")

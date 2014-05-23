@@ -11,7 +11,8 @@ SET(PHYLDOG_SRCS
   COALGeneTreeLikelihood.h
   GeneTreeLikelihood.cpp
   GeneTreeLikelihood.h
-  COALTools.cpp COALTools.h
+  COALTools.cpp
+  COALTools.h
   GenericTreeExplorationAlgorithms.h
   GenericTreeExplorationAlgorithms.cpp
   GeneTreeAlgorithms.h
