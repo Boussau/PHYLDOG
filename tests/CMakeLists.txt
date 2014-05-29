@@ -33,3 +33,5 @@ target_link_libraries(test_likelihoodEvaluator
   ${PLL_LIBRARIES}
   ${LIBS}
 )
+
+install(TARGETS test_likelihoodEvaluator DESTINATION tests)

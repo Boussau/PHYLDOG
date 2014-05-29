@@ -130,7 +130,7 @@ int main(int args, char** argv)
   }
   catch (exception& e)
   {
-    // cout << e.what() << endl;
+    cout << e.what() << endl;
     return 1;
   }
   

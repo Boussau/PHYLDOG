@@ -86,6 +86,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   levaluator_ = new LikelihoodEvaluator(params_);
 
   
+  
   //TODO: dirty cont to eliminate
   bool cont = true;
   //method to optimize the gene tree root; only useful if heuristics.level!=0.
@@ -105,8 +106,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
      * Then we need to get the file containing the gene tree, 
      * or build the gene tree.
      *****************************************************************************/
-    
-    
+    rootedTree_ = getTreeFromOptions(params_, levaluator_->getAlphabet(), levaluator_->getSites(), levaluator_->getSubstitutionModel(), levaluator_->getRateDistribution(), cont);
   }
   
   if (cont) 

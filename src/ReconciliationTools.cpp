@@ -3190,7 +3190,7 @@ TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *
 {
   string file = ApplicationTools::getStringParameter ( "input.sequence.file",params,"none" );
   
-  TreeTemplate<Node> *  rootedTree;
+  TreeTemplate<Node> *  rootedTree = 00;
   // Get the initial gene tree
   string initTree = ApplicationTools::getStringParameter ( "init.gene.tree", params, "user", "", false, false );
   ApplicationTools::displayResult ( "Input gene tree", initTree );
@@ -3417,6 +3417,7 @@ void qualityControlGeneTree ( TreeTemplate<Node>* geneTree, bpp::VectorSiteConta
 bpp::Alphabet* getAlphabetFromOptions ( std::map <std::string, std::string>  params, bool& cont)
 {
   Alphabet *alphabet = bpp::SequenceApplicationTools::getAlphabet ( params, "", false );
+  cont = true;
   return alphabet;
 }
 

@@ -85,6 +85,16 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
 {
   initialized=false;
   
+  // set the name of this evaluator
+  istringstream tempName(ApplicationTools::getStringParameter("input.sequence.file",params,"rnd"));
+  while(std::getline(tempName,name,'/'))
+    ;
+  tempName.str(name);
+  tempName.clear();
+  std::getline(tempName,name,'.');
+  if(name.size() == 0)
+    name = "unnamed";
+    
   string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
   method = (methodString == "PLL"? PLL:BPP);
   
@@ -95,23 +105,18 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   alphabet =  getAlphabetFromOptions(params, cont);
 
   if (!cont)
-    throw(Exception("Unable to load this family"));
+    throw(Exception("Unable to load this family: Alphabet"));
  
   sites = getSequencesFromOptions(params, alphabet, cont);
 
   if (!cont)
-    throw(Exception("Unable to load this family"));
+    throw(Exception("Unable to load this family: Sequences"));
  
   substitutionModel = getModelFromOptions(params, alphabet, sites, cont);
 
   if (!cont)
-    throw(Exception("Unable to load this family"));
-    
-//   if (substitutionModel->getName() != "RE08")
-//     SiteContainerTools::changeGapsToUnknownCharacters(*sites, cont);
- 
-  if (!cont)
-    throw(Exception("Unable to load this family"));
+    throw(Exception("Unable to load this family: Model"));
+   
  
   rateDistribution = getRateDistributionFromOptions(params, substitutionModel, cont);
   
@@ -137,8 +142,8 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
 void LikelihoodEvaluator::PLL_loadAlignment(string path)
 {
   /* Parse a PHYLIP/FASTA file */
-  pllAlignmentData * alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path.c_str());
-  if (!alignmentData)
+  PLL_alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path.c_str());
+  if (!PLL_alignmentData)
   {
     throw Exception("PLL: Error while parsing " + path);
   }
@@ -216,6 +221,7 @@ void LikelihoodEvaluator::initialize_BPP_nniLk()
 
 void LikelihoodEvaluator::initialize_PLL()
 {
+
   // #1 PREPARING
   // must have the strict names loaded
   loadStrictNamesFromAlignment_forPLL();
@@ -240,14 +246,14 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
   
   // getting the root
   bool wasRooted = (treeForPLL->isRooted() ? true : false);
-  set<Node*> leaves1, leaves2;
+  set<string> leaves1, leaves2;
   if(wasRooted)
   {
     Node* root = treeForPLL->getRootNode();
     Node* son1 = root->getSon(0);
     Node* son2 = root->getSon(1);
-    vector<Node*> leaves1Vector = TreeTemplateTools::getLeaves<Node>(*son1);
-    vector<Node*> leaves2Vector = TreeTemplateTools::getLeaves<Node>(*son1);
+    vector<string> leaves1Vector = TreeTemplateTools::getLeavesNames(*son1);
+    vector<string> leaves2Vector = TreeTemplateTools::getLeavesNames(*son2);
     leaves1.insert(leaves1Vector.begin(),leaves1Vector.end());
     leaves2.insert(leaves2Vector.begin(),leaves2Vector.end());
     treeForPLL->unroot();
@@ -256,7 +262,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
   
   Newick newickForPll;
   stringstream newickStingForPll;
-  newickForPll.write(*treeToEvaluate,newickStingForPll);
+  newickForPll.write(*treeForPLL,newickStingForPll);
   PLL_loadNewick_fromString(newickStingForPll.str());
   delete treeForPLL;
   
@@ -265,7 +271,12 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
   pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
   
   // getting the new tree with now branch lengths
+  pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
   newickStingForPll.str(PLL_instance->tree_string);
+  
+  //debug
+  cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
+  
   delete treeToEvaluate;
   treeToEvaluate = newickForPll.read(newickStingForPll);
   
@@ -279,8 +290,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
     vector<Node*> rootSons = treeToEvaluate->getRootNode()->getSons();
     for(vector<Node*>::iterator currSon = rootSons.begin(); currSon != rootSons.end(); currSon++)
     {
-      vector<Node*> currLeavesVector = TreeTemplateTools::getLeaves<Node>(**currSon);
-      set<Node*> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+      vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
+      set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
       if(currLeavesSet == leaves1 || currLeavesSet == leaves2)
         treeToEvaluate->newOutGroup(*currSon);
     }
@@ -304,26 +315,21 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
 
 LikelihoodEvaluator::~LikelihoodEvaluator()
 {
-  if(method == PLL){
-    delete tree;
-  }
-  else
-  {
-    delete nniLk;
-    if(nniLkAlternative)
-      delete nniLkAlternative;
-    //TODO delete all the trees, etc
-  }
+//   if(method == PLL){
+//     delete tree;
+//   }
+//   else
+//   {
+//     delete nniLk;
+//     if(nniLkAlternative)
+//       delete nniLkAlternative;
+//     //TODO delete all the trees, etc
+//   }
 }
 
 void LikelihoodEvaluator::initialize()
 {
   // ### common requirements for initialization
-  // make a name for this family from the alignemnt file name
-  istringstream ss_alignFile(ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL"));
-  while(getline(ss_alignFile,name,'/'))
-    ; // do nothing
-  
   if(method == PLL)
     initialize_PLL();
   else
@@ -415,13 +421,36 @@ SubstitutionModel* LikelihoodEvaluator::getSubstitutionModel()
 void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 {
   vector<string> seqNames = sites->getSequencesNames();
-  string currStrictName, currName;
+  string currName;
+  ostringstream currStrictName;
   for(unsigned int currIdx = 0; currIdx != seqNames.size(); currIdx++)
   {
     currName = seqNames.at(currIdx);
-    currStrictName = "seq" + currIdx;
-    realToStrict[currName] = currStrictName;
-    strictToReal[currStrictName] = currName;
+    if(currName.at(currName.size()-1) == '\r')
+      currName = currName.substr(0,(currName.size()-1));
+    
+//     cout << "Curr sequence name = ..." << currName << "..." << endl; 
+    
+    
+//     // determining current postfix with letters instead of integers.
+//     // Thanks PLL to be so strict!...
+//     // (it is not a clean base conversion)
+//     ostringstream currPrefix;
+//     unsigned int currIntegerPrefix = currIdx+1;
+//     while(currIntegerPrefix != 0)
+//     {
+//       unsigned int unit = currIntegerPrefix % 10;
+//       currPrefix << (char)('A' + unit);
+//       currIntegerPrefix = currIntegerPrefix / 10;
+//     }
+//     cout << "curr prefix = " << currPrefix.str() << endl;
+    
+    currStrictName.clear();
+    currStrictName.str("");
+    currStrictName << "seq" << currIdx;
+    realToStrict[currName] = currStrictName.str();
+    strictToReal[currStrictName.str()] = currName;
+    
   }
   
 }
@@ -429,7 +458,8 @@ void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >* targetTree)
 {
   vector<Node*> leaves = targetTree->getLeaves();
-  for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++){
+  for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++)
+  {
     (*currLeaf)->setName(realToStrict[(*currLeaf)->getName()]);
   }
 }
@@ -445,7 +475,7 @@ void LikelihoodEvaluator::restoreTreeFromStrict(TreeTemplate< Node >* targetTree
 
 void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
-  fileNamePrefix = name + "_" ;
+  fileNamePrefix = "temporaryFileForPLL_" + name + "_" ;
   ofstream alignementFile(string(fileNamePrefix + "alignment.fasta").c_str(), ofstream::out);
   
   //preparing the file for the alignment
@@ -453,7 +483,10 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   for(unsigned int currSeqIndex = 0; currSeqIndex != sites->getNumberOfSequences(); currSeqIndex++)
   {
     currSequence = sites->getSequence(currSeqIndex);
-    alignementFile << ">" << realToStrict[currSequence.getName()] << "\n" << currSequence.toString() << "\n";
+    string currSequenceName = currSequence.getName();
+    if(currSequenceName.at(currSequenceName.size()-1) == '\r')
+      currSequenceName = currSequenceName.substr(0,(currSequenceName.size()-1));
+    alignementFile << ">" << realToStrict[currSequenceName] << "\n" << currSequence.toString() << "\n";
   }
   alignementFile.close();
   
