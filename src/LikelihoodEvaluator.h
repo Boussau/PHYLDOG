@@ -436,6 +436,11 @@ public:
   */
   LikelihoodEvaluator(std::map<std::string, std::string> params);
   
+  /**
+  * @brief load data from params. Used to emulate constructor chaining.
+  */
+  void loadDataFromParams();
+  
   
   /**
   * @brief copy from another object

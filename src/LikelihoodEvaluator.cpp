@@ -81,9 +81,12 @@ void LikelihoodEvaluator::PLL_initializePLLInstance(){
 
 
 LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
-  params(params), alternativeTree(00)
+  params(params), alternativeTree(00), initialized(false)
 {
-  initialized=false;
+  loadDataFromParams();
+}
+
+void LikelihoodEvaluator::loadDataFromParams(){
   
   // set the name of this evaluator
   istringstream tempName(ApplicationTools::getStringParameter("input.sequence.file",params,"rnd"));
@@ -94,6 +97,8 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   std::getline(tempName,name,'.');
   if(name.size() == 0)
     name = "unnamed";
+  
+  cout << "Instanciating a Likelihood Evaluator named " << name << endl;
     
   string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
   method = (methodString == "PLL"? PLL:BPP);
@@ -130,8 +135,8 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
     std::cout << e.what() <<"; Unable to get a proper gene tree for family <<file<< avoiding this family."<<std::endl;
     cont=false;
   }
-    
 }
+
 
 // TODO: is clonable?
 // LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator &levaluator){
@@ -514,7 +519,7 @@ void LikelihoodEvaluator::restoreTreeFromStrict(TreeTemplate< Node >* targetTree
 
 void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
-  fileNamePrefix = "temporaryFileForPLL_" + name + "_" ;
+  fileNamePrefix = "tmpPLL_" + name + "_" ;
   ofstream alignementFile(string(fileNamePrefix + "alignment.fasta").c_str(), ofstream::out);
   
   //preparing the file for the alignment
@@ -537,4 +542,21 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   //TODO: take into account the alphabet
   partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
   partitionFile.close();
+}
+
+LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator const &leval):
+params(leval.params)
+{
+  
+  loadDataFromParams();
+  tree = leval.tree;
+  sites = leval.sites;
+  
+  if(leval.initialized)
+    initialize();
+}
+
+LikelihoodEvaluator* LikelihoodEvaluator::clone()
+{
+  return new LikelihoodEvaluator(*this);
 }
