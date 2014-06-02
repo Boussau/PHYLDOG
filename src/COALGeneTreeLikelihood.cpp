@@ -286,6 +286,7 @@ void COALGeneTreeLikelihood::resetMLindex() {
 /* We need to introduce in the likelihood computation the scenario likelihood */
 double COALGeneTreeLikelihood::getLogLikelihood() const
 {
+  cout << "(COAL)sequence likelihood=" <<  levaluator_->getLogLikelihood() << "/nscenario likelihood=" << scenarioLikelihood_ << endl;
   double ll = 0;
   if (considerSequenceLikelihood_) {
     ll = levaluator_->getLogLikelihood() + scenarioLikelihood_;

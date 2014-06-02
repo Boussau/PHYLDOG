@@ -120,6 +120,15 @@ int main(int args, char** argv)
     
     cout << "Computed Likelihood = " << le.getLogLikelihood() << endl;
     
+    cout << "Now, setting an alternative tree." << endl;
+    le.setAlternativeTree(le.getTree());
+    
+    cout << "... accepting it." << endl;
+    le.acceptAlternativeTree();
+    
+    cout << "log likelihood of the alternative tree = " << le.getLogLikelihood() << endl;
+    
+    
 //     // Displaying resulting tree
 //     Tree2String(tr->tree_string, tr, partitions, tr->start->back, true, true, 0, 0, 0, true, 0,0);
 //     

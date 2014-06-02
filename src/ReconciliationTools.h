@@ -320,6 +320,12 @@ void computeDuplicationAndLossRatesForTheSpeciesTreeInitially ( std::string &bra
         std::vector<double> & duplicationProbabilities,
         const std::map <std::string, int> & genomeMissing,
         const TreeTemplate<Node> & tree );
+
+
+/**
+  * Cleanly remove a leaf from a tree, to get a propre tree
+  */
+
 void removeLeaf ( TreeTemplate<Node> & tree, std::string toRemove );
 void cleanVectorOfOptions ( std::vector<std::string> & listOptions, bool sizeConstraint );
 bool sortMaxFunction ( std::pair <std::string, double> i, std::pair <std::string, double> j );

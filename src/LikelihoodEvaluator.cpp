@@ -81,7 +81,7 @@ void LikelihoodEvaluator::PLL_initializePLLInstance(){
 
 
 LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
-  params(params)
+  params(params), alternativeTree(00)
 {
   initialized=false;
   
@@ -234,14 +234,31 @@ void LikelihoodEvaluator::initialize_PLL()
   PLL_loadAlignment(fileNamePrefix + "alignment.fasta");
   PLL_loadPartitions(fileNamePrefix + "partition.txt");
   
-  logLikelihood = PLL_evaluate(tree);
+  logLikelihood = PLL_evaluate(&tree);
   
 }
 
-double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
+void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 {
+  if(!isInitialized())
+    tree = newTree->clone();
+  else
+    throw Exception("This evaluator has already be initialized. It is forbidden to modify it now.");
+}
+
+
+
+double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
+{
+  
+  //TODO debug remove
+  Newick debugTree;
+  stringstream debugSS;
+  debugTree.write(**treeToEvaluate,debugSS);
+  cout << "tree to evaluate:\n" << debugSS.str() << endl;
+  
   // preparing the tree
-  TreeTemplate<Node>* treeForPLL = treeToEvaluate->clone();
+  TreeTemplate<Node>* treeForPLL = (*treeToEvaluate)->clone();
   convertTreeToStrict(treeForPLL);
   
   // getting the root
@@ -269,7 +286,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
   // processing by PLL
   PLL_connectTreeAndAlignment();
   pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
-  
+  pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
   // getting the new tree with now branch lengths
   pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
   newickStingForPll.str(PLL_instance->tree_string);
@@ -277,8 +294,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
   //debug
   cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
   
-  delete treeToEvaluate;
-  treeToEvaluate = newickForPll.read(newickStingForPll);
+  delete *treeToEvaluate;
+  *treeToEvaluate = newickForPll.read(newickStingForPll);
   
   
   //re-rooting if needed
@@ -287,20 +304,25 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>* treeToEvaluate)
     // the plyogenetic root is between the current topological
     // root and one of the three sons
     // so, one of the three sons of a root is the outgroup
-    vector<Node*> rootSons = treeToEvaluate->getRootNode()->getSons();
+    vector<Node*> rootSons = (*treeToEvaluate)->getRootNode()->getSons();
     for(vector<Node*>::iterator currSon = rootSons.begin(); currSon != rootSons.end(); currSon++)
     {
       vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
       set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
-      if(currLeavesSet == leaves1 || currLeavesSet == leaves2)
-        treeToEvaluate->newOutGroup(*currSon);
+      if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+        (*treeToEvaluate)->newOutGroup(*currSon);
     }
-    if(!treeToEvaluate->isRooted())
+    if(!(*treeToEvaluate)->isRooted())
       throw Exception("Unable to re-root the tree.");
     
   }
   
-  restoreTreeFromStrict(treeToEvaluate);
+  restoreTreeFromStrict(*treeToEvaluate);
+  
+  //TODO debug remove
+  stringstream debugSS2;
+  debugTree.write(**treeToEvaluate,debugSS2);
+  cout << "Final tree for BPP" << debugSS2.str() << endl;
   
   return(PLL_instance->likelihood);
 }
@@ -329,6 +351,14 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
 
 void LikelihoodEvaluator::initialize()
 {
+  
+  //checking the alignment and the tree contain the same number of sequences
+  if(sites->getNumberOfSequences() != tree->getNumberOfLeaves()){
+    ostringstream errorMessage;
+    errorMessage << "\nNumber of sequences (here: "<< sites->getNumberOfSequences() << "sequences) must match to number of leaves in the tree (here: "<< tree->getNumberOfLeaves() << "leaves). I give up.";
+    throw Exception(errorMessage.str());
+  }
+  
   // ### common requirements for initialization
   if(method == PLL)
     initialize_PLL();
@@ -346,7 +376,7 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternativ
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
   if(method == PLL){
-    alternativeLogLikelihood = PLL_evaluate(alternativeTree);
+    alternativeLogLikelihood = PLL_evaluate(&alternativeTree);
   }
   else
   {
@@ -457,10 +487,19 @@ void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 
 void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >* targetTree)
 {
+  
   vector<Node*> leaves = targetTree->getLeaves();
   for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++)
   {
-    (*currLeaf)->setName(realToStrict[(*currLeaf)->getName()]);
+    map<string,string>::iterator found = realToStrict.find((*currLeaf)->getName());
+    if(found == realToStrict.end())
+    {
+      cout << "Unable to find sequence named ++" << (*currLeaf)->getName() << "++ in the alignment." << endl;
+    }
+    else
+    {
+      (*currLeaf)->setName(found->second);
+    }
   }
 }
 
@@ -480,6 +519,10 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   
   //preparing the file for the alignment
   BasicSequence currSequence(sites->getAlphabet());
+  
+  //DEBUG
+  cout << "Writing an alignment for PLL with " << sites->getNumberOfSequences() << " sequences" << endl;
+  
   for(unsigned int currSeqIndex = 0; currSeqIndex != sites->getNumberOfSequences(); currSeqIndex++)
   {
     currSequence = sites->getSequence(currSeqIndex);

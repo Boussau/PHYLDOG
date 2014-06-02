@@ -112,6 +112,10 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   if (cont) 
   { //This family is phylogenetically informative
     qualityControlGeneTree ( rootedTree_, levaluator_->getSites(), cont , file) ;
+    
+    
+    // set the levaluator tree to the modified one
+    levaluator_->setTree(rootedTree_);    
   }
   if (cont) 
   { //This family is phylogenetically informative

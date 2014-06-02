@@ -168,7 +168,7 @@ private:
    * @param prefix a BPP tree
    * @return the logLikelihood
    */
-  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>* treeToEvaluate);
+  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
 
   
   
@@ -365,6 +365,13 @@ public:
    * @brief tree, managed by BPP
    */
   bpp::TreeTemplate<bpp::Node> * getTree();
+  
+  /**
+   * @brief set the tree to this new one. Can only be called befor initialization.
+   */
+  void setTree(bpp::TreeTemplate<bpp::Node> * newTree);
+
+  
   
   ///@}
   

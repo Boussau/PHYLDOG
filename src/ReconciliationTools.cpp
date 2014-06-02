@@ -3340,7 +3340,7 @@ void removeUselessSequencesFromAlignment ( const TreeTemplate<Node>* spTree, bpp
   for ( std::map<std::string, std::deque<std::string> >::iterator it = spSeq.begin(); it != spSeq.end(); it++ ) {
     if ( !VectorTools::contains ( spNamesToTake,it->first ) ) {
       for ( std::deque<std::string >::iterator it2 = ( it->second ).begin(); it2 != ( it->second ).end(); it2++ ) {
-        std::cout<<"Removing sequence of species not considered"<<std::endl;
+        std::cout<<"Removing sequence of species not considered: " << it->first <<std::endl;
         seqsToRemove.push_back ( *it2 );
       }
     }
@@ -3382,6 +3382,12 @@ void qualityControlGeneTree ( TreeTemplate<Node>* geneTree, bpp::VectorSiteConta
       if ( sites->hasSequence ( leaves[j]->getName() ) )
         sites->deleteSequence ( leaves[j]->getName() );
     }
+    
+    // Removing sequences without leaves in the tree.
+    if ( ! sites->hasSequence ( leaves[j]->getName() )) {
+        seqsToRemove.push_back ( leaves[j]->getName() );
+    }
+    
   }
   
   if ( sites->getNumberOfSequences() >1 ) {
