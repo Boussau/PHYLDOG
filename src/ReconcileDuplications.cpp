@@ -230,18 +230,18 @@ int main(int args, char ** argv)
         //##################################################################################################################
         if (rank >server)
 	  {
-              //  Code useful to use GDB on clients.
-		int z = 0;
-	      //   char hostname[256];
-	      //gethostname(hostname, sizeof(hostname));
-	      std::cout <<"- PID: "<<getpid()<<std::endl;
-	      std::cout <<"-   z: "<<z<<std::endl;
-	      //printf("PID %d on %s ready for attach\n", getpid(), hostname);
-	      // fflush(stdout);
-	      while (0 == z){
-                std::cout << " z=" << z <<std::endl;
-                sleep(5);
-	      }
+//               //  Code useful to use GDB on clients.
+// 		int z = 0;
+// 	      //   char hostname[256];
+// 	      //gethostname(hostname, sizeof(hostname));
+// 	      std::cout <<"- PID: "<<getpid()<<std::endl;
+// 	      std::cout <<"-   z: "<<z<<std::endl;
+// 	      //printf("PID %d on %s ready for attach\n", getpid(), hostname);
+// 	      // fflush(stdout);
+// 	      while (0 == z){
+//                 std::cout << " z=" << z <<std::endl;
+//                 sleep(5);
+// 	      }
       
 	      ApplicationTools::startTimer();
 	      bool debug = ApplicationTools::getBooleanParameter("debug",params,false);
