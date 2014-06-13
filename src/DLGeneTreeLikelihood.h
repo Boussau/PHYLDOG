@@ -109,57 +109,57 @@ public:
 		       TreeTemplate<Node> & spTree ) throw (exception);
   
   
-  /**
-   * @brief Build a new DLGeneTreeLikelihood object.
-   *
-   * @param tree The tree to use.
-   * @param model The substitution model to use.
-   * @param rDist The rate across sites distribution to use.
-   * @param spTree The species tree
-   * @param rootedTree rooted version of the gene tree
-   * @param seqSp link between sequence and species names
-   * @param spId link between species name and species ID
-   * @param lossNumbers vector to store loss numbers per branch
-   * @param lossProbabilities vector to store expected numbers of losses per branch
-   * @param duplicationNumbers vector to store duplication numbers per branch
-   * @param duplicationProbabilities vector to store expected numbers of duplications per branch
-   * @param branchNumbers vector to store branch numbers in the tree
-   * @param num0Lineages vectors to store numbers of branches ending with a loss
-   * @param num1Lineages vectors to store numbers of branches ending with 1 gene
-   * @param num2Lineages vectors to store numbers of branches ending with 2 genes
-   * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
-   * @param heuristicsLevel type of heuristics used
-   * @param MLindex ML rooting position
-   * @param checkRooted Tell if we have to check for the tree to be unrooted.
-   * If true, any rooted tree will be unrooted before likelihood computation.
-   * @param verbose Should I display some info?
-   * @throw Exception in an error occured.
-   */
-  DLGeneTreeLikelihood(
-    const Tree & tree,
-    SubstitutionModel * model,
-    DiscreteDistribution * rDist,
-    TreeTemplate<Node> & spTree,  
-    TreeTemplate<Node> & rootedTree, 
-    TreeTemplate<Node> & geneTreeWithSpNames,
-    const std::map <std::string, std::string> seqSp,
-    std::map <std::string,int> spId,
-    std::vector <double> & lossProbabilities, 
-    std::vector <double> & duplicationProbabilities, 
-    std::vector <int> & num0Lineages,
-    std::vector <int> & num1Lineages,
-    std::vector <int> & num2Lineages, 
-    int speciesIdLimitForRootPosition,
-    int heuristicsLevel,
-    int & MLindex, 
-    bool checkRooted = true,
-    bool verbose = false,
-    bool rootOptimization = false, 
-    bool considerSequenceLikelihood = true, 
-    bool DLStartingGeneTree = false, 
-    unsigned int sprLimit = 2)
-  throw (Exception);
-  
+//   /**
+//    * @brief Build a new DLGeneTreeLikelihood object.
+//    *
+//    * @param tree The tree to use.
+//    * @param model The substitution model to use.
+//    * @param rDist The rate across sites distribution to use.
+//    * @param spTree The species tree
+//    * @param rootedTree rooted version of the gene tree
+//    * @param seqSp link between sequence and species names
+//    * @param spId link between species name and species ID
+//    * @param lossNumbers vector to store loss numbers per branch
+//    * @param lossProbabilities vector to store expected numbers of losses per branch
+//    * @param duplicationNumbers vector to store duplication numbers per branch
+//    * @param duplicationProbabilities vector to store expected numbers of duplications per branch
+//    * @param branchNumbers vector to store branch numbers in the tree
+//    * @param num0Lineages vectors to store numbers of branches ending with a loss
+//    * @param num1Lineages vectors to store numbers of branches ending with 1 gene
+//    * @param num2Lineages vectors to store numbers of branches ending with 2 genes
+//    * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
+//    * @param heuristicsLevel type of heuristics used
+//    * @param MLindex ML rooting position
+//    * @param checkRooted Tell if we have to check for the tree to be unrooted.
+//    * If true, any rooted tree will be unrooted before likelihood computation.
+//    * @param verbose Should I display some info?
+//    * @throw Exception in an error occured.
+//    */
+//   DLGeneTreeLikelihood(
+//     const Tree & tree,
+//     SubstitutionModel * model,
+//     DiscreteDistribution * rDist,
+//     TreeTemplate<Node> & spTree,  
+//     TreeTemplate<Node> & rootedTree, 
+//     TreeTemplate<Node> & geneTreeWithSpNames,
+//     const std::map <std::string, std::string> seqSp,
+//     std::map <std::string,int> spId,
+//     std::vector <double> & lossProbabilities, 
+//     std::vector <double> & duplicationProbabilities, 
+//     std::vector <int> & num0Lineages,
+//     std::vector <int> & num1Lineages,
+//     std::vector <int> & num2Lineages, 
+//     int speciesIdLimitForRootPosition,
+//     int heuristicsLevel,
+//     int & MLindex, 
+//     bool checkRooted = true,
+//     bool verbose = false,
+//     bool rootOptimization = false, 
+//     bool considerSequenceLikelihood = true, 
+//     bool DLStartingGeneTree = false, 
+//     unsigned int sprLimit = 2)
+//   throw (Exception);
+//   
   /**
    * @brief Build a new ReconciliationTreeLikelihood object.
    *

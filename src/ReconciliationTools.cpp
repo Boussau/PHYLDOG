@@ -3085,8 +3085,8 @@ bool anticmp ( int a, int b ) {
 
 
 /**************************************************************************/
-VectorSiteContainer *  getSequencesFromOptions ( map <string, string>  params, Alphabet* alphabet, bool& cont )
-{
+VectorSiteContainer * getSequencesFromOptions ( map <string, string>  params, Alphabet* alphabet, bool& cont )
+{  
   
   VectorSiteContainer * sites;
   

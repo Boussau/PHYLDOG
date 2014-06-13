@@ -99,46 +99,46 @@ using namespace bpp;
 				    map<string, string> params, 
 				    TreeTemplate<Node> & spTree) throw (exception) ;
 	    
-        /**
-         * @brief Build a new ReconciliationTreeLikelihood object.
-         *
-         * @param tree The tree to use.
-         * @param model The substitution model to use.
-         * @param rDist The rate across sites distribution to use.
-         * @param spTree The species tree
-         * @param rootedTree rooted version of the gene tree
-         * @param seqSp link between sequence and species names
-         * @param spId link between species name and species ID
-         * @param coalCounts vector to store coalescent numbers per branch
-         * @param coalBl vector to give number of coalescent units per branch of the species tree
-         * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
-         * @param heuristicsLevel type of heuristics used
-         * @param MLindex ML rooting position
-         * @param checkRooted Tell if we have to check for the tree to be unrooted.
-         * If true, any rooted tree will be unrooted before likelihood computation.
-         * @param verbose Should I display some info?
-         * @throw Exception in an error occured.
-         */
-        COALGeneTreeLikelihood(
-                               const Tree & tree,
-                               SubstitutionModel * model,
-                               DiscreteDistribution * rDist,
-                               TreeTemplate<Node> & spTree,  
-                               TreeTemplate<Node> & rootedTree, 
-                               TreeTemplate<Node> & geneTreeWithSpNames,
-                               const std::map <std::string, std::string> seqSp,
-                               std::map <std::string,int> spId,
-                               std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
-                               std::vector < double > coalBl,
-                               int speciesIdLimitForRootPosition,
-                               int heuristicsLevel,
-                               int & MLindex, 
-                               bool checkRooted = true,
-                               bool verbose = false,
-                               bool rootOptimization = false, 
-                               bool considerSequenceLikelihood = true, 
-                               unsigned int sprLimit = 2)
-        throw (Exception);
+//         /**
+//          * @brief Build a new ReconciliationTreeLikelihood object.
+//          *
+//          * @param tree The tree to use.
+//          * @param model The substitution model to use.
+//          * @param rDist The rate across sites distribution to use.
+//          * @param spTree The species tree
+//          * @param rootedTree rooted version of the gene tree
+//          * @param seqSp link between sequence and species names
+//          * @param spId link between species name and species ID
+//          * @param coalCounts vector to store coalescent numbers per branch
+//          * @param coalBl vector to give number of coalescent units per branch of the species tree
+//          * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
+//          * @param heuristicsLevel type of heuristics used
+//          * @param MLindex ML rooting position
+//          * @param checkRooted Tell if we have to check for the tree to be unrooted.
+//          * If true, any rooted tree will be unrooted before likelihood computation.
+//          * @param verbose Should I display some info?
+//          * @throw Exception in an error occured.
+//          */
+//         COALGeneTreeLikelihood(
+//                                const Tree & tree,
+//                                SubstitutionModel * model,
+//                                DiscreteDistribution * rDist,
+//                                TreeTemplate<Node> & spTree,  
+//                                TreeTemplate<Node> & rootedTree, 
+//                                TreeTemplate<Node> & geneTreeWithSpNames,
+//                                const std::map <std::string, std::string> seqSp,
+//                                std::map <std::string,int> spId,
+//                                std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
+//                                std::vector < double > coalBl,
+//                                int speciesIdLimitForRootPosition,
+//                                int heuristicsLevel,
+//                                int & MLindex, 
+//                                bool checkRooted = true,
+//                                bool verbose = false,
+//                                bool rootOptimization = false, 
+//                                bool considerSequenceLikelihood = true, 
+//                                unsigned int sprLimit = 2)
+//         throw (Exception);
         
         /**
          * @brief Build a new ReconciliationTreeLikelihood object.

@@ -98,53 +98,53 @@ throw (exception) : GeneTreeLikelihood(file, params, spTree)
 
 
 
-/******************************************************************************/
-COALGeneTreeLikelihood::COALGeneTreeLikelihood(
-  const Tree & tree,
-  SubstitutionModel * model,
-  DiscreteDistribution * rDist,
-  TreeTemplate<Node> & spTree,  
-  TreeTemplate<Node> & rootedTree, 
-  TreeTemplate<Node> & geneTreeWithSpNames,
-  const std::map <std::string, std::string> seqSp,
-  std::map <std::string,int> spId,
-  std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
-  std::vector < double > coalBl,
-  int speciesIdLimitForRootPosition,
-  int heuristicsLevel,
-  int & MLindex, 
-  bool checkRooted,
-  bool verbose,
-  bool rootOptimization, 
-  bool considerSequenceLikelihood, 
-  unsigned int sprLimit)
-throw (Exception):
-GeneTreeLikelihood(tree,
-                   model,
-                   rDist,
-                   spTree,  
-                   rootedTree, 
-                   geneTreeWithSpNames,
-                   seqSp,
-                   spId,
-                   speciesIdLimitForRootPosition,
-                   heuristicsLevel,
-                   MLindex, 
-                   checkRooted,
-                   verbose,
-                   rootOptimization, 
-                   considerSequenceLikelihood, 
-                   sprLimit)
-{
-  coalBl_ = coalBl;
-  coalCounts_ = coalCounts;
-  tentativeCoalCounts_ = coalCounts;
-  for (unsigned int i = 0 ; i < coalBl_.size() ; i++) {
-    num12Lineages_.push_back(0);
-    num22Lineages_.push_back(0);
-  }
-  computeNumLineagesFromCoalCounts ();
-}
+// /******************************************************************************/
+// COALGeneTreeLikelihood::COALGeneTreeLikelihood(
+//   const Tree & tree,
+//   SubstitutionModel * model,
+//   DiscreteDistribution * rDist,
+//   TreeTemplate<Node> & spTree,  
+//   TreeTemplate<Node> & rootedTree, 
+//   TreeTemplate<Node> & geneTreeWithSpNames,
+//   const std::map <std::string, std::string> seqSp,
+//   std::map <std::string,int> spId,
+//   std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
+//   std::vector < double > coalBl,
+//   int speciesIdLimitForRootPosition,
+//   int heuristicsLevel,
+//   int & MLindex, 
+//   bool checkRooted,
+//   bool verbose,
+//   bool rootOptimization, 
+//   bool considerSequenceLikelihood, 
+//   unsigned int sprLimit)
+// throw (Exception):
+// GeneTreeLikelihood(tree,
+//                    model,
+//                    rDist,
+//                    spTree,  
+//                    rootedTree, 
+//                    geneTreeWithSpNames,
+//                    seqSp,
+//                    spId,
+//                    speciesIdLimitForRootPosition,
+//                    heuristicsLevel,
+//                    MLindex, 
+//                    checkRooted,
+//                    verbose,
+//                    rootOptimization, 
+//                    considerSequenceLikelihood, 
+//                    sprLimit)
+// {
+//   coalBl_ = coalBl;
+//   coalCounts_ = coalCounts;
+//   tentativeCoalCounts_ = coalCounts;
+//   for (unsigned int i = 0 ; i < coalBl_.size() ; i++) {
+//     num12Lineages_.push_back(0);
+//     num22Lineages_.push_back(0);
+//   }
+//   computeNumLineagesFromCoalCounts ();
+// }
 
 /******************************************************************************/
 

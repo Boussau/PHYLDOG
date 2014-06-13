@@ -372,7 +372,6 @@ public:
   void setTree(bpp::TreeTemplate<bpp::Node> * newTree);
 
   
-  
   ///@}
   
   
@@ -414,16 +413,16 @@ public:
   */
   ///@{
   
-  /**
-  * @brief nnilk like contructor number 1
-  */
-  LikelihoodEvaluator(bpp::TreeTemplate<bpp::Node> * tree, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
-  
-  
+//   /**
+//   * @brief nnilk like contructor number 1
+//   */
+//   LikelihoodEvaluator(bpp::TreeTemplate<bpp::Node> * tree, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
+//   
+//   
   /**
   * @brief nnilk like contructor number 2
   */
-  LikelihoodEvaluator(bpp::TreeTemplate<bpp::Node> * tree, bpp::SiteContainer* data, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
+  LikelihoodEvaluator(const bpp::Tree * tree, const bpp::SiteContainer* alignment, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
   
   /**
   * @brief empty contructor

@@ -98,7 +98,7 @@ void LikelihoodEvaluator::loadDataFromParams(){
   if(name.size() == 0)
     name = "unnamed";
   
-  cout << "Instanciating a Likelihood Evaluator named " << name << endl;
+  cout << "@@Instanciating a Likelihood Evaluator named " << name << endl;
     
   string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
   method = (methodString == "PLL"? PLL:BPP);
@@ -314,11 +314,33 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
     {
       vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
       set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+      
       if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
         (*treeToEvaluate)->newOutGroup(*currSon);
+
     }
+    
+    // if not, we will try all the internal branches as potential roots    
     if(!(*treeToEvaluate)->isRooted())
+    {
+      vector<Node*> outgroupCandidates = (*treeToEvaluate)->getNodes();
+      for(vector<Node*>::iterator currCandidate = outgroupCandidates.begin(); currCandidate != outgroupCandidates.end(); currCandidate++)
+      {
+        vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
+        set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+        
+        if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+        (*treeToEvaluate)->newOutGroup(*currCandidate);
+      } 
+    }
+    
+    
+    if(!(*treeToEvaluate)->isRooted())
+    {
+      cout << "Unable to re-root the tree, I will give up, sorry." << endl;
+      cout << "l1.s = " << leaves1.size() << ". l2.s = " << leaves2.size() << endl;
       throw Exception("Unable to re-root the tree.");
+    } 
     
   }
   
@@ -377,9 +399,12 @@ void LikelihoodEvaluator::initialize()
 
 void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternative)
 {
+  if(!initialized)
+    throw Exception("Set alternative tree on a non initalized evaluator.");
   if(alternativeTree != 00)
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
+  
   if(method == PLL){
     alternativeLogLikelihood = PLL_evaluate(&alternativeTree);
   }
@@ -545,7 +570,7 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 }
 
 LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator const &leval):
-params(leval.params)
+params(leval.params), initialized(false), alternativeTree(00)
 {
   
   loadDataFromParams();
@@ -559,4 +584,17 @@ params(leval.params)
 LikelihoodEvaluator* LikelihoodEvaluator::clone()
 {
   return new LikelihoodEvaluator(*this);
+}
+
+LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* alignment, SubstitutionModel* model, DiscreteDistribution* rateDistribution, bool mustUnrootTrees, bool verbose):
+initialized(false), alternativeTree(00)
+{
+  this->tree = dynamic_cast<TreeTemplate<Node> *>(tree->clone());
+  this->substitutionModel = model->clone();
+  this->rateDistribution = rateDistribution->clone();
+  this->sites = dynamic_cast<VectorSiteContainer*>(alignment->clone());
+  this->method = PLL;
+  
+  initialize();
+  
 }

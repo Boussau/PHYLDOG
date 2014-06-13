@@ -83,6 +83,8 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   
   // this will load the tree & the alignemnts
   
+  cout << "new LE 86 - params size = " << params.size() << endl;
+  
   levaluator_ = new LikelihoodEvaluator(params_);
 
   
@@ -223,64 +225,65 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   
 }
 
-/**
- * @brief Build a new ReconciliationTreeLikelihood object.
- *
- * @param tree The tree to use.
- * @param model The substitution model to use.
- * @param rDist The rate across sites distribution to use.
- * @param spTree The species tree
- * @param rootedTree rooted version of the gene tree
- * @param seqSp link between sequence and species names
- * @param spId link between species name and species ID
- * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
- * @param heuristicsLevel type of heuristics used
- * @param MLindex ML rooting position
- * @param checkRooted Tell if we have to check for the tree to be unrooted.
- * If true, any rooted tree will be unrooted before likelihood computation.
- * @param verbose Should I display some info?
- * @throw Exception if an error occured.
- */
-GeneTreeLikelihood::GeneTreeLikelihood(
-  const Tree & tree,
-  SubstitutionModel * model,
-  DiscreteDistribution * rDist,
-  TreeTemplate<Node> & spTree,  
-  TreeTemplate<Node> & rootedTree, 
-  TreeTemplate<Node> & geneTreeWithSpNames,
-  const std::map <std::string, std::string> seqSp,
-  std::map <std::string,int> spId,
-  int speciesIdLimitForRootPosition,
-  int heuristicsLevel,
-  int & MLindex, 
-  bool checkRooted,
-  bool verbose,
-  bool rootOptimization, 
-  bool considerSequenceLikelihood, 
-  unsigned int sprLimit)
-throw (Exception):
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(seqSp), spId_(spId), heuristicsLevel_(0)
-{
-  
-  levaluator_ = new LikelihoodEvaluator(params_); 
-  spTree_ = spTree.clone();
-  rootedTree_ = rootedTree.clone();
-  geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
-  scenarioLikelihood_ = UNLIKELY;
-  // _sequenceLikelihood = UNLIKELY;
-  MLindex_ = MLindex;
-  rootOptimization_ = rootOptimization; 
-  tentativeMLindex_ = MLindex;
-  totalIterations_ = 0;
-  counter_ = 0;
-  _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
-  heuristicsLevel_ = heuristicsLevel;
-  optimizeSequenceLikelihood_ = true;
-  optimizeReconciliationLikelihood_ = true;
-  considerSequenceLikelihood_ = considerSequenceLikelihood;
-  sprLimit_ = sprLimit;
-  // listOfPreviousRoots_ = new std::vector <int> ();
-}
+// /**
+//  * @brief Build a new ReconciliationTreeLikelihood object.
+//  *
+//  * @param tree The tree to use.
+//  * @param model The substitution model to use.
+//  * @param rDist The rate across sites distribution to use.
+//  * @param spTree The species tree
+//  * @param rootedTree rooted version of the gene tree
+//  * @param seqSp link between sequence and species names
+//  * @param spId link between species name and species ID
+//  * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
+//  * @param heuristicsLevel type of heuristics used
+//  * @param MLindex ML rooting position
+//  * @param checkRooted Tell if we have to check for the tree to be unrooted.
+//  * If true, any rooted tree will be unrooted before likelihood computation.
+//  * @param verbose Should I display some info?
+//  * @throw Exception if an error occured.
+//  */
+// GeneTreeLikelihood::GeneTreeLikelihood(
+//   const Tree & tree,
+//   SubstitutionModel * model,
+//   DiscreteDistribution * rDist,
+//   TreeTemplate<Node> & spTree,  
+//   TreeTemplate<Node> & rootedTree, 
+//   TreeTemplate<Node> & geneTreeWithSpNames,
+//   const std::map <std::string, std::string> seqSp,
+//   std::map <std::string,int> spId,
+//   int speciesIdLimitForRootPosition,
+//   int heuristicsLevel,
+//   int & MLindex, 
+//   bool checkRooted,
+//   bool verbose,
+//   bool rootOptimization, 
+//   bool considerSequenceLikelihood, 
+//   unsigned int sprLimit)
+// throw (Exception):
+// levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(seqSp), spId_(spId), heuristicsLevel_(0),
+// {
+//   cout << "new LE 266 - params size = " << params_.size() << endl;
+// 
+//   levaluator_ = new LikelihoodEvaluator(tree,); 
+//   spTree_ = spTree.clone();
+//   rootedTree_ = rootedTree.clone();
+//   geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
+//   scenarioLikelihood_ = UNLIKELY;
+//   // _sequenceLikelihood = UNLIKELY;
+//   MLindex_ = MLindex;
+//   rootOptimization_ = rootOptimization; 
+//   tentativeMLindex_ = MLindex;
+//   totalIterations_ = 0;
+//   counter_ = 0;
+//   _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
+//   heuristicsLevel_ = heuristicsLevel;
+//   optimizeSequenceLikelihood_ = true;
+//   optimizeReconciliationLikelihood_ = true;
+//   considerSequenceLikelihood_ = considerSequenceLikelihood;
+//   sprLimit_ = sprLimit;
+//   // listOfPreviousRoots_ = new std::vector <int> ();
+// }
 
 
 /**
@@ -324,7 +327,7 @@ GeneTreeLikelihood::GeneTreeLikelihood(
 throw (Exception):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0)
 {
-  levaluator_ = new LikelihoodEvaluator(params_);
+  levaluator_ = new LikelihoodEvaluator(&tree, &data, model, rDist, false, verbose);
   spTree_ = spTree.clone();
   rootedTree_ = rootedTree.clone();
   geneTreeWithSpNames_ = geneTreeWithSpNames.clone();

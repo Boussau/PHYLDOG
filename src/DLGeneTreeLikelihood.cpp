@@ -72,62 +72,62 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(std::string file,
   }
 
 /******************************************************************************/
-DLGeneTreeLikelihood::DLGeneTreeLikelihood(
-  const Tree & tree,
-  SubstitutionModel * model,
-  DiscreteDistribution * rDist,
-  TreeTemplate<Node> & spTree,
-  TreeTemplate<Node> & rootedTree,
-  TreeTemplate<Node> & geneTreeWithSpNames,
-  const std::map <std::string, std::string> seqSp,
-  std::map <std::string,int> spId,
-  //std::vector <int> & lossNumbers, 
-  std::vector <double> & lossProbabilities, 
-  //std::vector <int> & duplicationNumbers, 
-  std::vector <double> & duplicationProbabilities,
-  //std::vector <int> & branchNumbers,
-  std::vector <int> & num0Lineages,
-  std::vector <int> & num1Lineages,
-  std::vector <int> & num2Lineages, 
-  int speciesIdLimitForRootPosition,
-  int heuristicsLevel,
-  int & MLindex, 
-  bool checkRooted,
-  bool verbose, 
-  bool rootOptimization, 
-  bool considerSequenceLikelihood, 
-  bool DLStartingGeneTree, 
-  unsigned int sprLimit)
-throw (Exception):
-GeneTreeLikelihood(tree,
-		   model,
-		   rDist,
-		   spTree,  
-		   rootedTree, 
-		   geneTreeWithSpNames,
-		   seqSp,
-		   spId,
-		   speciesIdLimitForRootPosition,
-		   heuristicsLevel,
-		   MLindex, 
-		   checkRooted,
-		   verbose,
-		   rootOptimization, 
-		   considerSequenceLikelihood, 
-		   sprLimit)
-
-{
-  lossExpectedNumbers_ = lossProbabilities;
-  duplicationExpectedNumbers_ = duplicationProbabilities;
-  num0Lineages_=num0Lineages;
-  num1Lineages_=num1Lineages;
-  num2Lineages_=num2Lineages;
-  tentativeNum0Lineages_ =num0Lineages;
-  tentativeNum1Lineages_ =num1Lineages; 
-  tentativeNum2Lineages_ =num2Lineages;
-  tentativeMLindex_ = MLindex;
-  DLStartingGeneTree_ = DLStartingGeneTree;
-}
+// DLGeneTreeLikelihood::DLGeneTreeLikelihood(
+//   const Tree & tree,
+//   SubstitutionModel * model,
+//   DiscreteDistribution * rDist,
+//   TreeTemplate<Node> & spTree,
+//   TreeTemplate<Node> & rootedTree,
+//   TreeTemplate<Node> & geneTreeWithSpNames,
+//   const std::map <std::string, std::string> seqSp,
+//   std::map <std::string,int> spId,
+//   //std::vector <int> & lossNumbers, 
+//   std::vector <double> & lossProbabilities, 
+//   //std::vector <int> & duplicationNumbers, 
+//   std::vector <double> & duplicationProbabilities,
+//   //std::vector <int> & branchNumbers,
+//   std::vector <int> & num0Lineages,
+//   std::vector <int> & num1Lineages,
+//   std::vector <int> & num2Lineages, 
+//   int speciesIdLimitForRootPosition,
+//   int heuristicsLevel,
+//   int & MLindex, 
+//   bool checkRooted,
+//   bool verbose, 
+//   bool rootOptimization, 
+//   bool considerSequenceLikelihood, 
+//   bool DLStartingGeneTree, 
+//   unsigned int sprLimit)
+// throw (Exception):
+// GeneTreeLikelihood(tree,
+// 		   model,
+// 		   rDist,
+// 		   spTree,  
+// 		   rootedTree, 
+// 		   geneTreeWithSpNames,
+// 		   seqSp,
+// 		   spId,
+// 		   speciesIdLimitForRootPosition,
+// 		   heuristicsLevel,
+// 		   MLindex, 
+// 		   checkRooted,
+// 		   verbose,
+// 		   rootOptimization, 
+// 		   considerSequenceLikelihood, 
+// 		   sprLimit)
+// 
+// {
+//   lossExpectedNumbers_ = lossProbabilities;
+//   duplicationExpectedNumbers_ = duplicationProbabilities;
+//   num0Lineages_=num0Lineages;
+//   num1Lineages_=num1Lineages;
+//   num2Lineages_=num2Lineages;
+//   tentativeNum0Lineages_ =num0Lineages;
+//   tentativeNum1Lineages_ =num1Lineages; 
+//   tentativeNum2Lineages_ =num2Lineages;
+//   tentativeMLindex_ = MLindex;
+//   DLStartingGeneTree_ = DLStartingGeneTree;
+// }
 
 /******************************************************************************/
 
@@ -141,18 +141,18 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
   TreeTemplate<Node> & geneTreeWithSpNames,
   const std::map <std::string, std::string> seqSp,
   std::map <std::string,int> spId,
-  std::vector <double> & lossProbabilities, 
-  std::vector <double> & duplicationProbabilities, 
+  std::vector <double> & lossProbabilities,
+  std::vector <double> & duplicationProbabilities,
   std::vector <int> & num0Lineages,
   std::vector <int> & num1Lineages,
-  std::vector <int> & num2Lineages, 
-  int speciesIdLimitForRootPosition, 
+  std::vector <int> & num2Lineages,
+  int speciesIdLimitForRootPosition,
   int heuristicsLevel,
-  int & MLindex, 
+  int & MLindex,
   bool checkRooted,
   bool verbose,
-  bool rootOptimization, 
-  bool considerSequenceLikelihood, 
+  bool rootOptimization,
+  bool considerSequenceLikelihood,
   bool DLStartingGeneTree,
   unsigned int sprLimit)
 throw (Exception):
