@@ -303,7 +303,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   // processing by PLL
   PLL_connectTreeAndAlignment();
   pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
-  pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
+//  pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
+  pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
  // modOpt(PLL_instance, PLL_partitions, 0.1);
 
   // getting the new tree with now branch lengths
