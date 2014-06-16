@@ -54,7 +54,9 @@ knowledge of the CeCILL license and that you accept its terms.
 extern "C" {
 #include <pll/pll.h>
 }
-
+/*extern "C" {
+#include <pll/pllInternal.h>
+}*/
 
 
 class LikelihoodEvaluator

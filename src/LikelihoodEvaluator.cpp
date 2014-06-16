@@ -46,6 +46,10 @@ extern "C" {
 #include <pll/pll.h>
 }
 
+/*extern "C" {
+#include <pll/pllInternal.h>
+}*/
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -124,7 +128,15 @@ void LikelihoodEvaluator::loadDataFromParams(){
    
  
   rateDistribution = getRateDistributionFromOptions(params, substitutionModel, cont);
+
   
+  //For the moment, we have not filtered sequences, 
+  //so we don't want to spend time computing a tree that we may discard soon.
+  //Instead we just create a random tree.
+  std::vector<std::string> leafNames = sites->getSequencesNames();
+  tree = TreeTemplateTools::getRandomTree(leafNames, false);
+
+/*  
   try 
   {
     bool cont = true;
@@ -134,7 +146,7 @@ void LikelihoodEvaluator::loadDataFromParams(){
   {
     std::cout << e.what() <<"; Unable to get a proper gene tree for family <<file<< avoiding this family."<<std::endl;
     cont=false;
-  }
+  }*/
 }
 
 
@@ -292,6 +304,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   PLL_connectTreeAndAlignment();
   pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
   pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
+ // modOpt(PLL_instance, PLL_partitions, 0.1);
+
   // getting the new tree with now branch lengths
   pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
   newickStingForPll.str(PLL_instance->tree_string);
