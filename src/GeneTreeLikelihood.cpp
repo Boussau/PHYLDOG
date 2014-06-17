@@ -208,7 +208,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
     }// This has not been implemented!
     else if(optimizeClock == "no")
     {
-      levaluator_->initialize();
+     // levaluator_->initialize();
       
       
       

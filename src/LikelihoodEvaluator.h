@@ -130,8 +130,19 @@ private:
   The PLL partition information.
   */  
   pllQueue * PLL_partitionInfo;
-    
-  
+
+  /**
+  The parameters of the model.
+  */
+  double alpha_;
+  double baseFreq_[4];
+  double subsMatrix_[6];
+
+  /**
+  Tolerance for optimization.
+  */
+  double tolerance_;  
+
   /**
   Loads the PLL alignment
   */
@@ -166,11 +177,27 @@ private:
   
   /**
    * Get the log likelihood of a tree and modify this tree to match
-   * the new branch lengths.
+   * the new branch lengths, using PLL.
    * @param prefix a BPP tree
    * @return the logLikelihood
    */
   double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+
+ /**
+   * Get the log likelihood of a tree and modify this tree to match
+   * the new branch lengths, using Bio++.
+   * @param prefix a BPP tree
+   * @return the logLikelihood
+   */
+  double BPP_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+
+
+  /**
+   * Optimize the branch lengths of a tree along with the model parameters.
+   * @param prefix a BPP tree
+   * @return the logLikelihood
+   */
+  double PLL_optimizeBranchLengthsAndParameters(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
 
   
   

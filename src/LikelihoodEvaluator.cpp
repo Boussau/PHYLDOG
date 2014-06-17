@@ -88,6 +88,7 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   params(params), alternativeTree(00), initialized(false)
 {
   loadDataFromParams();
+  tolerance_ = 0.5;
 }
 
 void LikelihoodEvaluator::loadDataFromParams(){
@@ -247,11 +248,25 @@ void LikelihoodEvaluator::initialize_PLL()
   // preparing the tree
   
   // PLL process
+  alpha_ = 1.0;
+  baseFreq_[0]=0.25;
+  baseFreq_[1]=0.25;
+  baseFreq_[2]=0.25;
+  baseFreq_[3]=0.25;
+  subsMatrix_[0] = 1/6;
+  subsMatrix_[1] = 1/6;  
+  subsMatrix_[2] = 1/6;
+  subsMatrix_[3] = 1/6;
+  subsMatrix_[4] = 1/6;
+  subsMatrix_[5] = 1/6;
+
   PLL_initializePLLInstance();
   PLL_loadAlignment(fileNamePrefix + "alignment.fasta");
   PLL_loadPartitions(fileNamePrefix + "partition.txt");
   
-  logLikelihood = PLL_evaluate(&tree);
+  logLikelihood = PLL_optimizeBranchLengthsAndParameters(&tree);
+  
+  //logLikelihood = PLL_evaluate(&tree);
   
 }
 
@@ -302,12 +317,19 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   
   // processing by PLL
   PLL_connectTreeAndAlignment();
+//  pllSetFixedAlpha(alpha_, 0, PLL_partitions, PLL_instance);
+//  pllSetFixedBaseFrequencies(baseFreq_, 4, 0, PLL_partitions, PLL_instance);
+  //pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
   pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
-//  pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
-  pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
- // modOpt(PLL_instance, PLL_partitions, 0.1);
+ // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
+ // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
 
-  // getting the new tree with now branch lengths
+/*std::cout << "HEHEHEHE " << std::endl;
+std::cout << "tolerance_ "<< tolerance_ << std::endl;
+std::cout << "HEHEHEHE 2" << std::endl;*/
+  pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
+
+  // getting the new tree with new branch lengths
   pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
   newickStingForPll.str(PLL_instance->tree_string);
   
@@ -368,6 +390,217 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   
   return(PLL_instance->likelihood);
 }
+
+
+  double LikelihoodEvaluator::PLL_optimizeBranchLengthsAndParameters(bpp::TreeTemplate<bpp::Node>** treeToEvaluate) {
+  
+  //TODO debug remove
+  Newick debugTree;
+  stringstream debugSS;
+  debugTree.write(**treeToEvaluate,debugSS);
+  cout << "tree to evaluate:\n" << debugSS.str() << endl;
+  
+  // preparing the tree
+  TreeTemplate<Node>* treeForPLL = (*treeToEvaluate)->clone();
+  convertTreeToStrict(treeForPLL);
+  
+  // getting the root
+  bool wasRooted = (treeForPLL->isRooted() ? true : false);
+  set<string> leaves1, leaves2;
+  if(wasRooted)
+  {
+    Node* root = treeForPLL->getRootNode();
+    Node* son1 = root->getSon(0);
+    Node* son2 = root->getSon(1);
+    vector<string> leaves1Vector = TreeTemplateTools::getLeavesNames(*son1);
+    vector<string> leaves2Vector = TreeTemplateTools::getLeavesNames(*son2);
+    leaves1.insert(leaves1Vector.begin(),leaves1Vector.end());
+    leaves2.insert(leaves2Vector.begin(),leaves2Vector.end());
+    treeForPLL->unroot();
+  }
+  
+  
+  Newick newickForPll;
+  stringstream newickStingForPll;
+  newickForPll.write(*treeForPLL,newickStingForPll);
+  PLL_loadNewick_fromString(newickStingForPll.str());
+  delete treeForPLL;
+  
+  // processing by PLL
+  PLL_connectTreeAndAlignment();
+  pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
+//  pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
+/*std::cout << "IIIIIHEHEHEHE " << std::endl;
+std::cout << "tolerance_ "<< tolerance_ << std::endl;
+std::cout << "IIIIIHEHEHEHE 2" << std::endl;*/
+
+  pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
+
+  // getting the new tree with new branch lengths
+  pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
+  newickStingForPll.str(PLL_instance->tree_string);
+
+  //Set the backup of the parameters of the model
+  alpha_ = pllGetAlpha ( PLL_partitions, 0);
+
+  std::cout << "Alpha: "<< alpha_ <<std::endl;
+  if (alpha_ < 0.02 ) {
+    alpha_ = 0.02;
+  } 
+  else if ( alpha_ > 1000.0 ) {
+    alpha_ = 1000.0;
+  }
+
+
+  pllGetBaseFrequencies(PLL_instance,  PLL_partitions, 0, baseFreq_);
+  pllGetSubstitutionMatrix(PLL_instance,  PLL_partitions, 0, subsMatrix_);
+
+
+  //debug
+  cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
+  
+  delete *treeToEvaluate;
+  *treeToEvaluate = newickForPll.read(newickStingForPll);
+  
+  
+  //re-rooting if needed
+  if(wasRooted)
+  {
+    // the plyogenetic root is between the current topological
+    // root and one of the three sons
+    // so, one of the three sons of a root is the outgroup
+    vector<Node*> rootSons = (*treeToEvaluate)->getRootNode()->getSons();
+    for(vector<Node*>::iterator currSon = rootSons.begin(); currSon != rootSons.end(); currSon++)
+    {
+      vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
+      set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+      
+      if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+        (*treeToEvaluate)->newOutGroup(*currSon);
+
+    }
+    
+    // if not, we will try all the internal branches as potential roots    
+    if(!(*treeToEvaluate)->isRooted())
+    {
+      vector<Node*> outgroupCandidates = (*treeToEvaluate)->getNodes();
+      for(vector<Node*>::iterator currCandidate = outgroupCandidates.begin(); currCandidate != outgroupCandidates.end(); currCandidate++)
+      {
+        vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
+        set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+        
+        if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+        (*treeToEvaluate)->newOutGroup(*currCandidate);
+      } 
+    }
+    
+    
+    if(!(*treeToEvaluate)->isRooted())
+    {
+      cout << "Unable to re-root the tree, I will give up, sorry." << endl;
+      cout << "l1.s = " << leaves1.size() << ". l2.s = " << leaves2.size() << endl;
+      throw Exception("Unable to re-root the tree.");
+    } 
+    
+  }
+  
+  restoreTreeFromStrict(*treeToEvaluate);
+  
+  //TODO debug remove
+  stringstream debugSS2;
+  debugTree.write(**treeToEvaluate,debugSS2);
+  cout << "Final tree for BPP" << debugSS2.str() << endl;
+  
+  return(PLL_instance->likelihood);
+
+}
+
+double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
+{ 
+
+  // preparing the tree
+  TreeTemplate<Node>* treeForBPP = (*treeToEvaluate)->clone();
+
+  // getting the root
+  bool wasRooted = (treeForBPP->isRooted() ? true : false);
+  set<string> leaves1, leaves2;
+  if(wasRooted)
+  {
+    Node* root = treeForBPP->getRootNode();
+    Node* son1 = root->getSon(0);
+    Node* son2 = root->getSon(1);
+    vector<string> leaves1Vector = TreeTemplateTools::getLeavesNames(*son1);
+    vector<string> leaves2Vector = TreeTemplateTools::getLeavesNames(*son2);
+    leaves1.insert(leaves1Vector.begin(),leaves1Vector.end());
+    leaves2.insert(leaves2Vector.begin(),leaves2Vector.end());
+    treeForBPP->unroot();
+  }
+
+
+  NNIHomogeneousTreeLikelihood * drlk = 0;
+  drlk  = new NNIHomogeneousTreeLikelihood (**treeToEvaluate, 
+                                              *(nniLk->getData()), 
+                                              nniLk->getSubstitutionModel(), 
+                                              nniLk->getRateDistribution(), 
+                                              true, false);
+  drlk->initialize();
+  auto_ptr<BackupListener> backupListener;
+  int tlEvalMax = 1000;
+  OutputStream* messageHandler = 0 ; 
+  OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (drlk), drlk->getParameters(), backupListener.get(), tolerance_, tlEvalMax, messageHandler, messageHandler, 0);
+
+
+  delete *treeToEvaluate;
+  *treeToEvaluate = static_cast< TreeTemplate<Node>* > (drlk->getTree().clone() );
+
+ //re-rooting if needed
+  if(wasRooted)
+  {
+    // the phylogenetic root is between the current topological
+    // root and one of the three sons
+    // so, one of the three sons of a root is the outgroup
+    vector<Node*> rootSons = (*treeToEvaluate)->getRootNode()->getSons();
+    for(vector<Node*>::iterator currSon = rootSons.begin(); currSon != rootSons.end(); currSon++)
+    {
+      vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
+      set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+      
+      if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+        (*treeToEvaluate)->newOutGroup(*currSon);
+
+    }
+    
+    // if not, we will try all the internal branches as potential roots    
+    if(!(*treeToEvaluate)->isRooted())
+    {
+      vector<Node*> outgroupCandidates = (*treeToEvaluate)->getNodes();
+      for(vector<Node*>::iterator currCandidate = outgroupCandidates.begin(); currCandidate != outgroupCandidates.end(); currCandidate++)
+      {
+        vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
+        set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+        
+        if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+        (*treeToEvaluate)->newOutGroup(*currCandidate);
+      } 
+    }
+    
+    
+    if(!(*treeToEvaluate)->isRooted())
+    {
+      cout << "Unable to re-root the tree, I will give up, sorry." << endl;
+      cout << "l1.s = " << leaves1.size() << ". l2.s = " << leaves2.size() << endl;
+      throw Exception("Unable to re-root the tree.");
+    } 
+    
+  }
+  
+  return drlk->getValue();
+ 
+
+}
+
+
+
 
 
 // CLONABLE?
@@ -561,10 +794,9 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
   fileNamePrefix = "tmpPLL_" + name + "_" ;
   ofstream alignementFile(string(fileNamePrefix + "alignment.fasta").c_str(), ofstream::out);
-  
+
   //preparing the file for the alignment
   BasicSequence currSequence(sites->getAlphabet());
-  
   //DEBUG
   cout << "Writing an alignment for PLL with " << sites->getNumberOfSequences() << " sequences" << endl;
   
@@ -577,7 +809,6 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
     alignementFile << ">" << realToStrict[currSequenceName] << "\n" << currSequence.toString() << "\n";
   }
   alignementFile.close();
-  
   ofstream partitionFile(string(fileNamePrefix + "partition.txt").c_str(), ofstream::out);
   //TODO: take into account the alphabet
   partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
