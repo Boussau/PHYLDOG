@@ -319,13 +319,14 @@ GeneTreeLikelihood::GeneTreeLikelihood(
   int speciesIdLimitForRootPosition,  
   int heuristicsLevel,
   int & MLindex, 
+	std::map <std::string, std::string > params,
   bool checkRooted,
   bool verbose, 
   bool rootOptimization, 
   bool considerSequenceLikelihood, 
   unsigned int sprLimit)
 throw (Exception):
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0)
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0), params_(params)
 {
   levaluator_ = new LikelihoodEvaluator(&tree, &data, model, rDist, false, verbose);
   spTree_ = spTree.clone();
@@ -401,6 +402,19 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
   return *this;
 }
 
-
+void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node>* rootedTree) {
+  if (rootedTree_) delete rootedTree_;
+  rootedTree_= dynamic_cast<TreeTemplate<Node> *> (rootedTree->clone());
+  //recreating geneTreeWithSpNames_
+  if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
+ 	geneTreeWithSpNames_ = tree->clone();
+	std::vector <Node*> leaves = geneTreeWithSpNames_->getLeaves();
+	for (unsigned int j =0; j<leaves.size() ; j++) 
+	  {
+	    leaves[j]->setName(seqSp_[leaves[j]->getName()]);
+	  }
+	levaluator_->setAlternativeTree(rootedTree);
+  levaluator_->acceptAlternativeTree();
+}
 
 

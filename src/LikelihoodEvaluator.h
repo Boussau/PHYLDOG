@@ -396,7 +396,7 @@ public:
   bpp::TreeTemplate<bpp::Node> * getTree();
   
   /**
-   * @brief set the tree to this new one. Can only be called befor initialization.
+   * @brief set the tree to this new one. Can only be called before initialization.
    */
   void setTree(bpp::TreeTemplate<bpp::Node> * newTree);
 

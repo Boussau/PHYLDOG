@@ -99,9 +99,7 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
 	Node *cutNode, *newBrother, *oldFather, *oldGrandFather, *brother, *newBrothersFather, *N;
     std::vector<Node*> nodesToUpdate;
 	double dist = 0.1;  
-	
-			         std::cout << "makeSPR 1 " << std::endl;
-				std::cout <<  TreeTemplateTools::treeToParenthesis(tree, true) <<std::endl;
+	//std::cout <<  TreeTemplateTools::treeToParenthesis(tree, true) <<std::endl;
 
 	
 	if (verbose)

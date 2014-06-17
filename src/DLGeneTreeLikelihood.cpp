@@ -149,6 +149,7 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
   int speciesIdLimitForRootPosition,
   int heuristicsLevel,
   int & MLindex,
+  std::map <std::string, std::string > params,
   bool checkRooted,
   bool verbose,
   bool rootOptimization,
@@ -168,6 +169,7 @@ GeneTreeLikelihood(tree,
 		   speciesIdLimitForRootPosition,
 		   heuristicsLevel,
 		   MLindex, 
+		   params,
 		   checkRooted,
 		   verbose,
 		   rootOptimization, 
@@ -319,12 +321,9 @@ throw (Exception)
     //TEST 16 02 2010
     // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " scenarioLikelihood_: "<<scenarioLikelihood_<<std::endl;
     if (considerSequenceLikelihood_) {
-      std::cout << "CONSIDERING" <<std::endl;
       return (- levaluator_->getLogLikelihood() - scenarioLikelihood_);
     }
     else {
-            std::cout << "NOT CONSIDERING" <<std::endl;
-
       return (- scenarioLikelihood_);
     }
   }

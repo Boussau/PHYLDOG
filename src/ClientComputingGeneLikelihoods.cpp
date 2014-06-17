@@ -124,7 +124,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
             parseAssignedGeneFamilies();
             std::vector <std::string> t;  
             allParamsBackup_ = allParams_;
-            resetGeneTrees_ = ApplicationTools::getBooleanParameter("reset.gene.trees",params_,true);
+            resetGeneTrees_ = ApplicationTools::getBooleanParameter("reset.gene.trees",params_,true ); 
             currentStep_ = ApplicationTools::getIntParameter("current.step",params_,0);
 
             for (unsigned int i = 0 ; i< assignedFilenames_.size()-numDeletedFamilies_ ; i++) 
@@ -660,22 +660,27 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		//lk and the second one; in this case we set rearrange to false.
 		//Then there is no need to reset the gene tree!
 		if (resetGeneTrees_ && currentStep_ !=4 && rearrange_ == true) {
-		    for (unsigned int i =0 ; i<treeLikelihoods_.size() ; i++) {
-			if    (treeLikelihoods_[i])
-			    delete treeLikelihoods_[i];
-		    }
-		    treeLikelihoods_.clear();
 					    if (reconciliationModel_ == "DL")
 					    {
-						    for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
-						    {
-							    TreeTemplate<Node> * treeWithSpNames = allUnrootedGeneTrees_[i]->clone();
-							    std::vector <Node*> leaves = treeWithSpNames->getLeaves();
-							    for (unsigned int j =0; j<leaves.size() ; j++) 
-							    {
-								    leaves[j]->setName(allSeqSps_[i][leaves[j]->getName()]);
-							    }
-							    treeLikelihoods_.push_back( new DLGeneTreeLikelihood(*(allUnrootedGeneTrees_[i]), *(allDatasets_[i]), 
+						    	for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
+						    	{
+										string methodString =  treeLikelihoods_[i]->getLikelihoodMethod () ;
+										if (methodString == "PLL") {
+											treeLikelihoods_[i]->setGeneTree( allUnrootedGeneTrees_[i], allGeneTrees_[i] );
+										}
+								else {
+						    /*	for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
+						    	{*/
+										std::map <std::string, std::string > params = treeLikelihoods_[i]->getParams();
+										if    (treeLikelihoods_[i])
+								    delete treeLikelihoods_[i];
+									  TreeTemplate<Node> * treeWithSpNames = allUnrootedGeneTrees_[i]->clone();
+							  	  std::vector <Node*> leaves = treeWithSpNames->getLeaves();
+							  	  for (unsigned int j =0; j<leaves.size() ; j++) 
+							  	  {
+									    leaves[j]->setName(allSeqSps_[i][leaves[j]->getName()]);
+							  	  }
+							  	  treeLikelihoods_.push_back( new DLGeneTreeLikelihood(*(allUnrootedGeneTrees_[i]), *(allDatasets_[i]), 
 														allModels_[i], allDistributions_[i], *spTree_, 
 														*allGeneTrees_[i], *treeWithSpNames, allSeqSps_[i], spId_, 
 														lossExpectedNumbers_, 
@@ -684,15 +689,22 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 														allNum1Lineages_[i], 
 														allNum2Lineages_[i], 
 														speciesIdLimitForRootPosition_, 
-														heuristicsLevel_, MLindex_, 
+														heuristicsLevel_, MLindex_, params, 
 														true, true, true, true, false, allSprLimitGeneTree_[i]) );
-							    delete treeWithSpNames;
-						    }
+							  	  delete treeWithSpNames;
+									}
+								}
 					    }
 					    else if (reconciliationModel_ == "COAL")
 					    {
-						    for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
-						    {
+								for (unsigned int i =0 ; i<treeLikelihoods_.size() ; i++) {
+									std::map <std::string, std::string > params = treeLikelihoods_[i]->getParams();
+									if    (treeLikelihoods_[i])
+								    delete treeLikelihoods_[i];
+		  					//}
+		    			//	treeLikelihoods_.clear();
+						 /*   for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
+						    {*/
 							    //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
 							    std::vector< std::vector< std::vector< unsigned int > > > coalCounts2;
 							    std::vector< std::vector<unsigned int> > coalCounts3;
@@ -721,7 +733,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 														  *allGeneTrees_[i], *treeWithSpNames, allSeqSps_[i], spId_, 
 														  coalCounts_, coalBls_,  
 														  speciesIdLimitForRootPosition_, 
-														  heuristicsLevel_, MLindex_, 
+														  heuristicsLevel_, MLindex_, params,
 														  true, true, true, true, allSprLimitGeneTree_[i]) );
 							    delete treeWithSpNames;
 

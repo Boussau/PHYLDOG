@@ -208,6 +208,7 @@ public:
     int speciesIdLimitForRootPosition,  
     int heuristicsLevel,
     int & MLindex, 
+    std::map <std::string, std::string > params,
     bool checkRooted = true,
     bool verbose = false, 
     bool rootOptimization = false, 

@@ -213,6 +213,7 @@ public:
     int speciesIdLimitForRootPosition,
     int heuristicsLevel,
     int & MLindex,
+		std::map <std::string, std::string > params,
     bool checkRooted = true,
     bool verbose = false,
     bool rootOptimization = false,
@@ -289,7 +290,17 @@ public:
   }
   unsigned int seqsToRemove();
   
+  void setGeneTree(bpp::TreeTemplate<bpp::Node>* tree, bpp::TreeTemplate<bpp::Node>* rootedTree) ;
   
+	std::map <std::string, std::string > getParams () {
+		return params_;
+	}
+
+	std::string getLikelihoodMethod () {
+		return ApplicationTools::getStringParameter("likelihood.evaluator", params_, "PLL");;
+	}
+
+
 };
 
 
