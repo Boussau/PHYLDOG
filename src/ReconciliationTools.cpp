@@ -2247,7 +2247,7 @@ double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
                                                               duplicationRates, speciesIDs, dupData );
     }
   }
-  std::cout << "computeSubtreeLikelihoodPostorder took: "<< "OMP DEACTIVATED"<<std::endl;
+ // std::cout << "computeSubtreeLikelihoodPostorder took: "<< "OMP DEACTIVATED"<<std::endl;
   
   
   std::vector <Node *> sons = geneRoot->getSons();
@@ -2280,7 +2280,7 @@ double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
       }
     }
   }
-  std::cout << "computeSubtreeLikelihoodPreorder took: "<< "omp deactivated" <<std::endl;
+ // std::cout << "computeSubtreeLikelihoodPreorder took: "<< "omp deactivated" <<std::endl;
   
   
   
@@ -2329,7 +2329,7 @@ double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
                                            dupData, nodesToTryInNNISearch );
       }
     }
-    std::cout << "computeNumbersOfLineagesFromRoot took: "<< "omp deactivated" <<std::endl;
+  //  std::cout << "computeNumbersOfLineagesFromRoot took: "<< "omp deactivated" <<std::endl;
     
     delete tree;
     
@@ -2419,8 +2419,8 @@ void extractSubVectorsWithCompletelySequencedLineages ( const std::vector <int> 
   sort ( branchesToDiscard.begin(), branchesToDiscard.end() );
   
   
-  std::cout << "num0lineages.size(): " << num0lineages.size() << std::endl;
-  std::cout <<  branchesToDiscard.size() << branchesToDiscard.size() << std::endl;
+ /* std::cout << "num0lineages.size(): " << num0lineages.size() << std::endl;
+  std::cout <<  branchesToDiscard.size() << branchesToDiscard.size() << std::endl;*/
   num0 = num0lineages;
   num1 = num1lineages;
   num2 = num2lineages;
@@ -2668,7 +2668,7 @@ void computeDuplicationAndLossRatesForTheSpeciesTreeInitially ( std::string &bra
                                                                 const std::map <std::string, int> & genomeMissing,
                                                                 const TreeTemplate<Node> & tree )
 {
-  std::cout <<"Computing Initial Rates"<<std::endl;
+  std::cout <<"Computing Initial DL Expected Numbers"<<std::endl;
   alterLineageCountsWithCoveragesInitially ( num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree );
   computeDuplicationAndLossProbabilitiesForAllBranches ( num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities );
 }

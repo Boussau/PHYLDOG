@@ -249,7 +249,7 @@ void LikelihoodEvaluator::initialize_PLL()
   
   // PLL process
   alpha_ = 1.0;
-  baseFreq_[0]=0.25;
+/*  baseFreq_[0]=0.25;
   baseFreq_[1]=0.25;
   baseFreq_[2]=0.25;
   baseFreq_[3]=0.25;
@@ -258,7 +258,7 @@ void LikelihoodEvaluator::initialize_PLL()
   subsMatrix_[2] = 1/6;
   subsMatrix_[3] = 1/6;
   subsMatrix_[4] = 1/6;
-  subsMatrix_[5] = 1/6;
+  subsMatrix_[5] = 1/6;*/
 
   PLL_initializePLLInstance();
   PLL_loadAlignment(fileNamePrefix + "alignment.fasta");
@@ -287,7 +287,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   Newick debugTree;
   stringstream debugSS;
   debugTree.write(**treeToEvaluate,debugSS);
-  cout << "tree to evaluate:\n" << debugSS.str() << endl;
+//  cout << "tree to evaluate:\n" << debugSS.str() << endl;
   
   // preparing the tree
   TreeTemplate<Node>* treeForPLL = (*treeToEvaluate)->clone();
@@ -334,7 +334,7 @@ std::cout << "HEHEHEHE 2" << std::endl;*/
   newickStingForPll.str(PLL_instance->tree_string);
   
   //debug
-  cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
+ // cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
   
   delete *treeToEvaluate;
   *treeToEvaluate = newickForPll.read(newickStingForPll);
@@ -384,10 +384,10 @@ std::cout << "HEHEHEHE 2" << std::endl;*/
   restoreTreeFromStrict(*treeToEvaluate);
   
   //TODO debug remove
-  stringstream debugSS2;
+ /* stringstream debugSS2;
   debugTree.write(**treeToEvaluate,debugSS2);
   cout << "Final tree for BPP" << debugSS2.str() << endl;
-  
+  */
   return(PLL_instance->likelihood);
 }
 
@@ -398,7 +398,7 @@ std::cout << "HEHEHEHE 2" << std::endl;*/
   Newick debugTree;
   stringstream debugSS;
   debugTree.write(**treeToEvaluate,debugSS);
-  cout << "tree to evaluate:\n" << debugSS.str() << endl;
+//  cout << "tree to evaluate:\n" << debugSS.str() << endl;
   
   // preparing the tree
   TreeTemplate<Node>* treeForPLL = (*treeToEvaluate)->clone();
@@ -443,7 +443,7 @@ std::cout << "IIIIIHEHEHEHE 2" << std::endl;*/
   //Set the backup of the parameters of the model
   alpha_ = pllGetAlpha ( PLL_partitions, 0);
 
-  std::cout << "Alpha: "<< alpha_ <<std::endl;
+ // std::cout << "Alpha: "<< alpha_ <<std::endl;
   if (alpha_ < 0.02 ) {
     alpha_ = 0.02;
   } 
@@ -452,12 +452,12 @@ std::cout << "IIIIIHEHEHEHE 2" << std::endl;*/
   }
 
 
-  pllGetBaseFrequencies(PLL_instance,  PLL_partitions, 0, baseFreq_);
+ /* pllGetBaseFrequencies(PLL_instance,  PLL_partitions, 0, baseFreq_);
   pllGetSubstitutionMatrix(PLL_instance,  PLL_partitions, 0, subsMatrix_);
-
+*/
 
   //debug
-  cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
+//  cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
   
   delete *treeToEvaluate;
   *treeToEvaluate = newickForPll.read(newickStingForPll);
@@ -507,9 +507,9 @@ std::cout << "IIIIIHEHEHEHE 2" << std::endl;*/
   restoreTreeFromStrict(*treeToEvaluate);
   
   //TODO debug remove
-  stringstream debugSS2;
+ /* stringstream debugSS2;
   debugTree.write(**treeToEvaluate,debugSS2);
-  cout << "Final tree for BPP" << debugSS2.str() << endl;
+  cout << "Final tree for BPP" << debugSS2.str() << endl;*/
   
   return(PLL_instance->likelihood);
 
@@ -811,7 +811,18 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   alignementFile.close();
   ofstream partitionFile(string(fileNamePrefix + "partition.txt").c_str(), ofstream::out);
   //TODO: take into account the alphabet
+if (alphabet->getSize() == 4) {
   partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
+}
+else if (alphabet->getSize() == 20) {
+  partitionFile << "LG, p1=1-" << sites->getNumberOfSites() << "\n";
+}
+else {
+  std::cout << "Error: alphabet incompatible with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP." <<std::endl;
+  cout.flush();
+  std::cerr << "Error: alphabet incompatible with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP." <<std::endl;
+  cerr.flush();
+}
   partitionFile.close();
 }
 

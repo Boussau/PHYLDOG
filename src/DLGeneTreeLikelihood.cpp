@@ -301,7 +301,7 @@ double DLGeneTreeLikelihood::getLogLikelihood() const
   
   if (considerSequenceLikelihood_) {
     //TODO: debug to remove
-    cout << "(DTL) sequence likelihood=" <<  levaluator_->getLogLikelihood() << "/nscenario likelihood=" << scenarioLikelihood_ << endl;
+   // cout << "(DTL) sequence likelihood=" <<  levaluator_->getLogLikelihood() << "/nscenario likelihood=" << scenarioLikelihood_ << endl;
     ll = levaluator_->getLogLikelihood() + scenarioLikelihood_;
   }
   else {

@@ -135,8 +135,8 @@ private:
   The parameters of the model.
   */
   double alpha_;
-  double baseFreq_[4];
-  double subsMatrix_[6];
+ /* double baseFreq_[4];
+  double subsMatrix_[6];*/
 
   /**
   Tolerance for optimization.
