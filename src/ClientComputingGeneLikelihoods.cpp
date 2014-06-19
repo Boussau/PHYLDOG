@@ -665,9 +665,6 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 						    	for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
 						    	{
 										string methodString =  treeLikelihoods_[i]->getLikelihoodMethod () ;
-										std::cout << "\n\n\t\tTEST2: " << methodString <<std::endl;
-										std::cout.flush();
-
 										if (methodString == "PLL") {
 											treeLikelihoods_[i]->setGeneTree( allUnrootedGeneTrees_[i], allGeneTrees_[i] );
 										}
@@ -683,7 +680,6 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 							  	  {
 									    leaves[j]->setName(allSeqSps_[i][leaves[j]->getName()]);
 							  	  }
-							  	  std::cout<< "\n\n\t\t WHEN CREATING: "<< ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL") <<std::endl;  
 							  	  treeLikelihoods_[i] =  new DLGeneTreeLikelihood(*(allUnrootedGeneTrees_[i]),                              *(allDatasets_[i]), 
 														allModels_[i], allDistributions_[i], *spTree_, 
 														*allGeneTrees_[i], *treeWithSpNames, allSeqSps_[i], spId_, 

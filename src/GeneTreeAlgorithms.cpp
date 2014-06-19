@@ -691,6 +691,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
 
     unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, type, tolerance);
+    std::cout << std::endl;
     std::vector<Node*> nodes = unrootedGeneTree->getNodes();
     
     for(unsigned int k = 0; k < nodes.size(); k++)

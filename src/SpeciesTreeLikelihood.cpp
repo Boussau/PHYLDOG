@@ -349,7 +349,6 @@ void SpeciesTreeLikelihood::parseOptions()
     tree_ = TreeTemplateTools::getRandomTree(spNames);
     tree_->setBranchLengths(1.0);
     
-    std::cout << "HEHEHEHEHEEHEH "<<TreeTemplateTools::treeToParenthesis(*tree_, true);
     //        TreeTools::midpointRooting(*tree_); //DEPRECATED in latest Bio++ versions
     TreeTemplateTools::midRoot(*tree_, TreeTemplateTools::MIDROOT_SUM_OF_SQUARES, true);
     std::cout << TreeTemplateTools::treeToParenthesis(*tree_, true);
@@ -1329,7 +1328,8 @@ void SpeciesTreeLikelihood::buildMRPSpeciesTree() {
     MPI::COMM_WORLD.Abort(1);
     exit(-1);
   }
-  TreeTools::midpointRooting(*tree_);
+//  TreeTools::midpointRooting(*tree_);
+  TreeTemplateTools::midRoot(*tree_, TreeTemplateTools::MIDROOT_SUM_OF_SQUARES, true);
   breadthFirstreNumber (*tree_);
   return;
 }

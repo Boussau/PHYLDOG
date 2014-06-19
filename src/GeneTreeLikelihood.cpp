@@ -83,7 +83,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   
   // this will load the tree & the alignemnts
   
-  cout << "new LE 86 - params size = " << params.size() << endl;
+ // cout << "new LE 86 - params size = " << params.size() << endl;
   
   levaluator_ = new LikelihoodEvaluator(params_);
 

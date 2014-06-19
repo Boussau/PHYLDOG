@@ -547,9 +547,9 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
   drlk->initialize();
   auto_ptr<BackupListener> backupListener;
-  int tlEvalMax = 1000;
+  int tlEvalMax = 100;
   OutputStream* messageHandler = 0 ; 
-  OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (drlk), drlk->getParameters(), backupListener.get(), tolerance_, 100);//, messageHandler, messageHandler, 0);
+  OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (drlk), drlk->getParameters(), backupListener.get(), tolerance_, tlEvalMax, messageHandler, messageHandler, 0);
 
   delete *treeToEvaluate;
   *treeToEvaluate = static_cast< TreeTemplate<Node>* > (drlk->getTree().clone() );
