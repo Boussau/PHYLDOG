@@ -328,7 +328,7 @@ GeneTreeLikelihood::GeneTreeLikelihood(
 throw (Exception):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0), params_(params)
 {
-  levaluator_ = new LikelihoodEvaluator(&tree, &data, model, rDist, false, verbose);
+  levaluator_ = new LikelihoodEvaluator(&tree, &data, model, rDist, params, false, verbose);
   spTree_ = spTree.clone();
   rootedTree_ = rootedTree.clone();
   geneTreeWithSpNames_ = geneTreeWithSpNames.clone();

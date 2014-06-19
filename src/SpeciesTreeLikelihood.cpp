@@ -921,6 +921,7 @@ void SpeciesTreeLikelihood::MLSearch()
                                                coalBls_, reconciliationModel_,
                                                rearrange_, numIterationsWithoutImprovement_, 
                                                server_, nodeForNNI, nodeForRooting, 
+                                               treesToLogLk_,
                                                branchExpectedNumbersOptimization_, genomeMissing_, 
                                                NNILks_, rootLks_, currentStep_, 
                                                fixedOutgroupSpecies_, outgroupSpecies_);

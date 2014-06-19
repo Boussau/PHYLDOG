@@ -50,6 +50,11 @@ knowledge of the CeCILL license and that you accept its terms.
 #include<Bpp/Phyl/TreeTemplate.h>
 #include<Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 
+//From the BOOST library 
+#include <boost/mpi.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/mpi/communicator.hpp>
+
 
 extern "C" {
 #include <pll/pll.h>
@@ -451,7 +456,7 @@ public:
   /**
   * @brief nnilk like contructor number 2
   */
-  LikelihoodEvaluator(const bpp::Tree * tree, const bpp::SiteContainer* alignment, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, bool mustUnrootTrees, bool verbose=false);
+  LikelihoodEvaluator(const bpp::Tree * tree, const bpp::SiteContainer* alignment, bpp::SubstitutionModel* model, bpp::DiscreteDistribution * rateDistribution, std::map<std::string, std::string> par, bool mustUnrootTrees, bool verbose=false);
   
   /**
   * @brief empty contructor

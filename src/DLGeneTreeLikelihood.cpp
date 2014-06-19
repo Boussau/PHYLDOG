@@ -50,9 +50,9 @@ using namespace bpp;
 
   /******************************************************************************/
 
-DLGeneTreeLikelihood::DLGeneTreeLikelihood(std::string file, 
-					     std::map<std::string, std::string> params, 
-					     TreeTemplate<Node> & spTree ) 
+DLGeneTreeLikelihood::DLGeneTreeLikelihood( std::string file, 
+					     															std::map<std::string, std::string> params, 
+					     															TreeTemplate<Node> & spTree ) 
   throw (exception) : GeneTreeLikelihood(file, params, spTree)
   {
     size_t speciesTreeNodeNumber = spTree.getNumberOfNodes();
@@ -321,6 +321,7 @@ throw (Exception)
     //TEST 16 02 2010
     // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " scenarioLikelihood_: "<<scenarioLikelihood_<<std::endl;
     if (considerSequenceLikelihood_) {
+        std::cout << "CONSIDERING "<< levaluator_->getLogLikelihood() <<std::endl;
       return (- levaluator_->getLogLikelihood() - scenarioLikelihood_);
     }
     else {

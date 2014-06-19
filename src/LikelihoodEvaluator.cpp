@@ -235,6 +235,7 @@ void LikelihoodEvaluator::initialize_BPP_nniLk()
   
   nniLk->initParameters();
   nniLk->initialize();
+  logLikelihood = nniLk->getValue();
 }
 
 void LikelihoodEvaluator::initialize_PLL()
@@ -543,12 +544,12 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
                                               nniLk->getSubstitutionModel(), 
                                               nniLk->getRateDistribution(), 
                                               true, false);
+
   drlk->initialize();
   auto_ptr<BackupListener> backupListener;
   int tlEvalMax = 1000;
   OutputStream* messageHandler = 0 ; 
-  OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (drlk), drlk->getParameters(), backupListener.get(), tolerance_, tlEvalMax, messageHandler, messageHandler, 0);
-
+  OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (drlk), drlk->getParameters(), backupListener.get(), tolerance_, 100);//, messageHandler, messageHandler, 0);
 
   delete *treeToEvaluate;
   *treeToEvaluate = static_cast< TreeTemplate<Node>* > (drlk->getTree().clone() );
@@ -593,7 +594,7 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
     } 
     
   }
-  
+
   return drlk->getValue();
  
 
@@ -654,13 +655,16 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternativ
   alternativeTree = newAlternative->clone();
   
   if(method == PLL){
-    alternativeLogLikelihood = PLL_evaluate(&alternativeTree);
+    alternativeLogLikelihood = PLL_evaluate( &alternativeTree );
   }
   else
   {
-    delete nniLkAlternative;
-    nniLkAlternative =  new NNIHomogeneousTreeLikelihood (*alternativeTree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
-    alternativeLogLikelihood = nniLkAlternative->getLogLikelihood();
+  /*  if ( nniLkAlternative)
+      delete nniLkAlternative;*/
+    alternativeLogLikelihood = BPP_evaluate( &alternativeTree );
+
+   /* nniLkAlternative =  new NNIHomogeneousTreeLikelihood (*alternativeTree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
+    alternativeLogLikelihood = nniLkAlternative->getLogLikelihood();*/
   }
 }
 
@@ -669,11 +673,6 @@ void LikelihoodEvaluator::acceptAlternativeTree()
   delete tree;
   tree = alternativeTree->clone();
   logLikelihood = alternativeLogLikelihood;
-  if(method == BPP)
-  {
-    delete nniLk;
-    nniLk = nniLkAlternative->clone();
-  }
 }
 
 
@@ -810,24 +809,49 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   }
   alignementFile.close();
   ofstream partitionFile(string(fileNamePrefix + "partition.txt").c_str(), ofstream::out);
-  //TODO: take into account the alphabet
 if (alphabet->getSize() == 4) {
+    if (substitutionModel->getName()!="GTR") {
+     std::cout << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes GTR for nucleotide models." <<std::endl;
+     cout.flush();
+     std::cerr << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes GTR for nucleotide models." <<std::endl;
+     cerr.flush();   
+     MPI::COMM_WORLD.Abort(1);
+     exit(-1);
+    }
   partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
 }
 else if (alphabet->getSize() == 20) {
-  partitionFile << "LG, p1=1-" << sites->getNumberOfSites() << "\n";
+    if (substitutionModel->getName()=="LG08") {
+        partitionFile << "LG, p1=1-" << sites->getNumberOfSites() << "\n";
+    }
+    else if (substitutionModel->getName()=="WAG01") {
+        partitionFile << "WAG, p1=1-" << sites->getNumberOfSites() << "\n";
+    }
+    else if (substitutionModel->getName()=="JTT92") {
+        partitionFile << "JTT, p1=1-" << sites->getNumberOfSites() << "\n";
+    }
+    else {
+     std::cout << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes LG08, W1G01, JTT92 for protein models." <<std::endl;
+     cout.flush();
+     std::cerr << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes LG08, W1G01, JTT92 for protein models." <<std::endl;
+     cerr.flush();   
+     MPI::COMM_WORLD.Abort(1);
+     exit(-1);
+    }
 }
 else {
-  std::cout << "Error: alphabet incompatible with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP." <<std::endl;
+  std::cout << "Error: alphabet incompatible with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only works with DNA/RNA or Protein alphabets." <<std::endl;
   cout.flush();
-  std::cerr << "Error: alphabet incompatible with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP." <<std::endl;
+  std::cerr << "Error: alphabet incompatible with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only works with DNA/RNA or Protein alphabets." <<std::endl;
   cerr.flush();
+  MPI::COMM_WORLD.Abort(1);
+  exit(-1);
 }
   partitionFile.close();
 }
 
 LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator const &leval):
-params(leval.params), initialized(false), alternativeTree(00)
+params(leval.params), initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00)
 {
   
   loadDataFromParams();
@@ -843,14 +867,16 @@ LikelihoodEvaluator* LikelihoodEvaluator::clone()
   return new LikelihoodEvaluator(*this);
 }
 
-LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* alignment, SubstitutionModel* model, DiscreteDistribution* rateDistribution, bool mustUnrootTrees, bool verbose):
-initialized(false), alternativeTree(00)
+LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* alignment, SubstitutionModel* model, DiscreteDistribution* rateDistribution, std::map<std::string, std::string> par, bool mustUnrootTrees, bool verbose):
+initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par)
 {
   this->tree = dynamic_cast<TreeTemplate<Node> *>(tree->clone());
   this->substitutionModel = model->clone();
   this->rateDistribution = rateDistribution->clone();
   this->sites = dynamic_cast<VectorSiteContainer*>(alignment->clone());
-  this->method = PLL;
+  
+  string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
+  this->method = (methodString == "PLL"? PLL:BPP);
   
   initialize();
   

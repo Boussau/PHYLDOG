@@ -81,12 +81,13 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             unsigned int server, 
                                             size_t & nodeForNNI, 
                                             size_t & nodeForRooting, 
+                                            map <string, double > treesToLogLk,
                                             std::string & branchExpectedNumbersOptimization, 
                                             std::map < std::string, int> genomeMissing,
                                             std::vector < double >  &NNILks, 
                                             std::vector<double> &rootLks, unsigned int currentStep, 
-											const bool fixedOutgroupSpecies_, 
-											const std::vector < std::string > outgroupSpecies_) 
+											 const bool fixedOutgroupSpecies_, 
+											 const std::vector < std::string > outgroupSpecies_) 
 {
     std::vector <double> bestDupProba;
     std::vector<double> bestLossProba;
@@ -106,14 +107,18 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
     {
     //If we have already computed the value for the NNI or the rerooting 
     //we are about to make, we don't make it!
-		if (fixedOutgroupSpecies_)
+	/*Seems buggy, does not do what it's supposed to do. Replaced below.
+     *	if (fixedOutgroupSpecies_)
 			nodeForRooting = tree->getNumberOfNodes();
 		stop = checkChangeHasNotBeenDone(*tree, bestTree, nodeForNNI, nodeForRooting, NNILks, rootLks);
-
+    */
+    
     if (!stop) 
       {
 		  //Here we have implemented functions to not change the root if fixedOutgroupSpecies_==true (untested)
       makeDeterministicNNIsAndRootChangesOnly(*tree, nodeForNNI, nodeForRooting, fixedOutgroupSpecies_); 
+      double cachedLogLk = checkChangeHasNotBeenDone(*tree, treesToLogLk);
+        if (cachedLogLk == 0.0) {
 		 /* if (reconciliationModel == "DL") {
 			  breadthFirstreNumber (*tree, duplicationExpectedNumbers, lossExpectedNumbers);
 		  }
@@ -172,7 +177,8 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
           }
         }*/
       
-      
+              treesToLogLk[TreeTemplateTools::treeToParenthesis( *tree, false )] = logL;
+
           if (logL+0.01<bestlogL) 
           {
               std::cout << "\t\tNNIs or Root changes: Improvement: new total Likelihood value "<<logL<<" compared to the best log Likelihood : "<<bestlogL<< std::endl;
@@ -239,6 +245,31 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                 }
             }
         }
+      }
+      else { //The tree has already been found.
+            std::cout << "This species tree has already been tried. "<<std::endl;
+            numIterationsWithoutImprovement++;
+            std::cout <<"\t\tNNIs or Root changes: Number of iterations without improvement: "<<numIterationsWithoutImprovement<< std::endl;
+            if (tree) delete tree;
+            tree = bestTree->clone();
+            if (reconciliationModel == "DL") {
+            duplicationExpectedNumbers = bestDupProba;
+            lossExpectedNumbers = bestLossProba;
+            }
+            else if (reconciliationModel == "COAL") {
+                coalBls = bestCoalBls;
+            }
+            if ( ( numIterationsWithoutImprovement > 2*tree->getNumberOfNodes() ) || (ApplicationTools::getTime() >= timeLimit) ) 
+            {          
+                stop = true; 
+                if (ApplicationTools::getTime() >= timeLimit) {
+                    lastCommunicationsServerClient (world, 
+                                                    server, 
+                                                    stop, 
+                                                    bestIndex);
+                }
+            }
+      }
       }
     else //stop is true
       {  

@@ -154,6 +154,7 @@ namespace bpp
         //vectors to keep NNI and root likelihoods, for making aLRTs.
         std::vector <double > NNILks_;
         std::vector <double > rootLks_;
+        std::map<std::string, double> treesToLogLk_;
         //Time limit: the program has to stop before this limit (in hours)
         int timeLimit_;
         //When the program stops, it knows at what step of the algorithm it is
@@ -199,7 +200,7 @@ namespace bpp
         branchExpectedNumbersOptimization_(""), 
         genomeMissing_(), 
         speciesTreeNodeNumber_(0), NNILks_(),
-        rootLks_(), timeLimit_(0), currentStep_(0),
+        rootLks_(), treesToLogLk_ (), timeLimit_(0), currentStep_(0),
         suffix_(""), reconciliationModel_("DL")
 		{
  /*     tree_ = 0;
@@ -304,7 +305,7 @@ namespace bpp
         branchExpectedNumbersOptimization_(stl.branchExpectedNumbersOptimization_), 
         genomeMissing_(stl.genomeMissing_), 
         speciesTreeNodeNumber_(stl.speciesTreeNodeNumber_), NNILks_(stl.NNILks_),
-        rootLks_(stl.rootLks_), timeLimit_(stl.timeLimit_), currentStep_(stl.currentStep_),
+        rootLks_(stl.rootLks_), treesToLogLk_(stl.treesToLogLk_), timeLimit_(stl.timeLimit_), currentStep_(stl.currentStep_),
         suffix_(stl.suffix_), reconciliationModel_(stl.reconciliationModel_)
         {}
   
@@ -344,6 +345,7 @@ namespace bpp
             speciesTreeNodeNumber_ = stl.speciesTreeNodeNumber_;
             NNILks_ = stl.NNILks_;
             rootLks_ = stl.rootLks_;
+            treesToLogLk_ = stl.treesToLogLk_;
             timeLimit_ = stl.timeLimit_;
             currentStep_ = stl.currentStep_;
             suffix_ = stl.suffix_;

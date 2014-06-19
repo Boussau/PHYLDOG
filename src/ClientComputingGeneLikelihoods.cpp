@@ -225,16 +225,16 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
       //HEHEHEHEHEHEHEHEEHEHEH
       if (reconciliationModel_ == "DL")
               {
-		try {
-		tl = new DLGeneTreeLikelihood(familySpecificOptionsFile, params_, *spTree_);
-		}
-		catch (exception& e)
-		{
-		  cout << e.what() << '\n';
-		  avoidFamily = true;
-		  numDeletedFamilies_ = numDeletedFamilies_ +1;
-		}
-		/*
+								try {
+											tl = new DLGeneTreeLikelihood(familySpecificOptionsFile, params_, *spTree_);
+								}
+								catch (exception& e)
+									{
+		  							cout << e.what() << '\n';
+		  							avoidFamily = true;
+		  							numDeletedFamilies_ = numDeletedFamilies_ +1;
+									}
+									/*
                   tl = new DLGeneTreeLikelihood(*unrootedGeneTree, *sites, 
                                                 model, rDist, *spTree_, 
                                                 *geneTree_, *treeWithSpNames, seqSp, spId_, 
@@ -665,10 +665,13 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 						    	for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
 						    	{
 										string methodString =  treeLikelihoods_[i]->getLikelihoodMethod () ;
+										std::cout << "\n\n\t\tTEST2: " << methodString <<std::endl;
+										std::cout.flush();
+
 										if (methodString == "PLL") {
 											treeLikelihoods_[i]->setGeneTree( allUnrootedGeneTrees_[i], allGeneTrees_[i] );
 										}
-								else {
+										else {
 						    /*	for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
 						    	{*/
 										std::map <std::string, std::string > params = treeLikelihoods_[i]->getParams();
@@ -680,7 +683,8 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 							  	  {
 									    leaves[j]->setName(allSeqSps_[i][leaves[j]->getName()]);
 							  	  }
-							  	  treeLikelihoods_.push_back( new DLGeneTreeLikelihood(*(allUnrootedGeneTrees_[i]), *(allDatasets_[i]), 
+							  	  std::cout<< "\n\n\t\t WHEN CREATING: "<< ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL") <<std::endl;  
+							  	  treeLikelihoods_[i] =  new DLGeneTreeLikelihood(*(allUnrootedGeneTrees_[i]),                              *(allDatasets_[i]), 
 														allModels_[i], allDistributions_[i], *spTree_, 
 														*allGeneTrees_[i], *treeWithSpNames, allSeqSps_[i], spId_, 
 														lossExpectedNumbers_, 
@@ -690,7 +694,21 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 														allNum2Lineages_[i], 
 														speciesIdLimitForRootPosition_, 
 														heuristicsLevel_, MLindex_, params, 
-														true, true, true, true, false, allSprLimitGeneTree_[i]) );
+														true, true, true, true, false, allSprLimitGeneTree_[i]) ;
+          /*                          treeLikelihoods_.push_back( new DLGeneTreeLikelihood(*(allUnrootedGeneTrees_[i]), *(allDatasets_[i]), 
+                                                        allModels_[i], allDistributions_[i], *spTree_, 
+                                                        *allGeneTrees_[i], *treeWithSpNames, allSeqSps_[i], spId_, 
+                                                        lossExpectedNumbers_, 
+                                                        duplicationExpectedNumbers_, 
+                                                        allNum0Lineages_[i], 
+                                                        allNum1Lineages_[i], 
+                                                        allNum2Lineages_[i], 
+                                                        speciesIdLimitForRootPosition_, 
+                                                        heuristicsLevel_, MLindex_, params, 
+                                                        true, true, true, true, false, allSprLimitGeneTree_[i]) );*/
+                                  
+                                  
+                                  
 							  	  delete treeWithSpNames;
 									}
 								}

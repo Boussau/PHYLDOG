@@ -2668,7 +2668,7 @@ void computeDuplicationAndLossRatesForTheSpeciesTreeInitially ( std::string &bra
                                                                 const std::map <std::string, int> & genomeMissing,
                                                                 const TreeTemplate<Node> & tree )
 {
-  std::cout <<"Computing Initial DL Expected Numbers"<<std::endl;
+//  std::cout <<"Computing Initial DL Expected Numbers"<<std::endl;
   alterLineageCountsWithCoveragesInitially ( num0Lineages, num1Lineages, num2Lineages, genomeMissing, tree );
   computeDuplicationAndLossProbabilitiesForAllBranches ( num0Lineages, num1Lineages, num2Lineages, lossProbabilities, duplicationProbabilities );
 }

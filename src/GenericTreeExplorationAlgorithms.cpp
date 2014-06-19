@@ -724,6 +724,7 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, size_t & 
  * Procedure that makes sure that an NNI or rerooting one is about to make has
  * not been computed already.
  * If all NNIs or rerootings have been made, return true.
+ * Not sure it works as desired.
  ************************************************************************/
 
 bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, size_t & nodeForNNI, 
@@ -779,6 +780,24 @@ bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bes
   else {
     return false;
   }
+}
+
+
+/************************************************************************
+ * Procedure that makes sure that an NNI or rerooting one is about to make has
+ * not been computed already.
+ * Simpler than above, should work.
+ ************************************************************************/
+double checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, map<string, double> treesToLogLk)
+{
+    string treeStr = TreeTemplateTools::treeToParenthesis(tree, false);
+    std::map< std::string, double >::iterator it; 
+    double newLogLikelihood_ = 0.0;
+    it = treesToLogLk.find(treeStr);
+    if ( it != treesToLogLk.end() ) {
+        newLogLikelihood_ = it->second;
+    }
+    return newLogLikelihood_;
 }
 
 
