@@ -1514,14 +1514,14 @@ void gathersInformationFromClients (const mpi::communicator & world,
         mpi::reduce(world, logLVal, logL, std::plus<double> (), 0);
         if (reconciliationModel == "DL") {
             vector< int> tempNums = num0Lineages;
-            mpi::reduce(world, tempNums, num0Lineages, std::plus<int>(), 0);
-            mpi::reduce(world, tempNums, num1Lineages, std::plus<int>(), 0);
-            mpi::reduce(world, tempNums, num2Lineages, std::plus<int>(), 0);
+            mpi::reduce(world, &tempNums.front(), tempNums.size(), &num0Lineages.front(), std::plus<int>(), 0);
+            mpi::reduce(world, &tempNums.front(), tempNums.size(), &num1Lineages.front(), std::plus<int>(), 0);
+            mpi::reduce(world, &tempNums.front(), tempNums.size(), &num2Lineages.front(), std::plus<int>(), 0);
         }
         else if (reconciliationModel == "COAL") {
             vector< unsigned int> tempNums = num12Lineages;
-            mpi::reduce(world, tempNums, num12Lineages, std::plus<unsigned int>(), 0);
-            mpi::reduce(world, tempNums, num22Lineages, std::plus<unsigned int>(), 0);
+            mpi::reduce(world, &tempNums.front(), tempNums.size(), &num12Lineages.front(), std::plus<unsigned int>(), 0);
+            mpi::reduce(world, &tempNums.front(), tempNums.size(), &num22Lineages.front(), std::plus<unsigned int>(), 0);
         }
 
        /* std::cout <<"LOOK HERE:"<<std::endl;
@@ -1555,14 +1555,14 @@ void gathersInformationFromClients (const mpi::communicator & world,
 		
         if (reconciliationModel == "DL") {
           
-            mpi::reduce(world, num0Lineages, std::plus<int>(), 0);
-            mpi::reduce(world, num1Lineages, std::plus<int>(), 0);
-            mpi::reduce(world, num2Lineages, std::plus<int>(), 0);
+            mpi::reduce(world, &num0Lineages.front(), num0Lineages.size(), std::plus<int>(), 0);
+            mpi::reduce(world, &num1Lineages.front(), num1Lineages.size(), std::plus<int>(), 0);
+            mpi::reduce(world, &num2Lineages.front(), num2Lineages.size(),std::plus<int>(), 0);
         }
 
         else if (reconciliationModel == "COAL") {
-          mpi::reduce(world, num12Lineages, std::plus<unsigned int>(), 0);
-          mpi::reduce(world, num22Lineages, std::plus<unsigned int>(), 0);
+          mpi::reduce(world, &num12Lineages.front(), num12Lineages.size(), std::plus<unsigned int>(), 0);
+          mpi::reduce(world, &num22Lineages.front(), num22Lineages.size(), std::plus<unsigned int>(), 0);
         }
 
 /*      gather(world, num0Lineages, allNum0Lineages, server); 
