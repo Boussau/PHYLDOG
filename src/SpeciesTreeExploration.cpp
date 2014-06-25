@@ -1385,7 +1385,7 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
     
     if (whoami == server) {
         unsigned int allNumbersOfRemainingFamilies = 0;
-        reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
+        mpi::reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
 
         bool stop = false;
 
@@ -1406,7 +1406,7 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
         }
     }
     else {
-        reduce(world, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
+        mpi::reduce(world, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
         bool stop;
         broadcast(world, stop, server); 
         if (stop) {
@@ -1449,25 +1449,27 @@ void lastCommunicationsServerClient (const mpi::communicator & world,
 }*/
 
 
-struct plus_vec {
-    std::vector< int > operator()(std::vector< int > i, std::vector< int > j) const { 
-        for (unsigned int k =0; k<i.size() ; k++ ) {
-            i[k] = i[k]+j[k];
-        }
-        return i; 
-    }
-};
+// unused since Boost > 1.49 (not sure but used to work with 1.49, does not work anymore since 1.55)
 
-
-
-struct plus_vec_unsigned {
-    std::vector< unsigned int > operator()(std::vector< unsigned int > i, std::vector< unsigned int > j) const { 
-        for (unsigned int k =0; k<i.size() ; k++ ) {
-            i[k] = i[k]+j[k];
-        }
-        return i; 
-    }
-};
+// struct plus_vec {
+//     std::vector< int > operator()(std::vector< int > i, std::vector< int > j) const { 
+//         for (unsigned int k =0; k<i.size() ; k++ ) {
+//             i[k] = i[k]+j[k];
+//         }
+//         return i; 
+//     }
+// };
+// 
+// 
+// 
+// struct plus_vec_unsigned {
+//     std::vector< unsigned int > operator()(std::vector< unsigned int > i, std::vector< unsigned int > j) const { 
+//         for (unsigned int k =0; k<i.size() ; k++ ) {
+//             i[k] = i[k]+j[k];
+//         }
+//         return i; 
+//     }
+// };
 
 
 
@@ -1509,17 +1511,17 @@ void gathersInformationFromClients (const mpi::communicator & world,
         resetVector(num22Lineages);
   //      gather(world, logL, logLs, server);
 //        logL =  VectorTools::sum(logLs);
-        reduce(world, logLVal, logL, std::plus<double> (), 0);
+        mpi::reduce(world, logLVal, logL, std::plus<double> (), 0);
         if (reconciliationModel == "DL") {
             vector< int> tempNums = num0Lineages;
-            reduce(world, tempNums, num0Lineages, plus_vec(), 0);
-            reduce(world, tempNums, num1Lineages, plus_vec(), 0);
-            reduce(world, tempNums, num2Lineages, plus_vec(), 0);
+            mpi::reduce(world, tempNums, num0Lineages, std::plus<int>(), 0);
+            mpi::reduce(world, tempNums, num1Lineages, std::plus<int>(), 0);
+            mpi::reduce(world, tempNums, num2Lineages, std::plus<int>(), 0);
         }
         else if (reconciliationModel == "COAL") {
             vector< unsigned int> tempNums = num12Lineages;
-            reduce(world, tempNums, num12Lineages, plus_vec_unsigned(), 0);
-            reduce(world, tempNums, num22Lineages, plus_vec_unsigned(), 0);
+            mpi::reduce(world, tempNums, num12Lineages, std::plus<unsigned int>(), 0);
+            mpi::reduce(world, tempNums, num22Lineages, std::plus<unsigned int>(), 0);
         }
 
        /* std::cout <<"LOOK HERE:"<<std::endl;
@@ -1548,18 +1550,19 @@ void gathersInformationFromClients (const mpi::communicator & world,
         //Clients send back stuff to the server.
 //        gather(world, logL, server);     
 
-        reduce(world, logL, std::plus<double> (), 0);
+        mpi::reduce(world, logL, std::plus<double> (), 0);
 
 		
         if (reconciliationModel == "DL") {
-            reduce(world, num0Lineages, plus_vec(), 0);
-            reduce(world, num1Lineages, plus_vec(), 0);
-            reduce(world, num2Lineages, plus_vec(), 0);
+          
+            mpi::reduce(world, num0Lineages, std::plus<int>(), 0);
+            mpi::reduce(world, num1Lineages, std::plus<int>(), 0);
+            mpi::reduce(world, num2Lineages, std::plus<int>(), 0);
         }
 
         else if (reconciliationModel == "COAL") {
-			reduce(world, num12Lineages, plus_vec_unsigned(), 0);
-            reduce(world, num22Lineages, plus_vec_unsigned(), 0);
+          mpi::reduce(world, num12Lineages, std::plus<unsigned int>(), 0);
+          mpi::reduce(world, num22Lineages, std::plus<unsigned int>(), 0);
         }
 
 /*      gather(world, num0Lineages, allNum0Lineages, server); 
