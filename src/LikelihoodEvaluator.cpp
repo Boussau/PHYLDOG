@@ -222,7 +222,7 @@ void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
     
   // cout << "PLL: Connect the alignment and partition structure with the tree structure" << std::endl ;
   /* Connect the alignment and partition structure with the tree structure */
-  if (!pllLoadAlignment (PLL_instance, PLL_alignmentData, PLL_partitions, PLL_DEEP_COPY))
+  if (!pllLoadAlignment (PLL_instance, PLL_alignmentData, PLL_partitions))
   {
     throw Exception("PLL: Incompatible tree/alignment combination.");
   }
@@ -321,7 +321,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 //  pllSetFixedAlpha(alpha_, 0, PLL_partitions, PLL_instance);
 //  pllSetFixedBaseFrequencies(baseFreq_, 4, 0, PLL_partitions, PLL_instance);
   //pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
-  pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
+  pllInitModel(PLL_instance, PLL_partitions);
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
 
@@ -429,7 +429,7 @@ std::cout << "HEHEHEHE 2" << std::endl;*/
   
   // processing by PLL
   PLL_connectTreeAndAlignment();
-  pllInitModel(PLL_instance, PLL_partitions, PLL_alignmentData);
+  pllInitModel(PLL_instance, PLL_partitions);
 //  pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
 /*std::cout << "IIIIIHEHEHEHE " << std::endl;
 std::cout << "tolerance_ "<< tolerance_ << std::endl;
