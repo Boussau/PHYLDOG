@@ -65,6 +65,8 @@ IMPROVED_FIND_LIBRARY(LIBS bpp-phyl Bpp/Phyl/Tree.h)
 IMPROVED_FIND_LIBRARY(LIBS bpp-seq Bpp/Seq/Alphabet/Alphabet.h)
 IMPROVED_FIND_LIBRARY(LIBS bpp-core Bpp/Clonable.h)
 
+IMPROVED_FIND_LIBRARY(PLL_LIBRARIES pll-sse3 pll/pll.h)
+
 #Boost libraries:
 find_package(Boost COMPONENTS mpi serialization REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -78,6 +80,9 @@ set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 
 # Source Directory
 add_subdirectory(src ${PHYLDOG_BINARY_DIR})
+
+# Tests
+add_subdirectory(tests)
 
 
 # Packager

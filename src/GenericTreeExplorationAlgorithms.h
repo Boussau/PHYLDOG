@@ -94,9 +94,13 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, size_t & 
 bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, size_t & nodeForNNI, 
                                size_t & nodeForRooting, std::vector < double >  &NNILks, 
                                std::vector < double >  &rootLks);
+double checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, map<string, double> treesToLogLk);
 void dropLeaves(TreeTemplate<Node> & tree, const std::vector<string> &spToDrop);
 Tree* MRP(const vector<Tree*>& vecTr);
 void rootTreeWithOutgroup (TreeTemplate<Node> &tree, 
 						   const std::vector<std::string> outgroupTaxa) throw ( TreeException );
 bool isTreeRootedWithOutgroup (const TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) ;
+
+void getNodesInSubtreeIDs(bpp::Node* node,std::set<unsigned int>& IDs);
+
 #endif 

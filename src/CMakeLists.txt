@@ -11,19 +11,25 @@ SET(PHYLDOG_SRCS
   COALGeneTreeLikelihood.h
   GeneTreeLikelihood.cpp
   GeneTreeLikelihood.h
-  COALTools.cpp COALTools.h
+  COALTools.cpp
+  COALTools.h
   GenericTreeExplorationAlgorithms.h
   GenericTreeExplorationAlgorithms.cpp
   GeneTreeAlgorithms.h
   GeneTreeAlgorithms.cpp
   FastRHomogeneousTreeLikelihood.h
   FastRHomogeneousTreeLikelihood.cpp
+  ClientComputingGeneLikelihoods.h
+  ClientComputingGeneLikelihoods.cpp
+  LikelihoodEvaluator.h
+  LikelihoodEvaluator.cpp
   )
 ADD_EXECUTABLE(phyldog ReconcileDuplications.cpp ${PHYLDOG_SRCS})
 target_link_libraries(phyldog 
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_MPI_LIBRARY}
   ${MPI_LIBRARIES}
+  ${PLL_LIBRARIES}
   ${LIBS}
 )
 

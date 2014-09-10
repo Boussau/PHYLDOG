@@ -77,75 +77,89 @@ using namespace bpp;
 class DLGeneTreeLikelihood:
 public GeneTreeLikelihood
 {
-  // NNIHomogeneousTreeLikelihood * nniLk_;
-  std::vector <int> _duplicationNumbers;
-  std::vector <int> _lossNumbers;
-  std::vector <int>  _branchNumbers;        
-  mutable std::vector <double> _duplicationProbabilities;
-  mutable std::vector <double> _lossProbabilities; 
-  std::vector <int> _num0Lineages;
-  std::vector <int> _num1Lineages;
-  std::vector <int> _num2Lineages;
-  mutable std::vector <int> _tentativeDuplicationNumbers;
-  mutable std::vector <int> _tentativeLossNumbers; 
-  mutable std::vector <int> _tentativeBranchNumbers; 
-  mutable std::vector <int> _tentativeNum0Lineages;
-  mutable std::vector <int> _tentativeNum1Lineages; 
-  mutable std::vector <int> _tentativeNum2Lineages;
-  mutable bool _DLStartingGeneTree;
+  // NNIHomogeneousTreeLikelihood * levaluator_;
+  std::vector <int> duplicationNumbers_;
+  std::vector <int> lossNumbers_;
+  std::vector <int>  branchNumbers_;        
+  mutable std::vector <double> duplicationExpectedNumbers_;
+  mutable std::vector <double> lossExpectedNumbers_; 
+  std::vector <int> num0Lineages_;
+  std::vector <int> num1Lineages_;
+  std::vector <int> num2Lineages_;
+  mutable std::vector <int> tentativeDuplicationNumbers_;
+  mutable std::vector <int> tentativeLossNumbers_; 
+  mutable std::vector <int> tentativeBranchNumbers_; 
+  mutable std::vector <int> tentativeNum0Lineages_;
+  mutable std::vector <int> tentativeNum1Lineages_; 
+  mutable std::vector <int> tentativeNum2Lineages_;
+  mutable bool DLStartingGeneTree_;
   
 public:
+  
   /**
    * @brief Build a new DLGeneTreeLikelihood object.
    *
-   * @param tree The tree to use.
-   * @param model The substitution model to use.
-   * @param rDist The rate across sites distribution to use.
-   * @param spTree The species tree
-   * @param rootedTree rooted version of the gene tree
-   * @param seqSp link between sequence and species names
-   * @param spId link between species name and species ID
-   * @param lossNumbers vector to store loss numbers per branch
-   * @param lossProbabilities vector to store expected numbers of losses per branch
-   * @param duplicationNumbers vector to store duplication numbers per branch
-   * @param duplicationProbabilities vector to store expected numbers of duplications per branch
-   * @param branchNumbers vector to store branch numbers in the tree
-   * @param num0Lineages vectors to store numbers of branches ending with a loss
-   * @param num1Lineages vectors to store numbers of branches ending with 1 gene
-   * @param num2Lineages vectors to store numbers of branches ending with 2 genes
-   * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
-   * @param heuristicsLevel type of heuristics used
-   * @param MLindex ML rooting position
-   * @param checkRooted Tell if we have to check for the tree to be unrooted.
-   * If true, any rooted tree will be unrooted before likelihood computation.
-   * @param verbose Should I display some info?
-   * @throw Exception in an error occured.
+   * @param file the option file name.
+   * @param params The parameters to parse.	 
+   * @param spTree The species tree.
+   * @throw Exception if an error occured.
    */
-  DLGeneTreeLikelihood(
-    const Tree & tree,
-    SubstitutionModel * model,
-    DiscreteDistribution * rDist,
-    TreeTemplate<Node> & spTree,  
-    TreeTemplate<Node> & rootedTree, 
-    TreeTemplate<Node> & geneTreeWithSpNames,
-    const std::map <std::string, std::string> seqSp,
-    std::map <std::string,int> spId,
-    std::vector <double> & lossProbabilities, 
-    std::vector <double> & duplicationProbabilities, 
-    std::vector <int> & num0Lineages,
-    std::vector <int> & num1Lineages,
-    std::vector <int> & num2Lineages, 
-    int speciesIdLimitForRootPosition,
-    int heuristicsLevel,
-    int & MLindex, 
-    bool checkRooted = true,
-    bool verbose = false,
-    bool rootOptimization = false, 
-    bool considerSequenceLikelihood = true, 
-    bool DLStartingGeneTree = false, 
-    unsigned int sprLimit = 2)
-  throw (Exception);
+  DLGeneTreeLikelihood(std::string file, 
+		       std::map<std::string, std::string> params, 
+		       TreeTemplate<Node> & spTree ) throw (exception);
   
+  
+//   /**
+//    * @brief Build a new DLGeneTreeLikelihood object.
+//    *
+//    * @param tree The tree to use.
+//    * @param model The substitution model to use.
+//    * @param rDist The rate across sites distribution to use.
+//    * @param spTree The species tree
+//    * @param rootedTree rooted version of the gene tree
+//    * @param seqSp link between sequence and species names
+//    * @param spId link between species name and species ID
+//    * @param lossNumbers vector to store loss numbers per branch
+//    * @param lossProbabilities vector to store expected numbers of losses per branch
+//    * @param duplicationNumbers vector to store duplication numbers per branch
+//    * @param duplicationProbabilities vector to store expected numbers of duplications per branch
+//    * @param branchNumbers vector to store branch numbers in the tree
+//    * @param num0Lineages vectors to store numbers of branches ending with a loss
+//    * @param num1Lineages vectors to store numbers of branches ending with 1 gene
+//    * @param num2Lineages vectors to store numbers of branches ending with 2 genes
+//    * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
+//    * @param heuristicsLevel type of heuristics used
+//    * @param MLindex ML rooting position
+//    * @param checkRooted Tell if we have to check for the tree to be unrooted.
+//    * If true, any rooted tree will be unrooted before likelihood computation.
+//    * @param verbose Should I display some info?
+//    * @throw Exception in an error occured.
+//    */
+//   DLGeneTreeLikelihood(
+//     const Tree & tree,
+//     SubstitutionModel * model,
+//     DiscreteDistribution * rDist,
+//     TreeTemplate<Node> & spTree,  
+//     TreeTemplate<Node> & rootedTree, 
+//     TreeTemplate<Node> & geneTreeWithSpNames,
+//     const std::map <std::string, std::string> seqSp,
+//     std::map <std::string,int> spId,
+//     std::vector <double> & lossProbabilities, 
+//     std::vector <double> & duplicationProbabilities, 
+//     std::vector <int> & num0Lineages,
+//     std::vector <int> & num1Lineages,
+//     std::vector <int> & num2Lineages, 
+//     int speciesIdLimitForRootPosition,
+//     int heuristicsLevel,
+//     int & MLindex, 
+//     bool checkRooted = true,
+//     bool verbose = false,
+//     bool rootOptimization = false, 
+//     bool considerSequenceLikelihood = true, 
+//     bool DLStartingGeneTree = false, 
+//     unsigned int sprLimit = 2)
+//   throw (Exception);
+//   
   /**
    * @brief Build a new ReconciliationTreeLikelihood object.
    *
@@ -194,6 +208,7 @@ public:
     int speciesIdLimitForRootPosition,  
     int heuristicsLevel,
     int & MLindex, 
+    std::map <std::string, std::string > params,
     bool checkRooted = true,
     bool verbose = false, 
     bool rootOptimization = false, 
@@ -246,15 +261,15 @@ public:
   
   double getValue() const throw (Exception);
   
-  void fireParameterChanged(const ParameterList & params);
+//   void fireParameterChanged(const ParameterList & params);
   
   double getTopologyValue() const throw (Exception) { return getValue(); } 
   
-  double getScenarioLikelihood() const throw (Exception) { return _scenarioLikelihood; }
+  double getScenarioLikelihood() const throw (Exception) { return scenarioLikelihood_; }
   
-  void setSpTree(TreeTemplate<Node> & spTree) { if (_spTree) delete _spTree; _spTree = spTree.clone(); }
+  void setSpTree(TreeTemplate<Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
   
-  void setSpId(std::map <std::string, int> & spId) {_spId = spId;}
+  void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
   
   double testNNI(int nodeId) const throw (NodeException);
   
@@ -267,15 +282,15 @@ public:
   std::vector <int> get1LineagesNumbers() const;
   std::vector <int> get2LineagesNumbers() const;
   
-  ParameterList getParameters() {return nniLk_->getParameters();}
+//   ParameterList getParameters() {return levaluator_->getParameters();}
   
-  TreeTemplate<Node> & getSpTree() const {return *_spTree;}
+  TreeTemplate<Node> & getSpTree() const {return *spTree_;}
   
-  TreeTemplate<Node> & getRootedTree() const {return *_rootedTree;}
+  TreeTemplate<Node> & getRootedTree() const {return *rootedTree_;}
   
-  TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *_geneTreeWithSpNames;}
+  TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *geneTreeWithSpNames_;}
   
-  std::map <std::string, std::string> getSeqSp() {return _seqSp;}
+  std::map <std::string, std::string> getSeqSp() {return seqSp_;}
   
   void setExpectedNumbers(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities);
   
@@ -283,42 +298,37 @@ public:
   
   //void resetSequenceLikelihood();
   
-  double getSequenceLikelihood();
+  double getSequenceLikelihood() const;
   
   void OptimizeSequenceLikelihood(bool yesOrNo) const  {
-    _optimizeSequenceLikelihood = yesOrNo;
+    optimizeSequenceLikelihood_ = yesOrNo;
   }
   
   void OptimizeReconciliationLikelihood(bool yesOrNo) const {
-    _optimizeReconciliationLikelihood = yesOrNo;
+    optimizeReconciliationLikelihood_ = yesOrNo;
   }
   
-  void optimizeNumericalParameters(map<string, string> params) {
-    
-    int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
-    bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = 100;
-    params[ std::string("optimization.topology")] = "false";
-    PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(nniLk_), nniLk_->getParameters(), params, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = backup;
-    params[ std::string("optimization.topology")] = backupOpt;
-    
-    
-    
-    /* auto_ptr<BackupListener> backupListener;
-     *            unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", optArgs, 1, "", true, false);
-     *            OptimizationTools::optimizeNumericalParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(nniLk_), nniLk_->getParameters(), backupListener.get(), nstep, );*/
-  };
+//   void optimizeNumericalParameters(map<string, string> params) {
+//     
+//     int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
+//     bool backupOpt = ApplicationTools::getBooleanParameter("optimization.topology", params, false, "", true, false);
+//     params[ std::string("optimization.max_number_f_eval")] = 100;
+//     params[ std::string("optimization.topology")] = "false";
+//     PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(levaluator_), levaluator_->getParameters(), params, "", true, false);
+//     params[ std::string("optimization.max_number_f_eval")] = backup;
+//     params[ std::string("optimization.topology")] = backupOpt;
+//     
+//     
+//     
+//     /* auto_ptr<BackupListener> backupListener;
+//      *            unsigned int nstep = ApplicationTools::getParameter<unsigned int>("nstep", optArgs, 1, "", true, false);
+//      *            OptimizationTools::optimizeNumericalParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(levaluator_), levaluator_->getParameters(), backupListener.get(), nstep, );*/
+//   };
   
   void initialize();
   
   void print() const;
-  
-  /************************************************************************
-   * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
-   * and executes the ones with the highest likelihood. 
-   ************************************************************************/
-  void refineGeneTreeSPRs(map<string, string> params);
+
   
   /************************************************************************
    * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
@@ -326,13 +336,9 @@ public:
    * To do all this as fast as possible, we optimize only a few branch lengths on the SPR tree, 
    * and we use a simple recursion for that.
    ************************************************************************/
-  void refineGeneTreeSPRsFast(map<string, string> params);
   void refineGeneTreeSPRsFast2(map<string, string> params);
   void refineGeneTreeSPRsFast3 (map<string, string> params);
   void refineGeneTreeMuffato (map<string, string> params);
-  
-  //Not up to date anymore, do not use without checking the code.
-  void refineGeneTreeSPRs2(map<string, string> params);
   
   
   /************************************************************************

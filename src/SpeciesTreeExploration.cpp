@@ -81,12 +81,13 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                                             unsigned int server, 
                                             size_t & nodeForNNI, 
                                             size_t & nodeForRooting, 
+                                            map <string, double > treesToLogLk,
                                             std::string & branchExpectedNumbersOptimization, 
                                             std::map < std::string, int> genomeMissing,
                                             std::vector < double >  &NNILks, 
                                             std::vector<double> &rootLks, unsigned int currentStep, 
-											const bool fixedOutgroupSpecies_, 
-											const std::vector < std::string > outgroupSpecies_) 
+											 const bool fixedOutgroupSpecies_, 
+											 const std::vector < std::string > outgroupSpecies_) 
 {
     std::vector <double> bestDupProba;
     std::vector<double> bestLossProba;
@@ -106,14 +107,18 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
     {
     //If we have already computed the value for the NNI or the rerooting 
     //we are about to make, we don't make it!
-		if (fixedOutgroupSpecies_)
+	/*Seems buggy, does not do what it's supposed to do. Replaced below.
+     *	if (fixedOutgroupSpecies_)
 			nodeForRooting = tree->getNumberOfNodes();
 		stop = checkChangeHasNotBeenDone(*tree, bestTree, nodeForNNI, nodeForRooting, NNILks, rootLks);
-
+    */
+    
     if (!stop) 
       {
 		  //Here we have implemented functions to not change the root if fixedOutgroupSpecies_==true (untested)
       makeDeterministicNNIsAndRootChangesOnly(*tree, nodeForNNI, nodeForRooting, fixedOutgroupSpecies_); 
+      double cachedLogLk = checkChangeHasNotBeenDone(*tree, treesToLogLk);
+        if (cachedLogLk == 0.0) {
 		 /* if (reconciliationModel == "DL") {
 			  breadthFirstreNumber (*tree, duplicationExpectedNumbers, lossExpectedNumbers);
 		  }
@@ -122,15 +127,17 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
 		  }*///TEST170413
 		  
 		  breadthFirstreNumber (*tree);
+		    //     std::cout << "HEHE 1 " << TreeTemplateTools::treeToParenthesis(*tree, true) <<std::endl;
+
 		  //We set preliminary loss and duplication rates, correcting for genome coverage
 		  computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization, 
-																   num0Lineages, 
-																   num1Lineages, 
-																   num2Lineages, 
-																   lossExpectedNumbers, 
-																   duplicationExpectedNumbers, 
-																   genomeMissing, 
-																   *tree);
+									    num0Lineages, 
+									    num1Lineages, 
+									    num2Lineages, 
+									    lossExpectedNumbers, 
+									    duplicationExpectedNumbers, 
+									    genomeMissing, 
+									    *tree);
 
       computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world, index, stop, 
                                                                          logL, num0Lineages, 
@@ -170,7 +177,8 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
           }
         }*/
       
-      
+              treesToLogLk[TreeTemplateTools::treeToParenthesis( *tree, false )] = logL;
+
           if (logL+0.01<bestlogL) 
           {
               std::cout << "\t\tNNIs or Root changes: Improvement: new total Likelihood value "<<logL<<" compared to the best log Likelihood : "<<bestlogL<< std::endl;
@@ -237,6 +245,31 @@ void localOptimizationWithNNIsAndReRootings(const mpi::communicator& world,
                 }
             }
         }
+      }
+      else { //The tree has already been found.
+            std::cout << "This species tree has already been tried. "<<std::endl;
+            numIterationsWithoutImprovement++;
+            std::cout <<"\t\tNNIs or Root changes: Number of iterations without improvement: "<<numIterationsWithoutImprovement<< std::endl;
+            if (tree) delete tree;
+            tree = bestTree->clone();
+            if (reconciliationModel == "DL") {
+            duplicationExpectedNumbers = bestDupProba;
+            lossExpectedNumbers = bestLossProba;
+            }
+            else if (reconciliationModel == "COAL") {
+                coalBls = bestCoalBls;
+            }
+            if ( ( numIterationsWithoutImprovement > 2*tree->getNumberOfNodes() ) || (ApplicationTools::getTime() >= timeLimit) ) 
+            {          
+                stop = true; 
+                if (ApplicationTools::getTime() >= timeLimit) {
+                    lastCommunicationsServerClient (world, 
+                                                    server, 
+                                                    stop, 
+                                                    bestIndex);
+                }
+            }
+      }
       }
     else //stop is true
       {  
@@ -386,6 +419,8 @@ void fastTryAllPossibleReRootingsAndMakeBestOne(const mpi::communicator& world,
       changeRoot(*tree, nodeIds[i]);
 		
 		breadthFirstreNumber (*tree);
+		 //      std::cout << "HEHE 2" << TreeTemplateTools::treeToParenthesis(*tree, true) <<std::endl;
+
 		//We set preliminary loss and duplication rates, correcting for genome coverage
 		computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization, 
 																 num0Lineages, 
@@ -635,15 +670,16 @@ void fastTryAllPossibleSPRs(const mpi::communicator& world, TreeTemplate<Node> *
 		if (!fixedOutgroupSpecies_ || (fixedOutgroupSpecies_ && isTreeRootedWithOutgroup (*tree, outgroupSpecies_) ) )
 		{
        breadthFirstreNumber (*tree); //TEST170413
+      // std::cout << "HEHE 0 "<< TreeTemplateTools::treeToParenthesis(*tree, true) <<std::endl;
 			//We set preliminary loss and duplication rates, correcting for genome coverage
 			computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization, 
-																	 num0Lineages, 
-																	 num1Lineages, 
-																	 num2Lineages, 
-																	 lossExpectedNumbers, 
-																	 duplicationExpectedNumbers, 
-																	 genomeMissing, 
-																	 *tree);
+										num0Lineages, 
+										num1Lineages, 
+										num2Lineages, 
+										lossExpectedNumbers, 
+										duplicationExpectedNumbers, 
+										genomeMissing, 
+										*tree);
 
 		/*	if (reconciliationModel == "DL") {
 				breadthFirstreNumber (*tree, duplicationExpectedNumbers, lossExpectedNumbers);
@@ -1349,7 +1385,7 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
     
     if (whoami == server) {
         unsigned int allNumbersOfRemainingFamilies = 0;
-        reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
+        mpi::reduce(world, allNumbersOfRemainingFamilies, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
 
         bool stop = false;
 
@@ -1370,7 +1406,7 @@ void numberOfFilteredFamiliesCommunicationsServerClient (const mpi::communicator
         }
     }
     else {
-        reduce(world, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
+        mpi::reduce(world, numberOfGeneFamilies, std::plus<unsigned int> (), 0);
         bool stop;
         broadcast(world, stop, server); 
         if (stop) {
@@ -1413,25 +1449,27 @@ void lastCommunicationsServerClient (const mpi::communicator & world,
 }*/
 
 
-struct plus_vec {
-    std::vector< int > operator()(std::vector< int > i, std::vector< int > j) const { 
-        for (unsigned int k =0; k<i.size() ; k++ ) {
-            i[k] = i[k]+j[k];
-        }
-        return i; 
-    }
-};
+// unused since Boost > 1.49 (not sure but used to work with 1.49, does not work anymore since 1.55)
 
-
-
-struct plus_vec_unsigned {
-    std::vector< unsigned int > operator()(std::vector< unsigned int > i, std::vector< unsigned int > j) const { 
-        for (unsigned int k =0; k<i.size() ; k++ ) {
-            i[k] = i[k]+j[k];
-        }
-        return i; 
-    }
-};
+// struct plus_vec {
+//     std::vector< int > operator()(std::vector< int > i, std::vector< int > j) const { 
+//         for (unsigned int k =0; k<i.size() ; k++ ) {
+//             i[k] = i[k]+j[k];
+//         }
+//         return i; 
+//     }
+// };
+// 
+// 
+// 
+// struct plus_vec_unsigned {
+//     std::vector< unsigned int > operator()(std::vector< unsigned int > i, std::vector< unsigned int > j) const { 
+//         for (unsigned int k =0; k<i.size() ; k++ ) {
+//             i[k] = i[k]+j[k];
+//         }
+//         return i; 
+//     }
+// };
 
 
 
@@ -1473,7 +1511,7 @@ void gathersInformationFromClients (const mpi::communicator & world,
         resetVector(num22Lineages);
   //      gather(world, logL, logLs, server);
 //        logL =  VectorTools::sum(logLs);
-        reduce(world, logLVal, logL, std::plus<double> (), 0);
+        mpi::reduce(world, logLVal, logL, std::plus<double> (), 0);
         if (reconciliationModel == "DL") {
             vector< int> tempNums = num0Lineages;
             mpi::reduce(world, &tempNums.front(), tempNums.size(), &num0Lineages.front(), std::plus<int>(), 0);
@@ -1512,7 +1550,7 @@ void gathersInformationFromClients (const mpi::communicator & world,
         //Clients send back stuff to the server.
 //        gather(world, logL, server);     
 
-        reduce(world, logL, std::plus<double> (), 0);
+        mpi::reduce(world, logL, std::plus<double> (), 0);
 
 		
         if (reconciliationModel == "DL") {

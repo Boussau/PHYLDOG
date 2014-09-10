@@ -657,9 +657,9 @@ void computeRootingCoalCounts(TreeTemplate<Node> & spTree,
     directionNode1 = 0; //we use the inferior index
 
 
-    unsigned int directionSon0, directionSon1;
+    unsigned int directionSon0;//, directionSon1;
     directionSon0 = sonNumber+1;
-    directionSon1 = 0;
+  //  directionSon1 = 0;
 	//We will need that for the likelihood computation for this root
 	std::vector< std::vector<unsigned  int > > rootCounts = coalCounts[geneNodeId][directionSon0];
 
@@ -1065,7 +1065,7 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
         resetCoalCounts(coalCounts);
 	/*	for (unsigned int i = 0 ; i < coalCounts[0][0].size() ; i++) {
 			if (spTree->getNode(i)->isLeaf() ) {
-				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << coalCounts[0][0][i][1] << std::endl;
+				std::cout << "Leaf i: "<<i<<" coalCounts_[0][0][i][0]: "<< coalCounts[0][0][i][0] <<" coalCounts_[0][0][i][1] " << coalCounts[0][0][i][1] << std::endl;
 			}
 		}*/
 
@@ -1077,7 +1077,7 @@ double findMLCoalReconciliationDR (TreeTemplate<Node> * spTree,
 	/*	std::cout << "JUST AFTER computeSubtreeCoalCountsPostorderAndFillTables STILL INSIDE findMLCoalReconciliationDR: "<<std::endl;
 		for (unsigned int i = 0 ; i < coalCounts[0][0].size() ; i++) {
 			if (spTree->getNode(i)->isLeaf() ) {
-				std::cout << "Leaf i: "<<i<<" _coalCounts[0][0][i][0]: "<< coalCounts[0][0][i][0] <<" _coalCounts[0][0][i][1] " << coalCounts[0][0][i][1] << std::endl;
+				std::cout << "Leaf i: "<<i<<" coalCounts_[0][0][i][0]: "<< coalCounts[0][0][i][0] <<" coalCounts_[0][0][i][1] " << coalCounts[0][0][i][1] << std::endl;
 			}
 		}*/
 

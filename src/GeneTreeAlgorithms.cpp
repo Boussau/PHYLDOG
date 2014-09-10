@@ -43,6 +43,9 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Seq/GeneticCode/StandardGeneticCode.h>
 
+using namespace bpp;
+using namespace std;
+
 /**************************************************************************
  * This function creates a sequence tree from a species tree and a std::map 
  * containing the link between the species and their sequences.
@@ -593,19 +596,19 @@ throw (Exception)
                 //Initialize BranchLikelihood:
                 brLikFunction->initModel(tl->getSubstitutionModel(), tl->getRateDistribution());
                 brLikFunction->initLikelihoods(&fatherArray, &sonArray);
-                ParameterList parameters;
+                ParameterList params;
                 tl->getParameters().printParameters(std::cout);
                 std::string name = "BrLen" + TextTools::toString(nodes[i]->getId());
                 Parameter brLen = tl->getParameter(name);
                 brLen.setName(name);
-                parameters.addParameter(brLen);
-                brLikFunction->setParameters(parameters);
+                params.addParameter(brLen);
+                brLikFunction->setParameters(params);
                 
                 //Re-estimate branch length:
                 brentOptimizer->setFunction(brLikFunction);
                 brentOptimizer->getStopCondition()->setTolerance(0.1);
                 brentOptimizer->setInitialInterval(brLen.getValue(), brLen.getValue()+0.01);
-                brentOptimizer->init(parameters);
+                brentOptimizer->init(params);
                 brentOptimizer->optimize();
                 //brLenNNIValues_[nodeId] = brLikFunction_->getParameterValue("BrLen");
                 double length = brentOptimizer->getParameters().getParameter(name).getValue();
@@ -688,6 +691,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     double tolerance = ApplicationTools::getDoubleParameter("bionj.optimization.tolerance", params, .000001);
 
     unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, type, tolerance);
+    std::cout << std::endl;
     std::vector<Node*> nodes = unrootedGeneTree->getNodes();
     
     for(unsigned int k = 0; k < nodes.size(); k++)
@@ -810,7 +814,7 @@ string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
       leaves[i]->setName(seqtosp->second);
     }
     else {
-      std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+      std::cout <<"Error in geneTreeToParenthesisWithSpeciesNames: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
       exit(-1);
     }
   }
@@ -832,7 +836,7 @@ string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
       leaves[i]->setName(seqtosp->second + "%" + leaves[i]->getName());
     }
     else {
-      std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+      std::cout <<"Error in geneTreeToParenthesisPlusSpeciesNames: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
       exit(-1);
     }
   }
@@ -870,7 +874,7 @@ void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
       leaves[i]->setNodeProperty("S", BppString(seqtosp->second));
     }
     else {
-      std::cout <<"Error in assignSpeciesIdToLeaf: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
+      std::cout <<"Error in annotateGeneTreeWithSpeciesNames: "<< leaves[i]->getName() <<" not found in std::map seqSp"<<std::endl;
       exit(-1);
     }
   }

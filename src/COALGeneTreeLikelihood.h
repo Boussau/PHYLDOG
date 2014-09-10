@@ -57,6 +57,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "GeneTreeAlgorithms.h"
 #include "GeneTreeLikelihood.h"
+#include "DLGeneTreeLikelihood.h"
 
 #include "mpi.h" 
 
@@ -73,11 +74,11 @@ using namespace bpp;
     public GeneTreeLikelihood
     {
         //coalCounts: vector of genetreenbnodes vectors of 3 (3 directions) vectors of sptreenbnodes vectors of 2 ints
-        std::vector < std::vector < std::vector < std::vector< unsigned int > > > > _coalCounts;
-        mutable std::vector < std::vector < std::vector < std::vector < unsigned int > > > > _tentativeCoalCounts;
+        std::vector < std::vector < std::vector < std::vector< unsigned int > > > > coalCounts_;
+        mutable std::vector < std::vector < std::vector < std::vector < unsigned int > > > > tentativeCoalCounts_;
 
         //coalBl: length of a branch of the species tree, in coalescent units (1 coalescent unit = N generations)
-        std::vector < double > _coalBl;
+        std::vector < double > coalBl_;
         
         //num12Lineages_ and num22Lineages_: counts of these particular patterns for each branch of the species tree.
         std::vector< unsigned int > num12Lineages_;
@@ -85,46 +86,59 @@ using namespace bpp;
 
         
     public:
-        /**
-         * @brief Build a new ReconciliationTreeLikelihood object.
-         *
-         * @param tree The tree to use.
-         * @param model The substitution model to use.
-         * @param rDist The rate across sites distribution to use.
-         * @param spTree The species tree
-         * @param rootedTree rooted version of the gene tree
-         * @param seqSp link between sequence and species names
-         * @param spId link between species name and species ID
-         * @param coalCounts vector to store coalescent numbers per branch
-         * @param coalBl vector to give number of coalescent units per branch of the species tree
-         * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
-         * @param heuristicsLevel type of heuristics used
-         * @param MLindex ML rooting position
-         * @param checkRooted Tell if we have to check for the tree to be unrooted.
-         * If true, any rooted tree will be unrooted before likelihood computation.
-         * @param verbose Should I display some info?
-         * @throw Exception in an error occured.
-         */
-        COALGeneTreeLikelihood(
-                               const Tree & tree,
-                               SubstitutionModel * model,
-                               DiscreteDistribution * rDist,
-                               TreeTemplate<Node> & spTree,  
-                               TreeTemplate<Node> & rootedTree, 
-                               TreeTemplate<Node> & geneTreeWithSpNames,
-                               const std::map <std::string, std::string> seqSp,
-                               std::map <std::string,int> spId,
-                               std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
-                               std::vector < double > coalBl,
-                               int speciesIdLimitForRootPosition,
-                               int heuristicsLevel,
-                               int & MLindex, 
-                               bool checkRooted = true,
-                               bool verbose = false,
-                               bool rootOptimization = false, 
-                               bool considerSequenceLikelihood = true, 
-                               unsigned int sprLimit = 2)
-        throw (Exception);
+      
+        
+	/**
+	* @brief Build a new COALGeneTreeLikelihood object.
+	*
+	* @param params The parameters to parse.	 
+	* @param spTree The species tree
+	* @throw Exception in an error occured.
+	*/
+	    COALGeneTreeLikelihood(std::string file, 
+				    map<string, string> params, 
+				    TreeTemplate<Node> & spTree) throw (exception) ;
+	    
+//         /**
+//          * @brief Build a new ReconciliationTreeLikelihood object.
+//          *
+//          * @param tree The tree to use.
+//          * @param model The substitution model to use.
+//          * @param rDist The rate across sites distribution to use.
+//          * @param spTree The species tree
+//          * @param rootedTree rooted version of the gene tree
+//          * @param seqSp link between sequence and species names
+//          * @param spId link between species name and species ID
+//          * @param coalCounts vector to store coalescent numbers per branch
+//          * @param coalBl vector to give number of coalescent units per branch of the species tree
+//          * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
+//          * @param heuristicsLevel type of heuristics used
+//          * @param MLindex ML rooting position
+//          * @param checkRooted Tell if we have to check for the tree to be unrooted.
+//          * If true, any rooted tree will be unrooted before likelihood computation.
+//          * @param verbose Should I display some info?
+//          * @throw Exception in an error occured.
+//          */
+//         COALGeneTreeLikelihood(
+//                                const Tree & tree,
+//                                SubstitutionModel * model,
+//                                DiscreteDistribution * rDist,
+//                                TreeTemplate<Node> & spTree,  
+//                                TreeTemplate<Node> & rootedTree, 
+//                                TreeTemplate<Node> & geneTreeWithSpNames,
+//                                const std::map <std::string, std::string> seqSp,
+//                                std::map <std::string,int> spId,
+//                                std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
+//                                std::vector < double > coalBl,
+//                                int speciesIdLimitForRootPosition,
+//                                int heuristicsLevel,
+//                                int & MLindex, 
+//                                bool checkRooted = true,
+//                                bool verbose = false,
+//                                bool rootOptimization = false, 
+//                                bool considerSequenceLikelihood = true, 
+//                                unsigned int sprLimit = 2)
+//         throw (Exception);
         
         /**
          * @brief Build a new ReconciliationTreeLikelihood object.
@@ -162,6 +176,7 @@ using namespace bpp;
                                int speciesIdLimitForRootPosition,  
                                int heuristicsLevel,
                                int & MLindex, 
+			       std::map <std::string, std::string > params,
                                bool checkRooted = true,
                                bool verbose = false, 
                                bool rootOptimization = false, 
@@ -205,23 +220,23 @@ using namespace bpp;
         
         double getLogLikelihood() const;
         
-        void computeSequenceLikelihood();
+//         void computeSequenceLikelihood();
         
         void computeReconciliationLikelihood();
         
-        void computeTreeLikelihood();
+//         void computeTreeLikelihood();
         
         double getValue() const throw (Exception);
         
-        void fireParameterChanged(const ParameterList & params);
+//         void fireParameterChanged(const ParameterList & params);
         
         double getTopologyValue() const throw (Exception) { return getValue(); } 
         
-        double getScenarioLikelihood() const throw (Exception) { return _scenarioLikelihood; }
+        double getScenarioLikelihood() const throw (Exception) { return scenarioLikelihood_; }
         
-        void setSpTree(TreeTemplate<Node> & spTree) { if (_spTree) delete _spTree; _spTree = spTree.clone(); }
+        void setSpTree(TreeTemplate<Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
         
-        void setSpId(std::map <std::string, int> & spId) {_spId = spId;}
+        void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
         
         double testNNI(int nodeId) const throw (NodeException);
         
@@ -237,15 +252,15 @@ using namespace bpp;
 
         std::vector <double> getCoalBranchLengths() const;
         
-        ParameterList getParameters() {return nniLk_->getParameters();}
+//         ParameterList getParameters() {return nniLk_->getParameters();}
         
-        TreeTemplate<Node> & getSpTree() const {return *_spTree;}
+        TreeTemplate<Node> & getSpTree() const {return *spTree_;}
         
-        TreeTemplate<Node> & getRootedTree() const {return *_rootedTree;}
+        TreeTemplate<Node> & getRootedTree() const {return *rootedTree_;}
         
-        TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *_geneTreeWithSpNames;}
+        TreeTemplate<Node> & getGeneTreeWithSpNames() const {return *geneTreeWithSpNames_;}
         
-        std::map <std::string, std::string> getSeqSp() {return _seqSp;}
+        std::map <std::string, std::string> getSeqSp() {return seqSp_;}
         
         void setCoalBranchLengths (std::vector < double > coalBl);
         
@@ -253,14 +268,14 @@ using namespace bpp;
         
         //void resetSequenceLikelihood();
         
-        double getSequenceLikelihood();
+        double getSequenceLikelihood() const;
         
         void OptimizeSequenceLikelihood(bool yesOrNo) const  {
-            _optimizeSequenceLikelihood = yesOrNo;
+            optimizeSequenceLikelihood_ = yesOrNo;
         }
         
         void OptimizeReconciliationLikelihood(bool yesOrNo) const {
-            _optimizeReconciliationLikelihood = yesOrNo;
+            optimizeReconciliationLikelihood_ = yesOrNo;
         }
         
         void initialize();
@@ -271,11 +286,9 @@ using namespace bpp;
          * Tries all SPRs at a distance < dist for all possible subtrees of the subtree starting in node nodeForSPR, 
          * and executes the ones with the highest likelihood. 
          ************************************************************************/
-        void refineGeneTreeSPRs(map<string, string> params);
 
         void refineGeneTreeSPRsFast(map<string, string> params);
         
-        void refineGeneTreeSPRs2(map<string, string> params);
         
         
         /************************************************************************
