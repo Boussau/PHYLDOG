@@ -100,4 +100,7 @@ Tree* MRP(const vector<Tree*>& vecTr);
 void rootTreeWithOutgroup (TreeTemplate<Node> &tree, 
 						   const std::vector<std::string> outgroupTaxa) throw ( TreeException );
 bool isTreeRootedWithOutgroup (const TreeTemplate<Node> &tree, const std::vector<std::string> outgroupTaxa) ;
+
+void getNodesInSubtreeIDs(bpp::Node* node,std::set<unsigned int>& IDs);
+
 #endif 

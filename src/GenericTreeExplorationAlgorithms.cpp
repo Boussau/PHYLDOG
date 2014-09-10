@@ -86,6 +86,15 @@ std::string nodeToParenthesisBIS(const Tree & tree, int nodeId, bool bootstrap) 
 }
 
 
+void getNodesInSubtreeIDs(Node* node,std::set<unsigned int>& IDs)
+{
+  IDs.insert(node->getId());
+  vector<Node*> sons = node->getSons();
+  for(vector<Node*>::iterator currSon = sons.begin(); currSon != sons.end(); currSon++)
+    getNodesInSubtreeIDs(*currSon,IDs);
+}
+
+
 /************************************************************************
  * Make a SPR between two nodes. A subtree is cut at node with Id cutNodeId, 
  * and pasted beneath node with Id newFatherId.
@@ -103,11 +112,20 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
   
   if (verbose)
     std::cout <<"\t\t\tMaking a SPR, moving node "<<cutNodeId<< " as brother of node "<< newBrotherId<< std::endl;
+   
+  
   newBrother = tree.getNode(newBrotherId);
-  cutNode = tree.getNode(cutNodeId); 
+  cutNode = tree.getNode(cutNodeId);
   
-  std::vector <int> nodeIds =tree.getNodesId();
+  // first, we check if newBrother is included in the subtree of cutnode
+  std::set<unsigned int> subtreeIDs;
+  getNodesInSubtreeIDs(cutNode,subtreeIDs);
+  if(subtreeIDs.find(newBrotherId) != subtreeIDs.end())
+    return nodesToUpdate;
   
+  
+ 
+    
   if ((!(cutNode->hasFather()))||(!(newBrother->hasFather()))) {
     std::cout <<"Error in makeSPR"<< std::endl;
     if (!(cutNode->hasFather())) {
@@ -148,14 +166,19 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
     
     // update N neighbours 
     for(unsigned int i=0;i<newBrothersFather->getNumberOfSons();i++)
-      if(newBrothersFather->getSon(i)==newBrother){newBrothersFather->setSon(i, N); break;}
+      if(newBrothersFather->getSon(i)==newBrother)
+      {
+        newBrothersFather->setSon(i, N); break;
+      }
       N->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
       
+      unsigned int oldFatherId = oldFather->getId();
       tree.rootAt(brother->getId());
     for(unsigned int i=0;i<brother->getNumberOfSons();i++) {
       if(brother->getSon(i)==oldFather){brother->removeSon(i);break;}
     }
-    delete oldFather;
+    if(tree.hasNode(oldFatherId))
+      delete oldFather;
     //We renumber the nodes
     brother->setId(id0);
     N->setId(idBrother);
