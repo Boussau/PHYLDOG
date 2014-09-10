@@ -34,4 +34,13 @@ target_link_libraries(test_likelihoodEvaluator
   ${LIBS}
 )
 
-install(TARGETS test_likelihoodEvaluator DESTINATION tests)
+ADD_EXECUTABLE(test_SPRs test_SPRs.cpp ${PHYLDOG_SRCS})
+target_link_libraries(test_SPRs
+  ${Boost_SERIALIZATION_LIBRARY}
+  ${Boost_MPI_LIBRARY}
+  ${MPI_LIBRARIES}
+  ${PLL_LIBRARIES}
+  ${LIBS}
+)
+
+install(TARGETS  test_SPRs test_likelihoodEvaluator DESTINATION tests)
