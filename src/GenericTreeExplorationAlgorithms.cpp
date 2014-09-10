@@ -120,8 +120,10 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
   // first, we check if newBrother is included in the subtree of cutnode
   std::set<unsigned int> subtreeIDs;
   getNodesInSubtreeIDs(cutNode,subtreeIDs);
-  if(subtreeIDs.find(newBrotherId) != subtreeIDs.end())
+  if(subtreeIDs.find(newBrotherId) != subtreeIDs.end()){
+    cout << "Trying to regraft a node in its subtree!" << endl;
     return nodesToUpdate;
+  }
   
   
  
