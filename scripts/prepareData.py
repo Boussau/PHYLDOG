@@ -276,6 +276,10 @@ if __name__ == '__main__':
 				fopt.write("input.sequence.format=Dcse\n")
 			elif ("NEXUS".startswith(DATAFORMAT)):
 				fopt.write("input.sequence.format=Nexus\n")
+			if ("YES".startswith(FILTERING)):
+				fopt.write("use.quality.filters=yes\n")
+			else:
+				fopt.write("use.quality.filters=no\n")
 			listSizes.append(str(os.stat( aln )[6])	)		
 			fopt.write("output.reconciled.tree.file=$(RESULT)$(DATA).ReconciledTree\n")
 			fopt.write("output.duplications.tree.file=$(RESULT)$(DATA).DuplicationTree\n")
