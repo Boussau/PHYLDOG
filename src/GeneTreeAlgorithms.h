@@ -49,6 +49,9 @@
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 #include <Bpp/Phyl/OptimizationTools.h>
 #include <Bpp/Phyl/Likelihood/DRTreeLikelihood.h>
+#include <Bpp/Phyl/Model/Nucleotide/JCnuc.h>
+#include <Bpp/Phyl/Model/Protein/JCprot.h>
+
 
 // From NumCalc:
 #include <Bpp/Numeric/Prob/DiscreteDistribution.h>

@@ -87,7 +87,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   
   levaluator_ = new LikelihoodEvaluator(params_);
 
-  
+  bool qualityFilters = ApplicationTools::getBooleanParameter("use.quality.filters",params_, true);
   
   //TODO: dirty cont to eliminate
   bool cont = true;
@@ -111,15 +111,16 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
     rootedTree_ = getTreeFromOptions(params_, levaluator_->getAlphabet(), levaluator_->getSites(), levaluator_->getSubstitutionModel(), levaluator_->getRateDistribution(), cont);
   }
   
-  if (cont) 
+  if (cont && qualityFilters) 
   { //This family is phylogenetically informative
     qualityControlGeneTree ( rootedTree_, levaluator_->getSites(), cont , file) ;
-    
-    
+      }
+ 
+  if (cont) {
     // set the levaluator tree to the modified one
     levaluator_->setTree(rootedTree_);    
   }
-  if (cont) 
+  if (cont || !qualityFilters) 
   { //This family is phylogenetically informative
     
     /************************************************************************************************************/

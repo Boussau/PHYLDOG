@@ -39,6 +39,8 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 */
 
+#include <memory>
+
 #include "GeneTreeAlgorithms.h"
 #include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Seq/GeneticCode/StandardGeneticCode.h>
@@ -639,6 +641,12 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
                                       SubstitutionModel* model, 
                                       DiscreteDistribution* rDist, 
                                       Alphabet *alphabet) {
+    
+    bool slow = false;
+    
+    
+    if (slow) {
+    
     TreeTemplate<Node>  *unrootedGeneTree = 0;
     
     //We don't want to use rate heterogeneity across sites with bionj, it seems to behave weirdly (e.g. very long branches)
@@ -705,7 +713,103 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     //delete rDist2;
     delete bionj;  
     return unrootedGeneTree;
+    }
+    else {
+    DistanceMatrix* dist = new DistanceMatrix (sites->getSequencesNames());
+    std::cout <<"Expected JC distances."<<std::endl;
+    double numSites = sites->getNumberOfSites();
+    double sizAlphabet = alphabet->getSize();
+    double sizAlphabetMinus1 = sizAlphabet - 1;
+    double sizAlphabetMinus1OverSizAlphabet = sizAlphabetMinus1 / sizAlphabet;
+    double numNonEmpty = 0;
+    //In case we need the optimizer, we declare it just once
+              // Optimization:
+              MetaOptimizerInfos* desc = new MetaOptimizerInfos();
+              std::vector<std::string> name;
+              name.push_back("BrLen");
+              desc->addOptimizer("Branch length", new PseudoNewtonOptimizer(0), name, 2, MetaOptimizerInfos::IT_TYPE_FULL);
+              MetaOptimizer* optimizer_ = new MetaOptimizer(0, desc);
+              optimizer_->setMessageHandler(0);
+              optimizer_->setProfiler(0);
+              optimizer_->getStopCondition()->setTolerance(0.01);
+              optimizer_->setMaximumNumberOfEvaluations (20);
+              optimizer_->setConstraintPolicy(AutoParameter::CONSTRAINTS_AUTO);
+
+    for (size_t i = 0 ; i < sites->getNumberOfSequences()-1; ++i) {
+        for (size_t j = i+1 ; j < sites->getNumberOfSequences(); ++j) {
+            double numDiff = 0.0;
+            numNonEmpty = 0.0;
+            for (size_t k = 0 ; k < numSites; ++k) {
+                Site si = sites->getSite(k);
+                if (!(alphabet->isUnresolved(si[i]) || alphabet->isUnresolved(si[j]))) {
+                    numNonEmpty = numNonEmpty +1;
+                    if ( si[i] != si[j] ) {
+                        numDiff += 1.0;
+                    }
+                }
+                /*else if (si[i] == -1 && si[j] == -1){
+                    numDiff += sizAlphabetMinus1OverSizAlphabet;
+                    numNonEmpty += 1;
+                }
+                else {
+                    numDiff += (sizAlphabet*sizAlphabet-1)/sizAlphabet*sizAlphabet;
+                    numNonEmpty += 1;
+                }   */
+            }
+            std::cout << "Num non empty: "<< numNonEmpty << " numDiff: "<< numDiff <<std::endl;
+	    double dista = numDiff / numNonEmpty ;//numSites;
+	    /*if (numDiff == numNonEmpty == 0.0) {
+		dista = ;
+		}
+            else */
+            if ( dista > sizAlphabetMinus1OverSizAlphabet || isnan( dista )  ) {
+	    std::cout << "Distance cannot be properly estimated, performing numerical optimization."<< std::endl;
+            //  (*dist)(i, j)  = (*dist)(j, i) = 3.0;
+            //Then we compute a numerical estimate of the distance:
+            auto_ptr<DiscreteDistribution>   constRate (new ConstantDistribution(1.) );
+            TwoTreeLikelihood* lik = 0;
+            if (sizAlphabet == 4) {
+                auto_ptr<SubstitutionModel> jc ( new JCnuc( dynamic_cast<NucleicAlphabet*> (alphabet) ) );
+                lik = new TwoTreeLikelihood(sites->getSequence(i).getName(), sites->getSequence(j).getName(), *sites, jc.release(), constRate.release(), false);
+            }
+            else  {
+                auto_ptr<SubstitutionModel> jc ( new JCprot( dynamic_cast<ProteicAlphabet*> (alphabet) ) );
+                lik = new TwoTreeLikelihood(sites->getSequence(i).getName(), sites->getSequence(j).getName(), *sites, jc.release(), constRate.release(), false);
+            }
+              lik->initialize();
+              lik->enableDerivatives(true);
+              size_t d = SymbolListTools::getNumberOfDistinctPositions(sites->getSequence(i), sites->getSequence(j));
+              size_t g = SymbolListTools::getNumberOfPositionsWithoutGap(sites->getSequence(i), sites->getSequence(j));
+              lik->setParameterValue("BrLen", g == 0 ? lik->getMinimumBranchLength() : std::max(lik->getMinimumBranchLength(), static_cast<double>(d) / static_cast<double>(g)));
+              optimizer_->setFunction(lik);
+              ParameterList params = lik->getBranchLengthsParameters();
+              optimizer_->init(params);
+              optimizer_->optimize();
+              // Store results:
+              (*dist)(i, j) = (*dist)(j, i) = lik->getParameterValue("BrLen");
+              delete lik;
+
+            }
+            else {                
+		(*dist)(i, j) = (*dist)(j, i) = - sizAlphabetMinus1OverSizAlphabet * log ( 1 - dista / sizAlphabetMinus1OverSizAlphabet );  
+		std::cout << "(*dist)(i, j) : "<< (*dist)(i, j) << " dista / sizAlphabetMinus1OverSizAlphabet: "<<  dista / sizAlphabetMinus1OverSizAlphabet << " dista : " << dista  <<std::endl;
+		}
+        }
+       
+        
+    }
+        //Now we have the dist matrix, we can compute our bionj tree.
+      BioNJ bionjTreeBuilder;
+      TreeTemplate<Node>* tree = 0;
+      bionjTreeBuilder.setDistanceMatrix(*(dist));
+      bionjTreeBuilder.computeTree();
+      tree = new TreeTemplate<Node>(*bionjTreeBuilder.getTree());
+      return tree;
+    }
 }
+
+
+
 
 
 /******************************************************************************/

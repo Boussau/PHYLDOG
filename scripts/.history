@@ -1,0 +1,2 @@
+| cd scripts/
+| scp pbil.univ-lyon1.fr:/pandata/boussau/testsPHYLDOG/prepareData.py .
