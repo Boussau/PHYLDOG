@@ -756,13 +756,13 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
                     numNonEmpty += 1;
                 }   */
             }
-            std::cout << "Num non empty: "<< numNonEmpty << " numDiff: "<< numDiff <<std::endl;
+         //   std::cout << "Num non empty: "<< numNonEmpty << " numDiff: "<< numDiff <<std::endl;
 	    double dista = numDiff / numNonEmpty ;//numSites;
 	    /*if (numDiff == numNonEmpty == 0.0) {
 		dista = ;
 		}
             else */
-            if ( dista > sizAlphabetMinus1OverSizAlphabet || isnan( dista )  ) {
+            if ( dista >= sizAlphabetMinus1OverSizAlphabet || isnan( dista )  ) {
 	    std::cout << "Distance cannot be properly estimated, performing numerical optimization."<< std::endl;
             //  (*dist)(i, j)  = (*dist)(j, i) = 3.0;
             //Then we compute a numerical estimate of the distance:
@@ -792,7 +792,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
             }
             else {                
 		(*dist)(i, j) = (*dist)(j, i) = - sizAlphabetMinus1OverSizAlphabet * log ( 1 - dista / sizAlphabetMinus1OverSizAlphabet );  
-		std::cout << "(*dist)(i, j) : "<< (*dist)(i, j) << " dista / sizAlphabetMinus1OverSizAlphabet: "<<  dista / sizAlphabetMinus1OverSizAlphabet << " dista : " << dista  <<std::endl;
+		//std::cout << "(*dist)(i, j) : "<< (*dist)(i, j) << " dista / sizAlphabetMinus1OverSizAlphabet: "<<  dista / sizAlphabetMinus1OverSizAlphabet << " dista : " << dista  <<std::endl;
 		}
         }
        
