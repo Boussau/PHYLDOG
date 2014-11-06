@@ -66,7 +66,10 @@ void SpeciesTreeLikelihood::updateCoalBls()
 /*******************************************************************************/
 void SpeciesTreeLikelihood::initialize() 
 {
-  rearrange_ = false;
+    if (optimizeSpeciesTreeTopology_) 
+        rearrange_ = false;
+    else   
+        rearrange_ = true;
   stop_ = false;
   Newick newick;
   
@@ -229,7 +232,7 @@ void SpeciesTreeLikelihood::initialize()
                                                          *tree_, 
                                                          currentSpeciesTree_,
                                                          false, currentStep_); //TEST
-  std::cout << setprecision(30) <<"\t\tServer: total initial Likelihood value "<<logL_<<std::endl;
+  std::cout << setprecision(30) <<"\t\tServer: total initial Likelihood value "<< -logL_<<std::endl;
   bestlogL_ = logL_;
   ApplicationTools::displayTime("Execution time so far:");
   /*  for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) {
@@ -598,17 +601,29 @@ void SpeciesTreeLikelihood::MLSearch()
   if(optimizeSpeciesTreeTopology_) 
   {
     std::cout <<"Optimizing the species tree topology"<<std::endl;
+	MLSearchAndOptimizeTopology();  
     //  noMoreSPR=false; 
   }
   else 
   {
-    //    noMoreSPR=true;
+    MLSearchButNotOptimizeTopology();
+	  //    noMoreSPR=true;
     currentStep_ = 4;
   }  
+}
+
+
+
+/*******************************************************************************/
+void SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
+{
+  //Indices used in the exploration
+  size_t nodeForNNI = 0;
+  size_t nodeForRooting = 4;
   
   /****************************************************************************
    * ***************************************************************************
-   * Species tree likelihood optimization: main loop.
+   * Species tree likelihood optimization when optimizing the species tree topology: main loop.
    ****************************************************************************
    *****************************************************************************/        
   while (!stop_) 
@@ -621,34 +636,7 @@ void SpeciesTreeLikelihood::MLSearch()
       rearrange_ = true; //Now we rearrange gene trees
       
     }
-    /*    if (currentStep_ >= 5)
-     *            {
-     *                numIterationsWithoutImprovement_=2*speciesTreeNodeNumber_;
-  } */
-    /*            if (!noMoreSPR) 
-     *            {*/
-    
-    
-    /*	//TEMP PRINTING
-     *			//For loss rates
-     *			for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
-     *			{
-     *				currentTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
-     *				if (currentTree_->getNode(i)->hasFather()) 
-     *				{
-     *					currentTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-  }
-  bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
-  if (bestTree_->getNode(i)->hasFather()) 
-  {
-  bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-  }
-  }
-  std::cout <<"\n\n\t\t Starting Species Tree found, with Losses: "<<std::endl;
-  //			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
-  std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, false)<<std::endl;
-  std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-  */
+
     
     /****************************************************************************
      * Doing SPRs and rerootings. This first step does not optimize duplication 
@@ -671,27 +659,7 @@ void SpeciesTreeLikelihood::MLSearch()
                                           server_, branchExpectedNumbersOptimization_, 
                                           genomeMissing_, sprLimit_, false, currentStep_, 
                                           fixedOutgroupSpecies_, outgroupSpecies_);
-      /*
-       *					//TEMP PRINTING
-       *					//For loss rates
-       *					for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
-       *					{
-       *						currentTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
-       *						if (currentTree_->getNode(i)->hasFather()) 
-       *						{
-       *							currentTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-    }
-    bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
-    if (bestTree_->getNode(i)->hasFather()) 
-    {
-    bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-    }
-    }
-    std::cout <<"\n\n\t\t Species Tree found AFTER SPRs, with Losses: "<<std::endl;
-    //			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, false)<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-    */
+
       
       if (ApplicationTools::getTime() < timeLimit_) 
       {
@@ -763,10 +731,6 @@ void SpeciesTreeLikelihood::MLSearch()
         lossExpectedNumbers_ = backupLossExpectedNumbers_;
         duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_;
       }
-      /*    for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
-       *                {
-       *                    std::cout <<"branch Number#"<< i<<"Expected numbers:  dup: "<< duplicationExpectedNumbers_[i]<<" loss: "<< lossExpectedNumbers_[i]<<std::endl;
-    }*/
       if (ApplicationTools::getTime() < timeLimit_) 
         currentStep_ = 2;
     }
@@ -793,28 +757,6 @@ void SpeciesTreeLikelihood::MLSearch()
                                           server_, branchExpectedNumbersOptimization_, 
                                           genomeMissing_, sprLimit_, true, currentStep_, 
                                           fixedOutgroupSpecies_, outgroupSpecies_);
-      
-      /*
-       *				//TEMP PRINTING
-       *				//For loss rates
-       *				for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
-       *				{
-       *					currentTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
-       *					if (currentTree_->getNode(i)->hasFather()) 
-       *					{
-       *						currentTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-    }
-    bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
-    if (bestTree_->getNode(i)->hasFather()) 
-    {
-    bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-    }
-    }
-    std::cout <<"\n\n\t\t Species Tree found AFTER SPRs AGAIN, with Losses: "<<std::endl;
-    //			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, false)<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-    */
       
       
       if (ApplicationTools::getTime() < timeLimit_) 
@@ -844,8 +786,6 @@ void SpeciesTreeLikelihood::MLSearch()
       }
       //  noMoreSPR=true;
     }
-    /*            }        
-     *            else */
     
     /****************************************************************************
      * Step 3: doing NNIs and rerootings. 
@@ -862,17 +802,7 @@ void SpeciesTreeLikelihood::MLSearch()
         delete currentTree_;
       currentTree_ = bestTree_->clone();  
       //This first computation is done without rearranging gene trees
-      /*  computeSpeciesTreeLikelihood(world_, index_, 
-       *                                             stop_, logL_, 
-       *                                             num0Lineages_, num1Lineages_, num2Lineages_, 
-       *                                             allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-       *                                             lossExpectedNumbers_, duplicationExpectedNumbers_, 
-       *                                             rearrange_, server_, 
-       *                                             branchExpectedNumbersOptimization_, genomeMissing_, 
-       *currentTree_, currentStep_);
-       *                
-       *                std::cout<<"Species tree likelihood without gene tree rearrangement: "<< - logL_<<std::endl;*/
-      
+ 
       //Now gene trees are really rearranged.
       computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
                                                                          stop_, logL_, 
@@ -897,9 +827,6 @@ void SpeciesTreeLikelihood::MLSearch()
       bestNum0Lineages_ = num0Lineages_;
       bestNum1Lineages_ = num1Lineages_;
       bestNum2Lineages_ = num2Lineages_;
-      /*              }
-       *                 if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) || (!optimizeSpeciesTreeTopology_))
-       *                 {*/
       
       if (optimizeSpeciesTreeTopology_ && (ApplicationTools::getTime() < timeLimit_) ) //We optimize the species tree topology
       {
@@ -959,18 +886,7 @@ void SpeciesTreeLikelihood::MLSearch()
                                                                              *currentTree_, bestlogL_, currentStep_);
           
           
-          /*         
-           *                         optimizeOnly...(world_, currentTree_, bestTree_, 
-           *                         index_, bestIndex_, 
-           *                         stop_, timeLimit_, 
-           *                         logL_, bestlogL_, 
-           *                         num0Lineages_, num1Lineages_, num2Lineages_, 
-           *                         bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
-           *                         allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-           *                         lossExpectedNumbers_, duplicationExpectedNumbers_, 
-           *                         rearrange_, numIterationsWithoutImprovement_, 
-           *                         server_, nodeForNNI, nodeForRooting, 
-           *                         branchExpectedNumbersOptimization_, genomeMissing_, currentStep_);*/
+       
         }
         //we don't optimize the expected numbers
         else {                        
@@ -984,28 +900,13 @@ void SpeciesTreeLikelihood::MLSearch()
                                        rearrange_, server_, 
                                        branchExpectedNumbersOptimization_, genomeMissing_, 
                                        *currentTree_, currentStep_);
-          /*                            if (logL_ > bestlogL_)
-           *                         bestlogL_ = logL_;
-           *                         stop_ = true;
-           *                         broadcast(world_, stop_, server_); 
-           *                         broadcast(world_, bestIndex_, server_);*/
+ 
         }
-        /*  if (ApplicationTools::getTime() < timeLimit_) 
-         *                     {*/
-        //   std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
-        //   ApplicationTools::displayTime("Execution time so far:");
+  
         currentStep_ = 4;
         stop_ = false;
         
-        /*   if (stop_==false)
-         *                     {
-         *                     stop_ = true;
-         *                     broadcast(world_, stop_, server_); 
-         *                     broadcast(world_, bestIndex_, server_);                     
-      }*/
-        /*  }
-         *                     else 
-         *                     { */
+  
         if ( ApplicationTools::getTime() >= timeLimit_) 
         {
           std::cout << "\n\n\t\t\tStep of NNI optimization is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
@@ -1022,8 +923,7 @@ void SpeciesTreeLikelihood::MLSearch()
         
       }
     }
-    /*              }
-     *                else*/ 
+
     if ( (currentStep_ == 4) && (ApplicationTools::getTime() < timeLimit_) ) {
       if (rearrange_) {
         if (currentTree_)
@@ -1031,11 +931,7 @@ void SpeciesTreeLikelihood::MLSearch()
         currentTree_ = bestTree_->clone();  
         
         std::string currentSpeciesTree = TreeTemplateTools::treeToParenthesis(*currentTree_, true);
-        
-        
-        // broadcastsAllInformation(world_, server_, stop_, rearrange_, lossExpectedNumbers_, duplicationExpectedNumbers_, currentSpeciesTree_, currentStep_);
-        //This first computation is done with NNIs to rearrange gene trees
-        
+                
         //Now we do SPRs in the gene trees only
         std::cout << "\n\n\t\t\tStep of final optimization using SPRs on gene trees alone, with optimization of DL numbers.\n\n"<< std::endl;
         optimizeOnlyDuplicationAndLossRates(world_, currentTree_, bestTree_, 
@@ -1053,31 +949,7 @@ void SpeciesTreeLikelihood::MLSearch()
                                             genomeMissing_, currentStep_);
         
         
-        /*   gathersInformationFromClients(world_, server_, server_, logL_, 
-         *                                                      num0Lineages_, num1Lineages_, num2Lineages_,
-         *                                                      allNum0Lineages_, allNum1Lineages_, allNum2Lineages_); */
-        
-        
-        /*   computeSpeciesTreeLikelihood(world_, index_, 
-         *                                                     stop_, logL_, 
-         *                                                     num0Lineages_, num1Lineages_, num2Lineages_, 
-         *                                                     allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-         *                                                     lossExpectedNumbers_, duplicationExpectedNumbers_, 
-         *                                                     false, server_, 
-         *                                                     branchExpectedNumbersOptimization_, genomeMissing_, 
-         *currentTree_, currentStep_);
-         *                        std::cout<<"Species tree likelihood with final gene trees: "<< - logL_<<std::endl;*/
-        
-        
-        
-        /* computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_, 
-         *                                                                                           stop_, logL_, 
-         *                                                                                           num0Lineages_, num1Lineages_, num2Lineages_, 
-         *                                                                                           allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-         *                                                                                           lossExpectedNumbers_, duplicationExpectedNumbers_, 
-         *                                                                                           rearrange_, server_, 
-         *                                                                                           branchExpectedNumbersOptimization_, genomeMissing_, 
-         *currentTree_, bestlogL_, currentStep_);*/
+ 
         if (logL_+0.01<bestlogL_) 
         {
           bestlogL_ =logL_;
@@ -1094,20 +966,7 @@ void SpeciesTreeLikelihood::MLSearch()
           lossExpectedNumbers_ = backupLossExpectedNumbers_;
           duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_;
         }
-        
-        
-        /*     optimize...(world_, currentTree_, bestTree_, 
-         *                                                            index_, bestIndex_, 
-         *                                                            stop_, timeLimit_, 
-         *                                                            logL_, bestlogL_, 
-         *                                                            num0Lineages_, num1Lineages_, num2Lineages_, 
-         *                                                            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
-         *                                                            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
-         *                                                            lossExpectedNumbers_, duplicationExpectedNumbers_, 
-         *                                                            rearrange_, numIterationsWithoutImprovement_, 
-         *                                                            server_, nodeForNNI, nodeForRooting, 
-         *                                                            branchExpectedNumbersOptimization_, genomeMissing_, currentStep_);*/
-        
+                
       }
       //We're done!
       std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
@@ -1133,11 +992,9 @@ void SpeciesTreeLikelihood::MLSearch()
                                         server_, 
                                         stop_, 
                                         bestIndex_);
-        /*broadcast(world_, stop_, server_); 
-         *                        broadcast(world_, bestIndex_, server_);  */                  
+                       
       }          
     }
-    // }
   }      
   
   
@@ -1176,7 +1033,132 @@ void SpeciesTreeLikelihood::MLSearch()
     
     /****************************************************************************
      * Run finished, outputting end results. 
+     *****************************************************************************/ 
+    outputALRTTree();
+
+ 
+    outputEndResults();
+  }
+}
+
+
+/*******************************************************************************/
+void SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
+{
+  /****************************************************************************
+   * ***************************************************************************
+   * Species tree likelihood optimization when NOT optimizing the species tree topology: main loop.
+   ****************************************************************************
+   *****************************************************************************/        
+  while (!stop_) 
+  {
+    rearrange_ = true; //Now we rearrange gene trees
+    currentStep_ = 4;
+    if (ApplicationTools::getTime() < timeLimit_) {
+      if (rearrange_) {
+        if (currentTree_)
+          delete currentTree_;
+        currentTree_ = bestTree_->clone();  
+        
+        std::string currentSpeciesTree = TreeTemplateTools::treeToParenthesis(*currentTree_, true);
+                
+        //Now we do SPRs in the gene trees only
+        std::cout << "\n\n\t\t\tOptimization of the likelihood without changing the species tree topology.\n\n"<< std::endl;
+        optimizeOnlyDuplicationAndLossRates(world_, currentTree_, bestTree_, 
+                                            index_, bestIndex_, 
+                                            stop_, timeLimit_, 
+                                            logL_, bestlogL_, 
+                                            num0Lineages_, num1Lineages_, num2Lineages_, 
+                                            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_, 
+                                            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_, 
+                                            lossExpectedNumbers_, duplicationExpectedNumbers_, 
+                                            num12Lineages_, num22Lineages_,
+                                            coalBls_, reconciliationModel_,
+                                            rearrange_, numIterationsWithoutImprovement_, 
+                                            server_, branchExpectedNumbersOptimization_, 
+                                            genomeMissing_, currentStep_);
+         
+        if (logL_+0.01<bestlogL_) 
+        {
+          bestlogL_ =logL_;
+          bestNum0Lineages_ = num0Lineages_;
+          bestNum1Lineages_ = num1Lineages_;
+          bestNum2Lineages_ = num2Lineages_;
+          bestIndex_ = index_;
+          std::cout << "New logLk : "<<bestlogL_<<std::endl;
+          std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, true)<<std::endl;
+        } 
+        else 
+        {
+          std::cout << "No improvement in logLk. "<<bestlogL_<<std::endl;
+          lossExpectedNumbers_ = backupLossExpectedNumbers_;
+          duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_;
+        }
+                
+      }
+      //We're done!
+      std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
+      ApplicationTools::displayTime("Execution time so far:");
+      currentStep_ = 5;
+      if (stop_==false)
+      {
+        stop_ = true;
+        lastCommunicationsServerClient (world_, 
+                                        server_, 
+                                        stop_, 
+                                        bestIndex_);                     
+      }
+    }
+    else if (ApplicationTools::getTime() >= timeLimit_)
+    {
+      std::cout << "\n\n\t\t\tStep of final optimization is not over yet. The program exits because of the time limit.\n\n"<< std::endl;
+      ApplicationTools::displayTime("Execution time so far:");
+      if (stop_==false)
+      {
+        stop_ = true;
+        lastCommunicationsServerClient (world_, 
+                                        server_, 
+                                        stop_, 
+                                        bestIndex_);
+                       
+      }          
+    }
+  }      
+  
+  
+  /****************************************************************************
+   ****************************************************************************
+   * End of the main loop: outputting results
+   * If we have to stop the program before the end, we need to:
+   * - save the species tree to a given file to start from the good species tree
+   * - it would be nice to make client option files for the next run to not recompute starting gene trees. Not for now, though.
+   ****************************************************************************
+   *****************************************************************************/  
+  
+  if (ApplicationTools::getTime() >= timeLimit_) 
+  {
+    
+    /****************************************************************************
+     * Run not finished yet, outputting information for next run. 
      *****************************************************************************/            
+    if (rearrange_)
+      broadcast(world_, rearrange_, server_); 
+    std::cout <<"\n\n\t\t\tNo time to finish the run. "<<std::endl;
+  }
+  else 
+  {
+    
+    /****************************************************************************
+     * Run finished, outputting end results. 
+     *****************************************************************************/  
+    outputEndResults();
+ 
+  }
+}
+
+
+/*******************************************************************************/
+void SpeciesTreeLikelihood::outputALRTTree () {
     //COMPUTING ALRTs
     //In Anisimova and Gascuel, the relevant distribution is a mixture of chi^2_1 and chi^2_0.
     //Here, I am not sure one can do the same. We stick with the classical chi^2_1 distribution, more conservative.
@@ -1206,7 +1188,14 @@ void SpeciesTreeLikelihood::MLSearch()
     std::cout << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
     std::cout <<"\n\n\t\tBest Species Tree found, with aLRTs: "<<std::endl;
     std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "ALRT")<<std::endl;
-    //Here we output the species tree with rates of duplication and loss, or coalescent units
+   }
+
+
+/*******************************************************************************/
+void SpeciesTreeLikelihood::outputEndResults () {
+       std::cout <<"\n\n\t\tSpecies Tree, with node Ids: "<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
+     //Here we output the species tree with rates of duplication and loss, or coalescent units
     if (reconciliationModel_ == "DL") {
       //For duplication rates
       for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) 
@@ -1220,12 +1209,9 @@ void SpeciesTreeLikelihood::MLSearch()
       std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params_, "AllDuplications.tree", "", false, false); 
       dupTree = dupTree + suffix_;
       std::ofstream out (dupTree.c_str(), std::ios::out);
-      
-      //			out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
       out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
       out.close();
-      std::cout <<"\n\n\t\tBest Species Tree found, with Duplications: "<<std::endl;
-      //			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "DUPLICATIONS")<<std::endl;
+      std::cout <<"\n\n\t\tBest Species Tree found, with duplication numbers as branch lengths: "<<std::endl;
       std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
       
       //For loss rates
@@ -1241,11 +1227,9 @@ void SpeciesTreeLikelihood::MLSearch()
       std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params_, "AllLosses.tree", "", false, false);
       lossTree = lossTree + suffix_;
       out.open (lossTree.c_str(), std::ios::out);
-      //out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
       out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
       out.close();
-      std::cout <<"\n\n\t\tBest Species Tree found, with Losses: "<<std::endl;
-      //			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+      std::cout <<"\n\n\t\tBest Species Tree found, with loss numbers as branch lengths: "<<std::endl;
       std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
       
     }
@@ -1266,7 +1250,7 @@ void SpeciesTreeLikelihood::MLSearch()
       //out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
       out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
       out.close();
-      std::cout <<"\n\n\t\tBest Species Tree found, with Coalescent units: "<<std::endl;
+      std::cout <<"\n\n\t\tBest Species Tree found, with branch lengths in coalescent units: "<<std::endl;
       //std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
       std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
       
@@ -1290,23 +1274,20 @@ void SpeciesTreeLikelihood::MLSearch()
     out.open (lineagesTree.c_str(), std::ios::out);
     out << TreeTemplateTools::treeToParenthesis(*bestTree_, false, NUMLINEAGES)<<std::endl;
     out.close();
-    
-    std::cout <<"Number of species trees tried : "<<index_<<std::endl;
     std::string file = ApplicationTools::getStringParameter("output.tree.file", params_, "output.tree");
     
     Newick newick;
     
     newick.write(*bestTree_, file, true);
     
-    //    PhylogeneticsApplicationTools::writeTree(*bestTree_, params_, "", "", true, false, false);
     std::cout << "\t\tServer : best found logLikelihood value : "<< - bestlogL_<<std::endl;
-  }
 }
+
+
 
 /*******************************************************************************
  * Builds a MRP species tree by gathering single-copy genes from clients.
  *******************************************************************************/
-
 void SpeciesTreeLikelihood::buildMRPSpeciesTree() {
   string trees1PerSpecies;
   std::vector < string> allTrees1PerSpecies;

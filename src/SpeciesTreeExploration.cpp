@@ -1213,8 +1213,7 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                    currentSpeciesTree, false, currentStep); 
         }
     }
-	std::cout <<"\t\tNumber of species trees tried: "<< index ;
-	std::cout<<";\t\tLogLk value for this species tree: "<< - logL<<std::endl;
+	std::cout<<";\t\tLogLk value for the species after changes: "<< - logL<<std::endl;
 	ApplicationTools::displayTime("Execution time so far:");
 	
 	// std::cout << i<< " iterations of likelihood computation for optimizing duplication and loss rates have been done."<< std::endl;

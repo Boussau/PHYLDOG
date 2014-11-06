@@ -472,9 +472,13 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       { //If it is worth computing the sequence likelihood
                 levaluator_->setAlternativeTree(treeForNNI);             
 
-    double newLkMinusOldLk = (levaluator_->getAlternativeLogLikelihood() - getSequenceLikelihood());
+   /* double newLkMinusOldLk = (levaluator_->getAlternativeLogLikelihood() - getSequenceLikelihood());
 
-	double tot = - candidateScenarioLk + scenarioLikelihood_ + newLkMinusOldLk;
+	double tot = - candidateScenarioLk + scenarioLikelihood_ + newLkMinusOldLk;*/
+
+	double tot = -( candidateScenarioLk + levaluator_->getAlternativeLogLikelihood() - ( getSequenceLikelihood() + scenarioLikelihood_ ) );
+
+
 	if (tot < 0)
 	{
 	  tentativeScenarioLikelihood_= candidateScenarioLk;
@@ -676,7 +680,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
   double candidateScenarioLk ;
   double bestSequenceLogL = getSequenceLikelihood();
   double bestScenarioLk = getScenarioLikelihood();
-  std::cout << "LOGL: "<<logL << "ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
+  std::cout << "LOGL: "<<logL << " ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
   unsigned int numIterationsWithoutImprovement = 0;
   breadthFirstreNumber (*rootedTree_);
 
@@ -733,10 +737,10 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	  {    
 	    if (computeSequenceLikelihoodForSPR) {     
 	      levaluator_->setAlternativeTree(treeForSPR);
- 	      logL = candidateScenarioLk - levaluator_->getAlternativeLogLikelihood();
+ 	      logL = candidateScenarioLk + levaluator_->getAlternativeLogLikelihood();
 	    }
 	    else {
-	      logL = candidateScenarioLk - bestSequenceLogL;
+	      logL = candidateScenarioLk + bestSequenceLogL;
 	    }
 	  }
 	  else { 
@@ -959,7 +963,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 	      
               levaluator_->setAlternativeTree(treeForSPR);
               
-	      logL = candidateScenarioLk - levaluator_->getAlternativeLogLikelihood();
+	      logL = candidateScenarioLk + levaluator_->getAlternativeLogLikelihood();
 	      
 	      
 	      //If the candidate tree has a DL + sequence Lk better than the current best
@@ -1090,6 +1094,11 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
  * 
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
+std::cout << "params: "<< std::endl;
+for (map<string, string>::const_iterator it = params.begin(); it != params.end(); ++it) {
+	std::cout << it->first << " : "<< it->second << std::endl;
+}
+
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do SPRs
     std::cout << "WE DONT DO SPRS"<<std::endl;
@@ -1159,7 +1168,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
       
       levaluator_->setAlternativeTree(treeForSPR);
       
-      logL = candidateScenarioLk - levaluator_->getAlternativeLogLikelihood();
+      logL = candidateScenarioLk + levaluator_->getAlternativeLogLikelihood();
       
       //If the candidate tree has a DL + sequence Lk better than the current best
       if (logL - 0.1 > bestlogL) 

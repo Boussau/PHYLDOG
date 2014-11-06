@@ -138,6 +138,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
                 { 
                     if (ApplicationTools::getBooleanParameter("optimization.topology", allParams_[i], false, "", true, false))
                     {
+                        std::cout <<"HLGDLGGHVHJEGDLAZGLEAGE" <<std::endl;
                         allParams_[i][ std::string("optimization.topology")] = "false";
                     }
                     allParams_[i][ std::string("optimization")] = "None"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
@@ -494,6 +495,8 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		    allParams_[i][ std::string("optimization.topology")] = "true";
 		}
 		else {
+                                    std::cout <<"HLGDLGGHVHJEGDLAZGLEAGE 2" <<std::endl;
+
 		    treeLikelihoods_[i]->OptimizeSequenceLikelihood(false);
 		    allParams_[i][ std::string("optimization.topology")] = "false";
 		}
@@ -502,7 +505,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		rearrangementType = ApplicationTools::getStringParameter("rearrangement.gene.tree", allParams_[i], "nni", "", true, false);
 		if (rearrangementType == "nni" && currentStep_ !=4 ) {
 		    //PhylogeneticsApplicationTools::optimizeParameters(treeLikelihoods_[i], treeLikelihoods_[i]->getParameters(), allParams_[i], "", true, false);
-		    if (timing) 
+		    if (timing && rearrange_) 
 			startingTime = ApplicationTools::getTime();
 		    // NNI optimization:  
 		    if (reconciliationModel_ == "DL") {
@@ -511,7 +514,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		    else if (reconciliationModel_ == "COAL") {
 			dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeNNIs(allParams_[i]);
 		    }
-		    if (timing) 
+		    if (timing && rearrange_) 
 		    {
 			totalTime = ApplicationTools::getTime() - startingTime;
 			std::cout << "Family "<< assignedFilenames_[i] <<"; Time for NNI exploration: "<<  totalTime << " s." <<std::endl;
@@ -525,7 +528,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		  std::string SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams_[i], "normal", "", true, false);
 		    if (reconciliationModel_ == "DL") {
 	  dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeMuffato(allParams_[i]);
-						    if (timing) 
+						    if (timing && rearrange_) 
 						    {
 							    totalTime = ApplicationTools::getTime() - startingTime;
 							    if (rearrange_)
@@ -544,7 +547,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 					    }
 					    //   treeLikelihoods_[i]->refineGeneTreeSPRs(allParams_[i]);
 					    //  treeLikelihoods_[i]->refineGeneTreeSPRs2(allParams_[i]);
-					    if (timing) 
+					    if (timing && rearrange_) 
 					    {
 						    totalTime = ApplicationTools::getTime() - startingTime;
 						    std::cout << "Family "<< assignedFilenames_[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;

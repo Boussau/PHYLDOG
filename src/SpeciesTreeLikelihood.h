@@ -391,8 +391,8 @@ namespace bpp
   //Updates the parameters of the DL process.
   void updateDuplicationAndLossExpectedNumbers();
         
-        //Updates the parameters of the COAL process.
-        void updateCoalBls();
+  //Updates the parameters of the COAL process.
+  void updateCoalBls();
         
         
   //Initializes various fields in the species tree
@@ -400,6 +400,18 @@ namespace bpp
   
   //Does a ML search for the best species tree
   void MLSearch();
+  
+  // ... while optimizing the species tree topology
+  void MLSearchAndOptimizeTopology();
+
+  // ... without optimizing the species tree topology
+  void MLSearchButNotOptimizeTopology();
+  
+  //Outputs the ALRT tree
+  void outputALRTTree() ;
+
+  //Outputs information at the end of the run
+  void outputEndResults() ;
 
   //Builds a MRP species tree by gathering single-copy genes from clients.
   void buildMRPSpeciesTree();
@@ -410,11 +422,6 @@ namespace bpp
   //Parses the options and builds the SpeciesTreeLikelihoodObject
   void parseOptions();
   };
-  
-  
-  
-  
-  
   
   
   
