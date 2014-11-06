@@ -24,13 +24,23 @@ SET(PHYLDOG_SRCS
   LikelihoodEvaluator.h
   LikelihoodEvaluator.cpp
   )
+  
 ADD_EXECUTABLE(phyldog ReconcileDuplications.cpp ${PHYLDOG_SRCS})
 target_link_libraries(phyldog 
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_MPI_LIBRARY}
   ${MPI_LIBRARIES}
   ${PLL_LIBRARIES}
-  ${LIBS}
+  ${BPP_LIBRARIES}
+)
+
+ADD_EXECUTABLE(phyldog_static ReconcileDuplications.cpp ${PHYLDOG_SRCS})
+target_link_libraries(phyldog_static 
+  ${Boost_SERIALIZATION_LIBRARY}
+  ${Boost_MPI_LIBRARY}
+  ${MPI_LIBRARIES}
+  ${PLL_LIBRARIES_STATIC}
+  ${BPP_LIBRARIES_STATIC}
 )
 
 install(TARGETS phyldog DESTINATION bin)
