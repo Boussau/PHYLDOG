@@ -326,6 +326,19 @@ throw (bpp::Exception);
 /**************************************************************************                                                                                                                                                                                                                                                                                               *
  **************************************************************************/
 
+bool editDuplicationNodesMuffato(bpp::TreeTemplate<bpp::Node> & spTree,
+                 bpp::TreeTemplate<bpp::Node> & geneTree,
+                 double editionThreshold) ;
+
+
+void editDuplicationNodesMuffato(bpp::TreeTemplate<bpp::Node> & spTree,
+                 bpp::TreeTemplate<bpp::Node> & geneTree,
+                 bpp::Node * node,
+                 double editionThreshold, 
+                 bool& edited) ;
+
+
+
 void editDuplicationNodesMuffato
 (
   bpp::TreeTemplate<bpp::Node> & spTree, 

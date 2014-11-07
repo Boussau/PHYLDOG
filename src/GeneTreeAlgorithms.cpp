@@ -1438,10 +1438,26 @@ throw (Exception)
 
 /******************************************************************************/
 
+bool editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
+                 TreeTemplate<Node> & geneTree,
+                 double editionThreshold) {
+    bool edited = false;
+    editDuplicationNodesMuffato(spTree,
+                                geneTree,
+                                geneTree.getRootNode(),
+                                editionThreshold, 
+                                edited);
+    std::cout <<"\t\tEdited tree after Muffato move: \n"<< TreeTemplateTools::treeToParenthesis(geneTree, false, "Score") << "\n" << std::endl;
+
+}
+
+
 void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 				 TreeTemplate<Node> & geneTree,
 				 Node * node,
-				 double editionThreshold) {
+				 double editionThreshold, 
+                 bool& edited
+                                ) {
   //  Nhx *nhx = new Nhx();
   if (node->isLeaf()) { }
   else {
@@ -1786,6 +1802,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                   }
                  // std::cout <<"Edited tree from ReconciliationTools: \n"<< TreeTemplateTools::treeToParenthesis(geneTree, false, "Score") << "\n" << std::endl;
               }
+              edited = true;
           }
       }
       /*                              std::cout << "editDuplicationNodesMuffato 9"  <<std::endl;              std::cout << TreeTemplateTools::treeToParenthesis(spTree, true)<<std::endl;             std::cout << "editDuplicationNodesMuffato 10"  <<std::endl;             std::cout << TreeTemplateTools::treeToParenthesis(geneTree, true)<<std::endl;           std::cout << "editDuplicationNodesMuffato 11"  <<std::endl;             std::cout << "editDuplicationNodesMuffato: id"<< node->getSon(0)->getId()  <<std::endl;         std::cout << "editDuplicationNodesMuffato: id"<< node->getSon(1)->getId()  <<std::endl;         */
@@ -1793,11 +1810,15 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
       editDuplicationNodesMuffato(spTree,
                                   geneTree,
                                   node->getSon(0),
-                                  editionThreshold);
+                                  editionThreshold, 
+                                  edited
+                                 );
       editDuplicationNodesMuffato(spTree,
                                   geneTree,
                                   node->getSon(1),
-                                  editionThreshold);
+                                  editionThreshold, 
+                                  edited
+                                 );
   }
   //      std::cout <<"Edited tree from ReconciliationTools: \n"<< TreeTemplateTools::treeToParenthesis(geneTree, false, "Score") << "\n" << std::endl;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 }

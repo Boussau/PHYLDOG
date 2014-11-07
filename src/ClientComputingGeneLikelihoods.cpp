@@ -495,8 +495,6 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		    allParams_[i][ std::string("optimization.topology")] = "true";
 		}
 		else {
-                                    std::cout <<"HLGDLGGHVHJEGDLAZGLEAGE 2" <<std::endl;
-
 		    treeLikelihoods_[i]->OptimizeSequenceLikelihood(false);
 		    allParams_[i][ std::string("optimization.topology")] = "false";
 		}
@@ -522,12 +520,12 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		}
 		else {
 		    if (timing) 
-			startingTime = ApplicationTools::getTime();
+                startingTime = ApplicationTools::getTime();
 		    //SPR optimization:    
 		    //std::cout <<"Before optimization: "<<TreeTemplateTools::treeToParenthesis(treeLikelihoods_[i]->getRootedTree(), true)<<std::endl;
-		  std::string SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams_[i], "normal", "", true, false);
+            std::string SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams_[i], "normal", "", true, false);
 		    if (reconciliationModel_ == "DL") {
-	  dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeMuffato(allParams_[i]);
+                dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeMuffato(allParams_[i]);
 						    if (timing && rearrange_) 
 						    {
 							    totalTime = ApplicationTools::getTime() - startingTime;

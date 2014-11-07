@@ -1094,15 +1094,10 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
  * 
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
-std::cout << "params: "<< std::endl;
-for (map<string, string>::const_iterator it = params.begin(); it != params.end(); ++it) {
-	std::cout << it->first << " : "<< it->second << std::endl;
-}
 
+  computeReconciliationLikelihood();
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do SPRs
-    std::cout << "WE DONT DO SPRS"<<std::endl;
-    computeReconciliationLikelihood();
     return;
   }
   std::vector<Node*> nodesToUpdate;
@@ -1110,12 +1105,11 @@ for (map<string, string>::const_iterator it = params.begin(); it != params.end()
   bool betterTree = false;
   TreeTemplate<Node> * treeForSPR = 0;
   TreeTemplate<Node> * bestTree = 0;
-  
-  computeReconciliationLikelihood();
-  
+    
   double candidateScenarioLk ;
   double bestSequenceLogL = getSequenceLikelihood();
   double bestScenarioLk = getScenarioLikelihood();
+  candidateScenarioLk = bestScenarioLk;
   unsigned int numIterationsWithoutImprovement = 0;
   breadthFirstreNumber (*rootedTree_);
   
@@ -1133,7 +1127,7 @@ for (map<string, string>::const_iterator it = params.begin(); it != params.end()
   
   while (1)
   {
-    std::cout << "Starting Muffato optimization loop"<<std::endl;
+    std::cout << "\t\tStarting Muffato optimization loop"<<std::endl;
     
     annotateGeneTreeWithScoredDuplicationEvents (*spTree_, 
 						 *rootedTree_, 
@@ -1143,11 +1137,11 @@ for (map<string, string>::const_iterator it = params.begin(); it != params.end()
     double editionThreshold = ApplicationTools::getDoubleParameter("muffato.edition.threshold", params, 0.3, "", false, false);
     
     treeForSPR = rootedTree_->clone();
-    
-    editDuplicationNodesMuffato(*spTree_, *treeForSPR, treeForSPR->getRootNode(), editionThreshold);
+    bool edited = editDuplicationNodesMuffato(*spTree_, *treeForSPR, editionThreshold);
+
+    //editDuplicationNodesMuffato(*spTree_, *treeForSPR, treeForSPR->getRootNode(), editionThreshold);
     //    std::cout <<"Here 13"<<std::endl;
-    std::cout <<"Edited tree after Muffato move: \n"<< TreeTemplateTools::treeToParenthesis(*treeForSPR, false, "Score") << "\n" << std::endl;
-    
+    if (edited) {
     //Compute the DL likelihood
     candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForSPR, 
 						   seqSp_, spId_, 
@@ -1219,7 +1213,7 @@ for (map<string, string>::const_iterator it = params.begin(); it != params.end()
       
       logL = candidateScenarioLk - bestSequenceLogL;
     }
-    
+  }
     if (betterTree) //If, among all the SPRs tried, a better tree has been found 
     {
       

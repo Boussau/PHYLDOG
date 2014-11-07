@@ -1168,6 +1168,7 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
 		//   std::cout << "Species tree LogLikelihood after the first round: "<< - logL<<std::endl;
 		//Then we update duplication and loss rates based on the results of this first 
 		//computation, until the likelihood stabilizes (roughly)
+        std::cout<<";\t\tLogLk value for the species before optimizing DL parameters: "<< - logL<<std::endl;
         while ((i<=1)&&(currentlogL-logL>logL-bestlogL)) 
             //      while (logL - bestlogL > 0.1) 
         { 
@@ -1212,8 +1213,8 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
                                                                    genomeMissing, tree, 
                                                                    currentSpeciesTree, false, currentStep); 
         }
+        std::cout<<";\t\tLogLk value for the species after optimizing DL parameters: "<< - logL<<std::endl;
     }
-	std::cout<<";\t\tLogLk value for the species after changes: "<< - logL<<std::endl;
 	ApplicationTools::displayTime("Execution time so far:");
 	
 	// std::cout << i<< " iterations of likelihood computation for optimizing duplication and loss rates have been done."<< std::endl;
