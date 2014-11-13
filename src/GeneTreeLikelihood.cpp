@@ -169,7 +169,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
     
     //Outputting the starting tree, with species names, and with sequence names
     Newick newick(true);
-    std::string startingGeneTreeFile = ApplicationTools::getStringParameter("output.starting.gene.tree.file",params_,"none");
+    std::string startingGeneTreeFile = ApplicationTools::getStringParameter("output.starting.gene.tree.file",params_,"startingGeneTree.tree");
     try
     {
       Nhx *nhx = new Nhx();

@@ -80,6 +80,10 @@
 #include "ReconciliationTools.h"
 #include "GenericTreeExplorationAlgorithms.h"
 
+
+//const double DIST = 0.1;
+
+
 /**************************************************************************
  * This function creates a sequence tree from a species tree and a std::map 
  * containing the link between the species and their sequences.

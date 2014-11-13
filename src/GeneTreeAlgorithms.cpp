@@ -799,7 +799,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
         
     }
         //Now we have the dist matrix, we can compute our bionj tree.
-      BioNJ bionjTreeBuilder;
+      BioNJ bionjTreeBuilder ( false, true, false );
       TreeTemplate<Node>* tree = 0;
       bionjTreeBuilder.setDistanceMatrix(*(dist));
       bionjTreeBuilder.computeTree();
@@ -1459,6 +1459,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                  bool& edited
                                 ) {
   //  Nhx *nhx = new Nhx();
+   // double DIST = 0.1;
   if (node->isLeaf()) { }
   else {
       if (node->hasNodeProperty("Score")) {
