@@ -42,6 +42,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <memory>
 
 #include "GeneTreeAlgorithms.h"
+#include "ReconciliationTools.h"
 #include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Seq/GeneticCode/StandardGeneticCode.h>
 
@@ -804,6 +805,12 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
       bionjTreeBuilder.setDistanceMatrix(*(dist));
       bionjTreeBuilder.computeTree();
       tree = new TreeTemplate<Node>(*bionjTreeBuilder.getTree());
+      std::vector<Node* > nodes = tree->getNodes();
+      for (size_t i = 0; i < nodes.size(); ++i) {
+            if (nodes[i]->hasFather() && nodes[i]->getDistanceToFather() <= 0.0) {
+                    nodes[i]->setDistanceToFather(DIST);
+            }
+      }
       return tree;
     }
 }
