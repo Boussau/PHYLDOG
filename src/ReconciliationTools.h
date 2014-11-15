@@ -78,27 +78,13 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Text/KeyvalTools.h>
 #include <Bpp/Text/TextTools.h>
 
+#include "Constants.h"
 #include "GeneTreeAlgorithms.h"
 
 
 
 using namespace bpp;
 
-const std::string SPECIESID="SPECIESID";
-const std::string EVENT="EVENT";
-const std::string LOSSES="L";
-const std::string DUPLICATIONS="D";
-const std::string EVENTSPROBA="EVENTSPROBA";
-const std::string LOWLIK="LOWLIK";
-const std::string NUMGENES="NUMGENES";
-const std::string NUMLINEAGES="NUMLINEAGES";
-
-const double UNLIKELY=-100000000000000000000.0;
-const double SMALLPROBA=0.0000000001;
-const double BIGPROBA=0.9999999999;
-const int MAXFILENAMESIZE = 500;
-const int MAXSPECIESTREESIZE = 10000; //size of the species tree, in number of CHARs, as it is written in Newick format
-const double DIST = 0.1;
 
 
 void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, bool temporary ) ;

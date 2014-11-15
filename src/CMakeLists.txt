@@ -1,4 +1,5 @@
 SET(PHYLDOG_SRCS
+  Constants.h
   SpeciesTreeLikelihood.cpp
   SpeciesTreeLikelihood.h
   SpeciesTreeExploration.h

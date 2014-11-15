@@ -149,6 +149,7 @@ std::vector <double> operator + (std::vector <double> x, std::vector <double> y)
 
 int main(int args, char ** argv)
 {
+  D( __FILE__ , __LINE__ );
   if(args == 1)
   {
     help();
@@ -186,6 +187,7 @@ int main(int args, char ** argv)
         //##################################################################################################################
         
     if (rank == server) { 
+  D( __FILE__ , __LINE__ );
             
             /*
             int z = 0;
@@ -230,6 +232,7 @@ int main(int args, char ** argv)
         //##################################################################################################################
         if (rank >server)
 	  {
+  D( __FILE__ , __LINE__ );
                //  Code useful to use GDB on clients.
  	/*	int z = 0;
  	      //   char hostname[256];

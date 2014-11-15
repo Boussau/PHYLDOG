@@ -41,10 +41,13 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <memory>
 
-#include "GeneTreeAlgorithms.h"
 #include "ReconciliationTools.h"
 #include <Bpp/Phyl/Io/Nhx.h>
 #include <Bpp/Seq/GeneticCode/StandardGeneticCode.h>
+
+#include "Constants.h"
+#include "GeneTreeAlgorithms.h"
+
 
 using namespace bpp;
 using namespace std;

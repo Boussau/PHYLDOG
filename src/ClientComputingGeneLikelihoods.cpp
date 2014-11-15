@@ -3,6 +3,7 @@
 //  Copyright  2014  boussau
 //  <user@host>
 
+#include "Constants.h"
 #include "ClientComputingGeneLikelihoods.h"
 
 namespace mpi = boost::mpi;
@@ -48,6 +49,8 @@ const mpi::communicator & world_,
 // Function to initialize various parameters in the client, using the options.
 /******************************************************************************/
 void ClientComputingGeneLikelihoods::parseOptions()  {
+    D( __FILE__ , __LINE__ );
+
               /****************************************************************************
              * First communications between the server and the clients.
              *****************************************************************************/      
@@ -195,6 +198,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
 /******************************************************************************/
 void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies() 
 {
+  D( __FILE__ , __LINE__ );
   bool avoidFamily;
   std::string initTree;
   std::map<std::string, std::string> famSpecificParams;
@@ -475,6 +479,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
     ****************************************************************************/
 
   void ClientComputingGeneLikelihoods::MLSearch() {
+  D( __FILE__ , __LINE__ );
 	Nhx *nhx = new Nhx();
 	string rearrangementType;
 	bool timing = true;
@@ -821,6 +826,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 /******************************************************************************/
 void ClientComputingGeneLikelihoods::outputGeneTrees ( unsigned int & bestIndex )
 {
+  D( __FILE__ , __LINE__ );
   std::string suffix;
   std::string reconcTree;
   std::ofstream out;

@@ -40,6 +40,7 @@ knowledge of the CeCILL license and that you accept its terms.
 */
 /* This file contains various functions useful for the search of the species tree*/
 
+#include "Constants.h"
 #include "SpeciesTreeExploration.h"
 
 
