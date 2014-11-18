@@ -234,6 +234,7 @@ void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
   {
     throw Exception("PLL: Incompatible tree/alignment combination.");
   }
+  D( __FILE__ , __LINE__ );
 }
 
 
@@ -333,7 +334,9 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 //  pllSetFixedAlpha(alpha_, 0, PLL_partitions, PLL_instance);
 //  pllSetFixedBaseFrequencies(baseFreq_, 4, 0, PLL_partitions, PLL_instance);
   //pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
+  D( __FILE__ , __LINE__ );
   pllInitModel(PLL_instance, PLL_partitions);
+  D( __FILE__ , __LINE__ );
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
 
@@ -442,14 +445,16 @@ std::cout << "HEHEHEHE 2" << std::endl;*/
   
   // processing by PLL
   PLL_connectTreeAndAlignment();
+  D( __FILE__ , __LINE__ );
   pllInitModel(PLL_instance, PLL_partitions);
+  D( __FILE__ , __LINE__ );
 //  pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
 /*std::cout << "IIIIIHEHEHEHE " << std::endl;
 std::cout << "tolerance_ "<< tolerance_ << std::endl;
 std::cout << "IIIIIHEHEHEHE 2" << std::endl;*/
 
   pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
-
+D( __FILE__ , __LINE__ );
   // getting the new tree with new branch lengths
   pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
   newickStingForPll.str(PLL_instance->tree_string);
@@ -797,10 +802,16 @@ void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >* targetTree)
   vector<Node*> leaves = targetTree->getLeaves();
   for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++)
   {
-    map<string,string>::iterator found = realToStrict.find((*currLeaf)->getName());
+    string currLeafName = (*currLeaf)->getName();
+    if(currLeafName.at(currLeafName.size()-1) == '\r')
+    {
+      currLeafName = currLeafName.substr(0,(currLeafName.size()-1));
+      (*currLeaf)->setName(currLeafName);
+    }
+    map<string,string>::iterator found = realToStrict.find(currLeafName);
     if(found == realToStrict.end())
     {
-      cout << "Unable to find sequence named ++" << (*currLeaf)->getName() << "++ in the alignment." << endl;
+      cout << "Unable to find sequence named ++" << currLeafName << "++ in the alignment." << endl;
     }
     else
     {

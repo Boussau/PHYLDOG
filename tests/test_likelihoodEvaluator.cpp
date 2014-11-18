@@ -80,16 +80,16 @@ using namespace std;
 
 
 using namespace bpp;
+using namespace std;
 
 /******************************************************************************/
 
 void help()
 {
   (*ApplicationTools::message << "__________________________________________________________________________").endLine();
-  (*ApplicationTools::message << "bppml parameter1_name=parameter1_value parameter2_name=parameter2_value").endLine();
+  (*ApplicationTools::message << "test_likelihoodEvaluator parameter1_name=parameter1_value parameter2_name=parameter2_value").endLine();
   (*ApplicationTools::message << "      ... param=option_file").endLine();
   (*ApplicationTools::message).endLine();
-  (*ApplicationTools::message << "  Refer to the Bio++ Program Suite Manual for a list of available options.").endLine();
   (*ApplicationTools::message << "__________________________________________________________________________").endLine();
 }
 
@@ -112,7 +112,7 @@ int main(int args, char** argv)
     
     
     
-    BppApplication bppml(args, argv, "BppML");
+    BppApplication bppml(args, argv, "Likelihood Evaluator (wrapper for BPP and PLL) tester");
     bppml.startTimer();
     
     LikelihoodEvaluator le(bppml.getParams());
