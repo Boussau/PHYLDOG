@@ -6,11 +6,8 @@
 #include <Bpp/Text/TextTools.h>
 
 
-//Defining a DEBUG flag, for easy debugging. When DEBUG==1, then a lot of extra printing happens.
-#define DEBUG 1
-
 //Defining a DEBUG macro to print debug messages.
-#ifdef DEBUG
+#ifndef NDEBUG
     #define D(x,y) (  std::cout <<"DEBUG: "<< x << " : "<< TextTools::toString<int>(y) << std::endl )
     //std::cerr << "PASSED: "<< x << " : "<< TextTools::toString<int>(y)<< std::endl; ; std::cerr.flush() ; std::cout.flush(); 
   //  #define D(x) ( std::cerr << "PASSED: "<< x << std::endl;  std::cout << "PASSED: " << x << std::endl; std::cerr.flush() ; std::cout::flush(); )
