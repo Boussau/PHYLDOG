@@ -633,16 +633,19 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 LikelihoodEvaluator::~LikelihoodEvaluator()
 {
   D( __FILE__ , __LINE__ );
-//   if(method == PLL){
-//     delete tree;
-//   }
-//   else
-//   {
-//     delete nniLk;
-//     if(nniLkAlternative)
-//       delete nniLkAlternative;
-//     //TODO delete all the trees, etc
-//   }
+  if(method == PLL){
+     delete PLL_instance;
+     delete PLL_alignmentData;
+     delete PLL_newick;
+     delete PLL_partitions;
+     delete PLL_partitionInfo;
+   }
+   else
+  {
+    delete nniLk;
+    if(nniLkAlternative)
+      delete nniLkAlternative;
+  }
 }
 
 void LikelihoodEvaluator::initialize()
