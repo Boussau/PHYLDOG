@@ -337,6 +337,10 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   D( __FILE__ , __LINE__ );
   pllInitModel(PLL_instance, PLL_partitions);
   D( __FILE__ , __LINE__ );
+  
+  pllNewickParseDestroy (&PLL_newick);
+  
+  
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
 
@@ -634,11 +638,9 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
 {
   D( __FILE__ , __LINE__ );
   if(method == PLL){
-     delete PLL_instance;
-     delete PLL_alignmentData;
-     delete PLL_newick;
-     delete PLL_partitions;
-     delete PLL_partitionInfo;
+     pllAlignmentDataDestroy(PLL_alignmentData);
+     pllPartitionsDestroy(PLL_instance, &PLL_partitions);
+     pllDestroyInstance(PLL_instance);
    }
    else
   {
