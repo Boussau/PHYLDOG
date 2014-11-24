@@ -412,7 +412,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 }
 
 
-  double LikelihoodEvaluator::PLL_optimizeBranchLengthsAndParameters(bpp::TreeTemplate<bpp::Node>** treeToEvaluate) {
+double LikelihoodEvaluator::PLL_optimizeBranchLengthsAndParameters(bpp::TreeTemplate<bpp::Node>** treeToEvaluate) {
   D( __FILE__ , __LINE__ );
   
   //TODO debug remove
