@@ -234,6 +234,9 @@ void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
   {
     throw Exception("PLL: Incompatible tree/alignment combination.");
   }
+  
+  pllNewickParseDestroy(&PLL_newick);
+  
   D( __FILE__ , __LINE__ );
 }
 
@@ -331,22 +334,16 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   
   // processing by PLL
   PLL_connectTreeAndAlignment();
-//  pllSetFixedAlpha(alpha_, 0, PLL_partitions, PLL_instance);
-//  pllSetFixedBaseFrequencies(baseFreq_, 4, 0, PLL_partitions, PLL_instance);
-  //pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
+  // pllSetFixedAlpha(alpha_, 0, PLL_partitions, PLL_instance);
+  // pllSetFixedBaseFrequencies(baseFreq_, 4, 0, PLL_partitions, PLL_instance);
+  // pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
   D( __FILE__ , __LINE__ );
   pllInitModel(PLL_instance, PLL_partitions);
-  D( __FILE__ , __LINE__ );
-  
-  pllNewickParseDestroy (&PLL_newick);
-  
+  D( __FILE__ , __LINE__ );  
   
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
 
-/*std::cout << "HEHEHEHE " << std::endl;
-std::cout << "tolerance_ "<< tolerance_ << std::endl;
-std::cout << "HEHEHEHE 2" << std::endl;*/
   pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
 
   // getting the new tree with new branch lengths
@@ -408,7 +405,10 @@ std::cout << "HEHEHEHE 2" << std::endl;*/
   debugTree.write(**treeToEvaluate,debugSS2);
   cout << "Final tree for BPP" << debugSS2.str() << endl;
   */
-  return(PLL_instance->likelihood);
+  double returnValue = PLL_instance->likelihood;
+  pllDestroyInstance(PLL_instance);
+
+  return(returnValue);
 }
 
 
@@ -534,7 +534,10 @@ D( __FILE__ , __LINE__ );
   debugTree.write(**treeToEvaluate,debugSS2);
   cout << "Final tree for BPP" << debugSS2.str() << endl;*/
   
-  return(PLL_instance->likelihood);
+  double returnValue = PLL_instance->likelihood;
+  pllDestroyInstance(PLL_instance);
+
+  return(returnValue);
 
 }
 
@@ -640,7 +643,6 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
   if(method == PLL){
      pllAlignmentDataDestroy(PLL_alignmentData);
      pllPartitionsDestroy(PLL_instance, &PLL_partitions);
-     pllDestroyInstance(PLL_instance);
    }
    else
   {
