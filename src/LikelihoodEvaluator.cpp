@@ -279,9 +279,9 @@ void LikelihoodEvaluator::initialize_PLL()
   PLL_loadAlignment(fileNamePrefix + "alignment.fasta");
   PLL_loadPartitions(fileNamePrefix + "partition.txt");
   
-  logLikelihood = PLL_optimizeBranchLengthsAndParameters(&tree);
   
-  //logLikelihood = PLL_evaluate(&tree);
+  
+  logLikelihood = PLL_evaluate(&tree,true);
   
 }
 
@@ -296,7 +296,7 @@ void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 
 
 
-double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
+double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bool initModel)
 {
   D( __FILE__ , __LINE__ );
   
@@ -338,7 +338,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   // pllSetFixedBaseFrequencies(baseFreq_, 4, 0, PLL_partitions, PLL_instance);
   // pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
   D( __FILE__ , __LINE__ );
-  pllInitModel(PLL_instance, PLL_partitions);
+  if(initModel)
+    pllInitModel(PLL_instance, PLL_partitions);
   D( __FILE__ , __LINE__ );  
   
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
@@ -356,6 +357,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   delete *treeToEvaluate;
   *treeToEvaluate = newickForPll.read(newickStingForPll);
   
+  // getting the likelihood and then deleting PLL_instance
+  double PLL_instance_likelihood = PLL_instance->likelihood;
   
   //re-rooting if needed
   if(wasRooted)
@@ -405,140 +408,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   debugTree.write(**treeToEvaluate,debugSS2);
   cout << "Final tree for BPP" << debugSS2.str() << endl;
   */
-  double returnValue = PLL_instance->likelihood;
-  pllDestroyInstance(PLL_instance);
-
-  return(returnValue);
-}
-
-
-double LikelihoodEvaluator::PLL_optimizeBranchLengthsAndParameters(bpp::TreeTemplate<bpp::Node>** treeToEvaluate) {
-  D( __FILE__ , __LINE__ );
   
-  //TODO debug remove
-  Newick debugTree;
-  stringstream debugSS;
-  debugTree.write(**treeToEvaluate,debugSS);
-//  cout << "tree to evaluate:\n" << debugSS.str() << endl;
-  
-  // preparing the tree
-  TreeTemplate<Node>* treeForPLL = (*treeToEvaluate)->clone();
-  convertTreeToStrict(treeForPLL);
-  
-  // getting the root
-  bool wasRooted = (treeForPLL->isRooted() ? true : false);
-  set<string> leaves1, leaves2;
-  if(wasRooted)
-  {
-    Node* root = treeForPLL->getRootNode();
-    Node* son1 = root->getSon(0);
-    Node* son2 = root->getSon(1);
-    vector<string> leaves1Vector = TreeTemplateTools::getLeavesNames(*son1);
-    vector<string> leaves2Vector = TreeTemplateTools::getLeavesNames(*son2);
-    leaves1.insert(leaves1Vector.begin(),leaves1Vector.end());
-    leaves2.insert(leaves2Vector.begin(),leaves2Vector.end());
-    treeForPLL->unroot();
-  }
-  
-  
-  Newick newickForPll;
-  stringstream newickStingForPll;
-  newickForPll.write(*treeForPLL,newickStingForPll);
-  PLL_loadNewick_fromString(newickStingForPll.str());
-  delete treeForPLL;
-  
-  // processing by PLL
-  PLL_connectTreeAndAlignment();
-  D( __FILE__ , __LINE__ );
-  pllInitModel(PLL_instance, PLL_partitions);
-  D( __FILE__ , __LINE__ );
-//  pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
-/*std::cout << "IIIIIHEHEHEHE " << std::endl;
-std::cout << "tolerance_ "<< tolerance_ << std::endl;
-std::cout << "IIIIIHEHEHEHE 2" << std::endl;*/
-
-  pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
-D( __FILE__ , __LINE__ );
-  // getting the new tree with new branch lengths
-  pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
-  newickStingForPll.str(PLL_instance->tree_string);
-
-  //Set the backup of the parameters of the model
-  alpha_ = pllGetAlpha ( PLL_partitions, 0);
-
- // std::cout << "Alpha: "<< alpha_ <<std::endl;
-  if (alpha_ < 0.02 ) {
-    alpha_ = 0.02;
-  } 
-  else if ( alpha_ > 1000.0 ) {
-    alpha_ = 1000.0;
-  }
-
-
- /* pllGetBaseFrequencies(PLL_instance,  PLL_partitions, 0, baseFreq_);
-  pllGetSubstitutionMatrix(PLL_instance,  PLL_partitions, 0, subsMatrix_);
-*/
-
-  //debug
-//  cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
-  
-  delete *treeToEvaluate;
-  *treeToEvaluate = newickForPll.read(newickStingForPll);
-  
-  
-  //re-rooting if needed
-  if(wasRooted)
-  {
-    // the plyogenetic root is between the current topological
-    // root and one of the three sons
-    // so, one of the three sons of a root is the outgroup
-    vector<Node*> rootSons = (*treeToEvaluate)->getRootNode()->getSons();
-    for(vector<Node*>::iterator currSon = rootSons.begin(); currSon != rootSons.end(); currSon++)
-    {
-      vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
-      set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
-      
-      if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
-        (*treeToEvaluate)->newOutGroup(*currSon);
-
-    }
-    
-    // if not, we will try all the internal branches as potential roots    
-    if(!(*treeToEvaluate)->isRooted())
-    {
-      vector<Node*> outgroupCandidates = (*treeToEvaluate)->getNodes();
-      for(vector<Node*>::iterator currCandidate = outgroupCandidates.begin(); currCandidate != outgroupCandidates.end(); currCandidate++)
-      {
-        vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
-        set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
-        
-        if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
-        (*treeToEvaluate)->newOutGroup(*currCandidate);
-      } 
-    }
-    
-    
-    if(!(*treeToEvaluate)->isRooted())
-    {
-      cout << "Unable to re-root the tree, I will give up, sorry." << endl;
-      cout << "l1.s = " << leaves1.size() << ". l2.s = " << leaves2.size() << endl;
-      throw Exception("Unable to re-root the tree.");
-    } 
-    
-  }
-  
-  restoreTreeFromStrict(*treeToEvaluate);
-  
-  //TODO debug remove
- /* stringstream debugSS2;
-  debugTree.write(**treeToEvaluate,debugSS2);
-  cout << "Final tree for BPP" << debugSS2.str() << endl;*/
-  
-  double returnValue = PLL_instance->likelihood;
-  pllDestroyInstance(PLL_instance);
-
-  return(returnValue);
-
+  return(PLL_instance_likelihood);
 }
 
 double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
@@ -641,10 +512,11 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
 {
   D( __FILE__ , __LINE__ );
   if(method == PLL){
-     pllAlignmentDataDestroy(PLL_alignmentData);
-     pllPartitionsDestroy(PLL_instance, &PLL_partitions);
-   }
-   else
+    pllAlignmentDataDestroy(PLL_alignmentData);
+    pllPartitionsDestroy(PLL_instance, &PLL_partitions);
+    pllDestroyInstance(PLL_instance);
+  }
+  else
   {
     delete nniLk;
     if(nniLkAlternative)

@@ -186,7 +186,7 @@ private:
    * @param prefix a BPP tree
    * @return the logLikelihood
    */
-  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate, bool initModel=false);
 
  /**
    * Get the log likelihood of a tree and modify this tree to match
@@ -195,16 +195,6 @@ private:
    * @return the logLikelihood
    */
   double BPP_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
-
-
-  /**
-   * Optimize the branch lengths of a tree along with the model parameters.
-   * @param prefix a BPP tree
-   * @return the logLikelihood
-   */
-  double PLL_optimizeBranchLengthsAndParameters(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
-
-  
   
   
   ///@}
