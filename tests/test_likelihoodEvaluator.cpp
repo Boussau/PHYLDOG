@@ -121,12 +121,27 @@ int main(int args, char** argv)
     cout << "Computed Likelihood = " << le.getLogLikelihood() << endl;
     
     cout << "Now, setting an alternative tree." << endl;
-    le.setAlternativeTree(le.getTree());
+    
+    cout << "... inverting two leave labels, hence the resulting likelihood should be lesser." << endl;
+        
+    TreeTemplate<Node> * tempTree = le.getTree()->clone();
+    
+    vector<Node*> leaves = tempTree->getLeaves();
+    string name1 = leaves.at(0)->getName();
+    string name2 = leaves.at(10)->getName();
+    leaves.at(0)->setName(name2);
+    leaves.at(10)->setName(name1);
+    
+    le.setAlternativeTree(tempTree);
+    delete tempTree;
+    
+    cout << "... alternative tree likelihood is now " << le.getAlternativeLogLikelihood() << endl;
+    
     
     cout << "... accepting it." << endl;
     le.acceptAlternativeTree();
     
-    cout << "log likelihood of the alternative tree = " << le.getLogLikelihood() << endl;
+    cout << "New log likelihood of the evaluator (must be equal to the alternative llk) = " << le.getLogLikelihood() << endl;
     
     
 //     // Displaying resulting tree

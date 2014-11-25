@@ -288,9 +288,11 @@ void LikelihoodEvaluator::initialize_PLL()
 void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 {
   D( __FILE__ , __LINE__ );
-  if(!isInitialized())
+  if(!isInitialized()){
+    if(tree)
+      delete tree;
     tree = newTree->clone();
-  else
+  }else
     throw Exception("This evaluator has already be initialized. It is forbidden to modify it now.");
 }
 
@@ -340,6 +342,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bo
   D( __FILE__ , __LINE__ );
   if(initModel)
     pllInitModel(PLL_instance, PLL_partitions);
+  else
+    pllEvaluateLikelihood (PLL_instance, PLL_partitions, PLL_instance->start, PLL_TRUE, PLL_FALSE);
   D( __FILE__ , __LINE__ );  
   
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
@@ -510,6 +514,9 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 LikelihoodEvaluator::~LikelihoodEvaluator()
 {
+  delete tree;
+  if(alternativeTree)
+    delete alternativeTree;
   D( __FILE__ , __LINE__ );
   if(method == PLL){
     pllAlignmentDataDestroy(PLL_alignmentData);
@@ -573,7 +580,9 @@ void LikelihoodEvaluator::acceptAlternativeTree()
 {
   D( __FILE__ , __LINE__ );
   delete tree;
-  tree = alternativeTree->clone();
+  D( __FILE__ , __LINE__ );
+  tree = alternativeTree;
+  alternativeTree = 00;
   logLikelihood = alternativeLogLikelihood;
 }
 
