@@ -8,11 +8,11 @@
 
 //Defining a DEBUG macro to print debug messages.
 #ifndef NDEBUG
-    #define D(x,y) (  std::cout <<"DEBUG: "<< x << " : "<< TextTools::toString<int>(y) << std::endl )
+    #define WHEREAMI(x,y) (  std::cout <<"DEBUG: "<< x << " : "<< TextTools::toString<int>(y) << std::endl )
     //std::cerr << "PASSED: "<< x << " : "<< TextTools::toString<int>(y)<< std::endl; ; std::cerr.flush() ; std::cout.flush(); 
   //  #define D(x) ( std::cerr << "PASSED: "<< x << std::endl;  std::cout << "PASSED: " << x << std::endl; std::cerr.flush() ; std::cout::flush(); )
 #else 
-    #define D(x,y)  
+    #define WHEREAMI(x,y)  
 #endif
 
 

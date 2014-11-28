@@ -34,14 +34,14 @@ target_link_libraries(phyldog
   ${PLL_LIBRARIES}
   ${BPP_LIBRARIES}
 )
-
-ADD_EXECUTABLE(phyldog_static ReconcileDuplications.cpp ${PHYLDOG_SRCS})
-target_link_libraries(phyldog_static 
-  ${Boost_SERIALIZATION_LIBRARY}
-  ${Boost_MPI_LIBRARY}
-  ${MPI_LIBRARIES}
-  ${PLL_LIBRARIES_STATIC}
-  ${BPP_LIBRARIES_STATIC}
-)
+# 
+# ADD_EXECUTABLE(phyldog_static ReconcileDuplications.cpp ${PHYLDOG_SRCS})
+# target_link_libraries(phyldog_static 
+#   ${Boost_SERIALIZATION_LIBRARY_STATIC}
+#   ${Boost_MPI_LIBRARY_STATIC}
+#   ${MPI_LIBRARIES}
+#   ${PLL_LIBRARIES_STATIC}
+#   ${BPP_LIBRARIES_STATIC}
+# )
 
 install(TARGETS phyldog DESTINATION bin)

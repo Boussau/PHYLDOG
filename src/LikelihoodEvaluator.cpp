@@ -71,7 +71,7 @@ using namespace bpp;
 
 
 void LikelihoodEvaluator::PLL_initializePLLInstance(){
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   /* Set the PLL instance attributes */
   PLL_attributes.rateHetModel     = PLL_GAMMA;
   PLL_attributes.fastScaling      = PLL_TRUE;
@@ -87,13 +87,13 @@ void LikelihoodEvaluator::PLL_initializePLLInstance(){
 LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   params(params), alternativeTree(00), initialized(false)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   loadDataFromParams();
   tolerance_ = 0.5;
 }
 
 void LikelihoodEvaluator::loadDataFromParams(){
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
 
   // set the name of this evaluator
   istringstream tempName(ApplicationTools::getStringParameter("input.sequence.file",params,"rnd"));
@@ -161,7 +161,7 @@ void LikelihoodEvaluator::loadDataFromParams(){
 
 void LikelihoodEvaluator::PLL_loadAlignment(string path)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   /* Parse a PHYLIP/FASTA file */
   PLL_alignmentData = pllParseAlignmentFile (PLL_FORMAT_FASTA, path.c_str());
   if (!PLL_alignmentData)
@@ -173,7 +173,7 @@ void LikelihoodEvaluator::PLL_loadAlignment(string path)
 
 void LikelihoodEvaluator::PLL_loadNewick_fromFile(string path)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   PLL_newick = pllNewickParseFile(path.c_str());
   if (!PLL_newick)
   {
@@ -187,7 +187,7 @@ void LikelihoodEvaluator::PLL_loadNewick_fromFile(string path)
 
 void LikelihoodEvaluator::PLL_loadNewick_fromString(string newick)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   PLL_newick = pllNewickParseString (newick.c_str());
   if (!PLL_newick)
   {
@@ -202,7 +202,7 @@ void LikelihoodEvaluator::PLL_loadNewick_fromString(string newick)
 
 void LikelihoodEvaluator::PLL_loadPartitions(string path)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   /* Parse the partitions file into a partition queue structure */
   PLL_partitionInfo = pllPartitionParse (path.c_str());
   
@@ -224,9 +224,9 @@ void LikelihoodEvaluator::PLL_loadPartitions(string path)
 
 void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   pllTreeInitTopologyNewick (PLL_instance, PLL_newick, PLL_FALSE);
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
 
   // cout << "PLL: Connect the alignment and partition structure with the tree structure" << std::endl ;
   /* Connect the alignment and partition structure with the tree structure */
@@ -237,13 +237,13 @@ void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
   
   pllNewickParseDestroy(&PLL_newick);
   
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
 }
 
 
 void LikelihoodEvaluator::initialize_BPP_nniLk()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   nniLk = new NNIHomogeneousTreeLikelihood(*tree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
   
   nniLk->initParameters();
@@ -253,7 +253,7 @@ void LikelihoodEvaluator::initialize_BPP_nniLk()
 
 void LikelihoodEvaluator::initialize_PLL()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
 
   // #1 PREPARING
   // must have the strict names loaded
@@ -287,7 +287,7 @@ void LikelihoodEvaluator::initialize_PLL()
 
 void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   if(!isInitialized()){
     if(tree)
       delete tree;
@@ -300,7 +300,7 @@ void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 
 double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bool initModel)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   
   //TODO debug remove
   Newick debugTree;
@@ -339,12 +339,12 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bo
   // pllSetFixedAlpha(alpha_, 0, PLL_partitions, PLL_instance);
   // pllSetFixedBaseFrequencies(baseFreq_, 4, 0, PLL_partitions, PLL_instance);
   // pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   if(initModel)
     pllInitModel(PLL_instance, PLL_partitions);
   else
     pllEvaluateLikelihood (PLL_instance, PLL_partitions, PLL_instance->start, PLL_TRUE, PLL_FALSE);
-  D( __FILE__ , __LINE__ );  
+  WHEREAMI( __FILE__ , __LINE__ );  
   
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
@@ -418,7 +418,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bo
 
 double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 { 
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
 
   // preparing the tree
   TreeTemplate<Node>* treeForBPP = (*treeToEvaluate)->clone();
@@ -517,7 +517,7 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
   delete tree;
   if(alternativeTree)
     delete alternativeTree;
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   if(method == PLL){
     pllAlignmentDataDestroy(PLL_alignmentData);
     pllPartitionsDestroy(PLL_instance, &PLL_partitions);
@@ -533,7 +533,7 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
 
 void LikelihoodEvaluator::initialize()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   
   //checking the alignment and the tree contain the same number of sequences
   if(sites->getNumberOfSequences() != tree->getNumberOfLeaves()){
@@ -555,7 +555,7 @@ void LikelihoodEvaluator::initialize()
 
 void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternative)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   if(!initialized)
     throw Exception("Set alternative tree on a non initalized evaluator.");
   if(alternativeTree != 00)
@@ -578,9 +578,9 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternativ
 
 void LikelihoodEvaluator::acceptAlternativeTree()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   delete tree;
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   tree = alternativeTree;
   alternativeTree = 00;
   logLikelihood = alternativeLogLikelihood;
@@ -592,62 +592,62 @@ void LikelihoodEvaluator::acceptAlternativeTree()
 
 TreeTemplate< Node >* LikelihoodEvaluator::getAlternativeTree()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return alternativeTree;
 }
 
 bool LikelihoodEvaluator::isInitialized()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return initialized;
 }
 
 Alphabet* LikelihoodEvaluator::getAlphabet()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return alphabet;
 }
 
 double LikelihoodEvaluator::getAlternativeLogLikelihood()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return alternativeLogLikelihood;
 }
 
 double LikelihoodEvaluator::getLogLikelihood()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return logLikelihood;
 }
 
 DiscreteDistribution* LikelihoodEvaluator::getRateDistribution()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return rateDistribution;
 }
 
 VectorSiteContainer* LikelihoodEvaluator::getSites()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return sites;
 }
 
 TreeTemplate< Node >* LikelihoodEvaluator::getTree()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return tree;
 }
 
 SubstitutionModel* LikelihoodEvaluator::getSubstitutionModel()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return substitutionModel;
 }
 
 
 void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   vector<string> seqNames = sites->getSequencesNames();
   string currName;
   ostringstream currStrictName;
@@ -685,7 +685,7 @@ void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 
 void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >* targetTree)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   
   vector<Node*> leaves = targetTree->getLeaves();
   for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++)
@@ -710,7 +710,7 @@ void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >* targetTree)
 
 void LikelihoodEvaluator::restoreTreeFromStrict(TreeTemplate< Node >* targetTree)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   vector<Node*> leaves = targetTree->getLeaves();
   for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++){
     (*currLeaf)->setName(strictToReal[(*currLeaf)->getName()]);
@@ -720,7 +720,7 @@ void LikelihoodEvaluator::restoreTreeFromStrict(TreeTemplate< Node >* targetTree
 
 void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   fileNamePrefix = "tmpPLL_" + name + "_" ;
   ofstream alignementFile(string(fileNamePrefix + "alignment.fasta").c_str(), ofstream::out);
 
@@ -783,7 +783,7 @@ else {
 LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator const &leval):
 params(leval.params), initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   
   loadDataFromParams();
   tree = leval.tree;
@@ -795,14 +795,14 @@ params(leval.params), initialized(false), PLL_instance(00), PLL_alignmentData(00
 
 LikelihoodEvaluator* LikelihoodEvaluator::clone()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return new LikelihoodEvaluator(*this);
 }
 
 LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* alignment, SubstitutionModel* model, DiscreteDistribution* rateDistribution, std::map<std::string, std::string> par, bool mustUnrootTrees, bool verbose):
 initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   this->tree = dynamic_cast<TreeTemplate<Node> *>(tree->clone());
   this->substitutionModel = model->clone();
   this->rateDistribution = rateDistribution->clone();
