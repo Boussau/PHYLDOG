@@ -29,24 +29,20 @@ SET(CMAKE_C_FLAGS_DISTRIBUTION "-O3 -w -DNDEBUG")
 
 
 #here is a useful function:
-MACRO(IMPROVED_FIND_LIBRARY OUTPUT_LIBS OUTPUT_LIBS_STATIC lib_name include_to_find)
+MACRO(IMPROVED_FIND_LIBRARY OUTPUT_LIBS lib_name include_to_find)
   #start:
   FIND_PATH(${lib_name}_INCLUDE_DIR ${include_to_find})
-
-  SET(${lib_name}_NAMES_STATIC lib${lib_name}.a)
-  SET(${lib_name}_NAMES ${lib_name} ${lib_name}lib ${lib_name}dll)
+  IF(${BUILD_STATIC})
+    SET(${lib_name}_NAMES lib${lib_name}.a)
+  ELSE(${BUILD_STATIC})
+    SET(${lib_name}_NAMES ${lib_name} ${lib_name}lib ${lib_name}dll)
+  ENDIF(${BUILD_STATIC})
   FIND_LIBRARY(${lib_name}_LIBRARY NAMES ${${lib_name}_NAMES})
-  FIND_LIBRARY(${lib_name}_LIBRARY_STATIC NAMES ${${lib_name}_NAMES_STATIC})
 
   IF(${lib_name}_LIBRARY)
     MESSAGE("-- Library ${lib_name} ${lib_type} found here:")
     MESSAGE("   includes : ${${lib_name}_INCLUDE_DIR}")
-    SET(STATIC_LIB_NAME "")
-    IF(${lib_name}_LIBRARY_STATIC)
-      SET(STATIC_LIB_NAME "(static: ${${lib_name}_LIBRARY_STATIC})")
-    ENDIF(${lib_name}_LIBRARY_STATIC)
-    MESSAGE("   library: ${${lib_name}_LIBRARY} ${STATIC_LIB_NAME}")
-    
+    MESSAGE("   library: ${${lib_name}_LIBRARY}")
   ELSE(${lib_name}_LIBRARY)
     MESSAGE(FATAL_ERROR "${lib_name} required but not found.")
   ENDIF(${lib_name}_LIBRARY)
@@ -54,17 +50,16 @@ MACRO(IMPROVED_FIND_LIBRARY OUTPUT_LIBS OUTPUT_LIBS_STATIC lib_name include_to_f
   #add the dependency:
   INCLUDE_DIRECTORIES(${${lib_name}_INCLUDE_DIR})
   SET(${OUTPUT_LIBS} ${${OUTPUT_LIBS}} ${${lib_name}_LIBRARY})
-  SET(${OUTPUT_LIBS_STATIC} ${${OUTPUT_LIBS_STATIC}} ${${lib_name}_LIBRARY_STATIC})
 ENDMACRO(IMPROVED_FIND_LIBRARY)
 
 
 #Find the libraries. The order is very important for static linkage, it won't
 #link if you change it!
-IMPROVED_FIND_LIBRARY(BPP_LIBRARIES BPP_LIBRARIES_STATIC bpp-phyl Bpp/Phyl/Tree.h)
-IMPROVED_FIND_LIBRARY(BPP_LIBRARIES BPP_LIBRARIES_STATIC bpp-seq Bpp/Seq/Alphabet/Alphabet.h)
-IMPROVED_FIND_LIBRARY(BPP_LIBRARIES BPP_LIBRARIES_STATIC bpp-core Bpp/Clonable.h)
+IMPROVED_FIND_LIBRARY(BPP_LIBRARIES bpp-phyl Bpp/Phyl/Tree.h)
+IMPROVED_FIND_LIBRARY(BPP_LIBRARIES bpp-seq Bpp/Seq/Alphabet/Alphabet.h)
+IMPROVED_FIND_LIBRARY(BPP_LIBRARIES bpp-core Bpp/Clonable.h)
 
-IMPROVED_FIND_LIBRARY(PLL_LIBRARIES PLL_LIBRARIES_STATIC pll-sse3 pll/pll.h)
+IMPROVED_FIND_LIBRARY(PLL_LIBRARIES pll-sse3 pll/pll.h)
 
 
 # #Boost libraries:
@@ -80,7 +75,7 @@ IMPROVED_FIND_LIBRARY(PLL_LIBRARIES PLL_LIBRARIES_STATIC pll-sse3 pll/pll.h)
 # 
 
 
-SET(Boost_USE_STATIC_LIBS OFF)
+SET(Boost_USE_STATIC_LIBS ${BUILD_STATIC})
 
 find_package(Boost COMPONENTS mpi serialization REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
