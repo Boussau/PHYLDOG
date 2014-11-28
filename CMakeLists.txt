@@ -67,10 +67,23 @@ IMPROVED_FIND_LIBRARY(BPP_LIBRARIES BPP_LIBRARIES_STATIC bpp-core Bpp/Clonable.h
 IMPROVED_FIND_LIBRARY(PLL_LIBRARIES PLL_LIBRARIES_STATIC pll-sse3 pll/pll.h)
 
 
-#Boost libraries:
+# #Boost libraries:
+# SET(Boost_USE_STATIC_LIBS ON)
+# find_package(Boost COMPONENTS mpi serialization REQUIRED)
+# include_directories(${Boost_INCLUDE_DIRS})
+# set(Boost_LIBRARIES_STATIC ${Boost_LIBRARIES})
+# set(Boost_SERIALIZATION_LIBRARY_STATIC ${Boost_SERIALIZATION_LIBRARY})
+# set(Boost_MPI_LIBRARY_STATIC ${Boost_MPI_LIBRARY})
+# UNSET(Boost_LIBRARIES)
+# UNSET(Boost_SERIALIZATION_LIBRARY_STATIC)
+# UNSET(Boost_MPI_LIBRARY_STATIC)
+# 
+
+
+SET(Boost_USE_STATIC_LIBS OFF)
+
 find_package(Boost COMPONENTS mpi serialization REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
-
 
 # Require MPI for this project:
 find_package(MPI REQUIRED)
