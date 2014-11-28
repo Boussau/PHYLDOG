@@ -594,8 +594,10 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		{
 		    reconciledTrees_[i].push_back(nhx->treeToParenthesis (*geneTree_));
 		    if (reconciliationModel_ == "DL") {
-			duplicationTrees_[i].push_back(nhx->treeToParenthesis (*spTree_));
-			lossTrees_[i].push_back(nhx->treeToParenthesis (*spTree_));
+/*			duplicationTrees_[i].push_back(nhx->treeToParenthesis (*spTree_));
+			lossTrees_[i].push_back(nhx->treeToParenthesis (*spTree_));*/
+      duplicationTrees_[i].push_back(TreeTemplateTools::treeToParenthesis (*spTree_, false, DUPLICATIONS));
+      lossTrees_[i].push_back(TreeTemplateTools::treeToParenthesis (*spTree_, false, LOSSES));
 		    }
 		}
 		if (geneTree_) 
