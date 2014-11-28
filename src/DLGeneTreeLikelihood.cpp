@@ -55,7 +55,7 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood( std::string file,
 					     															TreeTemplate<Node> & spTree ) 
   throw (exception) : GeneTreeLikelihood(file, params, spTree)
   {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   size_t speciesTreeNodeNumber = spTree.getNumberOfNodes();
     for (int i=0; i< speciesTreeNodeNumber ; i++) 
     {
@@ -177,7 +177,7 @@ GeneTreeLikelihood(tree,
 		   considerSequenceLikelihood, 
 		   sprLimit)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   lossExpectedNumbers_ = lossProbabilities;
   duplicationExpectedNumbers_ = duplicationProbabilities; 
   num0Lineages_=num0Lineages;
@@ -194,7 +194,7 @@ GeneTreeLikelihood(tree,
 DLGeneTreeLikelihood::DLGeneTreeLikelihood(const DLGeneTreeLikelihood & lik):
 GeneTreeLikelihood(lik)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   lossExpectedNumbers_ = lik.lossExpectedNumbers_;
   duplicationExpectedNumbers_ = lik.duplicationExpectedNumbers_; 
   num0Lineages_=lik.num0Lineages_;
@@ -210,7 +210,7 @@ GeneTreeLikelihood(lik)
 
 DLGeneTreeLikelihood & DLGeneTreeLikelihood::operator=(const DLGeneTreeLikelihood & lik)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   GeneTreeLikelihood::operator=(lik);
   lossExpectedNumbers_ = lik.lossExpectedNumbers_;
   duplicationExpectedNumbers_ = lik.duplicationExpectedNumbers_;
@@ -231,7 +231,7 @@ DLGeneTreeLikelihood & DLGeneTreeLikelihood::operator=(const DLGeneTreeLikelihoo
 
 DLGeneTreeLikelihood::~DLGeneTreeLikelihood()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   if (levaluator_) delete levaluator_;
   if (spTree_) delete spTree_;
   if (rootedTree_) delete rootedTree_;
@@ -244,7 +244,7 @@ DLGeneTreeLikelihood::~DLGeneTreeLikelihood()
 
 void DLGeneTreeLikelihood::initParameters()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   //     std::cout << "in initParameters"<<std::endl;
   if (considerSequenceLikelihood_) {
     //TODO What to do here with levaluator?
@@ -292,7 +292,7 @@ void DLGeneTreeLikelihood::initParameters()
 /******************************************************************************/
 
 void DLGeneTreeLikelihood::resetMLindex() {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   MLindex_ = -1;
 }
 
@@ -303,7 +303,7 @@ void DLGeneTreeLikelihood::resetMLindex() {
 /* We need to introduce in the likelihood computation the scenario likelihood */
 double DLGeneTreeLikelihood::getLogLikelihood() const
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   double ll = 0;
 
   
@@ -324,7 +324,7 @@ double DLGeneTreeLikelihood::getValue() const
 throw (Exception)
 {
   {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
     if(!levaluator_->isInitialized()) throw Exception("reconciliationTreeLikelihood::getValue(). Instance is not initialized.");
     // return (-getLogLikelihood());
     //TEST 16 02 2010
@@ -365,7 +365,7 @@ throw (Exception)
 
 void DLGeneTreeLikelihood::computeSequenceLikelihood()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   if ( considerSequenceLikelihood_ && (optimizeSequenceLikelihood_==true) ) {
 //     with likelihood evaluator, likelihood are always computed when the tree is modified
 //     nniLk()->computeTreeLikelihood ();
@@ -379,7 +379,7 @@ void DLGeneTreeLikelihood::computeSequenceLikelihood()
 
 void DLGeneTreeLikelihood::computeReconciliationLikelihood()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   resetLossesAndDuplications(*spTree_, /*lossNumbers_, */lossExpectedNumbers_, /*duplicationNumbers_, */duplicationExpectedNumbers_);
   if (heuristicsLevel_>0) {
     std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
@@ -407,7 +407,7 @@ void DLGeneTreeLikelihood::computeReconciliationLikelihood()
 
 void DLGeneTreeLikelihood::computeTreeLikelihood()
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   if (considerSequenceLikelihood_ )
   {
     computeSequenceLikelihood();
@@ -422,7 +422,7 @@ void DLGeneTreeLikelihood::computeTreeLikelihood()
  */
 double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   //If the NNI is around a branch where a duplication was found, 
   //or if we just try all branches because the starting gene trees are parsimonious in
   //numbers of DL.
@@ -529,7 +529,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 
 void DLGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
      levaluator_->acceptAlternativeTree();
 
 
@@ -571,21 +571,21 @@ void DLGeneTreeLikelihood::doNNI(int nodeId) throw (NodeException)
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::getDuplicationNumbers(){
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return duplicationNumbers_;
 }
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::getLossNumbers(){
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return lossNumbers_;
 }
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::getBranchNumbers(){
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return branchNumbers_;
 }
 
@@ -593,28 +593,28 @@ std::vector <int> DLGeneTreeLikelihood::getBranchNumbers(){
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::get0LineagesNumbers() const {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return num0Lineages_;
 }
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::get1LineagesNumbers() const {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return num1Lineages_;
 }
 
 /*******************************************************************************/
 
 std::vector <int> DLGeneTreeLikelihood::get2LineagesNumbers() const {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return num2Lineages_;
 }
 
 /*******************************************************************************/
 
 void DLGeneTreeLikelihood::setExpectedNumbers(std::vector <double> duplicationProbabilities, std::vector <double> lossProbabilities){
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   
   lossExpectedNumbers_ = lossProbabilities;
   duplicationExpectedNumbers_ = duplicationProbabilities; 
@@ -623,7 +623,7 @@ void DLGeneTreeLikelihood::setExpectedNumbers(std::vector <double> duplicationPr
 /*******************************************************************************/
 
 int DLGeneTreeLikelihood::getRootNodeindex(){
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return MLindex_;
 }
 
@@ -636,13 +636,13 @@ int DLGeneTreeLikelihood::getRootNodeindex(){
 /*******************************************************************************/
 
 double DLGeneTreeLikelihood::getSequenceLikelihood() const {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   return levaluator_->getLogLikelihood(); 
 }
 /*******************************************************************************/
 
 void DLGeneTreeLikelihood::initialize() {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   levaluator_->initialize();
   return;
 }
@@ -651,7 +651,7 @@ void DLGeneTreeLikelihood::initialize() {
 
 /*******************************************************************************/
 void DLGeneTreeLikelihood::print () const {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   std::cout << "Species tree:"<<std::endl;
   std::cout << TreeTemplateTools::treeToParenthesis (getSpTree(), true)<<std::endl;
   std::cout << "Gene family rooted tree:"<<std::endl;
@@ -686,7 +686,7 @@ void DLGeneTreeLikelihood::print () const {
  * WORKS.
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do SPRs
@@ -893,7 +893,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
  * WORKS.
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do SPRs
@@ -1121,7 +1121,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
  * 
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
 
   computeReconciliationLikelihood();
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
@@ -1309,7 +1309,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
  * they have been tried.
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsigned int verbose ) {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do NNIs
     computeReconciliationLikelihood();
@@ -1367,7 +1367,7 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
  * Tells if the gene family is single copy (1 gene per sp)
  ************************************************************************/
 bool DLGeneTreeLikelihood::isSingleCopy() {
-  D( __FILE__ , __LINE__ );
+  WHEREAMI( __FILE__ , __LINE__ );
   vector<string> names = TreeTemplateTools::getLeavesNames(*(geneTreeWithSpNames_->getRootNode() ) );
   vector<string> uniqueNames = VectorTools::unique(names);
   if (uniqueNames.size() == names.size() ) {
