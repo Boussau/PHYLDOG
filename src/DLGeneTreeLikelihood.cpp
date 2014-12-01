@@ -485,18 +485,14 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       { //If it is worth computing the sequence likelihood
                 levaluator_->setAlternativeTree(treeForNNI);             
 
-   /* double newLkMinusOldLk = (levaluator_->getAlternativeLogLikelihood() - getSequenceLikelihood());
-
-	double tot = - candidateScenarioLk + scenarioLikelihood_ + newLkMinusOldLk;*/
-
-	double tot = -( candidateScenarioLk + levaluator_->getAlternativeLogLikelihood() - ( getSequenceLikelihood() + scenarioLikelihood_ ) );
+        double tot = -( candidateScenarioLk + levaluator_->getAlternativeLogLikelihood() ) + ( getSequenceLikelihood() + scenarioLikelihood_ ) ;
 
 
-	if (tot < 0)
-	{
-	  tentativeScenarioLikelihood_= candidateScenarioLk;
-	}
-	return tot;
+        if (tot < 0)
+        {
+          tentativeScenarioLikelihood_= candidateScenarioLk;
+        }
+        return tot;
 	
       }
       else 
@@ -706,7 +702,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
   double candidateScenarioLk ;
   double bestSequenceLogL = getSequenceLikelihood();
   double bestScenarioLk = getScenarioLikelihood();
-  std::cout << "LOGL: "<<logL << " ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
+  //std::cout << "LOGL: "<<logL << " ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
   unsigned int numIterationsWithoutImprovement = 0;
   breadthFirstreNumber (*rootedTree_);
 
@@ -777,6 +773,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	  if (logL - 0.01 > bestlogL) 
 	  {
             levaluator_->acceptAlternativeTree();
+      WHEREAMI( __FILE__ , __LINE__ );
 	    std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
 	    
 	    betterTree = true;
@@ -998,7 +995,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 	      {
                 // levaluator: since it the best tree, setting it as the current one
                 levaluator_->acceptAlternativeTree();
-                
+    WHEREAMI( __FILE__ , __LINE__ );
 		std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
 		betterTree = true;
 		bestlogL = logL;
@@ -1197,7 +1194,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
       {
         // then we accept the tree
         levaluator_->acceptAlternativeTree();
-        
+  WHEREAMI( __FILE__ , __LINE__ );      
 	std::cout << "Better tree overall: "<<logL << " compared to "<<bestlogL<<std::endl;
 	betterTree = true;
 	bestlogL = logL;
@@ -1355,7 +1352,7 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
 //	nniLk_->topologyChangeTested(   TopologyChangeEvent ());
 //	nniLk_->topologyChangeSuccessful(   TopologyChangeEvent ());
 	if(verbose >= 1)
-	  ApplicationTools::displayResult("   Current value", TextTools::toString(getValue(), 10));
+	  ApplicationTools::displayResult("   Current value", TextTools::toString(- getValue(), 10));
       }
     }
   }

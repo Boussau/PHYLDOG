@@ -419,6 +419,7 @@ namespace bpp
     protected:
   //Computes the loglk of the species tree
   void computeLogLikelihood();
+  
   //Parses the options and builds the SpeciesTreeLikelihoodObject
   void parseOptions();
   };
