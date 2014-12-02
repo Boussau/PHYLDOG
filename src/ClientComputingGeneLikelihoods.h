@@ -352,6 +352,11 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     
     //Get the logL of the species tree according to the gene families handled by the client
     double getValue() const throw (Exception) { return logL_; }
+    
+      
+    //Does NNI rearrangement of gene tree
+    void NNIRearrange (bool timing, size_t i, double& startingTime, double& totalTime) ;
+
     int unrootedGeneTree;
    // COALGeneTreeLikelihood* tl;
     

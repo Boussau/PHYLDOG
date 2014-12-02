@@ -248,7 +248,7 @@ void LikelihoodEvaluator::initialize_BPP_nniLk()
   
   nniLk->initParameters();
   nniLk->initialize();
-  logLikelihood = nniLk->getValue();
+  logLikelihood = - nniLk->getValue();
 }
 
 void LikelihoodEvaluator::initialize_PLL()
@@ -496,7 +496,7 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
     
   }
 
-  return drlk->getValue();
+  return -drlk->getValue();
  
 
 }
@@ -570,7 +570,6 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternativ
   /*  if ( nniLkAlternative)
       delete nniLkAlternative;*/
     alternativeLogLikelihood = BPP_evaluate( &alternativeTree );
-
    /* nniLkAlternative =  new NNIHomogeneousTreeLikelihood (*alternativeTree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
     alternativeLogLikelihood = nniLkAlternative->getLogLikelihood();*/
   }
