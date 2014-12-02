@@ -754,13 +754,13 @@ if (alphabet->getSize() == 4) {
   partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
 }
 else if (alphabet->getSize() == 20) {
-    if (substitutionModel->getName()=="LG08") {
+    if (substitutionModel->getName().substr(0,4)=="LG08") {
         partitionFile << "LG, p1=1-" << sites->getNumberOfSites() << "\n";
     }
-    else if (substitutionModel->getName()=="WAG01") {
+    else if (substitutionModel->getName().substr(0,5)=="WAG01") {
         partitionFile << "WAG, p1=1-" << sites->getNumberOfSites() << "\n";
     }
-    else if (substitutionModel->getName()=="JTT92") {
+    else if (substitutionModel->getName().substr(0,5)=="JTT92") {
         partitionFile << "JTT, p1=1-" << sites->getNumberOfSites() << "\n";
     }
     else {
