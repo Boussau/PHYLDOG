@@ -147,6 +147,11 @@ private:
   Tolerance for optimization.
   */
   double tolerance_;  
+  
+  /**
+  Scaler: the sequence loglikelihood is multiplied by this to tune its weight relative to the gene tree/species tree loglk.
+  */
+  double scaler_;
 
   /**
   Loads the PLL alignment
