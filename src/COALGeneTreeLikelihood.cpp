@@ -111,7 +111,6 @@ throw (exception) : GeneTreeLikelihood(file, params, spTree)
 //   std::vector < std::vector < std::vector < std::vector<unsigned int> > > > coalCounts,
 //   std::vector < double > coalBl,
 //   int speciesIdLimitForRootPosition,
-//   int heuristicsLevel,
 //   int & MLindex, 
 //   bool checkRooted,
 //   bool verbose,
@@ -128,7 +127,6 @@ throw (exception) : GeneTreeLikelihood(file, params, spTree)
 //                    seqSp,
 //                    spId,
 //                    speciesIdLimitForRootPosition,
-//                    heuristicsLevel,
 //                    MLindex, 
 //                    checkRooted,
 //                    verbose,
@@ -161,7 +159,6 @@ COALGeneTreeLikelihood::COALGeneTreeLikelihood(
   std::vector < std::vector < std::vector < std::vector < unsigned int > > > > coalCounts,
   std::vector < double > coalBl,
   int speciesIdLimitForRootPosition,  
-  int heuristicsLevel,
   int & MLindex, 
   std::map <std::string, std::string > params,
   bool checkRooted,
@@ -180,7 +177,6 @@ GeneTreeLikelihood(tree,
                    seqSp,
                    spId,
                    speciesIdLimitForRootPosition,
-                   heuristicsLevel,
                    MLindex, 
 		   params,
                    checkRooted,
@@ -249,12 +245,7 @@ void COALGeneTreeLikelihood::initParameters()
   if (considerSequenceLikelihood_) {
     levaluator_->initialize();
   }
-  if (heuristicsLevel_>0) {
-    std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
-    MPI::COMM_WORLD.Abort(1);
-    exit(-1);
-  }
-  else {
+
     /*std::cout << "BEFORE: "<<std::endl;
      *		for (unsigned int i = 0 ; i < coalCounts_[0][0].size() ; i++) {
      *			if (spTree_->getNode(i)->isLeaf() ) {
@@ -269,7 +260,7 @@ void COALGeneTreeLikelihood::initParameters()
                                                       nodesToTryInNNISearch_);
     computeNumLineagesFromCoalCounts ();
     
-  }
+  
   MLindex_ = -1;
 }
 
@@ -352,12 +343,7 @@ throw (Exception)
 
 void COALGeneTreeLikelihood::computeReconciliationLikelihood()
 {
-  if (heuristicsLevel_>0) {
-    std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
-    MPI::COMM_WORLD.Abort(1);
-    exit(-1);
-  }
-  else {
+
     //Compute the COAL likelihood
     scenarioLikelihood_ = findMLCoalReconciliationDR (spTree_, rootedTree_, 
                                                       seqSp_, spId_, 
@@ -370,7 +356,7 @@ void COALGeneTreeLikelihood::computeReconciliationLikelihood()
     nodesToTryInNNISearch_ = tentativeNodesToTryInNNISearch_;
     computeNumLineagesFromCoalCounts ();
     
-  }
+  
 }
 
 

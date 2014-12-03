@@ -61,7 +61,7 @@ class geneTreeLikelihoodException: public exception
 
 
 GeneTreeLikelihood::GeneTreeLikelihood():
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_(), heuristicsLevel_(0) {
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_() {
   WHEREAMI( __FILE__ , __LINE__ );
   totalIterations_ = 0;
   counter_ = 0;
@@ -74,7 +74,7 @@ GeneTreeLikelihood::GeneTreeLikelihood(
   TreeTemplate<Node> & spTree )
 throw (exception):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_(), 
-params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
+params_(params), considerSequenceLikelihood_(true)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   totalIterations_ = 0;
@@ -96,7 +96,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
   
   //TODO: dirty cont to eliminate
   bool cont = true;
-  //method to optimize the gene tree root; only useful if heuristics.level!=0.
+  //method to optimize the gene tree root.
   bool rootOptimization = false;
   if (!cont)
       throw(Exception("Unable to load this family"));
@@ -242,7 +242,6 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
 //  * @param seqSp link between sequence and species names
 //  * @param spId link between species name and species ID
 //  * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
-//  * @param heuristicsLevel type of heuristics used
 //  * @param MLindex ML rooting position
 //  * @param checkRooted Tell if we have to check for the tree to be unrooted.
 //  * If true, any rooted tree will be unrooted before likelihood computation.
@@ -259,7 +258,6 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
 //   const std::map <std::string, std::string> seqSp,
 //   std::map <std::string,int> spId,
 //   int speciesIdLimitForRootPosition,
-//   int heuristicsLevel,
 //   int & MLindex, 
 //   bool checkRooted,
 //   bool verbose,
@@ -267,7 +265,7 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
 //   bool considerSequenceLikelihood, 
 //   unsigned int sprLimit)
 // throw (Exception):
-// levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(seqSp), spId_(spId), heuristicsLevel_(0),
+// levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(seqSp), spId_(spId)
 // {
 //   cout << "new LE 266 - params size = " << params_.size() << endl;
 // 
@@ -283,7 +281,6 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
 //   totalIterations_ = 0;
 //   counter_ = 0;
 //   _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
-//   heuristicsLevel_ = heuristicsLevel;
 //   optimizeSequenceLikelihood_ = true;
 //   optimizeReconciliationLikelihood_ = true;
 //   considerSequenceLikelihood_ = considerSequenceLikelihood;
@@ -304,7 +301,6 @@ params_(params), heuristicsLevel_(0), considerSequenceLikelihood_(true)
  * @param seqSp link between sequence and species names
  * @param spId link between species name and species ID
  * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
- * @param heuristicsLevel type of heuristics used
  * @param MLindex ML rooting position     
  * @param checkRooted Tell if we have to check for the tree to be unrooted.
  * If true, any rooted tree will be unrooted before likelihood computation.
@@ -323,7 +319,6 @@ GeneTreeLikelihood::GeneTreeLikelihood(
   const std::map <std::string, std::string> seqSp,
   std::map <std::string,int> spId,
   int speciesIdLimitForRootPosition,  
-  int heuristicsLevel,
   int & MLindex, 
 	std::map <std::string, std::string > params,
   bool checkRooted,
@@ -332,7 +327,7 @@ GeneTreeLikelihood::GeneTreeLikelihood(
   bool considerSequenceLikelihood, 
   unsigned int sprLimit)
 throw (Exception):
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), heuristicsLevel_(0), params_(params)
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), params_(params)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   levaluator_ = new LikelihoodEvaluator(&tree, &data, model, rDist, params, false, verbose);
@@ -346,7 +341,6 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
   totalIterations_ = 0; 
   counter_ = 0;
   _speciesIdLimitForRootPosition_ = speciesIdLimitForRootPosition;
-  heuristicsLevel_ = heuristicsLevel;
   optimizeSequenceLikelihood_ = true;
   optimizeReconciliationLikelihood_ = true;
   considerSequenceLikelihood_ = considerSequenceLikelihood;
@@ -358,7 +352,7 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
  * @brief Copy constructor.
  */ 
 GeneTreeLikelihood::GeneTreeLikelihood(const GeneTreeLikelihood & lik):
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (lik.seqSp_), spId_(lik.spId_), heuristicsLevel_(0)
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (lik.seqSp_), spId_(lik.spId_)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   levaluator_ = lik.levaluator_->clone(); 
@@ -372,7 +366,6 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
   totalIterations_ = lik.totalIterations_;
   counter_ = lik.counter_;
   _speciesIdLimitForRootPosition_ = lik._speciesIdLimitForRootPosition_;
-  heuristicsLevel_ = lik.heuristicsLevel_;
   nodesToTryInNNISearch_ = lik.nodesToTryInNNISearch_;
   tentativeNodesToTryInNNISearch_ = lik.tentativeNodesToTryInNNISearch_;
   optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
@@ -401,7 +394,6 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
   totalIterations_ = lik.totalIterations_;
   counter_ = lik.counter_;
   _speciesIdLimitForRootPosition_ = lik._speciesIdLimitForRootPosition_;
-  heuristicsLevel_ = lik.heuristicsLevel_;
   nodesToTryInNNISearch_ = lik.nodesToTryInNNISearch_;
   tentativeNodesToTryInNNISearch_ = lik.tentativeNodesToTryInNNISearch_;
   optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;

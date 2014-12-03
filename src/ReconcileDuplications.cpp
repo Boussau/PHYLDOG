@@ -87,7 +87,6 @@ void help()
     (*ApplicationTools::message << "output.tree.file                     | file where to write the end species tree").endLine();
     (*ApplicationTools::message << "output.temporary.tree.file           | file where to write the temporary species tree in case the job is ended because of time constraints.").endLine();
 
-    //  (*ApplicationTools::message << "heuristics.level                  | 0, 1, 2, or 3; 0: DR exact algorithm (default, best); 1 fast heuristics; 2: exhaustive and fast; 3: exhaustive and slow").endLine();
     //(*ApplicationTools::message << "species.id.limit.for.root.position| Threshold for trying root positions").endLine();
     (*ApplicationTools::message << "genelist.file                        | file containing a list of gene option files to analyse").endLine();
     (*ApplicationTools::message << "branch.expected.numbers.optimization | average, branchwise, average_then_branchwise or no: how we optimize duplication and loss probabilities").endLine();

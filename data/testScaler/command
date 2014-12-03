@@ -1,0 +1,3 @@
+mpirun -np 2 ../../build/bin/phyldog param=GeneralOptions.opt debug=y
+
+mpirun -np 2 ../../build/bin/phyldog param=GeneralOptions.opt debug=y sequence.likelihood.scaler=0.00001 reset.gene.trees=no

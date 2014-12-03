@@ -124,7 +124,6 @@ namespace bpp
     bool stop_;
     unsigned int currentStep_;
     int speciesIdLimitForRootPosition_; 
-    int heuristicsLevel_; 
     int MLindex_; 
     double logL_;
     int startRecordingTreesFrom_;
@@ -180,7 +179,6 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     stop_(false),
     currentStep_(0),
     speciesIdLimitForRootPosition_(0),
-    heuristicsLevel_(0),
     MLindex_(0),
     logL_(0),
     startRecordingTreesFrom_(0),
@@ -235,7 +233,6 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     stop_(c.stop_),
     currentStep_(c.currentStep_),
     speciesIdLimitForRootPosition_(c.speciesIdLimitForRootPosition_),
-    heuristicsLevel_(c.heuristicsLevel_),
     MLindex_(c.MLindex_),
     logL_(c.logL_),
     startRecordingTreesFrom_(c.startRecordingTreesFrom_),
@@ -290,7 +287,6 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
       stop_ = c.stop_;
       currentStep_ = c.currentStep_;
       speciesIdLimitForRootPosition_ = c.speciesIdLimitForRootPosition_;
-      heuristicsLevel_ = c.heuristicsLevel_;
       MLindex_ = c.MLindex_;
       logL_ = c.logL_;
       startRecordingTreesFrom_ = c.startRecordingTreesFrom_;
