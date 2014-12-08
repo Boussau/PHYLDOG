@@ -51,6 +51,7 @@ extern "C" {
 }*/
 
 #include <iostream>
+#include <cstdio>
 #include <string>
 #include <fstream>
 #include <boost/graph/graph_traits.hpp>
@@ -522,6 +523,9 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
     pllAlignmentDataDestroy(PLL_alignmentData);
     pllPartitionsDestroy(PLL_instance, &PLL_partitions);
     pllDestroyInstance(PLL_instance);
+    // delete files
+    remove(string(fileNamePrefix + "alignment.fasta").c_str());
+    remove(string(fileNamePrefix + "partition.txt").c_str());
   }
   else
   {
