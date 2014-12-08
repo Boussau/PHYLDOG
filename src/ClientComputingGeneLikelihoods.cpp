@@ -29,7 +29,7 @@ const mpi::communicator & world_,
                                std::vector <std::vector<unsigned int> > & allNum22Lineages_, 
                                std::map <std::string, int> & spId_, 
                                int speciesIdLimitForRootPosition_, 
-                               int heuristicsLevel_, int MLindex_, 
+                                int MLindex_, 
                                std::vector <double> & allLogLs_, 
                                std::vector <GeneTreeLikelihood *> & treeLikelihoods_,
                                std::vector <std::map<std::string, std::string> > & allParams_, 
@@ -98,21 +98,6 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
             resetLossesAndDuplications(*spTree_, lossExpectedNumbers_, duplicationExpectedNumbers_);
             //To make the correspondance between species name and id:
             spId_ = computeSpeciesNamesToIdsMap(*spTree_);
-            
-            /****************************************************************************
-             * HISTORY: Meaning of heuristicsLevel:
-             * 0: exact double-recursive algorithm. 
-             All possible root likelihoods are computed with only 2 tree traversals (default).
-             * 1: fastest heuristics : only a few nodes are tried for the roots of the gene trees 
-             (the number of these nodes tried depends upon speciesIdLimitForRootPosition), 
-             and for each root tried, the events are re-computed only for a subset of the tree.
-             * 2: All roots are tried, and for each root tried, 
-             the events are re-computed only for a subset of the tree.
-             * 3: All roots are tried, and for each root tried, 
-             the events are re-computed for all nodes of the tree 
-             (which should be useless unless there is a bug in the selection of the subset of the nodes.
-             * WARNING: options 1, 2, 3 are probably buggy now, and should not be used.
-             *****************************************************************************/
             
             /****************************************************************************
              * Gene family parsing and first likelihood computation.
@@ -249,7 +234,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
                                                 allNum1Lineages_[i-numDeletedFamilies_], 
                                                 allNum2Lineages_[i-numDeletedFamilies_], 
                                                 speciesIdLimitForRootPosition_, 
-                                                heuristicsLevel_, MLindex_, 
+                                                 MLindex_, 
                                                 true, true, rootOptimization, true, DLStartingGeneTree, sprLimitGeneTree);*/
                 ///  dynamic_cast<DLGeneTreeLikelihood*> (tl)->initialize();//Only initializes the parameter list, and computes the likelihood through fireParameterChanged
                   
@@ -270,7 +255,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
                                                   *geneTree_, *treeWithSpNames, seqSp, spId_, 
                                                   coalCounts_, coalBls_,  
                                                   speciesIdLimitForRootPosition_, 
-                                                  heuristicsLevel_, MLindex_, 
+                                                   MLindex_, 
                                                   true, true, rootOptimization, true, sprLimitGeneTree);*/
               }
               else {
@@ -386,7 +371,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 
     spId_ = computeSpeciesNamesToIdsMap(*spTree_);
     
-    std::cout << "THET "<< assignedFilenames_.size() << " and "<< numDeletedFamilies_ << " anana " << reconciliationModel_ <<std::endl;
+    //std::cout << "THET "<< assignedFilenames_.size() << " and "<< numDeletedFamilies_ << " anana " << reconciliationModel_ <<std::endl;
     
     for (unsigned int i = 0 ; i< assignedFilenames_.size()-numDeletedFamilies_ ; i++) 
     {        
@@ -694,7 +679,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 														allNum1Lineages_[i], 
 														allNum2Lineages_[i], 
 														speciesIdLimitForRootPosition_, 
-														heuristicsLevel_, MLindex_, params, 
+														 MLindex_, params, 
 														true, true, true, true, false, allSprLimitGeneTree_[i]) ;
           /*                          treeLikelihoods_.push_back( new DLGeneTreeLikelihood(*(allUnrootedGeneTrees_[i]), *(allDatasets_[i]), 
                                                         allModels_[i], allDistributions_[i], *spTree_, 
@@ -705,7 +690,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
                                                         allNum1Lineages_[i], 
                                                         allNum2Lineages_[i], 
                                                         speciesIdLimitForRootPosition_, 
-                                                        heuristicsLevel_, MLindex_, params, 
+                                                         MLindex_, params, 
                                                         true, true, true, true, false, allSprLimitGeneTree_[i]) );*/
                                   
                                   
@@ -752,7 +737,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 														  *allGeneTrees_[i], *treeWithSpNames, allSeqSps_[i], spId_, 
 														  coalCounts_, coalBls_,  
 														  speciesIdLimitForRootPosition_, 
-														  heuristicsLevel_, MLindex_, params,
+														   MLindex_, params,
 														  true, true, true, true, allSprLimitGeneTree_[i]) );
 							    delete treeWithSpNames;
 
@@ -790,7 +775,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 						    dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->initParameters();
 					    }
 				    }
-				    if (timing) 
+				    if (timing && resetGeneTrees_) 
 				    {
 					    totalTime = ApplicationTools::getTime() - startingTime;
 					    std::cout << "Time for resetting gene tree likelihoods: "<<  totalTime << " s." <<std::endl;

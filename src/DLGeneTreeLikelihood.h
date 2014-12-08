@@ -128,7 +128,6 @@ public:
 //    * @param num1Lineages vectors to store numbers of branches ending with 1 gene
 //    * @param num2Lineages vectors to store numbers of branches ending with 2 genes
 //    * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
-//    * @param heuristicsLevel type of heuristics used
 //    * @param MLindex ML rooting position
 //    * @param checkRooted Tell if we have to check for the tree to be unrooted.
 //    * If true, any rooted tree will be unrooted before likelihood computation.
@@ -150,7 +149,6 @@ public:
 //     std::vector <int> & num1Lineages,
 //     std::vector <int> & num2Lineages, 
 //     int speciesIdLimitForRootPosition,
-//     int heuristicsLevel,
 //     int & MLindex, 
 //     bool checkRooted = true,
 //     bool verbose = false,
@@ -180,7 +178,6 @@ public:
    * @param num1Lineages vectors to store numbers of branches ending with 1 gene
    * @param num2Lineages vectors to store numbers of branches ending with 2 genes
    * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
-   * @param heuristicsLevel type of heuristics used
    * @param MLindex ML rooting position     
    * @param checkRooted Tell if we have to check for the tree to be unrooted.
    * If true, any rooted tree will be unrooted before likelihood computation.
@@ -206,7 +203,6 @@ public:
     std::vector <int> & num1Lineages,
     std::vector <int> & num2Lineages,  
     int speciesIdLimitForRootPosition,  
-    int heuristicsLevel,
     int & MLindex, 
     std::map <std::string, std::string > params,
     bool checkRooted = true,

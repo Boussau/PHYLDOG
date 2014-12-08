@@ -2218,6 +2218,12 @@ double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
                                 bool fillTables )
 {
   
+/*  std::cout<< "findMLReconciliationDR "<<std::endl;
+  VectorTools::print(lossRates);
+    VectorTools::print(duplicationRates);
+std::cout << TreeTemplateTools::treeToParenthesis(*spTree, true)<<std::endl;
+std::cout << TreeTemplateTools::treeToParenthesis(*geneTree, true)<<std::endl;*/
+  
   if ( !geneTree->isRooted() )
   {
     std::cout << TreeTemplateTools::treeToParenthesis ( *geneTree, true ) <<std::endl;

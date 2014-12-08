@@ -140,6 +140,10 @@ void LikelihoodEvaluator::loadDataFromParams(){
   std::vector<std::string> leafNames = sites->getSequencesNames();
   tree = TreeTemplateTools::getRandomTree(leafNames, false);
 
+  //Get the scaler variable
+  scaler_ = ApplicationTools::getDoubleParameter("sequence.likelihood.scaler", params, 1.0, "", false, false);
+  
+  
 /*  
   try 
   {
@@ -249,7 +253,7 @@ void LikelihoodEvaluator::initialize_BPP_nniLk()
   
   nniLk->initParameters();
   nniLk->initialize();
-  logLikelihood = - nniLk->getValue();
+  logLikelihood = - nniLk->getValue() * scaler_;
 }
 
 void LikelihoodEvaluator::initialize_PLL()
@@ -282,7 +286,7 @@ void LikelihoodEvaluator::initialize_PLL()
   
   
   
-  logLikelihood = PLL_evaluate(&tree,true);
+  logLikelihood = PLL_evaluate(&tree,true) * scaler_;
   
 }
 
@@ -363,7 +367,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bo
   *treeToEvaluate = newickForPll.read(newickStingForPll);
   
   // getting the likelihood and then deleting PLL_instance
-  double PLL_instance_likelihood = PLL_instance->likelihood;
+  double PLL_instance_likelihood = PLL_instance->likelihood * scaler_;
   
   //re-rooting if needed
   if(wasRooted)
@@ -497,7 +501,7 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
     
   }
 
-  return -drlk->getValue();
+  return -drlk->getValue() * scaler_;
  
 
 }

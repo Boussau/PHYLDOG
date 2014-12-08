@@ -61,8 +61,8 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood( std::string file,
     {
         //We fill the vectors with 0.1s until they are the right sizes.
         //DL model:
-        lossExpectedNumbers_.push_back(0.1);
-        duplicationExpectedNumbers_.push_back(0.11);
+        lossExpectedNumbers_.push_back(0.3141514799);
+        duplicationExpectedNumbers_.push_back(0.0016105081);
         num0Lineages_.push_back(0);
         num1Lineages_.push_back(0);
         num2Lineages_.push_back(0);
@@ -91,7 +91,6 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood( std::string file,
 //   std::vector <int> & num1Lineages,
 //   std::vector <int> & num2Lineages, 
 //   int speciesIdLimitForRootPosition,
-//   int heuristicsLevel,
 //   int & MLindex, 
 //   bool checkRooted,
 //   bool verbose, 
@@ -109,7 +108,6 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood( std::string file,
 // 		   seqSp,
 // 		   spId,
 // 		   speciesIdLimitForRootPosition,
-// 		   heuristicsLevel,
 // 		   MLindex, 
 // 		   checkRooted,
 // 		   verbose,
@@ -148,7 +146,6 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
   std::vector <int> & num1Lineages,
   std::vector <int> & num2Lineages,
   int speciesIdLimitForRootPosition,
-  int heuristicsLevel,
   int & MLindex,
   std::map <std::string, std::string > params,
   bool checkRooted,
@@ -168,7 +165,6 @@ GeneTreeLikelihood(tree,
 		   seqSp,
 		   spId,
 		   speciesIdLimitForRootPosition,
-		   heuristicsLevel,
 		   MLindex, 
 		   params,
 		   checkRooted,
@@ -245,16 +241,10 @@ DLGeneTreeLikelihood::~DLGeneTreeLikelihood()
 void DLGeneTreeLikelihood::initParameters()
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  //     std::cout << "in initParameters"<<std::endl;
   if (considerSequenceLikelihood_) {
     //TODO What to do here with levaluator?
     //nniLk_->initParameters();
   }
-  if (heuristicsLevel_>0) {
-    std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
-    exit(-1);
-  }
-  else {
     
     scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_, 
 						  seqSp_, spId_, lossExpectedNumbers_, 
@@ -262,7 +252,8 @@ void DLGeneTreeLikelihood::initParameters()
 						  num0Lineages_, num1Lineages_,
 						  num2Lineages_, nodesToTryInNNISearch_); 
     //Rooting bestTree as in TreeForSPR:
-    
+           std::cout << scenarioLikelihood_ <<std::endl;
+
     vector<Node*> nodes = rootedTree_->getNodes();
     
     for (unsigned int j = 0 ; j < nodes.size() ; j++) {
@@ -282,7 +273,6 @@ void DLGeneTreeLikelihood::initParameters()
 	break;
       }
     }
-  }
   MLindex_ = -1;
 
 }
@@ -309,7 +299,7 @@ double DLGeneTreeLikelihood::getLogLikelihood() const
   
   if (considerSequenceLikelihood_) {
     //TODO: debug to remove
-   // cout << "(DTL) sequence likelihood=" <<  levaluator_->getLogLikelihood() << "/nscenario likelihood=" << scenarioLikelihood_ << endl;
+    //cout << "(DTL) sequence likelihood=" <<  levaluator_->getLogLikelihood() << "/nscenario likelihood=" << scenarioLikelihood_ << endl;
     ll = levaluator_->getLogLikelihood() + scenarioLikelihood_;
   }
   else {
@@ -381,11 +371,6 @@ void DLGeneTreeLikelihood::computeReconciliationLikelihood()
 {
   WHEREAMI( __FILE__ , __LINE__ );
   resetLossesAndDuplications(*spTree_, /*lossNumbers_, */lossExpectedNumbers_, /*duplicationNumbers_, */duplicationExpectedNumbers_);
-  if (heuristicsLevel_>0) {
-    std::cout <<"Sorry, these heuristics are no longer available. Try option 0."<<std::endl;
-    exit(-1);
-  }
-  else {
     scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_, 
 						  seqSp_, spId_, 
 						  lossExpectedNumbers_, duplicationExpectedNumbers_, 
@@ -397,7 +382,7 @@ void DLGeneTreeLikelihood::computeReconciliationLikelihood()
     num1Lineages_ = tentativeNum1Lineages_;
     num2Lineages_ = tentativeNum2Lineages_;
     nodesToTryInNNISearch_ = tentativeNodesToTryInNNISearch_;
-  }
+  
 }
 
 
