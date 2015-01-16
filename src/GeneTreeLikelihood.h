@@ -108,7 +108,7 @@ protected:
   mutable bool optimizeSequenceLikelihood_;
   mutable bool optimizeReconciliationLikelihood_;
   mutable bool considerSequenceLikelihood_;
-  unsigned int sprLimit_;
+  //unsigned int sprLimit_;
   std::map <std::string, std::string > params_;
   unsigned int sprLimitGeneTree_;
   
@@ -162,7 +162,7 @@ public:
     bool verbose = false,
     bool rootOptimization = false,
     bool considerSequenceLikelihood = true,
-    unsigned int sprLimit = 2)
+    unsigned int sprLimitGeneTree = 2)
   throw (Exception);
   
   

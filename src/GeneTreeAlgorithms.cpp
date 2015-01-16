@@ -1129,19 +1129,19 @@ void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
     }
     std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(N));
     
-    // std::vector <int> allNodeIds = tree.getNodesId();
-    std::vector <int> allNodeIds;
+    std::vector <int> allNodeIds = tree.getNodesId();
+    //std::vector <int> allNodeIds;
     std::vector <int> allProximalNodes;
   //TEST12 11 2011
     getNeighboringNodesIdLimitedDistance(tree, nodeForSPR, distance, allProximalNodes);
     //Here, all nodes below some threshold have been added.
-    
+   // std::cout << "allProximalNodes.size() "<< allProximalNodes.size() <<std::endl;
     //Another idea: try all regrafting points such that the new father node has a species id between the pruned node species id and the species id of the father of the pruned node.
     
     //Now we add nodes that may be good regrafting points based on their species ID.
     
 //    if (tree.getNode(nodeForSPR)->hasFather() && tree.getNode(nodeForSPR)->getFather()->hasNodeProperty("S")) {
-    if (N->hasNodeProperty("S")) {
+    if ( 0 /*N->hasNodeProperty("S")*/ ) {
 
         std::vector <std::string> spIds;
         int spId = TextTools::toInt ( (dynamic_cast<const BppString *>(N->getNodeProperty("S")))->toSTL());

@@ -165,7 +165,7 @@ COALGeneTreeLikelihood::COALGeneTreeLikelihood(
   bool verbose, 
   bool rootOptimization, 
   bool considerSequenceLikelihood, 
-  unsigned int sprLimit)
+  unsigned int sprLimitGeneTree)
 throw (Exception):
 GeneTreeLikelihood(tree,
                    data,
@@ -178,12 +178,12 @@ GeneTreeLikelihood(tree,
                    spId,
                    speciesIdLimitForRootPosition,
                    MLindex, 
-		   params,
+                   params,
                    checkRooted,
                    verbose,
                    rootOptimization, 
                    considerSequenceLikelihood, 
-                   sprLimit)
+                   sprLimitGeneTree)
 {
   coalBl_ = coalBl;
   coalCounts_ = coalCounts;
@@ -677,7 +677,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
       }
       if ( numLoss != "0"  ) {
         
-        buildVectorOfRegraftingNodesCoalGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+        buildVectorOfRegraftingNodesCoalGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimitGeneTree_, nodeIdsToRegraft);
         
         betterTree = false;
         for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 

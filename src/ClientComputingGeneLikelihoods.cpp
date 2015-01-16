@@ -501,12 +501,21 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 		    //SPR optimization:    
 		    //std::cout <<"Before optimization: "<<TreeTemplateTools::treeToParenthesis(treeLikelihoods_[i]->getRootedTree(), true)<<std::endl;
         std::string SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams_[i], "normal", "", true, false);
+                  std::cout << "rearrangementType "<< rearrangementType << std::endl;
+          std::cout << "SPRalgorithm "<< SPRalgorithm << std::endl;
+
         if (reconciliationModel_ == "DL") {
+  WHEREAMI( __FILE__ , __LINE__ );
           if (rearrangementType == "nni") {
+              WHEREAMI( __FILE__ , __LINE__ );
+
             NNIRearrange(timing, i, startingTime, totalTime);
           }
           else {
                 //dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeMuffato(allParams_[i]);
+                NNIRearrange(timing, i, startingTime, totalTime);
+  WHEREAMI( __FILE__ , __LINE__ );
+
                 if (timing && rearrange_) 
                 {
                   totalTime = ApplicationTools::getTime() - startingTime;
@@ -516,13 +525,19 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
                   }*/
                   startingTime = ApplicationTools::getTime();
                 }
+                  WHEREAMI( __FILE__ , __LINE__ );
+
                 if (SPRalgorithm == "normal")
                   dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeSPRsFast2(allParams_[i]);
                 else
                   dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeSPRsFast3(allParams_[i]);
                 }
+                  WHEREAMI( __FILE__ , __LINE__ );
+
           }
           else if (reconciliationModel_ == "COAL") {
+              WHEREAMI( __FILE__ , __LINE__ );
+
             if (rearrangementType == "nni") {
               NNIRearrange(timing, i, startingTime, totalTime);
             }
@@ -820,12 +835,14 @@ void ClientComputingGeneLikelihoods::outputGeneTrees ( unsigned int & bestIndex 
   for (unsigned int i = 0 ; i< assignedFilenames_.size()-numDeletedFamilies_ ; i++) 
     {
     Nhx *nhx = new Nhx();
-    string temp = reconciledTrees_[i][rightIndex];                                                                        
-  if (reconciliationModel_ == "DL") {
-      TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
+    if (reconciliationModel_ == "DL") {
+        writeReconciledGeneTree ( allParams_[i], treeLikelihoods_[i]->getRootedTree().clone(), spTree_, treeLikelihoods_[i]->getSeqSp(), false ) ;
+
+            /*
+     *                                                                          
+        TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);
+        writeReconciledGeneTree ( allParams_[i], geneTree,  spTree, treeLikelihoods_[i]->getSeqSp(), false ); 
       temp = duplicationTrees_[i][rightIndex]; 
-      TreeTemplate<Node> * spTree=nhx->parenthesisToTree( temp);                                                                  
-      writeReconciledGeneTree ( allParams_[i], geneTree,  spTree, treeLikelihoods_[i]->getSeqSp(), false ); 
 
             dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", allParams_[i], "duplications.tree", "", false, false);
 
@@ -838,10 +855,10 @@ void ClientComputingGeneLikelihoods::outputGeneTrees ( unsigned int & bestIndex 
             out.open (lossTree.c_str(), std::ios::out);
             out << lossTrees_[i][rightIndex]<<std::endl;
             delete geneTree;
-            delete spTree;
+            delete spTree;*/
         }
         else if (reconciliationModel_ == "COAL") {
-
+string temp = reconciledTrees_[i][rightIndex];
     TreeTemplate<Node> * geneTree=TreeTemplateTools::parenthesisToTree(temp);
             out.open (reconcTree.c_str(), std::ios::out);
             nhx->write(*geneTree, out);

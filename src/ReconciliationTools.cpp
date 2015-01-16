@@ -48,10 +48,10 @@
 
 
 void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, bool temporary ) {
+    WHEREAMI( __FILE__ , __LINE__ );
   std::ofstream out;
   string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
   string reconcTree = ApplicationTools::getStringParameter ( "output.reconciled.tree.file", params, "reconciled.tree", "", false, false );
-  
   reconcTree = reconcTree + suffix;
   if ( temporary ) {
     //   string temp = "temp";

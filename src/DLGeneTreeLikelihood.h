@@ -210,7 +210,7 @@ public:
     bool rootOptimization = false, 
     bool considerSequenceLikelihood = true, 
     bool DLStartingGeneTree = false, 
-    unsigned int sprLimit = 2)
+    unsigned int sprLimitGeneTree = 2)
   throw (Exception);
   
   /**

@@ -177,7 +177,7 @@ using namespace bpp;
                                bool verbose = false, 
                                bool rootOptimization = false, 
                                bool considerSequenceLikelihood = true, 
-                               unsigned int sprLimit = 2)
+                               unsigned int sprLimitGeneTree = 2)
         throw (Exception);
         
         /**

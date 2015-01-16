@@ -567,13 +567,13 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternativ
   alternativeTree = newAlternative->clone();
   
   if(method == PLL){
-    alternativeLogLikelihood = PLL_evaluate( &alternativeTree );
+    alternativeLogLikelihood = PLL_evaluate( &alternativeTree ) * scaler_;
   }
   else
   {
   /*  if ( nniLkAlternative)
       delete nniLkAlternative;*/
-    alternativeLogLikelihood = BPP_evaluate( &alternativeTree );
+    alternativeLogLikelihood = BPP_evaluate( &alternativeTree ) * scaler_;
    /* nniLkAlternative =  new NNIHomogeneousTreeLikelihood (*alternativeTree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
     alternativeLogLikelihood = nniLkAlternative->getLogLikelihood();*/
   }

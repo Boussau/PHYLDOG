@@ -325,7 +325,7 @@ GeneTreeLikelihood::GeneTreeLikelihood(
   bool verbose, 
   bool rootOptimization, 
   bool considerSequenceLikelihood, 
-  unsigned int sprLimit)
+  unsigned int sprLimitGeneTree)
 throw (Exception):
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), params_(params)
 {
@@ -344,7 +344,7 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
   optimizeSequenceLikelihood_ = true;
   optimizeReconciliationLikelihood_ = true;
   considerSequenceLikelihood_ = considerSequenceLikelihood;
-  sprLimit_ = sprLimit;
+  sprLimitGeneTree_ = sprLimitGeneTree;
 }
 
 
@@ -371,7 +371,7 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
   optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
   optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
   considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
-  sprLimit_ = lik.sprLimit_;
+  sprLimitGeneTree_ = lik.sprLimitGeneTree_;
 }
 
 GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & lik)
@@ -399,7 +399,7 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
   optimizeSequenceLikelihood_ = lik.optimizeSequenceLikelihood_;
   optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
   considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
-  sprLimit_ = lik.sprLimit_;
+  sprLimitGeneTree_ = lik.sprLimitGeneTree_;
   return *this;
 }
 

@@ -153,7 +153,7 @@ DLGeneTreeLikelihood::DLGeneTreeLikelihood(
   bool rootOptimization,
   bool considerSequenceLikelihood,
   bool DLStartingGeneTree,
-  unsigned int sprLimit)
+  unsigned int sprLimitGeneTree)
 throw (Exception):
 GeneTreeLikelihood(tree,
 		   data,
@@ -171,7 +171,7 @@ GeneTreeLikelihood(tree,
 		   verbose,
 		   rootOptimization, 
 		   considerSequenceLikelihood, 
-		   sprLimit)
+		   sprLimitGeneTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   lossExpectedNumbers_ = lossProbabilities;
@@ -690,7 +690,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
   //std::cout << "LOGL: "<<logL << " ScenarioLK: "<< bestScenarioLk <<"; sequenceLK: "<<getSequenceLikelihood() << std::endl;
   unsigned int numIterationsWithoutImprovement = 0;
   breadthFirstreNumber (*rootedTree_);
-
   
   string parentDup;
   string nodeDup;
@@ -710,13 +709,12 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
     for (int nodeForSPR=rootedTree_->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) 
     {
       Node * n = rootedTree_->getNode(nodeForSPR);
-      if (n->hasBranchProperty("L")) {
+     /* if (n->hasBranchProperty("L")) {
         numLoss = (dynamic_cast<const BppString *>(n->getBranchProperty("L")))->toSTL() ;
-      }
-      if ( numLoss != "0"  ) {
+      }*/
+      if ( /*numLoss != "0"*/ 1  ) {
 	
-	buildVectorOfRegraftingNodesGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimit_, nodeIdsToRegraft);
-	
+	buildVectorOfRegraftingNodesGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimitGeneTree_, nodeIdsToRegraft);
 	betterTree = false;
 	for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
 	{
@@ -739,9 +737,9 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 						  tentativeNum1Lineages_, 
 						  tentativeNum2Lineages_, 
 						  tentativeNodesToTryInNNISearch_, false); 
-	  
 	  if (candidateScenarioLk > bestScenarioLk)// - 0.1) //We investigate the sequence likelihood if the DL likelihood is not bad
 	  {    
+
 	    if (computeSequenceLikelihoodForSPR) {     
 	      levaluator_->setAlternativeTree(treeForSPR);
  	      logL = candidateScenarioLk + levaluator_->getAlternativeLogLikelihood();
@@ -754,6 +752,8 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	    logL =logL - 10;
 	  }
 	  
+	  //std::cout << "found logLk: "<< logL << "compared to" << bestlogL<< " bestSequenceLogL: "<< bestSequenceLogL << " levaluator_->getAlternativeLogLikelihood(): "<<levaluator_->getAlternativeLogLikelihood() <<" bestScenarioLk: "<< bestScenarioLk << " candidateScenarioLk: "<< candidateScenarioLk <<std::endl;
+    
 	  //If the candidate tree has a DL + sequence Lk better than the current best
 	  if (logL - 0.01 > bestlogL) 
 	  {
@@ -854,7 +854,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 					 seqSp_, spId_); 
   cout << "Reconciled tree: "<<endl;
   nhx->write(*rootedTree_, cout);
-  
+
   if (bestTree) {
     delete bestTree;
     bestTree = 0;
@@ -927,7 +927,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
       }
       if ( numLoss != "0"  ) {
 	treesToOptimizeSeqLk.clear();
-	buildVectorOfRegraftingNodesGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimit_, nodeIdsToRegraft);
+	buildVectorOfRegraftingNodesGeneTree(*spTree_, *rootedTree_, nodeForSPR, sprLimitGeneTree_, nodeIdsToRegraft);
 	betterTree = false;
 	for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) 
 	{
