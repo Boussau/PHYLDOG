@@ -1,4 +1,0 @@
-mpirun -np 2 ../../build/bin/phyldog param=GeneralOptions.txt
-for i in famille_6398.StartingTree famille_6398.ReconciledTree_temp famille_6398.ReconciledTree ; do grep -o "Ev=D" $i | wc -l ; done
-
-
