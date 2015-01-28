@@ -755,7 +755,13 @@ if (alphabet->getSize() == 4) {
      MPI::COMM_WORLD.Abort(1);
      exit(-1);
     }
-  partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
+    if (ApplicationTools::getBooleanParameter("codon.partition", params, false, "") == true ) {
+      partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\\3\n";
+      partitionFile << "DNA, p2=2-" << sites->getNumberOfSites() << "\\3\n";
+      partitionFile << "DNA, p3=3-" << sites->getNumberOfSites() << "\\3\n";
+    }
+     else 
+      partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
 }
 else if (alphabet->getSize() == 20) {
     if (substitutionModel->getName().substr(0,4)=="LG08") {
