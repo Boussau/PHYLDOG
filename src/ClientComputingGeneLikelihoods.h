@@ -100,6 +100,7 @@ namespace bpp
     std::map<std::string, std::string>  params_; 
     std::vector<std::string>  assignedFilenames_; 
     unsigned int  numDeletedFamilies_; 
+    unsigned int numberOfGeneFamilies_;
     TreeTemplate<Node> * geneTree_; 
     TreeTemplate<Node>* spTree_; 
     std::vector <int> num0Lineages_;
@@ -155,6 +156,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     rank_(rank), params_(params),
     assignedFilenames_(), 
     numDeletedFamilies_ (0), 
+    numberOfGeneFamilies_(0),
     geneTree_(0),
     spTree_ (0),
     num0Lineages_(), 
@@ -210,6 +212,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     rank_(c.rank_), params_(c.params_),
     assignedFilenames_(c.assignedFilenames_), 
     numDeletedFamilies_ (c.numDeletedFamilies_), 
+    numberOfGeneFamilies_ (c.numberOfGeneFamilies_),
     geneTree_(c.geneTree_),
     spTree_(c.spTree_),
     num0Lineages_(c.num0Lineages_), 
@@ -264,6 +267,7 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
       params_ = c.params_;
       assignedFilenames_ = c.assignedFilenames_; 
       numDeletedFamilies_  = c.numDeletedFamilies_; 
+      numberOfGeneFamilies_ = c.numberOfGeneFamilies_;
       geneTree_ = c.geneTree_;
       spTree_ = c.spTree_;
       num0Lineages_ = c.num0Lineages_; 
@@ -315,22 +319,22 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
     {			
       if (geneTree_) delete geneTree_;
       if (spTree_) delete spTree_;
-      for (unsigned int i = 0 ; i< assignedFilenames_.size()-numDeletedFamilies_ ; i++) 
+      for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) 
       {       
-	/*if (allAlphabets_[i])
-	  delete allAlphabets_[i];*/
-	if (allDatasets_[i])
-	  delete allDatasets_[i];
-	if (allModels_[i])
-	  delete allModels_[i];
-	if (allDistributions_[i])
-	  delete allDistributions_[i];
-	if (allGeneTrees_[i])
-	  delete allGeneTrees_[i];
-	if (treeLikelihoods_[i])
-	  delete treeLikelihoods_[i];
-	if (allUnrootedGeneTrees_[i])
-	  delete allUnrootedGeneTrees_[i];  
+        /*if (allAlphabets_[i])
+          delete allAlphabets_[i];*/
+        if (allDatasets_[i])
+          delete allDatasets_[i];
+        if (allModels_[i])
+          delete allModels_[i];
+        if (allDistributions_[i])
+          delete allDistributions_[i];
+        if (allGeneTrees_[i])
+          delete allGeneTrees_[i];
+        if (treeLikelihoods_[i])
+          delete treeLikelihoods_[i];
+        if (allUnrootedGeneTrees_[i])
+          delete allUnrootedGeneTrees_[i];  
       }
     }
     
