@@ -126,7 +126,6 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
                 { 
                     if (ApplicationTools::getBooleanParameter("optimization.topology", allParams_[i], false, "", true, false))
                     {
-                        std::cout <<"HLGDLGGHVHJEGDLAZGLEAGE" <<std::endl;
                         allParams_[i][ std::string("optimization.topology")] = "false";
                     }
                     allParams_[i][ std::string("optimization")] = "None"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
