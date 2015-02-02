@@ -756,9 +756,9 @@ if (alphabet->getSize() == 4) {
      exit(-1);
     }
     if (ApplicationTools::getBooleanParameter("codon.partition", params, false, "") == true ) {
-      partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\\3\n";
-      partitionFile << "DNA, p2=2-" << sites->getNumberOfSites() << "\\3\n";
-      partitionFile << "DNA, p3=3-" << sites->getNumberOfSites() << "\\3\n";
+      partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "/3\n";
+      partitionFile << "DNA, p2=2-" << sites->getNumberOfSites() << "/3\n";
+      partitionFile << "DNA, p3=3-" << sites->getNumberOfSites() << "/3\n";
     }
      else 
       partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
