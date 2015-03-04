@@ -669,6 +669,8 @@ void DLGeneTreeLikelihood::print () const {
 void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) {
   WHEREAMI( __FILE__ , __LINE__ );
   
+  double startingTime = ApplicationTools::getTime();
+  
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do SPRs
     computeReconciliationLikelihood();
@@ -698,7 +700,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
   bool computeSequenceLikelihoodForSPR = ApplicationTools::getBooleanParameter("compute.sequence.likelihood.in.sprs", params, true, "", false, false);
   
   
-  while (numIterationsWithoutImprovement < rootedTree_->getNumberOfNodes() - 2)
+  while (numIterationsWithoutImprovement < rootedTree_->getNumberOfNodes() - 2 && (timeLimit_ == 0 || elapsedTime_ < timeLimit_))
   {
     
     annotateGeneTreeWithDuplicationEvents (*spTree_, 
@@ -838,6 +840,8 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	numIterationsWithoutImprovement++;
       }
     }
+    elapsedTime_ += (ApplicationTools::getTime() - startingTime);
+    startingTime = ApplicationTools::getTime();
   }
   
   
@@ -1292,6 +1296,9 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsigned int verbose ) {
   WHEREAMI( __FILE__ , __LINE__ );
+  
+  double startingTime = 0;
+  
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
     //We don't do NNIs
     computeReconciliationLikelihood();
@@ -1340,8 +1347,10 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
 	  ApplicationTools::displayResult("   Current value", TextTools::toString(- getValue(), 10));
       }
     }
+    elapsedTime_ += (ApplicationTools::getTime() - startingTime);
+    startingTime = ApplicationTools::getTime();
   }
-  while(test);
+  while(test && (timeLimit_ == 0 || elapsedTime_ < timeLimit_));
 }
 
 

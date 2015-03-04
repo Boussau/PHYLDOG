@@ -111,6 +111,8 @@ protected:
   //unsigned int sprLimit_;
   std::map <std::string, std::string > params_;
   unsigned int sprLimitGeneTree_;
+  double timeLimit_;
+  double elapsedTime_;
   
 public:
   

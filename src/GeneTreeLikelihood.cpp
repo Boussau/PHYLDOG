@@ -94,6 +94,10 @@ params_(params), considerSequenceLikelihood_(true)
 
   bool qualityFilters = ApplicationTools::getBooleanParameter("use.quality.filters",params_, true);
   
+  timeLimit_ = ApplicationTools::getDoubleParameter("family.time.limit",params_,0); 
+  elapsedTime_ = 0;
+
+  
   //TODO: dirty cont to eliminate
   bool cont = true;
   //method to optimize the gene tree root.
@@ -352,7 +356,7 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
  * @brief Copy constructor.
  */ 
 GeneTreeLikelihood::GeneTreeLikelihood(const GeneTreeLikelihood & lik):
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (lik.seqSp_), spId_(lik.spId_)
+levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (lik.seqSp_), spId_(lik.spId_), timeLimit_(lik.timeLimit_), elapsedTime_(lik.elapsedTime_)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   levaluator_ = lik.levaluator_->clone(); 
@@ -400,6 +404,8 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
   optimizeReconciliationLikelihood_ = lik.optimizeReconciliationLikelihood_ ;
   considerSequenceLikelihood_ = lik.considerSequenceLikelihood_;
   sprLimitGeneTree_ = lik.sprLimitGeneTree_;
+  timeLimit_ = lik.timeLimit_;
+  elapsedTime_ = lik.elapsedTime_;
   return *this;
 }
 
