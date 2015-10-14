@@ -395,7 +395,8 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
         ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularly if datasets are big (>~500 sequences).");
         MPI::COMM_WORLD.Abort(1);
         exit(-1);
-      }            
+      }          
+      tl->unload();
     }
     else if (reconciliationModel_ == "COAL") {
       COALGeneTreeLikelihood* tl = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i] );
@@ -431,8 +432,9 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
         MPI::COMM_WORLD.Abort(1);
         exit(-1);
       }
-      
+      tl->unload();
     }
+    
   }
   
   return;

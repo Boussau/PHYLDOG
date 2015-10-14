@@ -517,19 +517,13 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 // }
 
 
-LikelihoodEvaluator::~LikelihoodEvaluator()
+void LikelihoodEvaluator::unload()
 {
-  delete tree;
-  if(alternativeTree)
-    delete alternativeTree;
-  WHEREAMI( __FILE__ , __LINE__ );
+  initialized = false;
   if(method == PLL){
     pllAlignmentDataDestroy(PLL_alignmentData);
     pllPartitionsDestroy(PLL_instance, &PLL_partitions);
     pllDestroyInstance(PLL_instance);
-    // delete files
-    remove(string(fileNamePrefix + "alignment.fasta").c_str());
-    remove(string(fileNamePrefix + "partition.txt").c_str());
   }
   else
   {
@@ -537,6 +531,19 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
     if(nniLkAlternative)
       delete nniLkAlternative;
   }
+}
+
+LikelihoodEvaluator::~LikelihoodEvaluator()
+{
+  delete tree;
+  if(alternativeTree)
+    delete alternativeTree;
+  if(method=PLL){
+    remove(string(fileNamePrefix + "alignment.fasta").c_str());
+    remove(string(fileNamePrefix + "partition.txt").c_str()); 
+  }
+  WHEREAMI( __FILE__ , __LINE__ );
+  
 }
 
 void LikelihoodEvaluator::initialize()
@@ -727,6 +734,8 @@ void LikelihoodEvaluator::restoreTreeFromStrict(TreeTemplate< Node >* targetTree
 
 void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
+  if(aligmentFilesForPllWritten_)
+    return;
   WHEREAMI( __FILE__ , __LINE__ );
   fileNamePrefix = "tmpPLL_" + name + "_" ;
   ofstream alignementFile(string(fileNamePrefix + "alignment.fasta").c_str(), ofstream::out);
@@ -791,10 +800,11 @@ else {
   exit(-1);
 }
   partitionFile.close();
+  aligmentFilesForPllWritten_ = true;
 }
 
 LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator const &leval):
-params(leval.params), initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00)
+params(leval.params), initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), aligmentFilesForPllWritten_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   
@@ -813,7 +823,7 @@ LikelihoodEvaluator* LikelihoodEvaluator::clone()
 }
 
 LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* alignment, SubstitutionModel* model, DiscreteDistribution* rateDistribution, std::map<std::string, std::string> par, bool mustUnrootTrees, bool verbose):
-initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par)
+initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par), aligmentFilesForPllWritten_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   this->tree = dynamic_cast<TreeTemplate<Node> *>(tree->clone());

@@ -152,6 +152,10 @@ private:
   Scaler: the sequence loglikelihood is multiplied by this to tune its weight relative to the gene tree/species tree loglk.
   */
   double scaler_;
+  
+  
+  // have the alignment files for PLL been aleady written
+  bool aligmentFilesForPllWritten_;
 
   /**
   Loads the PLL alignment
@@ -493,6 +497,12 @@ public:
   @return the boolean value
   */
   bool isInitialized();
+  
+  
+  /**
+  @brief Delete the likelihood evaluator data (not trees), the evaluator can be re-initialized aftrewards
+  */
+  void unload();
   
   
   

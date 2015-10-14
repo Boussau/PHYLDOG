@@ -168,6 +168,9 @@ public:
   throw (Exception);
   
   
+  // unload likelihood evaluator
+  void unload();
+  
   /**
    * @brief Copy constructor.
    */ 
