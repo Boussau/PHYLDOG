@@ -426,5 +426,6 @@ void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node
 }
 
 void GeneTreeLikelihood::unload(){
-  levaluator_->unload();
+  if(levaluator_)
+    levaluator_->unload();
 }

@@ -117,6 +117,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
   
   for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) 
   {
+     
     reconciledTrees_.push_back(t);
     duplicationTrees_.push_back(t);
     lossTrees_.push_back(t);
@@ -131,6 +132,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
       allParams_[i][ std::string("optimization")] = "None"; //Quite extreme, but the sequence likelihood has no impact on the reconciliation !
       treeLikelihoods_[i]->OptimizeSequenceLikelihood(false);
     }
+     treeLikelihoods_[i]->unload();
   }
   
   //  bool firstTimeImprovingGeneTrees = false; //When for the first time we optimize gene trees, we set it at true
@@ -162,6 +164,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
   startRecordingTreesFrom_ = 1;
   for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) 
   {
+    
     treeLikelihoods_[i]->setSpTree(*spTree_);
     treeLikelihoods_[i]->setSpId(spId_);
     if (reconciliationModel_ == "DL") {
@@ -170,6 +173,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
     else if (reconciliationModel_ == "COAL") {
       dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->setCoalBranchLengths(coalBls_);
     }
+     treeLikelihoods_[i]->unload();
   }
 }
 
@@ -463,6 +467,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
     resetVector(num22Lineages_);
     for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) 
     {
+      
       if (rearrange_) //(firstTimeImprovingGeneTrees) 
       {
         treeLikelihoods_[i]->OptimizeSequenceLikelihood(true);
@@ -651,6 +656,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         {
           for (unsigned int i=0 ; i<allDatasets_.size() ; i++) 
           {
+            
             string methodString =  treeLikelihoods_[i]->getLikelihoodMethod () ;
             if (methodString == "PLL") {
               treeLikelihoods_[i]->setGeneTree( allUnrootedGeneTrees_[i], allGeneTrees_[i] );
@@ -694,11 +700,13 @@ void ClientComputingGeneLikelihoods::MLSearch() {
                                                               
                                                               delete treeWithSpNames;
             }
+            treeLikelihoods_[i]->unload();
           }
         }
         else if (reconciliationModel_ == "COAL")
         {
           for (unsigned int i =0 ; i<treeLikelihoods_.size() ; i++) {
+            
             std::map <std::string, std::string > params = treeLikelihoods_[i]->getParams();
             if    (treeLikelihoods_[i])
               delete treeLikelihoods_[i];
@@ -737,7 +745,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
                                                                    MLindex_, params,
                                                                    true, true, true, true, allSprLimitGeneTree_[i]) );
             delete treeWithSpNames;
-            
+            treeLikelihoods_[i]->unload();
           }
         }
       }
@@ -751,6 +759,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
       } 
       for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) 
       {
+        
         treeLikelihoods_[i]->setSpTree(*spTree_);
         treeLikelihoods_[i]->setSpId(spId_);
         if (reconciliationModel_ == "DL") {
@@ -771,6 +780,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
           //                 dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->optimizeNumericalParameters(params_); //Initial optimization of all numerical parameters
           dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->initParameters();
         }
+        treeLikelihoods_[i]->unload();
       }
       if (timing && resetGeneTrees_) 
       {
@@ -858,6 +868,7 @@ void ClientComputingGeneLikelihoods::outputGeneTrees ( unsigned int & bestIndex 
 
 
 void ClientComputingGeneLikelihoods::NNIRearrange (bool timing, size_t i, double& startingTime, double& totalTime) {
+  
   if (timing && rearrange_) 
     startingTime = ApplicationTools::getTime();
   // NNI optimization:  

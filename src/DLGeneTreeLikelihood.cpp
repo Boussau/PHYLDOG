@@ -315,7 +315,6 @@ throw (Exception)
 {
   {
   WHEREAMI( __FILE__ , __LINE__ );
-    if(!levaluator_->isInitialized()) throw Exception("reconciliationTreeLikelihood::getValue(). Instance is not initialized.");
     // return (-getLogLikelihood());
     //TEST 16 02 2010
     // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " scenarioLikelihood_: "<<scenarioLikelihood_<<std::endl;

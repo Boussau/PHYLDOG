@@ -519,6 +519,8 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 void LikelihoodEvaluator::unload()
 {
+  if(!initialized)
+    return;
   initialized = false;
   if(method == PLL){
     pllAlignmentDataDestroy(PLL_alignmentData);
@@ -535,6 +537,7 @@ void LikelihoodEvaluator::unload()
 
 LikelihoodEvaluator::~LikelihoodEvaluator()
 {
+  unload();
   delete tree;
   if(alternativeTree)
     delete alternativeTree;
@@ -549,7 +552,8 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
 void LikelihoodEvaluator::initialize()
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  
+  if(initialized)
+    return;
   //checking the alignment and the tree contain the same number of sequences
   if(sites->getNumberOfSequences() != tree->getNumberOfLeaves()){
     ostringstream errorMessage;
@@ -572,7 +576,7 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternativ
 {
   WHEREAMI( __FILE__ , __LINE__ );
   if(!initialized)
-    throw Exception("Set alternative tree on a non initalized evaluator.");
+    initialize();
   if(alternativeTree != 00)
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
