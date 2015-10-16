@@ -156,6 +156,9 @@ private:
   
   // have the alignment files for PLL been aleady written
   bool aligmentFilesForPllWritten_;
+  
+   // have the alignment files for PLL been aleady written
+  bool pll_model_already_initialized_;
 
   /**
   Loads the PLL alignment
@@ -195,7 +198,7 @@ private:
    * @param prefix a BPP tree
    * @return the logLikelihood
    */
-  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate, bool initModel=false);
+  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
 
  /**
    * Get the log likelihood of a tree and modify this tree to match

@@ -253,6 +253,7 @@ void LikelihoodEvaluator::initialize_BPP_nniLk()
   
   nniLk->initParameters();
   nniLk->initialize();
+  if(logLikelihood == 0)
   logLikelihood = - nniLk->getValue() * scaler_;
 }
 
@@ -285,8 +286,8 @@ void LikelihoodEvaluator::initialize_PLL()
   PLL_loadPartitions(fileNamePrefix + "partition.txt");
   
   
-  
-  logLikelihood = PLL_evaluate(&tree,true) * scaler_;
+  if(logLikelihood == 0)
+    logLikelihood = PLL_evaluate(&tree) * scaler_;
   
 }
 
@@ -303,7 +304,7 @@ void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 
 
 
-double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bool initModel)
+double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   
@@ -345,8 +346,10 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bo
   // pllSetFixedBaseFrequencies(baseFreq_, 4, 0, PLL_partitions, PLL_instance);
   // pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
   WHEREAMI( __FILE__ , __LINE__ );
-  if(initModel)
+  if(!pll_model_already_initialized_){
     pllInitModel(PLL_instance, PLL_partitions);
+    pll_model_already_initialized_ = true;
+  }
   else
     pllEvaluateLikelihood (PLL_instance, PLL_partitions, PLL_instance->start, PLL_TRUE, PLL_FALSE);
   WHEREAMI( __FILE__ , __LINE__ );  
@@ -523,9 +526,12 @@ void LikelihoodEvaluator::unload()
     return;
   initialized = false;
   if(method == PLL){
-    pllAlignmentDataDestroy(PLL_alignmentData);
-    pllPartitionsDestroy(PLL_instance, &PLL_partitions);
-    pllDestroyInstance(PLL_instance);
+    if(pll_model_already_initialized_){
+      pllAlignmentDataDestroy(PLL_alignmentData);
+      pllPartitionsDestroy(PLL_instance, &PLL_partitions);
+      pllDestroyInstance(PLL_instance);
+      pll_model_already_initialized_ = false;
+    }
   }
   else
   {
@@ -808,7 +814,7 @@ else {
 }
 
 LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator const &leval):
-params(leval.params), initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), aligmentFilesForPllWritten_(false)
+params(leval.params), initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), aligmentFilesForPllWritten_(false), logLikelihood(0), pll_model_already_initialized_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   
@@ -827,7 +833,7 @@ LikelihoodEvaluator* LikelihoodEvaluator::clone()
 }
 
 LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* alignment, SubstitutionModel* model, DiscreteDistribution* rateDistribution, std::map<std::string, std::string> par, bool mustUnrootTrees, bool verbose):
-initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par), aligmentFilesForPllWritten_(false)
+initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par), aligmentFilesForPllWritten_(false), logLikelihood(0), pll_model_already_initialized_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   this->tree = dynamic_cast<TreeTemplate<Node> *>(tree->clone());
