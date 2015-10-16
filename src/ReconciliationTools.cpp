@@ -3381,7 +3381,7 @@ void qualityControlGeneTree ( TreeTemplate<Node>* geneTree, bpp::VectorSiteConta
   std::vector <Node*> leaves = geneTree->getLeaves();
   // std::cout << "leaves.size(): "<<leaves.size() <<std::endl;
   for ( unsigned int j = 0 ; j < leaves.size() ; j++ ) {
-    if ( leaves[j] -> hasFather() && leaves[j]->getDistanceToFather() >= 2.0 ) {
+    if ( leaves[j] -> hasFather() && leaves[j]->hasDistanceToFather() && leaves[j]->getDistanceToFather() >= 2.0 ) {
       std::cout << "WARNING: Removing sequence "<< leaves[j]->getName() <<" from family "<<file<< " because its branch is unreasonably long (>=2.0)."<<std::endl;
       seqsToRemove.push_back ( leaves[j]->getName() );
       //removing the corresponding sequence, if present
