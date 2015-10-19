@@ -744,7 +744,7 @@ void LikelihoodEvaluator::restoreTreeFromStrict(TreeTemplate< Node >* targetTree
 
 void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
-  if(aligmentFilesForPllWritten_)
+  if(aligmentFilesForPllWritten_ && fileNamePrefix.size() != 0)
     return;
   WHEREAMI( __FILE__ , __LINE__ );
   fileNamePrefix = "tmpPLL_" + name + "_" ;
