@@ -86,7 +86,7 @@ void LikelihoodEvaluator::PLL_initializePLLInstance(){
 
 
 LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
-  params(params), alternativeTree(00), initialized(false)
+  params(params), alternativeTree(00), initialized(false), aligmentFilesForPllWritten_(false), logLikelihood(0), pll_model_already_initialized_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   loadDataFromParams();
@@ -744,7 +744,7 @@ void LikelihoodEvaluator::restoreTreeFromStrict(TreeTemplate< Node >* targetTree
 
 void LikelihoodEvaluator::writeAlignmentFilesForPLL()
 {
-  if(aligmentFilesForPllWritten_ && fileNamePrefix.size() != 0)
+  if(aligmentFilesForPllWritten_)
     return;
   WHEREAMI( __FILE__ , __LINE__ );
   fileNamePrefix = "tmpPLL_" + name + "_" ;
@@ -753,7 +753,7 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   //preparing the file for the alignment
   BasicSequence currSequence(sites->getAlphabet());
   //DEBUG
-  cout << "Writing an alignment for PLL with " << sites->getNumberOfSequences() << " sequences" << endl;
+  cout << "Writing an alignment for PLL with " << sites->getNumberOfSequences() << " sequences. File: " << string(fileNamePrefix + "alignment.fasta") << endl;
   
   for(unsigned int currSeqIndex = 0; currSeqIndex != sites->getNumberOfSequences(); currSeqIndex++)
   {
