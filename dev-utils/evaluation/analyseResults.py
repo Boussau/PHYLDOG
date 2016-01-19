@@ -74,7 +74,7 @@ tree_file = open("reconciledTrees.txt","r").readlines()
 # Now Eric’s scripts build DeCo instance
 
 print "READING COMPARA FILE"
-fichier_ensembl = open("./Compara.73.protein.nhx.emf","r").readlines()
+fichier_ensembl = open("./Compara.78.protein.nhx.emf","r").readlines()
 
 genes = {}
 l = 0
