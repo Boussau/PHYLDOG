@@ -1,4 +1,4 @@
-FROM anc/bpp:v2.2.0
+FROM thomasbigot/bpp:v2.2.0
 MAINTAINER Thomas Bigot <tomed.bigot@gmail.com>
 RUN git clone git://pbil-dev.univ-lyon1.fr/phyldog
 RUN mkdir phyldog/build
