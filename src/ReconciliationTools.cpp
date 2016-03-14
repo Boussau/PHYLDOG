@@ -48,10 +48,10 @@
 
 
 void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, bool temporary ) {
-    WHEREAMI( __FILE__ , __LINE__ );
   std::ofstream out;
   string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
   string reconcTree = ApplicationTools::getStringParameter ( "output.reconciled.tree.file", params, "reconciled.tree", "", false, false );
+  
   reconcTree = reconcTree + suffix;
   if ( temporary ) {
     //   string temp = "temp";
@@ -2218,12 +2218,6 @@ double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
                                 bool fillTables )
 {
   
-/*  std::cout<< "findMLReconciliationDR "<<std::endl;
-  VectorTools::print(lossRates);
-    VectorTools::print(duplicationRates);
-std::cout << TreeTemplateTools::treeToParenthesis(*spTree, true)<<std::endl;
-std::cout << TreeTemplateTools::treeToParenthesis(*geneTree, true)<<std::endl;*/
-  
   if ( !geneTree->isRooted() )
   {
     std::cout << TreeTemplateTools::treeToParenthesis ( *geneTree, true ) <<std::endl;
@@ -3381,7 +3375,7 @@ void qualityControlGeneTree ( TreeTemplate<Node>* geneTree, bpp::VectorSiteConta
   std::vector <Node*> leaves = geneTree->getLeaves();
   // std::cout << "leaves.size(): "<<leaves.size() <<std::endl;
   for ( unsigned int j = 0 ; j < leaves.size() ; j++ ) {
-    if ( leaves[j] -> hasFather() && leaves[j]->hasDistanceToFather() && leaves[j]->getDistanceToFather() >= 2.0 ) {
+    if ( leaves[j] -> hasFather() && leaves[j]->getDistanceToFather() >= 2.0 ) {
       std::cout << "WARNING: Removing sequence "<< leaves[j]->getName() <<" from family "<<file<< " because its branch is unreasonably long (>=2.0)."<<std::endl;
       seqsToRemove.push_back ( leaves[j]->getName() );
       //removing the corresponding sequence, if present

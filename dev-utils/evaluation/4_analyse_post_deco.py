@@ -27,61 +27,85 @@ for d in range(len(degres)):
   sortie.write(str(d)+" "+str(degres[d])+"\n")
 
 for name in ["deco_reconciled","deco_starting"]:
-	print name
-	fichier_especes = open("RESULTS/" + name+"_OUTPUT_species","r").readlines()
+        print name
+        fichier_especes = open("RESULTS/" + name+"_OUTPUT_species","r").readlines()
 
-	especes_ancestrales = {}
-	especes_actuelles = {}
+        especes_ancestrales = {}
+        especes_actuelles = {}
 
-	for line in fichier_especes:
-		if len(line.split()) > 2:
-			especes_ancestrales[line.split()[0]] = []
-		else:
-			especes_actuelles[line.split()[0]] = []
-			#print line.split()[0]
-			
-	total = 0
-	fichier_genes = open("RESULTS/" + name+"_OUTPUT_genes","r").readlines()
-	for line in fichier_genes:
-		words = line.split()
-		if not especes_actuelles.has_key(words[0]):
-			especes_ancestrales[words[0]].append(words[1])
-			total = total + 1.0
-		else:
-			especes_actuelles[words[0]].append(words[1])
+        for line in fichier_especes:
+                if len(line.split()) > 2:
+                        especes_ancestrales[line.split()[0]] = []
+                else:
+                        especes_actuelles[line.split()[0]] = []
+                        #print line.split()[0]
+                        
+        total = 0
+        genes_of_families = dict()
+        fichier_genes = open("RESULTS/" + name+"_OUTPUT_genes","r").readlines()
+        for line in fichier_genes:
+                words = line.split()
+                family_gene = words[1].split("|")
+                if not genes_of_families.has_key(family_gene[0]):
+                  genes_of_families[family_gene[0]]=set()
+                genes_of_families[family_gene[0]].update(words[2:])
+                if not especes_actuelles.has_key(words[0]):
+                        especes_ancestrales[words[0]].append(words[1])
+                        total = total + 1.0
+                else:
+                        especes_actuelles[words[0]].append(words[1])
 
-	sortie = open("summary_content_"+name,"w")
-	for e in especes_ancestrales.keys():
-		sortie.write(e+" "+str(len(especes_ancestrales[e]))+"\n")
-	#~ sortie = open("summary_content_extant","w")
-	#~ for e in especes_actuelles.keys():
-		#~ sortie.write(str(len(especes_actuelles[e]))+"\n")
-		
-	fichier_adjacences = open("RESULTS/" + name+"_OUTPUT_adjacencies","r").readlines()
-	graph = {}
-	for e in especes_ancestrales.keys():
-		graph[e] = {}
-		for g in especes_ancestrales[e]:
-			graph[e][g] = []
-	for line in fichier_adjacences:
-		words = line.split()
-		graph[words[0]][words[1]].append(words[2])
-		graph[words[0]][words[2]].append(words[1])
-	
-	degres = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-	degre_par_espece = dict()
-	for e in especes_ancestrales.keys():
-		degre_par_espece[e] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-		for g in especes_ancestrales[e]:
-			if len(degres) > len(graph[e][g]):
-				degres[len(graph[e][g])] = degres[len(graph[e][g])]  + 1
-				degre_par_espece[e][len(graph[e][g])] += 1
-	sortie = open("summary_degres_"+name,"w")
-	for d in range(len(degres)):
-		sortie.write(str(d)+" "+str(degres[d])+"\n")
-	sortie.close()
-	sortie = open("summary_degrees_per_ancspecies_"+name,"w")
+        sortie = open("summary_content_"+name,"w")
+        for e in especes_ancestrales.keys():
+                sortie.write(e+" "+str(len(especes_ancestrales[e]))+"\n")
+        #~ sortie = open("summary_content_extant","w")
+        #~ for e in especes_actuelles.keys():
+                #~ sortie.write(str(len(especes_actuelles[e]))+"\n")
+                
+        fichier_adjacences = open("RESULTS/" + name+"_OUTPUT_adjacencies","r").readlines()
+        graph = {}
+        # graphe[espece][gene] = [genes adjacents]
+        for e in especes_ancestrales.keys():
+                graph[e] = {}
+                for g in especes_ancestrales[e]:
+                        graph[e][g] = []
+        for line in fichier_adjacences:
+                words = line.split()
+                graph[words[0]][words[1]].append(words[2])
+                graph[words[0]][words[2]].append(words[1])
+        
+        degres = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        degre_par_espece = dict()
+        degre2_par_famille = dict()
+        genes_par_famille = dict()
+        for e in especes_ancestrales.keys():
+                genes_par_famille[e] = dict()
+                degre2_par_famille[e] = dict()
+                degre_par_espece[e] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                for g in especes_ancestrales[e]:
+                        if len(degres) > len(graph[e][g]):
+                                degres[len(graph[e][g])] += 1
+                                degre_par_espece[e][len(graph[e][g])] += 1
+                                famille_gene = g.split("|")
+                        family_gene = g.split("|")
+                        if family_gene[0] not in degre2_par_famille[e].keys():
+                          degre2_par_famille[e][family_gene[0]] = 0
+                          genes_par_famille[e][family_gene[0]] = 0
+                        genes_par_famille[e][family_gene[0]] += 1
+                        if len(graph[e][g]) == 2:
+                          #print (degre2_par_famille[e][family_gene[0]])
+                          degre2_par_famille[e][family_gene[0]] +=1
+        sortie = open("summary_degres_"+name,"w")
+        for d in range(len(degres)):
+                sortie.write(str(d)+" "+str(degres[d])+"\n")
+        sortie.close()
+        sortie = open("summary_degrees_per_ancspecies_"+name,"w")
         for e in degre_par_espece.keys():
                 sortie.write(str(e) + " " +str(degre_par_espece[e][2]/float(sum(degre_par_espece[e])))+"\n")
-	sortie.close()
-	
+        sortie.close()
+        sortie = open("summary_degrees_per_family_"+name,"w")
+        for e in degre2_par_famille.keys():
+          for f in degre2_par_famille[e].keys():
+                sortie.write(str(e) + " " + next(iter(genes_of_families[f])) + " " +str(degre2_par_famille[e][f]) + " " + str(genes_par_famille[e][f]) + "\n")
+        sortie.close()
+        
