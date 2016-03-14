@@ -347,7 +347,14 @@ public:
    * Tells if the gene family is single copy (1 gene per sp)
    ************************************************************************/
   bool isSingleCopy();
-  
+
+    /************************************************************************
+    * Evaluate vector of gene trees, and returns the index of the best one
+    ************************************************************************/
+    size_t findBestGeneTreeAmongCandidates(vector<Tree*> &trees,
+                                                                 TreeTemplate < Node > *bestTree,
+                                                                 double bestSequenceLogL,
+                                                                 double bestScenarioLk);
   
 };
 

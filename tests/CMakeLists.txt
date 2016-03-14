@@ -43,4 +43,4 @@ target_link_libraries(test_SPRs
   ${BPP_LIBRARIES}
 )
 
-install(TARGETS  test_SPRs test_likelihoodEvaluator DESTINATION tests)
+install(TARGETS test_SPRs test_likelihoodEvaluator DESTINATION tests)
