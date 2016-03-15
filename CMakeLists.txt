@@ -80,25 +80,6 @@ IMPROVED_FIND_LIBRARY(PLL_LIBRARIES ${PLL_LIBNAME} pll/pll.h)
 
 SET(Boost_USE_STATIC_LIBS ${BUILD_STATIC})
 
-<<<<<<< HEAD
-
-# #Boost libraries:
-# SET(Boost_USE_STATIC_LIBS ON)
-# find_package(Boost COMPONENTS mpi serialization REQUIRED)
-# include_directories(${Boost_INCLUDE_DIRS})
-# set(Boost_LIBRARIES_STATIC ${Boost_LIBRARIES})
-# set(Boost_SERIALIZATION_LIBRARY_STATIC ${Boost_SERIALIZATION_LIBRARY})
-# set(Boost_MPI_LIBRARY_STATIC ${Boost_MPI_LIBRARY})
-# UNSET(Boost_LIBRARIES)
-# UNSET(Boost_SERIALIZATION_LIBRARY_STATIC)
-# UNSET(Boost_MPI_LIBRARY_STATIC)
-# 
-
-
-SET(Boost_USE_STATIC_LIBS ${BUILD_STATIC})
-
-=======
->>>>>>> Bastien’s Work: takes several trees in input.
 find_package(Boost COMPONENTS mpi serialization REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
