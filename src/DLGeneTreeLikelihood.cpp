@@ -245,34 +245,50 @@ void DLGeneTreeLikelihood::initParameters()
     //TODO What to do here with levaluator?
     //nniLk_->initParameters();
   }
-    
-    scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_, 
-						  seqSp_, spId_, lossExpectedNumbers_, 
-						  duplicationExpectedNumbers_, MLindex_, 
-						  num0Lineages_, num1Lineages_,
-						  num2Lineages_, nodesToTryInNNISearch_); 
-    //Rooting bestTree as in TreeForSPR:
-           std::cout << scenarioLikelihood_ <<std::endl;
-
-    vector<Node*> nodes = rootedTree_->getNodes();
-    
-    for (unsigned int j = 0 ; j < nodes.size() ; j++) {
-      
-      if (nodes[j]->hasNodeProperty("outgroupNode")) {
-	
-	if (rootedTree_->getRootNode() == nodes[j]) {
-	  if (j < nodes.size()-1) 
-	  {
-	    rootedTree_->rootAt(nodes[nodes.size()-1]);   
-	  }
-	  else {
-	    rootedTree_->rootAt(nodes[nodes.size()-2]);
-	  }
-	};
-	rootedTree_->newOutGroup( nodes[j] );
-	break;
+      //Here we check whether there are several trees inside the gene tree file (if init.gene.tree was user).
+      //If there are several trees, then we test each of them, and we will choose the tree
+      //with the highest total likelihood as a starting point.
+      vector<Tree*> trees;
+      string initTree = ApplicationTools::getStringParameter ( "init.gene.tree", params_, "user", "", false, false );
+      if (initTree == "user") {
+          std::string geneTree_File =ApplicationTools::getStringParameter ( "gene.tree.file",params_,"none" );
+          IMultiTree* treeReader;
+          treeReader = new Newick(true);
+          treeReader->read(geneTree_File, trees);
+          delete treeReader;
       }
-    }
+      if (trees.size() > 1) {
+          //We have several trees, we need to choose which one is the best!
+          double bestSequenceLogL;
+          findBestGeneTreeAmongCandidates(trees, rootedTree_, bestSequenceLogL, scenarioLikelihood_);
+          
+      }
+      else {
+      scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_,
+                                                    seqSp_, spId_, lossExpectedNumbers_,
+                                                    duplicationExpectedNumbers_, MLindex_,
+                                                    num0Lineages_, num1Lineages_,
+                                                    num2Lineages_, nodesToTryInNNISearch_);
+      //Rooting bestTree as in TreeForSPR:
+      vector<Node*> nodes = rootedTree_->getNodes();
+      for (unsigned int j = 0 ; j < nodes.size() ; j++) {
+          
+          if (nodes[j]->hasNodeProperty("outgroupNode")) {
+              
+              if (rootedTree_->getRootNode() == nodes[j]) {
+                  if (j < nodes.size()-1)
+                  {
+                      rootedTree_->rootAt(nodes[nodes.size()-1]);   
+                  }
+                  else {
+                      rootedTree_->rootAt(nodes[nodes.size()-2]);
+                  }
+              };
+              rootedTree_->newOutGroup( nodes[j] );
+              break;
+          }
+      }
+  }
   MLindex_ = -1;
 
 }
@@ -1368,5 +1384,58 @@ bool DLGeneTreeLikelihood::isSingleCopy() {
 
 
 
+/************************************************************************
+ * Evaluate vector of gene trees, and returns the index of the best one
+ ************************************************************************/
+
+size_t DLGeneTreeLikelihood::findBestGeneTreeAmongCandidates(vector<Tree*> &trees,
+                                                             TreeTemplate < Node > *bestTree,
+                                                             double bestSequenceLogL,
+                                                             double bestScenarioLk) {
+    
+    double candidateScenarioLk = 0.0;
+    double candidateSequenceLk = 0.0;
+    size_t bestI = 0;
+//TreeTemplate < Node > * bestTree = 0;
+    TreeTemplate < Node > * candidateTree = 0;
+    
+    for (size_t i = 0; i < trees.size() ; ++i) {
+        candidateTree = dynamic_cast < TreeTemplate < Node > * > (trees[i]);
+        candidateScenarioLk =  findMLReconciliationDR (spTree_, candidateTree,
+                                                       seqSp_, spId_,
+                                                       lossExpectedNumbers_, duplicationExpectedNumbers_,
+                                                       tentativeMLindex_,
+                                                       tentativeNum0Lineages_, tentativeNum1Lineages_,
+                                                       tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_, false); //false so that _tentativeNum*Lineages are not updated
+        
+        if (considerSequenceLikelihood_ )
+        {
+            levaluator_->setAlternativeTree(candidateTree);
+            candidateSequenceLk = levaluator_->getAlternativeLogLikelihood();
+        }
+        std::cout << "Tree "<< i <<" : scenario LogLk: "<< candidateScenarioLk <<" ; sequence logLk : " << candidateSequenceLk <<std::endl;
+        
+        if (i == 0) {
+            bestScenarioLk = candidateScenarioLk;
+            bestSequenceLogL = candidateSequenceLk;
+            if (bestTree ) {
+                delete bestTree;
+            }
+            bestTree = candidateTree->clone();
+        }
+        else if (candidateScenarioLk + candidateSequenceLk > bestScenarioLk + bestSequenceLogL) {
+            bestScenarioLk = candidateScenarioLk;
+            bestSequenceLogL = candidateSequenceLk;
+            levaluator_->acceptAlternativeTree();
+            if (bestTree ) {
+                delete bestTree;
+            }
+            bestTree = candidateTree->clone();
+            bestI = i;
+        }
+        delete candidateTree;
+    }
+    return bestI;
+}
 
 
