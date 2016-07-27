@@ -1,88 +1,72 @@
-WARNING: This document is outdated. Until it’s being updated, please refer to our wiki:
-http://pbil-dev.univ-lyon1.fr/redmine/projects/phyldogtoolt/wiki/Wiki_Home
+h1. Git Installation
 
+To compile phyldog, you need:
+* Boost libraries, with headers (devel packages / installation from sources), with enabled MPI (tested with boost from 1.49 to 1.55);
+* Bio++, 2.2.0 version;
+* PLL (Phylogenetic Likelihood Library) version 1.0.2 -- http://www.libpll.org/
+* Phyldog, git version (read below).
 
-_______________________________________________
+h2. Boost
 
+We advise you to install boost devel packages with your package manager. If you cannot, use this procedure :
+* "download boost":http://www.boost.org/
+* unarchive it
+* install it :
+<pre>
+cd boost_directory
+./bootstrap.sh --prefix=$HOME/MyLibs/boost --with-libraries=mpi,serialization
+./b2
+./b2 install
+</pre>
 
+h2. Bio++ 2.2.0
 
-To compile and install PHYLDOG, two libraries are required:
-- Bio++
-- Boost with MPI enabled
+We are currently using Bio++ pre 2.2.0. This library can be found here:
+http://biopp.univ-montp2.fr/wiki/index.php/Installation
 
-Then the program PHYLDOG can be compiled.
+Anyway, we suggest to use precompiled package version if available for your linux distro.
 
-You can find below how the two libraries are to be installed, and then how PHYLDOGS can be compiled.
+h2. PLL 1.0.2
 
-########################
-## Bio++ installation ##
-########################
+PLL can be found here:
+http://www.libpll.org/
 
-The latest available Bio++ libraries should be installed. To this end, the CVS versions should be used. First, the files must be downloaded, and 
-then compiled and installed in the directory INSTALLATION_DIRECTORY_BIOPP (where you want the Bio++ libraries to be installed). The Bio++ installation 
-described here uses cmake, as it is the most efficient procedure for installing these libraries.
+We suggest to install SSE3 version. This CPU vectorization instruction set is widely available on quite recent machines.
 
-In a terminal: 
-git clone http://biopp.univ-montp2.fr/git/bpp-core.git
-git clone http://biopp.univ-montp2.fr/git/bpp-seq.git
-git clone http://biopp.univ-montp2.fr/git/bpp-phyl.git
+h2. Phyldog
 
+h3. Fetching the repository for the first time
 
-- Compilation of the libraries (beware of the order, it needs to be bpp-core first, then bpp-seq, then bpp-phyl):
+The phyldog repository is available at @git://dev.prabi.fr/phyldog@
 
-cd bpp-core
-cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP 
-make install
+Fetch it:
+<pre>
+git clone git://dev.prabi.fr/phyldog
+</pre>
 
-cd ../bpp-seq
-cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP
-make install
+h3. Compiling
 
-cd ../bpp-phyl
-cmake CMakeLists.txt -DCMAKE_INSTALL_PREFIX=INSTALLATION_DIRECTORY_BIOPP
-make install
+create a build directory at the project root, and launch the compilation process in it:
+<pre>
+mkdir build && cd build
+cmake ..
+make
+</pre>
 
-The Bio++ libraries should now be installed in the directory INSTALLATION_DIRECTORY_BIOPP.
+You should get a @phyldog@ binary file you can now test! It is located into the @build/bin@ directory.
 
-########################
-## Boost installation ##
-########################
+If you want to install it, just run @make install@. Do not forget to get superuser rights to be able to install the program into system directories (@sudo make install@ for instance).
 
-The files must be downloaded, and then compiled and installed in the directory INSTALLATION_DIRECTORY_BOOST (where you want the libraries to be 
-installed). In the directory INSTALLATION_DIRECTORY_BOOST, both header files (in a "include" directory) and compiled libraries (in a "lib" directory) 
-will be installed. In the following lines, I call INCLUDE_DIRECTORY the whole path to the "include" directory (INSTALLATION_DIRECTORY_BOOST/include), and LIB_DIRECTORY the whole 
-path to the "lib" directory (INSTALLATION_DIRECTORY_BOOST/lib)).
+h4. Help with CMake parameters
 
-The Boost libraries can be dowloaded from this link:
-http://sourceforge.net/projects/boost/files/boost/1.47.0/boost_1_47_0.tar.gz/download
+If you have installed Bio++, PLL and/or boost in a non standard directory (eg: in your home directory if you do not have admin powers), you have to tell it to cmake, adding some/all of these parameters after the @cmake ..@ command:
+<pre>
+-DCMAKE_LIBRARY_PATH="/home/me/MyLibs/Bpp/lib;/mnt/special/otherlibs/libpll" (these directories must contain libbpp-phyl.so and libpll-sse3.a — .dylib for MacOS)
+-DCMAKE_INCLUDE_PATH="/home/me/MyLibs/Bpp/include;/mnt/special/otherlibs/libpll" (these directories must contain Bpp/Phyl/Node.h and pll/pll.h)
+-DBOOST_LIBRARYDIR=/home/me/MyLibs/boost/lib (must contain libboost_mpi.so and libboost_serialization.so — .dylib for MacOS)
+-DBOOST_ROOT=/home/me/MyLibs/boost (must contain include/boost/mpi.hpp)
+</pre>
 
+Eg: @cmake .. -DBOOST_LIBRARYDIR="/home/me/MyLibs/boost/lib;/mnt/special/otherlibs/libpll" -DBOOST_ROOT=/home/me/MyLibs/boost@
 
-In a terminal:
-tar zxvf boost_1_47_0.tar.gz
-cd boost_1_47_0
-./bootstrap.sh --libdir=LIB_DIRECTORY --includedir=INCLUDE_DIRECTORY --prefix=INSTALLATION_DIRECTORY_BOOST --with-libraries=mpi
-./bjam install
-
-The Boost libraries should now be installed.
-
-
-#######################################
-##       phyldog compilation         ##
-#######################################
-
-Compiling phyldog involves first changing 4 lines in the file "Makefile", and then entering "make phyldog" in the terminal.
-
-The 4 lines to change in the Makefile are at the beginning of the file.
-
-After "BOOST_INCLUDE = ", you should enter the complete path to the Boost "include" directory (i.e. INCLUDE_DIRECTORY above).
-
-After "BIOPP_INCLUDE = ", you should enter the complete	path to	the Biopp "include" directory (i.e. INSTALLATION_DIRECTORY_BIOPP/include).
- 
-After "BIOPP_LIBRARIES = ", you should enter the complete path to the Biopp "lib" directory (i.e. INSTALLATION_DIRECTORY_BIOPP/lib).
-
-After "BOOST_LIBRARIES = ", you should enter the complete path to the Boost "lib" directory (i.e. LIB_DIRECTORY above).
-
-Once these 4 lines have been corrected to correspond to the proper values for your system, typing "make phyldog" in the terminal should compile the program, and produce an executable file "phyldog", ready to run. For indications on how to run phyldog, please read the README file.
-
-
-
+*Note:* if you have several non-system libs to include in the paths, please quote them (double quotes) and separate them accordingly to your system (eg: Unix/Linux is semicolon “;” character).
