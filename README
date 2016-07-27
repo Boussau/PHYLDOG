@@ -1,15 +1,9 @@
-########################################################################
-
-						PHYLDOG README FILE
-
-########################################################################
-
-phyldog is a program allowing to simultaneously build gene and species trees when gene families have undergone duplications and losses. 
+# PHYLDOG is a program allowing to simultaneously build gene and species trees when gene families have undergone duplications and losses. 
 Trees and parameters are estimated in the maximum likelihood framework.
 
 For instructions about installation, please see the INSTALL file.
 
-To use it, type:
+### To use it, type:
 
 mpirun -np NUM_PROCESSORS phyldog param=GeneralOptions.opt
 
@@ -21,9 +15,8 @@ Just typing:
 
 should show a partial list of options that need to be given to the program.
 
-########################################################################
-HOW TO RUN PHYLDOG
-########################################################################
+
+## HOW TO RUN PHYLDOG
 
 phyldog takes as input a series of files. One file contains general options that are used by all processors on which the job runs. Then there is one file per gene family, where gene family-specific options are given. 
 This file containing the general options can be given as an argument to phyldog, as follows:
@@ -41,9 +34,8 @@ http://home.gna.org/bppsuite/doc/index.html#Top
 
 
 
-########################################################################
-THE FILE CONTAINING GENERAL OPTIONS 
-########################################################################
+## THE FILE CONTAINING GENERAL OPTIONS 
+
 
 GeneralOptions.opt may contain the following list of options:
 PATH= /home/user/path_to_data_files/ #path to the directory where the input files are, and the output files are left.
@@ -72,9 +64,9 @@ This GeneralOptions.opt file contains options specific to the search for the bes
 
 
 
-########################################################################
-THE FILE LISTING GENE FAMILY-SPECIFIC OPTION FILES
-########################################################################
+
+## THE FILE LISTING GENE FAMILY-SPECIFIC OPTION FILES
+
 
 Gene-family specific options need to be given in additional files. The list of these files is given in "genelist.file".
 "genelist.file" should look like this:
@@ -91,9 +83,9 @@ family_2.option:30
 The second way to list the option files contains an additional element of information, which is the "complexity" of a gene family. This "complexity" is used at the beginning of the algorithm to distribute equally the loads on the different computers. So far, it is still unclear what this complexity should be (some function of the number of sequences and the number of sites). I generally use the number of sequences in the gene family for lack of a better metric.
 
 
-########################################################################
-GENE FAMILY-SPECIFIC OPTION FILES
-########################################################################
+
+## GENE FAMILY-SPECIFIC OPTION FILES
+
 
 
 Inside these option files, gene-family-specific options should be set. These options again follow the bppsuite syntax. A large number of these options are documented in the bppsuite help:
@@ -144,9 +136,8 @@ optimization.reparametrization=no
 
 
 
-########################################################################
-THE FILE GIVING THE LINK BETWEEN SPECIES NAME AND SEQUENCE NAME
-########################################################################
+## THE FILE GIVING THE LINK BETWEEN SPECIES NAME AND SEQUENCE NAME
+
 
 
 The "taxaseq.file" file contains the link between species name and gene name.
@@ -163,11 +154,11 @@ The species names should correspond to the names used in "species.names.file", a
 
 
 
-########################################################################
-SUMMARY: FILES NEEDED BY PHYLDOG
-########################################################################
 
-## Sum-up on the files really needed to run PHYLDOG:
+## SUMMARY: FILES NEEDED BY PHYLDOG
+
+
+### Sum-up on the files really needed to run PHYLDOG:
 - a file GeneralOptions.opt
 - a file giving the input species tree, or alternatively a list of species names (if the option for the input species tree is "random", this file is necessary). Otherwise this file can be used to limit the list of species to include in the study.
 - a file giving a list of gene family-specific option files 
@@ -175,7 +166,7 @@ SUMMARY: FILES NEEDED BY PHYLDOG
 - one alignment file per gene family
 - one file giving the link between species name and sequence name, one per gene family
 
-## Files that can be provided but that are not absolutely necessary:
+### Files that can be provided but that are not absolutely necessary:
 - a file giving genome coverage per species (otherwise phyldog assumes genomes are 100% complete)
 - a file giving the duplication parameters for the species tree (otherwise phyldog will estimate these)
 - a file giving the loss parameters for the species tree (otherwise phyldog will estimate these)
