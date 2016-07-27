@@ -1,18 +1,22 @@
-# PHYLDOG is a program allowing to simultaneously build gene and species trees when gene families have undergone duplications and losses. 
+# PHYLDOG
+PHYLDOG is a program allowing to simultaneously build gene and species trees when gene families have undergone duplications and losses. 
 Trees and parameters are estimated in the maximum likelihood framework.
 
 For instructions about installation, please see the INSTALL file.
 
 ### To use it, type:
 
+```sh
 mpirun -np NUM_PROCESSORS phyldog param=GeneralOptions.opt
+```
 
 Where the file GeneralOptions.opt is presented below.
 
 Just typing:
 
+```sh
 ./phyldog
-
+```
 should show a partial list of options that need to be given to the program.
 
 
@@ -21,7 +25,10 @@ should show a partial list of options that need to be given to the program.
 phyldog takes as input a series of files. One file contains general options that are used by all processors on which the job runs. Then there is one file per gene family, where gene family-specific options are given. 
 This file containing the general options can be given as an argument to phyldog, as follows:
 
+
+```
 mpirun -np NUM_PROCESSORS phyldog param=GeneralOptions.opt
+```
 
 where NUM_PROCESSORS is the number of processors to be used by phyldog, and GeneralOptions.opt is the file containing the general options.
 
