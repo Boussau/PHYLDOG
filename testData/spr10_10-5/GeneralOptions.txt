@@ -1,0 +1,20 @@
+
+######## First, data files ########
+OPT=
+RESULT=
+DATA=test
+init.species.tree=random #user
+species.names.file=$(OPT)listSpecies.txt
+starting.tree.file=$(RESULT)StartingTree.tree
+output.tree.file=$(RESULT)OutputSpeciesTree.tree
+genelist.file=$(OPT)listGenes.txt
+output.duplications.tree.file=$(RESULT)OutputSpeciesTree_ConsensusDuplications.tree
+output.losses.tree.file=$(RESULT)OutputSpeciesTree_ConsensusLosses.tree
+output.numbered.tree.file=$(RESULT)OutputSpeciesTree_ConsensusNumbered.tree
+
+######## Second, options ########
+optimization.topology=no
+#branchProbabilities.optimization=branchwise
+branch.expected.numbers.optimization=branchwise
+spr.limit=5
+time.limit=23
