@@ -37,11 +37,11 @@ h2. Phyldog
 
 h3. Fetching the repository for the first time
 
-The phyldog repository is available at @git://dev.prabi.fr/phyldog@
+The phyldog repository is available at @https://github.com/Boussau/PHYLDOG@
 
 Fetch it:
 <pre>
-git clone git://dev.prabi.fr/phyldog
+git clone https://github.com/Boussau/PHYLDOG
 </pre>
 
 h3. Compiling
