@@ -10,6 +10,7 @@ output.reconciled.tree.file=famille_6398.ReconciledTree
 output.duplications.tree.file=famille_6398.DuplicationTree
 output.losses.tree.file=famille_6398.LossTree
 output.numbered.tree.file=famille_6398.NumberedTree
+output.events.file=famille_6398.Events
 input.sequence.sites_to_use=all
 input.sequence.max_gap_allowed=10%
 init.gene.tree=user

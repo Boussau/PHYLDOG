@@ -55,7 +55,17 @@ make
 
 You should get a @phyldog@ binary file you can now test! It is located into the @build/bin@ directory.
 
-If you want to install it, just run @make install@. Do not forget to get superuser rights to be able to install the program into system directories (@sudo make install@ for instance).
+If you want to create a static executable that you compile on a machine and then can use on another machine that runs a similar system but in which the libraries have not been installed, you can create a static executable as follows:
+
+<pre>
+mkdir build && cd build
+cmake -DBUILD_STATIC=ON ..
+make
+</pre>
+
+
+
+If you want to install it so that all users on your system can use it, just run @make install@. Do not forget to get superuser rights to be able to install the program into system directories (@sudo make install@ for instance).
 
 h4. Help with CMake parameters
 
