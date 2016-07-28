@@ -26,7 +26,7 @@ SET(PHYLDOG_SRCS
   LikelihoodEvaluator.cpp
   )
   
-ADD_EXECUTABLE(phyldog ReconcileDuplications.cpp ${PHYLDOG_SRCS})
+ADD_EXECUTABLE(phyldog Phyldog.cpp ${PHYLDOG_SRCS})
 target_link_libraries(phyldog 
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_MPI_LIBRARY}

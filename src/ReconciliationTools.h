@@ -374,5 +374,19 @@ void removeUselessSequencesFromAlignment ( const TreeTemplate<Node>* spTree, bpp
 //Remove sequences from both the alignment and gene tree in case they have a very long branch
 void qualityControlGeneTree ( bpp::TreeTemplate<bpp::Node>* geneTree, bpp::VectorSiteContainer * sites, bool& cont, std::string file);
 
-#endif  //_RECONCILIATIONTOOLS_H_
+// Utilitary function to recover a loss after a duplication.
+int recoverLossClosestToDuplication(TreeTemplate<Node> * spTree, int a, int aold);
 
+//Set node property with the node ID
+void setNDProperty(TreeTemplate<Node> * tree);
+
+//Recovers the events of duplication and loss for a given gene tree wrt a species tree.
+vector < std::string > recoverDuplicationsAndLosses(
+                    TreeTemplate<Node> * cTree,
+                    TreeTemplate<Node> * spTree,
+                    const string &familyName);
+
+//Wrapper that annotates a gene tree then calls recoverDuplicationsAndLosses and finally writes it to an events file.
+void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary );
+
+#endif  //_RECONCILIATIONTOOLS_H_

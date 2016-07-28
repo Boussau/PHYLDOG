@@ -148,6 +148,8 @@ output.losses.tree.file=$(PATH)$(DATA)_Losses.tree # File where the species tree
 
 output.numbered.tree.file=$(PATH)$(DATA)_Numbered.tree # File where the species tree topology is saved, annotated with node indices.
 
+output.events.file=$(PATH)$(DATA)_Events.txt # File where events of duplication and loss are written, along with the species ID information. The format is one event per line, with an event described as: event(SpeciesID, "FamilyName", duplication|loss).
+
 input.sequence.sites_to_use=all # tells whether we should use all sites in the alignment or not. Could be "all", "nogap", or "complete". Please see the bppsuite help for more details.
 
 input.sequence.max_gap_allowed=100% # Maximum number of gaps tolerated for including a site in the analysis.

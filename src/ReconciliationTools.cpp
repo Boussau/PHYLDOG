@@ -3432,3 +3432,173 @@ bpp::Alphabet* getAlphabetFromOptions ( std::map <std::string, std::string>  par
   cont = true;
   return alphabet;
 }
+
+
+
+
+/******************************************************************************/
+// a is the species in which there was a duplication
+// just below a, there was a loss
+int recoverLossClosestToDuplication(TreeTemplate<Node> * spTree, int a, int aold) {
+    Node* nodea = spTree->getNode ( a );
+    std::vector < Node *> sonsA = nodea->getSons();
+    std::vector < int > underlyingNodes = TreeTools::getNodesId(*spTree, sonsA[0]->getId());
+    int lostBranch;
+    if (VectorTools::contains<int>(underlyingNodes, aold)) {
+      lostBranch = sonsA[1]->getId();
+    }else {
+      lostBranch = sonsA[0]->getId();
+    }
+    return lostBranch;
+}
+
+/******************************************************************************/
+
+void setNDProperty(TreeTemplate<Node> * tree) {
+  std::vector<Node* > nodes = tree->getNodes();
+  //for (auto n = nodes.begin(); n!= nodes.end(); ++n) {
+  for ( unsigned int i = 0 ; i < nodes.size() ; i++ ) {
+      nodes[i]->setNodeProperty ( "ND", BppString ( TextTools::toString ( nodes[i]->getId() ) ) );
+  }
+  return;
+}
+
+/******************************************************************************/
+// Recovers the events of duplication and loss for a given gene tree wrt a species tree.
+
+
+
+      //vector on branches, map on sites, last vector on substitution types
+
+vector < std::string > recoverDuplicationsAndLosses(
+                    TreeTemplate<Node> * cTree,
+                    TreeTemplate<Node> * spTree,
+                    const string &familyName)
+{
+  setNDProperty(cTree);
+  vector<int> ids = cTree->getNodesId();
+  ids.pop_back(); //remove root id.
+
+  vector < std::string > outputMatrix;
+  string line = "";
+  size_t numNodes = cTree->getNumberOfNodes();
+  for (size_t i = 0; i < numNodes; ++i) {
+    Node * node = cTree->getNode(ids[i]);
+     if ( node->hasNodeProperty("S") ) {
+        if (node->getNumberOfSons()>0 ) { // node has children, could be a duplication, and could contain losses
+          int fatherSpID = TextTools::toInt ( ( dynamic_cast<const BppString*> ( node->getNodeProperty ( "S" ) ) )->toSTL() );
+          std::vector <Node *> sons = node->getSons();
+          int a = TextTools::toInt ( ( dynamic_cast<const BppString*> ( sons[0]->getNodeProperty ( "S" ) ) )->toSTL() );
+          int b = TextTools::toInt ( ( dynamic_cast<const BppString*> ( sons[1]->getNodeProperty ( "S" ) ) )->toSTL() );
+         // std::cout << "fatherSpID: " << fatherSpID<< "; a: "<< a << "; b: "<< b << std::endl;;
+          int aold = a;
+          int bold = b;
+         // std::cout << "aold: "<< aold << " bold: "<< bold << std::endl;
+          while ( a!=b ) {
+              if ( a>b ) {
+                int olda = a;
+                Node* nodea = spTree->getNode ( a );
+                a = nodea->getFather()->getId();
+                if (a == fatherSpID) {  }
+                else {
+                  std::vector <Node *> sonsA = nodea->getFather()->getSons();
+                  int lostBranch;
+                  if (sonsA[0]->getId() == olda) {
+                    lostBranch = sonsA[1]->getId();
+                  }
+                  else {
+                    lostBranch = sonsA[0]->getId();
+                  }
+                  line = "event(" +  TextTools::toString(lostBranch) + ",\"" + familyName + "\"," + "loss" + ")" ;
+                outputMatrix.push_back(line);
+                      // lossA = lossA +1;
+                }
+              }
+              else {
+                int oldb = b;
+                Node* nodeb = spTree->getNode ( b );
+                b = nodeb->getFather()->getId();
+                if (b == fatherSpID) {   }
+                else {
+                  std::vector <Node *> sonsb = nodeb->getFather()->getSons();
+                  int lostBranch;
+                  if (sonsb[0]->getId() == oldb) {
+                    lostBranch = sonsb[1]->getId();
+                  }
+                  else {
+                    lostBranch = sonsb[0]->getId();
+                  }
+                  line = "event(" +  TextTools::toString(lostBranch) + ",\"" + familyName + "\"," + "loss" + ")" ;
+              outputMatrix.push_back(line);
+                }
+          //                lossB = lossB + 1;
+              }
+            }
+        /*  sons[0]->setBranchProperty ( "L", BppString ( TextTools::toString ( lossA ) ) );
+          sons[1]->setBranchProperty ( "L", BppString ( TextTools::toString ( lossB ) ) );
+          node->setNodeProperty ( "S", BppString ( TextTools::toString ( a ) ) );*/
+          if ( ( a == aold ) || ( a == bold ) ) { //There was a duplication
+            node->setBranchProperty ( "Ev", BppString ( "D" ) );
+            int dupBranch = a;
+            line = "event(" +  TextTools::toString(dupBranch) + ",\"" + familyName + "\"," + "duplication" + ")" ;
+          outputMatrix.push_back(line);
+
+            //We also need to check whether there have been losses
+            if (aold > bold) { //loss in the lineage leading to a
+                       /* std::cout << "BIS aold: "<< aold << " bold: "<< bold << std::endl;
+                        std::cout << "BIS a: "<< a << " b: "<< b << std::endl;*/
+
+              int lostBranch = recoverLossClosestToDuplication(spTree, a, aold);
+              line = "event(" +  TextTools::toString(lostBranch) + ",\"" + familyName + "\"," + "loss" + ")" ;
+              outputMatrix.push_back(line);
+
+            }
+            else if (bold>aold) { //loss in the lineage leading to b
+                        //std::cout << "TER aold: "<< aold << " bold: "<< bold << std::endl;
+                int lostBranch = recoverLossClosestToDuplication(spTree, b, bold);
+                line = "event(" +  TextTools::toString(lostBranch) + ",\"" + familyName + "\"," + "loss" + ")" ;
+              outputMatrix.push_back(line);
+            }
+          }
+        }
+      }
+      else {
+        std::cout << "No S Node property"<<std::endl;
+      }
+  }
+  return outputMatrix;
+}
+
+
+void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary ) {
+
+  WHEREAMI( __FILE__ , __LINE__ );
+std::ofstream out;
+string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
+string evFile = ApplicationTools::getStringParameter ( "output.events.file", params, "events.txt", "", false, false );
+evFile = evFile + suffix;
+if ( temporary ) {
+  //   string temp = "temp";
+  evFile = evFile + "_temp";
+}
+
+breadthFirstreNumber ( *speciesTree );
+std::map <std::string, int> spId = computeSpeciesNamesToIdsMap ( *speciesTree );
+
+annotateGeneTreeWithDuplicationEvents ( *speciesTree,
+                                        *geneTree,
+                                        geneTree->getRootNode(),
+                                        seqSp,
+                                        spId );
+
+vector < std::string > lines = recoverDuplicationsAndLosses(geneTree, speciesTree, familyName);
+
+out.open ( evFile.c_str(), std::ios::out );
+for (unsigned int i = 0; i < lines.size(); ++i) {
+  out << lines[i] <<std::endl;
+}
+out.close();
+return;
+
+
+}
