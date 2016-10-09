@@ -47,7 +47,7 @@
 
 
 
-void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, bool temporary ) {
+void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, bool temporary ) {
     WHEREAMI( __FILE__ , __LINE__ );
   std::ofstream out;
   string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
@@ -1237,6 +1237,7 @@ int assignSpeciesIdToLeaf ( Node * node,  const std::map<std::string, std::strin
                             const std::map<std::string, int > & spID )
 {
   std::map<std::string, std::string >::const_iterator seqtosp;
+
   seqtosp=seqSp.find ( node->getName() );
   if ( seqtosp!=seqSp.end() ) {
     std::map<std::string, int >::const_iterator sptoid;
@@ -1262,15 +1263,10 @@ int assignSpeciesIdToLeaf ( Node * node,  const std::map<std::string, std::strin
  ****************************************************************************/
 
 void recoverLosses(Node *& node, int & a, const int & b, int & olda, int & a0,
-
                    const TreeTemplate<Node> & tree,
-
                    double & likelihoodCell,
-
                    const std::vector< double> & lossRates,
-
                    const std::vector< double> & duplicationRates,
-
                    int & dupData)
 {
 
@@ -2128,8 +2124,8 @@ void computeNumbersOfLineagesInASubtree ( TreeTemplate<Node> & tree,
 void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
                                         TreeTemplate<Node> * geneTree,
                                         Node * node,
-                                        std::map<std::string, std::string > seqSp,
-                                        std::map<std::string, int > spID,
+                                        const std::map<std::string, std::string > seqSp,
+                                        const std::map<std::string, int > spID,
                                         std::vector <int> &num0lineages,
                                         std::vector <int> &num1lineages,
                                         std::vector <int> &num2lineages,
@@ -2206,8 +2202,8 @@ void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
 
 double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
                                 TreeTemplate<Node> * geneTree,
-                                std::map<std::string, std::string > seqSp,
-                                std::map<std::string, int > spID,
+                                const std::map<std::string, std::string > seqSp,
+                                const std::map<std::string, int > spID,
                                 std::vector< double> lossRates,
                                 std::vector < double> duplicationRates,
                                 int & MLindex,
@@ -2949,8 +2945,8 @@ std::string removeComments (
 void annotateGeneTreeWithDuplicationEvents ( TreeTemplate<Node> & spTree,
                                              TreeTemplate<Node> & geneTree,
                                              Node * node,
-                                             std::map<std::string, std::string > seqSp,
-                                             std::map<std::string, int > spID )
+                                             const std::map<std::string, std::string > seqSp,
+                                             const std::map<std::string, int > spID )
 {
   if ( node->isLeaf() ) {
     node->setNodeProperty ( "S", BppString ( TextTools::toString ( assignSpeciesIdToLeaf ( node, seqSp, spID ) ) ) );
@@ -3005,8 +3001,8 @@ void annotateGeneTreeWithDuplicationEvents ( TreeTemplate<Node> & spTree,
 void annotateGeneTreeWithScoredDuplicationEvents ( TreeTemplate<Node> & spTree,
                                                    TreeTemplate<Node> & geneTree,
                                                    Node * node,
-                                                   std::map<std::string, std::string > seqSp,
-                                                   std::map<std::string, int > spID )
+                                                   const std::map<std::string, std::string > seqSp,
+                                                   const std::map<std::string, int > spID )
 {
   //    std::cout << "annotateGeneTreeWithScoredDuplicationEvents "<<std::endl;
   if ( node->isLeaf() ) {
@@ -3106,6 +3102,12 @@ VectorSiteContainer * getSequencesFromOptions ( map <string, string>  params, Al
   }
   else {
     VectorSiteContainer * allSites = SequenceApplicationTools::getSiteContainer ( alphabet, params );
+    //Removing white spaces in the names
+    std::vector<std::string> names = allSites->getSequencesNames();
+    for (int i = 0 ; i < names.size() ; ++i) {
+      names[i] = TextTools:: removeSurroundingWhiteSpaces(names[i]);
+    }
+    allSites->setSequencesNames(names);
 
     unsigned int numSites = allSites->getNumberOfSites();
     ApplicationTools::displayResult ( "Number of sequences", TextTools::toString ( allSites->getNumberOfSequences() ) );
@@ -3317,11 +3319,16 @@ void getCorrespondanceSequenceSpeciesFromOptions ( map< string, string > params,
       //Then we divide the sequence names
       if ( st1.numberOfRemainingTokens () >1 ) {
         StringTokenizer st2 ( st1.getToken ( 1 ), ";", true );
-        if ( spSeq.find ( st1.getToken ( 0 ) ) == spSeq.end() )
-          spSeq.insert ( make_pair ( st1.getToken ( 0 ),st2.getTokens() ) );
+        if ( spSeq.find ( st1.getToken ( 0 ) ) == spSeq.end() ) {
+          deque<string> temp = st2.getTokens();
+          for ( unsigned int j = 0 ; j < temp.size() ; j++ ) {
+            temp[j] = TextTools::removeSurroundingWhiteSpaces( temp[j] );
+          }
+          spSeq.insert ( make_pair ( TextTools::removeSurroundingWhiteSpaces( st1.getToken ( 0 ) ), temp ));
+        }
         else {
           for ( unsigned int j = 0 ; j < ( st2.getTokens() ).size() ; j++ )
-            spSeq.find ( st1.getToken ( 0 ) )->second.push_back ( st2.getTokens() [j] );
+            spSeq.find ( TextTools::removeSurroundingWhiteSpaces( st1.getToken ( 0 ) ) )->second.push_back ( TextTools::removeSurroundingWhiteSpaces( st2.getTokens() [j] ) );
         }
       }
     }
@@ -3332,7 +3339,6 @@ void getCorrespondanceSequenceSpeciesFromOptions ( map< string, string > params,
       }
     }
   }
-
 }
 
 
@@ -3570,7 +3576,7 @@ vector < std::string > recoverDuplicationsAndLosses(
 }
 
 
-void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary ) {
+void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary ) {
 
   WHEREAMI( __FILE__ , __LINE__ );
 std::ofstream out;

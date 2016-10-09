@@ -1,9 +1,9 @@
 /*
  * Copyright or © or Copr. Centre National de la Recherche Scientifique
  * contributor : Bastien Boussau (2009-2013)
- * 
+ *
  * bastien.boussau@univ-lyon1.fr
- * 
+ *
  * This software is a bioinformatics computer program whose purpose is to
  * simultaneously build gene and species trees when gene families have
  * undergone duplications and losses. It can analyze thousands of gene
@@ -12,19 +12,19 @@
  * in the maximum likelihood framework, by maximizing the probability
  * of alignments given the species tree, the gene trees and the parameters
  * of duplication and loss.
- * 
+ *
  * This software is governed by the CeCILL license under French law and
- * abiding by the rules of distribution of free software.  You can  use, 
+ * abiding by the rules of distribution of free software.  You can  use,
  * modify and/ or redistribute the software under the terms of the CeCILL
  * license as circulated by CEA, CNRS and INRIA at the following URL
  * "http://www.cecill.info".
- * 
+ *
  * As a counterpart to the access to the source code and  rights to copy,
  * modify and redistribute granted by the license, users are provided only
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
- * liability. 
- * 
+ * liability.
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -32,10 +32,10 @@
  * therefore means  that it is reserved for developers  and  experienced
  * professionals having in-depth computer knowledge. Users are therefore
  * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or 
- * data to be ensured and,  more generally, to use and operate it in the 
- * same conditions as regards security. 
- * 
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
@@ -86,7 +86,7 @@ protected:
    * The new implementation of a likelihood estimator
    */
   LikelihoodEvaluator * levaluator_;
-  
+
   //  bpp::TreeTemplate<bpp::Node> * _tree;
   bpp::TreeTemplate<bpp::Node> * spTree_;
   bpp::TreeTemplate<bpp::Node> * rootedTree_;
@@ -113,11 +113,11 @@ protected:
   unsigned int sprLimitGeneTree_;
   double timeLimit_;
   double elapsedTime_;
-  
+
 public:
-  
-  GeneTreeLikelihood(); 
-  
+
+  GeneTreeLikelihood();
+
   /**
    * @brief Build a new DLGeneTreeLikelihood object.
    *
@@ -126,9 +126,9 @@ public:
    * @throw Exception if an error occured.
    */
   GeneTreeLikelihood(std::string file , map<string, string> params, bpp::TreeTemplate<bpp::Node> & spTree) throw (exception);
-  
-  
-  
+
+
+
   /**
    * @brief Build a new ReconciliationTreeLikelihood object.
    *
@@ -141,7 +141,7 @@ public:
    * @param seqSp link between sequence and species names
    * @param spId link between species name and species ID
    * @param speciesIdLimitForRootPosition limit for gene tree rooting heuristics
-   * @param MLindex ML rooting position     
+   * @param MLindex ML rooting position
    * @param checkRooted Tell if we have to check for the tree to be unrooted.
    * If true, any rooted tree will be unrooted before likelihood computation.
    * @param verbose Should I display some info?
@@ -166,78 +166,78 @@ public:
     bool considerSequenceLikelihood = true,
     unsigned int sprLimitGeneTree = 2)
   throw (Exception);
-  
-  
+
+
   // unload likelihood evaluator
   void unload();
-  
+
   /**
    * @brief Copy constructor.
-   */ 
+   */
   GeneTreeLikelihood(const GeneTreeLikelihood & lik);
-  
+
   GeneTreeLikelihood & operator=(const GeneTreeLikelihood & lik);
-  
+
   virtual ~GeneTreeLikelihood() {};
-  
-  
-  
+
+
+
   #ifndef NO_VIRTUAL_COV
   GeneTreeLikelihood*
   #else
   bpp::Clonable*
   #endif
   clone() const { return new GeneTreeLikelihood(*this); }
-  
+
   double getScenarioLikelihood() const throw (Exception) { return scenarioLikelihood_; }
-  
+
+  const std::map <std::string, std::string> getSeqSp() {return seqSp_;}
+
   void setSpTree(bpp::TreeTemplate<bpp::Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
-  
+
   void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
-  
+
   //   ParameterList getParameters() {return nniLk_->getParameters();}
-  
+
   bpp::TreeTemplate<bpp::Node> & getSpTree() const {return *spTree_;}
-  
+
   bpp::TreeTemplate<bpp::Node> & getRootedTree() const {return *rootedTree_;}
-  
+
   bpp::TreeTemplate<bpp::Node> & getGeneTreeWithSpNames() const {return *geneTreeWithSpNames_;}
-  
-  std::map <std::string, std::string> getSeqSp() {return seqSp_;}
-  
+
   void OptimizeSequenceLikelihood(bool yesOrNo) const  {
     optimizeSequenceLikelihood_ = yesOrNo;
   }
-  
+
   void OptimizeReconciliationLikelihood(bool yesOrNo) const {
     optimizeReconciliationLikelihood_ = yesOrNo;
   }
-  
+
   LikelihoodEvaluator* getSequenceLikelihoodObject() const {
     return levaluator_;
   }
-  
+
   unsigned int getSprLimitGeneTree() const {
-    return sprLimitGeneTree_; 
+    return sprLimitGeneTree_;
   }
-  
-  
+
+
   bool isInitialized() {
     return levaluator_->isInitialized();
   }
   unsigned int seqsToRemove();
-  
+
   void setGeneTree(bpp::TreeTemplate<bpp::Node>* tree, bpp::TreeTemplate<bpp::Node>* rootedTree) ;
-  
+
   std::map <std::string, std::string > getParams () {
     return params_;
   }
-  
+
   std::string getLikelihoodMethod () {
     return ApplicationTools::getStringParameter("likelihood.evaluator", params_, "PLL");;
   }
-  
-  
+
+
 };
 
 #endif

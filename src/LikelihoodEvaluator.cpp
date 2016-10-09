@@ -793,9 +793,9 @@ else if (alphabet->getSize() == 20) {
         partitionFile << "JTT, p1=1-" << sites->getNumberOfSites() << "\n";
     }
     else {
-     std::cout << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes LG08, W1G01, JTT92 for protein models." <<std::endl;
+     std::cout << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes LG08, WAG01, JTT92 for protein models." <<std::endl;
      cout.flush();
-     std::cerr << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes LG08, W1G01, JTT92 for protein models." <<std::endl;
+     std::cerr << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes LG08, WAG01, JTT92 for protein models." <<std::endl;
      cerr.flush();   
      MPI::COMM_WORLD.Abort(1);
      exit(-1);

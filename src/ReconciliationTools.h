@@ -87,7 +87,7 @@ using namespace bpp;
 
 
 
-void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, bool temporary ) ;
+void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, bool temporary ) ;
 void assignArbitraryBranchLengths ( TreeTemplate<Node> & tree );
 void reNumber ( TreeTemplate<Node> & tree, Node * noeud, int & index );
 void reNumber ( TreeTemplate<Node> & tree );
@@ -130,7 +130,7 @@ void assignNumLineagesOnSpeciesTree ( TreeTemplate<Node> & tree,
                                       std::vector <int> &num2Lineages );
 double makeReconciliationAtGivenRoot ( TreeTemplate<Node> * tree,
                                        TreeTemplate<Node> * geneTree,
-                                       std::map<std::string, std::string > seqSp,
+                                       const std::map<std::string, std::string > seqSp,
                                        std::vector< double> lossProbabilities,
                                        std::vector < double> duplicationProbabilities,
                                        int MLindex );
@@ -237,8 +237,8 @@ void computeNumbersOfLineagesInASubtree ( TreeTemplate<Node> & tree,
 void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
                                         TreeTemplate<Node> * geneTree,
                                         Node * node,
-                                        std::map<std::string, std::string > seqSp,
-                                        std::map<std::string, int > spID,
+                                        const std::map<std::string, std::string > seqSp,
+                                        const std::map<std::string, int > spID,
                                         std::vector <int> &num0lineages,
                                         std::vector <int> &num1lineages,
                                         std::vector <int> &num2lineages,
@@ -247,8 +247,8 @@ void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
                                         std::set <int> & branchesWithDuplications );
 double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
                                 TreeTemplate<Node> * geneTree,
-                                std::map<std::string, std::string > seqSp,
-                                std::map<std::string, int > spID,
+                                const std::map<std::string, std::string > seqSp,
+                                const std::map<std::string, int > spID,
                                 std::vector< double> lossRates,
                                 std::vector < double> duplicationRates,
                                 int & MLindex,
@@ -326,13 +326,13 @@ std::string removeComments (
 void annotateGeneTreeWithDuplicationEvents ( TreeTemplate<Node> & spTree,
         TreeTemplate<Node> & geneTree,
         Node * node,
-        std::map<std::string, std::string > seqSp,
-        std::map<std::string, int > spID );
+        const std::map<std::string, std::string > seqSp,
+        const std::map<std::string, int > spID );
 void annotateGeneTreeWithScoredDuplicationEvents ( TreeTemplate<Node> & spTree,
         TreeTemplate<Node> & geneTree,
         Node * node,
-        std::map<std::string, std::string > seqSp,
-        std::map<std::string, int > spID );
+        const std::map<std::string, std::string > seqSp,
+        const std::map<std::string, int > spID );
 
 /*void editDuplicationNodesMuffato2(TreeTemplate<Node> & spTree,
                  TreeTemplate<Node> & geneTree,
@@ -387,6 +387,6 @@ vector < std::string > recoverDuplicationsAndLosses(
                     const string &familyName);
 
 //Wrapper that annotates a gene tree then calls recoverDuplicationsAndLosses and finally writes it to an events file.
-void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary );
+void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary );
 
 #endif  //_RECONCILIATIONTOOLS_H_
