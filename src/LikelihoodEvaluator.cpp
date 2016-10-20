@@ -761,7 +761,10 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
     string currSequenceName = currSequence.getName();
     if(currSequenceName.at(currSequenceName.size()-1) == '\r')
       currSequenceName = currSequenceName.substr(0,(currSequenceName.size()-1));
-    alignementFile << ">" << realToStrict[currSequenceName] << "\n" << currSequence.toString() << "\n";
+    string currSequenceStr = currSequence.toString();
+    if(alphabet->getSize() != 4)
+        replace(currSequenceStr.begin(), currSequenceStr.end(), '*', 'X');
+    alignementFile << ">" << realToStrict[currSequenceName] << "\n" << currSequenceStr << "\n";
   }
   alignementFile.close();
   ofstream partitionFile(string(fileNamePrefix + "partition.txt").c_str(), ofstream::out);
