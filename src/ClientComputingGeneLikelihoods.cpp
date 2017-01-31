@@ -475,9 +475,11 @@ void ClientComputingGeneLikelihoods::MLSearch() {
       }
       else {
         treeLikelihoods_[i]->OptimizeSequenceLikelihood(false);
+	//	std::cout << "DEBUG ClientComputingGeneLikelihoods l478: "<<  TreeTemplateTools::treeToParenthesis(treeLikelihoods_[i]->getRootedTree(), true)<<std::endl;
+
         allParams_[i][ std::string("optimization.topology")] = "false";
       }
-      // std::cout <<  TreeTemplateTools::treeToParenthesis(*geneTree_, true)<<std::endl;
+      //std::cout << "DEBUG ClientComputingGeneLikelihoods: "<<  TreeTemplateTools::treeToParenthesis(*geneTree_, true)<<std::endl;
 
       rearrangementType = ApplicationTools::getStringParameter("rearrangement.gene.tree", allParams_[i], "spr", "", true, false);
       if (rearrangementType == "nni" || currentStep_ !=4 ) {
@@ -502,7 +504,13 @@ void ClientComputingGeneLikelihoods::MLSearch() {
           }
           else {
             //dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeMuffato(allParams_[i]);
-            NNIRearrange(timing, i, startingTime, totalTime);
+	    // std::cout << "DEBUG 2 ClientComputingGeneLikelihoods: "<<  TreeTemplateTools::treeToParenthesis(treeLikelihoods_[i]->getRootedTree(), true)<<std::endl;
+	    // std::cout << "DEBUG 2Bis ClientComputingGeneLikelihoods: "<<  std::endl;
+	    dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->print();
+
+            NNIRearrange(timing, i, startingTime, totalTime);	    
+	    //std::cout << "DEBUG 3 ClientComputingGeneLikelihoods: "<<  TreeTemplateTools::treeToParenthesis(treeLikelihoods_[i]->getRootedTree(), true)<<std::endl;
+
             WHEREAMI( __FILE__ , __LINE__ );
 
             if (timing && rearrange_)

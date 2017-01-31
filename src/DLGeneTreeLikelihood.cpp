@@ -640,6 +640,29 @@ double DLGeneTreeLikelihood::getSequenceLikelihood() const {
 void DLGeneTreeLikelihood::initialize() {
   WHEREAMI( __FILE__ , __LINE__ );
   levaluator_->initialize();
+
+  // Update the rooted tree so that its branch lengths are as optimized by the levaluator.
+    TreeTemplate<Node> * treeTemp = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
+    
+    
+    //Now we root the tree sent to findMLReconciliation as in rootedTree_
+    int id = treeTemp->getRootNode()->getId();
+    if(TreeTemplateTools::hasNodeWithId(*(rootedTree_->getRootNode()->getSon(0)),id)) {
+      treeTemp->newOutGroup(rootedTree_->getRootNode()->getSon(1)->getId());
+    }
+    else {
+      treeTemp->newOutGroup(rootedTree_->getRootNode()->getSon(0)->getId());
+    }
+
+    if (rootedTree_) 
+      {
+	delete rootedTree_;
+        rootedTree_ = 0;
+      }
+    rootedTree_ = treeTemp->clone();
+    breadthFirstreNumberAndResetProperties (*rootedTree_);
+    delete treeTemp;
+
   return;
 }
 
@@ -713,11 +736,12 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
   string numLoss = "0";
   
   bool computeSequenceLikelihoodForSPR = ApplicationTools::getBooleanParameter("compute.sequence.likelihood.in.sprs", params, true, "", false, false);
-  
+    	    
+  //std::cout << "DEBUG: DLGeneTreeLk BEFORE: "<< TreeTemplateTools::treeToParenthesis(*rootedTree_)<<std::endl;
+
   
   while (numIterationsWithoutImprovement < rootedTree_->getNumberOfNodes() - 2 && (timeLimit_ == 0 || elapsedTime_ < timeLimit_))
   {
-    
     annotateGeneTreeWithDuplicationEvents (*spTree_, 
 					   *rootedTree_, 
 					   rootedTree_->getRootNode(), 
@@ -790,6 +814,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 	    }
 	    
 	    bestTree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
+
 	    //Rooting bestTree as in TreeForSPR:
 	    vector<Node*> rlkNodes = bestTree->getNodes();
 	    for (unsigned int j = 0 ; j < rlkNodes.size() ; j++) {
@@ -859,7 +884,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
     startingTime = ApplicationTools::getTime();
   }
   
-  
   rootedTree_->resetNodesId();
   
   
@@ -871,6 +895,7 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) 
 					 *rootedTree_, 
 					 rootedTree_->getRootNode(), 
 					 seqSp_, spId_); 
+
   cout << "Reconciled tree: "<<endl;
   nhx->write(*rootedTree_, cout);
 

@@ -364,14 +364,17 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   newickStingForPll.str(PLL_instance->tree_string);
   
   //debug
- // cout << "returned tree from PLL \n" << newickStingForPll.str() << endl;
+  //cout << "DEBUG returned tree from PLL, LikelihoodEvaluator l367 \n" << newickStingForPll.str() << endl;
   
   delete *treeToEvaluate;
   *treeToEvaluate = newickForPll.read(newickStingForPll);
   
   // getting the likelihood and then deleting PLL_instance
   double PLL_instance_likelihood = PLL_instance->likelihood * scaler_;
-  
+
+  //cout << "DEBUG PLL loglk LikelihoodEvaluator l375 \n" << PLL_instance_likelihood << endl;
+
+
   //re-rooting if needed
   if(wasRooted)
   {
@@ -413,8 +416,11 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
     
   }
   
+
+  //std::cout << "DEBUG Before restoring: "<< TreeTemplateTools::treeToParenthesis(**treeToEvaluate) <<std::endl;
   restoreTreeFromStrict(*treeToEvaluate);
-  
+  //std::cout << "DEBUG AFTER restoring: "<< TreeTemplateTools::treeToParenthesis(**treeToEvaluate) <<std::endl;
+
   //TODO debug remove
  /* stringstream debugSS2;
   debugTree.write(**treeToEvaluate,debugSS2);
