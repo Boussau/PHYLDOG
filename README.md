@@ -150,6 +150,8 @@ output.numbered.tree.file=$(PATH)$(DATA)_Numbered.tree # File where the species 
 
 output.events.file=$(PATH)$(DATA)_Events.txt # File where events of duplication and loss are written, along with the species ID information. The format is one event per line, with an event described as: event(SpeciesID, "FamilyName", duplication|loss).
 
+output.orthologs.file=$(PATH)$(DATA)_Orthologs.txt # File where orthologs and paralogs are written. The format is one orthology/paralogy relationship per line, with first the family name, the type of relationship (Orthology or paralogy) then a list of genes, "<===>" and the other series of genes that are in relationship to the first ones.
+
 input.sequence.sites_to_use=all # tells whether we should use all sites in the alignment or not. Could be "all", "nogap", or "complete". Please see the bppsuite help for more details.
 
 input.sequence.max_gap_allowed=100% # Maximum number of gaps tolerated for including a site in the analysis.
