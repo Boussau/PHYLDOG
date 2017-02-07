@@ -389,4 +389,15 @@ vector < std::string > recoverDuplicationsAndLosses(
 //Wrapper that annotates a gene tree then calls recoverDuplicationsAndLosses and finally writes it to an events file.
 void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary );
 
+// Recovers the events of duplication for a given gene tree wrt a species tree, 
+// so that we can tell which genes are orthologous and which genes are paralogous.
+vector < std::string > recoverOrthologsAndParalogs(
+                    TreeTemplate<Node> * cTree,
+                    TreeTemplate<Node> * spTree,
+                    const string &familyName);
+
+// Outputs to file orthologous and paralogous genes
+void outputOrthologousAndParalogousGenes(map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary ) ;
+
+
 #endif  //_RECONCILIATIONTOOLS_H_

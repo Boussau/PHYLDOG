@@ -838,6 +838,7 @@ void ClientComputingGeneLikelihoods::outputGeneTrees ( unsigned int & bestIndex 
     if (reconciliationModel_ == "DL") {
       writeReconciledGeneTree ( allParams_[i], treeLikelihoods_[i]->getRootedTree().clone(), spTree_, treeLikelihoods_[i]->getSeqSp(), false ) ;
       outputNumbersOfEventsPerFamilyPerSpecies( allParams_[i], treeLikelihoods_[i]->getRootedTree().clone(), spTree_, treeLikelihoods_[i]->getSeqSp(), assignedFilenames_[i], false );
+      outputOrthologousAndParalogousGenes(  allParams_[i], treeLikelihoods_[i]->getRootedTree().clone(), spTree_, treeLikelihoods_[i]->getSeqSp(), assignedFilenames_[i], false ) ;
       /*
        *
        *       TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);

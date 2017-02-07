@@ -3575,6 +3575,9 @@ vector < std::string > recoverDuplicationsAndLosses(
   return outputMatrix;
 }
 
+/******************************************************************************/
+// Outputs to file the numbers of duplications and losses per species.
+
 
 void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary ) {
 
@@ -3601,6 +3604,180 @@ vector < std::string > lines = recoverDuplicationsAndLosses(geneTree, speciesTre
 
 out.open ( evFile.c_str(), std::ios::out );
 for (unsigned int i = 0; i < lines.size(); ++i) {
+  out << lines[i] <<std::endl;
+}
+out.close();
+return;
+
+
+}
+
+
+/******************************************************************************/
+// Recovers the events of duplication for a given gene tree wrt a species tree, 
+// so that we can tell which genes are orthologous and which genes are paralogous.
+// The output we want is as follows:
+/*
+DUPLICATIONS : 4        LOSSES : 20
+    ORTHOLOGY RELATIONSHIP: ENSOGAP00000018864_F05772@Otolemur_garnettii, ENSSSCP00000021040_F05772@Sus_scrofa, ENSP00000325562_F05772@Homo_sapiens, ENSSTOP00000023581_F05772@Ictidomys_tridecemlineatus, ENSMLUP00000012455_F05772@Myotis_lucifugus, ENSCJAP00000012390_F05772@Callithrix_jacchus, APAMM00000012449_F05772@Mus_musculus, ENSMLUP00000019915_F05772@Myotis_lucifugus, ENSMPUP00000016053_F05772@Mustela_putorius_furo, ENSFCAP00000002823_F05772@Felis_catus, ENSOARP00000015537_F05772@Ovis_aries, ENSCPOP00000007201_F05772@Cavia_porcellus    <====>    ENSDNOP00000033050_F05772@Dasypus_novemcinctus, ENSDNOP00000021811_F05772@Dasypus_novemcinctus, ENSLAFP00000013597_F05772@Loxodonta_africana
+    PARALOGY RELATIONSHIP: ENSSTOP00000023581_F05772@Ictidomys_tridecemlineatus, ENSMPUP00000016053_F05772@Mustela_putorius_furo, ENSOGAP00000018864_F05772@Otolemur_garnettii    <====>    ENSSSCP00000021040_F05772@Sus_scrofa, ENSP00000325562_F05772@Homo_sapiens, ENSMLUP00000012455_F05772@Myotis_lucifugus, ENSCJAP00000012390_F05772@Callithrix_jacchus, APAMM00000012449_F05772@Mus_musculus, ENSMLUP00000019915_F05772@Myotis_lucifugus, ENSFCAP00000002823_F05772@Felis_catus, ENSOARP00000015537_F05772@Ovis_aries, ENSCPOP00000007201_F05772@Cavia_porcellus
+...
+ */
+vector < std::string > recoverOrthologsAndParalogs(
+                    TreeTemplate<Node> * cTree,
+                    TreeTemplate<Node> * spTree,
+                    const string &familyName)
+{
+  setNDProperty(cTree);
+  vector<int> ids = cTree->getNodesId();
+  ids.pop_back(); //remove root id.
+
+  vector < std::string > outputMatrix;
+  string line = "";
+  size_t numDups = 0;
+  size_t numLosses = 0;
+  size_t numNodes = cTree->getNumberOfNodes();
+  for (size_t i = 0; i < numNodes; ++i) {
+    Node * node = cTree->getNode(ids[i]);
+     if ( node->hasNodeProperty("S") ) {
+        if (node->getNumberOfSons()>0 ) { // node has children, could be a duplication, and could contain losses
+          int fatherSpID = TextTools::toInt ( ( dynamic_cast<const BppString*> ( node->getNodeProperty ( "S" ) ) )->toSTL() );
+          std::vector <Node *> sons = node->getSons();
+          int a = TextTools::toInt ( ( dynamic_cast<const BppString*> ( sons[0]->getNodeProperty ( "S" ) ) )->toSTL() );
+          int b = TextTools::toInt ( ( dynamic_cast<const BppString*> ( sons[1]->getNodeProperty ( "S" ) ) )->toSTL() );
+         // std::cout << "fatherSpID: " << fatherSpID<< "; a: "<< a << "; b: "<< b << std::endl;;
+          int aold = a;
+          int bold = b;
+         // std::cout << "aold: "<< aold << " bold: "<< bold << std::endl;
+          while ( a!=b ) {
+              if ( a>b ) {
+                int olda = a;
+                Node* nodea = spTree->getNode ( a );
+                a = nodea->getFather()->getId();
+                if (a == fatherSpID) {  }
+                else {
+                  std::vector <Node *> sonsA = nodea->getFather()->getSons();
+                  int lostBranch;
+                  if (sonsA[0]->getId() == olda) {
+                    lostBranch = sonsA[1]->getId();
+                  }
+                  else {
+                    lostBranch = sonsA[0]->getId();
+                  }
+		  //line = "event(" +  TextTools::toString(lostBranch) + ",\"" + familyName + "\"," + "loss" + ")" ;
+		numLosses += 1;
+                }
+              }
+              else {
+                int oldb = b;
+                Node* nodeb = spTree->getNode ( b );
+                b = nodeb->getFather()->getId();
+                if (b == fatherSpID) {   }
+                else {
+                  std::vector <Node *> sonsb = nodeb->getFather()->getSons();
+                  int lostBranch;
+                  if (sonsb[0]->getId() == oldb) {
+                    lostBranch = sonsb[1]->getId();
+                  }
+                  else {
+                    lostBranch = sonsb[0]->getId();
+                  }
+                  //line = "event(" +  TextTools::toString(lostBranch) + ",\"" + familyName + "\"," + "loss" + ")" ;
+		  numLosses += 1;
+                }
+              }
+            }
+          if ( ( a == aold ) || ( a == bold ) ) { //There was a duplication
+            node->setBranchProperty ( "Ev", BppString ( "D" ) );
+            int dupBranch = a;
+	    numDups += 1;
+	    line = familyName + "\tPARALOGY RELATIONSHIP: ";
+	    // Assuming binary tree
+	    std::vector<std::string> leafNames = TreeTemplateTools::getLeavesNames(*(node->getSon(0)));
+	    for (size_t j = 0; j < leafNames.size()-1; ++j) {
+	      line = line + leafNames[j] +", ";
+	    }
+	    line = line + leafNames[leafNames.size()-1] + " <===> ";
+	    leafNames = TreeTemplateTools::getLeavesNames(*(node->getSon(1)));
+	    for (size_t j = 0; j < leafNames.size()-1; ++j) {
+	      line = line + leafNames[j] +", ";
+	    }
+	    line = line + leafNames[leafNames.size()-1];
+	    outputMatrix.push_back(line);
+            //line = "event(" +  TextTools::toString(dupBranch) + ",\"" + familyName + "\"," + "duplication" + ")" ;
+	    
+            //We also need to check whether there have been losses
+            if (aold > bold) { //loss in the lineage leading to a
+                       /* std::cout << "BIS aold: "<< aold << " bold: "<< bold << std::endl;
+                        std::cout << "BIS a: "<< a << " b: "<< b << std::endl;*/
+
+              int lostBranch = recoverLossClosestToDuplication(spTree, a, aold);
+              //line = "event(" +  TextTools::toString(lostBranch) + ",\"" + familyName + "\"," + "loss" + ")" ;
+	      numLosses += 1;
+            }
+            else if (bold>aold) { //loss in the lineage leading to b
+                        //std::cout << "TER aold: "<< aold << " bold: "<< bold << std::endl;
+                int lostBranch = recoverLossClosestToDuplication(spTree, b, bold);
+                //line = "event(" +  TextTools::toString(lostBranch) + ",\"" + familyName + "\"," + "loss" + ")" ;
+		numLosses += 1;
+            }
+          }
+	  else { // There was no duplication, hence we have a speciation node
+	    	    line = familyName + "\tORTHOLOGY RELATIONSHIP: ";
+	    // Assuming binary tree
+		    std::vector<std::string> leafNames = TreeTemplateTools::getLeavesNames(*(node->getSon(0)));
+		    for (size_t j = 0; j < leafNames.size()-1; ++j) {
+	      line = line + leafNames[j] +", ";
+	    }
+		    line = line + leafNames[leafNames.size()-1] + " <===> ";
+	    leafNames = TreeTemplateTools::getLeavesNames(*(node->getSon(1)));
+	    for (size_t j = 0; j < leafNames.size()-1; ++j) {
+	      line = line + leafNames[j] +", ";
+	    }
+	    line = line + leafNames[leafNames.size()-1];
+	    outputMatrix.push_back(line);
+	  }
+        }
+      }
+      else {
+        std::cout << "No S Node property"<<std::endl;
+      }
+  }
+  line = familyName + "\tDUPLICATIONS : "+TextTools::toString(numDups)+"\tLOSSES : "+TextTools::toString(numLosses);
+  outputMatrix.push_back(line);
+  return outputMatrix;
+}
+
+
+
+/******************************************************************************/
+// Outputs to file orthologous and paralogous genes
+void outputOrthologousAndParalogousGenes(map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary ) {
+
+  WHEREAMI( __FILE__ , __LINE__ );
+std::ofstream out;
+string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
+string orFile = ApplicationTools::getStringParameter ( "output.orthologs.file", params, "orthologs.txt", "", false, false );
+orFile = orFile + suffix;
+if ( temporary ) {
+  //   string temp = "temp";
+  orFile = orFile + "_temp";
+}
+
+breadthFirstreNumber ( *speciesTree );
+std::map <std::string, int> spId = computeSpeciesNamesToIdsMap ( *speciesTree );
+
+annotateGeneTreeWithDuplicationEvents ( *speciesTree,
+                                        *geneTree,
+                                        geneTree->getRootNode(),
+                                        seqSp,
+                                        spId );
+
+vector < std::string > lines = recoverOrthologsAndParalogs(geneTree, speciesTree, familyName);
+
+out.open ( orFile.c_str(), std::ios::out );
+out << lines[lines.size()-1] <<std::endl;
+for (unsigned int i = 0; i < lines.size()-1; ++i) {
   out << lines[i] <<std::endl;
 }
 out.close();
