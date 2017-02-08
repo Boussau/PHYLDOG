@@ -7,6 +7,8 @@ To compile phyldog, you need:
 * PLL (Phylogenetic Likelihood Library) version 1.0.2 -- http://www.libpll.org/
 * Phyldog, git version (read below).
 
+WARNING: Make sure you use the same compiler and same compiler version to compile all dependencies and Phyldog, otherwise linking problems can occur. 
+
 h2. Boost
 
 We advise you to install boost devel packages with your package manager. If you cannot, use this procedure :
