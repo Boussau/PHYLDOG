@@ -2,7 +2,7 @@ h1. Git Installation
 
 To compile phyldog, you need:
 * MPI libraries (e.g. OpenMPI)
-* Boost libraries, with headers (devel packages / installation from sources), with enabled MPI (tested with boost from 1.49 to 1.55);
+* Boost libraries, with headers (devel packages / installation from sources), with enabled MPI (tested with boost from 1.49 to 1.58);
 * Bio++, 2.2.0 version;
 * PLL (Phylogenetic Likelihood Library) version 1.0.2 -- http://www.libpll.org/
 * Phyldog, git version (read below).
@@ -69,6 +69,8 @@ make
 
 
 If you want to install it so that all users on your system can use it, just run @make install@. Do not forget to get superuser rights to be able to install the program into system directories (@sudo make install@ for instance).
+
+If you want to get an executable with a smaller size, you can use the "strip" command in Unix-based systems. It can reduce the size from 100Mb to 8 Mb.
 
 h4. Help with CMake parameters
 

@@ -47,7 +47,7 @@
 #include <Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 #include <Bpp/Phyl/OptimizationTools.h>
 #include <Bpp/Phyl/Io/Nhx.h>
-#include <Bpp/Phyl/Likelihood.all>
+#include <Bpp/Phyl/Likelihood/AbstractTreeLikelihood.h>
 
 
 

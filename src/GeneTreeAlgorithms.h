@@ -62,7 +62,15 @@
 #include <Bpp/Numeric/AutoParameter.h>
 #include <Bpp/Numeric/Random/RandomTools.h>
 #include <Bpp/Numeric/NumConstants.h>
-#include <Bpp/Numeric/Function.all>
+#include <Bpp/Numeric/Function/Functions.h>
+#include <Bpp/Numeric/ParameterList.h>
+#include <Bpp/Numeric/Function/BfgsMultiDimensions.h>
+#include <Bpp/Numeric/Function/ReparametrizationFunctionWrapper.h>
+#include <Bpp/Numeric/Function/ThreePointsNumericalDerivative.h>
+#include <Bpp/Numeric/Function/ConjugateGradientMultiDimensions.h>
+#include <Bpp/Numeric/Function/TwoPointsNumericalDerivative.h>
+#include <Bpp/Numeric/Function/DownhillSimplexMethod.h>
+
 
 // From Utils:
 #include <Bpp/Utils/AttributesTools.h>

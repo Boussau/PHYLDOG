@@ -55,7 +55,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <Bpp/Phyl/Io/Nhx.h>
 
 
-#include <Bpp/Seq/Alphabet.all>
+#include <Bpp/Seq/Alphabet/Alphabet.h>
 #include <Bpp/Seq/Alphabet/CodonAlphabet.h>
 #include <Bpp/Seq/App/SequenceApplicationTools.h>
 #include <Bpp/Seq/SequenceTools.h>
