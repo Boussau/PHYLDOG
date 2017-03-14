@@ -257,11 +257,14 @@ void DLGeneTreeLikelihood::initParameters()
           treeReader->read(geneTree_File, trees);
           delete treeReader;
       }
+      //std::cout << "FIRST : leval loglk: "<< levaluator_->getLogLikelihood() << " and scenario loglk: "<< scenarioLikelihood_<< std::endl;
+
       if (trees.size() > 1) {
           //We have several trees, we need to choose which one is the best!
           double bestSequenceLogL;
-          findBestGeneTreeAmongCandidates(trees, rootedTree_, bestSequenceLogL, scenarioLikelihood_);
-          
+	  findBestGeneTreeAmongCandidates(trees, rootedTree_, bestSequenceLogL, scenarioLikelihood_);
+	  //std::cout << "SECOND: leval loglk: "<< levaluator_->getLogLikelihood() << " and scenario loglk: "<< scenarioLikelihood_<< std::endl;
+
       }
       else {
       scenarioLikelihood_ = findMLReconciliationDR (spTree_, rootedTree_,
@@ -269,7 +272,10 @@ void DLGeneTreeLikelihood::initParameters()
                                                     duplicationExpectedNumbers_, MLindex_,
                                                     num0Lineages_, num1Lineages_,
                                                     num2Lineages_, nodesToTryInNNISearch_);
-      //Rooting bestTree as in TreeForSPR:
+      }
+      //std::cout << "THIRD: leval loglk: "<< levaluator_->getLogLikelihood() << " and scenario loglk: "<< scenarioLikelihood_<< std::endl;
+
+      //Rooting the tree properly:
       vector<Node*> nodes = rootedTree_->getNodes();
       for (unsigned int j = 0 ; j < nodes.size() ; j++) {
           
@@ -288,7 +294,6 @@ void DLGeneTreeLikelihood::initParameters()
               break;
           }
       }
-  }
   MLindex_ = -1;
 
 }
@@ -331,9 +336,6 @@ throw (Exception)
 {
   {
   WHEREAMI( __FILE__ , __LINE__ );
-    // return (-getLogLikelihood());
-    //TEST 16 02 2010
-    // std::cout<<"\t\t\t_sequenceLikelihood: "<<_sequenceLikelihood<< " scenarioLikelihood_: "<<scenarioLikelihood_<<std::endl;
     if (considerSequenceLikelihood_) {
       return (- levaluator_->getLogLikelihood() - scenarioLikelihood_);
     }
@@ -1446,7 +1448,7 @@ size_t DLGeneTreeLikelihood::findBestGeneTreeAmongCandidates(vector<Tree*> &tree
             if (bestTree ) {
                 delete bestTree;
             }
-            bestTree = candidateTree->clone();
+            bestTree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();// candidateTree->clone(); 
         }
         else if (candidateScenarioLk + candidateSequenceLk > bestScenarioLk + bestSequenceLogL) {
             bestScenarioLk = candidateScenarioLk;
@@ -1455,11 +1457,33 @@ size_t DLGeneTreeLikelihood::findBestGeneTreeAmongCandidates(vector<Tree*> &tree
             if (bestTree ) {
                 delete bestTree;
             }
-            bestTree = candidateTree->clone();
+            bestTree =  dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();// candidateTree->clone();
             bestI = i;
+
+	//Rooting bestTree properly:
+	vector<Node*> rlkNodes = bestTree->getNodes();
+	
+	for (unsigned int j = 0 ; j < rlkNodes.size() ; j++) {
+	  if (rlkNodes[j]->hasNodeProperty("outgroupNode")) {
+	    if (bestTree->getRootNode() == rlkNodes[j]) {
+	      if (j < rlkNodes.size()-1) 
+	      {
+		bestTree->rootAt(rlkNodes[rlkNodes.size()-1]);   
+	      }
+	      else {
+		bestTree->rootAt(rlkNodes[rlkNodes.size()-2]);
+	      }
+	    };
+	    bestTree->newOutGroup( rlkNodes[j] );
+	    break;
+	  }
+	}
+	    
         }
         delete candidateTree;
     }
+    std::cout << "Best Tree: "<< bestI <<" : scenario LogLk: "<< bestScenarioLk <<" ; sequence logLk : " << bestSequenceLogL <<std::endl;
+
     return bestI;
 }
 

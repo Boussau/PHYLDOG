@@ -1512,7 +1512,11 @@ void gathersInformationFromClients (const mpi::communicator & world,
         resetVector(num22Lineages);
   //      gather(world, logL, logLs, server);
 //        logL =  VectorTools::sum(logLs);
+//	std::cout << "TEST: "<< logL << " and " << logLVal << std::endl;
         mpi::reduce(world, logLVal, logL, std::plus<double> (), 0);
+	//	std::cout << "TEST BIS: "<< logL << " and " << logLVal << std::endl;
+
+
         if (reconciliationModel == "DL") {
             vector< int> tempNums = num0Lineages;
             mpi::reduce(world, &tempNums.front(), tempNums.size(), &num0Lineages.front(), std::plus<int>(), 0);
