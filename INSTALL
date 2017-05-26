@@ -12,7 +12,7 @@ WARNING: Make sure you use the same compiler and same compiler version to compil
 h2. Boost
 
 We advise you to install boost devel packages with your package manager. If you cannot, use this procedure :
-* "download boost":http://www.boost.org/
+* download boost, a version between 1.55 and 1.63 (included): https://sourceforge.net/projects/boost/files/boost/  
 * unarchive it
 * install it :
 <pre>
