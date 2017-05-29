@@ -1,7 +1,7 @@
 h1. Git Installation
 
 To compile phyldog, you need:
-* MPI libraries (e.g. OpenMPI)
+* MPI libraries (e.g. OpenMPI, make sure you compile with C++ bindings using ./configure --enable-mpi-cxx )
 * Boost libraries, with headers (devel packages / installation from sources), with enabled MPI (tested with boost from 1.49 to 1.58);
 * Bio++, 2.2.0 version;
 * PLL (Phylogenetic Likelihood Library) version 1.0.2 -- http://www.libpll.org/
