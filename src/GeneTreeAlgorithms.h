@@ -1,9 +1,9 @@
 /*
  * Copyright or © or Copr. Centre National de la Recherche Scientifique
  * contributor : Bastien Boussau (2009-2013)
- * 
+ *
  * bastien.boussau@univ-lyon1.fr
- * 
+ *
  * This software is a bioinformatics computer program whose purpose is to
  * simultaneously build gene and species trees when gene families have
  * undergone duplications and losses. It can analyze thousands of gene
@@ -12,19 +12,19 @@
  * in the maximum likelihood framework, by maximizing theprobability
  * of alignments given the species tree, the gene trees and the parameters
  * of duplication and loss.
- * 
+ *
  * This software is governed by the CeCILL license under French law and
- * abiding by the rules of distribution of free software.  You can  use, 
+ * abiding by the rules of distribution of free software.  You can  use,
  * modify and/ or redistribute the software under the terms of the CeCILL
  * license as circulated by CEA, CNRS and INRIA at the following URL
  * "http://www.cecill.info".
- * 
+ *
  * As a counterpart to the access to the source code and  rights to copy,
  * modify and redistribute granted by the license, users are provided only
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
- * liability. 
- * 
+ * liability.
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -32,10 +32,10 @@
  * therefore means  that it is reserved for developers  and  experienced
  * professionals having in-depth computer knowledge. Users are therefore
  * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or 
- * data to be ensured and,  more generally, to use and operate it in the 
- * same conditions as regards security. 
- * 
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
@@ -84,7 +84,7 @@
 
 
 
-
+#include "LikelihoodEvaluator.h"
 #include "ReconciliationTools.h"
 #include "GenericTreeExplorationAlgorithms.h"
 
@@ -93,24 +93,24 @@
 
 
 /**************************************************************************
- * This function creates a sequence tree from a species tree and a std::map 
+ * This function creates a sequence tree from a species tree and a std::map
  * containing the link between the species and their sequences.
  **************************************************************************/
 bpp::TreeTemplate<bpp::Node> * buildARandomSequenceTreeFromASpeciesTree
 (
  std::map <std::string,
- std::deque<std::string> > & spSeqs, 
- bpp::TreeTemplate<bpp::Node> & tree, 
+ std::deque<std::string> > & spSeqs,
+ bpp::TreeTemplate<bpp::Node> & tree,
  std::map <std::string, std::string> & spSelectedSeq
 );
 /**************************************************************************
- * This function creates a sequence tree from a species tree and the std::map 
+ * This function creates a sequence tree from a species tree and the std::map
  * containing the link between the species and the putative orthologous sequence.
  **************************************************************************/
 bpp::TreeTemplate<bpp::Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondanceMap
 (
- bpp::TreeTemplate<bpp::Node> & tree, 
- std::map <std::string, 
+ bpp::TreeTemplate<bpp::Node> & tree,
+ std::map <std::string,
  std::string> & spSelectedSeq
 );
 /******************************************************************************/
@@ -118,11 +118,11 @@ bpp::TreeTemplate<bpp::Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondan
 /******************************************************************************/
 double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly
 (
- std::map<std::string, std::string> & params, 
- bpp::TreeTemplate<bpp::Node>  *& unrootedGeneTree, 
- bpp::SiteContainer * sites, 
- bpp::SubstitutionModel* model, 
- bpp::DiscreteDistribution* rDist, 
+ std::map<std::string, std::string> & params,
+ bpp::TreeTemplate<bpp::Node>  *& unrootedGeneTree,
+ bpp::SiteContainer * sites,
+ bpp::SubstitutionModel* model,
+ bpp::DiscreteDistribution* rDist,
  std::string file, bpp::Alphabet *alphabet, bool mapping=false
 );
 
@@ -160,31 +160,31 @@ void optimizeBLForSPRs
 /******************************************************************************/
 bpp::TreeTemplate<bpp::Node>  * buildBioNJTree
 (
- std::map<std::string, std::string> & params, 
- bpp::SiteContainer * sites, 
- bpp::SubstitutionModel* model, 
- bpp::DiscreteDistribution* rDist, 
+ std::map<std::string, std::string> & params,
+ bpp::SiteContainer * sites,
+ bpp::SubstitutionModel* model,
+ bpp::DiscreteDistribution* rDist,
  bpp::Alphabet *alphabet
 );
 /******************************************************************************/
-// This function refines a gene tree topology and branch lengths using the PhyML 
+// This function refines a gene tree topology and branch lengths using the PhyML
 // algorithm.
 /******************************************************************************/
 void refineGeneTreeUsingSequenceLikelihoodOnly
 (
- std::map<std::string, std::string> & params, 
- bpp::TreeTemplate<bpp::Node>  *& unrootedGeneTree, 
- bpp::VectorSiteContainer * sites, 
- bpp::SubstitutionModel* model, 
- bpp::DiscreteDistribution* rDist, 
- std::string file, 
+ std::map<std::string, std::string> & params,
+ bpp::TreeTemplate<bpp::Node>  *& unrootedGeneTree,
+ bpp::VectorSiteContainer * sites,
+ bpp::SubstitutionModel* model,
+ bpp::DiscreteDistribution* rDist,
+ std::string file,
  bpp::Alphabet *alphabet
 );
 
 
 /**************************************************************************
- * This function produces a std::string version of a gene tree, 
- * with gene names replaced by species names. 
+ * This function produces a std::string version of a gene tree,
+ * with gene names replaced by species names.
  **************************************************************************/
 std::string geneTreeToParenthesisWithSpeciesNames
 (
@@ -193,15 +193,15 @@ std::string geneTreeToParenthesisWithSpeciesNames
 );
 
 /**************************************************************************
- * This function produces a gene tree from a std::string version in which 
- * gene names have been changed to include species names. 
+ * This function produces a gene tree from a std::string version in which
+ * gene names have been changed to include species names.
  **************************************************************************/
 bpp::TreeTemplate<bpp::Node> * parenthesisPlusSpeciesNamesToGeneTree(std::string geneTreeStr);
 
 
 /**************************************************************************
- * This function produces a std::string version of a gene tree, 
- * with gene names changed to include species names. 
+ * This function produces a std::string version of a gene tree,
+ * with gene names changed to include species names.
  **************************************************************************/
 std::string geneTreeToParenthesisPlusSpeciesNames
 (
@@ -225,16 +225,16 @@ void annotateGeneTreeWithSpeciesNames
  **************************************************************************/
 double refineGeneTreeDLOnly
 (
-  bpp::TreeTemplate<bpp::Node> * spTree, 
- bpp::TreeTemplate<bpp::Node> *& geneTree, 
+  bpp::TreeTemplate<bpp::Node> * spTree,
+ bpp::TreeTemplate<bpp::Node> *& geneTree,
  std::map<std::string, std::string > seqSp,
  std::map<std::string, int > spID,
- std::vector< double> &lossExpectedNumbers, 
- std::vector < double> &duplicationExpectedNumbers, 
- int & MLindex, 
- std::vector <int> &num0lineages, 
- std::vector <int> &num1lineages, 
- std::vector <int> &num2lineages, 
+ std::vector< double> &lossExpectedNumbers,
+ std::vector < double> &duplicationExpectedNumbers,
+ int & MLindex,
+ std::vector <int> &num0lineages,
+ std::vector <int> &num1lineages,
+ std::vector <int> &num2lineages,
  std::set <int> &nodesToTryInNNISearch
 );
 
@@ -244,10 +244,10 @@ double refineGeneTreeDLOnly
  **************************************************************************/
 void buildVectorOfRegraftingNodesGeneTree
 (
-  bpp::TreeTemplate<bpp::Node> &spTree, 
- bpp::TreeTemplate<bpp::Node> &tree, 
- int nodeForSPR, 
- int distance, 
+  bpp::TreeTemplate<bpp::Node> &spTree,
+ bpp::TreeTemplate<bpp::Node> &tree,
+ int nodeForSPR,
+ int distance,
  std::vector <int> & nodeIdsToRegraft
 ) ;
 
@@ -257,8 +257,8 @@ void buildVectorOfRegraftingNodesGeneTree
  **************************************************************************/
 void getAllCandidateBranchingPointsFromSpeciesID
 (
-  bpp::TreeTemplate<bpp::Node> &tree, 
- std::vector <std::string> spIds, 
+  bpp::TreeTemplate<bpp::Node> &tree,
+ std::vector <std::string> spIds,
  std::vector <int> & allNodeIds
 ) ;
 
@@ -290,10 +290,10 @@ void getSonsOfNodesWithSimilarSpeciesIds(bpp::Node * node, std::string spId, std
 
 void buildVectorOfRegraftingNodesCoalGeneTree
 (
-  bpp::TreeTemplate<bpp::Node> &spTree, 
- bpp::TreeTemplate<bpp::Node> &tree, 
- int nodeForSPR, 
- int distance, 
+  bpp::TreeTemplate<bpp::Node> &spTree,
+ bpp::TreeTemplate<bpp::Node> &tree,
+ int nodeForSPR,
+ int distance,
  std::vector <int> & nodeIdsToRegraft
 ) ;
 
@@ -346,25 +346,32 @@ bool editDuplicationNodesMuffato(bpp::TreeTemplate<bpp::Node> & spTree,
 void editDuplicationNodesMuffato(bpp::TreeTemplate<bpp::Node> & spTree,
                  bpp::TreeTemplate<bpp::Node> & geneTree,
                  bpp::Node * node,
-                 double editionThreshold, 
+                 double editionThreshold,
                  bool& edited) ;
 
 
 
 void editDuplicationNodesMuffato
 (
-  bpp::TreeTemplate<bpp::Node> & spTree, 
+  bpp::TreeTemplate<bpp::Node> & spTree,
  bpp::TreeTemplate<bpp::Node> & geneTree,
  bpp::Node * node,
  double editionThreshold) ;
  void recoverSAndSpPresentInSubtree ( bpp::TreeTemplate<bpp::Node> & spTree, bpp::Node * node ) ;
- 
- bpp::Node * removeNodesWithDegree1 ( bpp::Node * node
- 
- ) ;
- 
- 
+
+ bpp::Node * removeNodesWithDegree1 ( bpp::Node * node) ;
+
+ size_t findBestGeneTreeAmongSeveralCandidates(vector<bpp::Tree*> &trees,
+                                                              bpp::TreeTemplate < bpp::Node > *bestTree,
+                                                              double& bestSequenceLogL,
+                                                              double& bestScenarioLk, bpp::TreeTemplate<bpp::Node>* spTree,
+                                                             std::map <std::string, std::string>& seqSp, std::map <std::string, int>& spId,
+                                                             std::vector <double>& lossExpectedNumbers,
+                                                             std::vector <double>& duplicationExpectedNumbers,
+                                                             int tentativeMLindex,
+                                                             std::vector <int>& tentativeNum0Lineages, std::vector <int>& tentativeNum1Lineages, std::vector <int>& tentativeNum2Lineages, std::set <int>& tentativeNodesToTryInNNISearch,
+                                                             bool considerSequenceLikelihood,
+                                                             LikelihoodEvaluator* levaluator) ;
+
+
  #endif //_GENETREEALGORITHMS_H_
- 
- 
- 

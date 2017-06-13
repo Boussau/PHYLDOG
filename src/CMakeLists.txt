@@ -1,9 +1,9 @@
 SET(PHYLDOG_SRCS
   Constants.h
-  SpeciesTreeLikelihood.cpp
-  SpeciesTreeLikelihood.h
-  SpeciesTreeExploration.h
-  SpeciesTreeExploration.cpp
+  MPI_SpeciesTreeLikelihood.cpp
+  MPI_SpeciesTreeLikelihood.h
+  MPI_SpeciesTreeExploration.h
+  MPI_SpeciesTreeExploration.cpp
   ReconciliationTools.h
   ReconciliationTools.cpp
   DLGeneTreeLikelihood.cpp
@@ -34,6 +34,30 @@ target_link_libraries(phyldog
   ${PLL_LIBRARIES}
   ${BPP_LIBRARIES}
 )
+
+SET(PHYLDOGLIGHT_SRCS
+  Constants.h
+  ReconciliationTools.h
+  ReconciliationTools.cpp
+  GenericTreeExplorationAlgorithms.h
+  GenericTreeExplorationAlgorithms.cpp
+  GeneTreeAlgorithms.h
+  GeneTreeAlgorithms.cpp
+  FastRHomogeneousTreeLikelihood.h
+  FastRHomogeneousTreeLikelihood.cpp
+  LikelihoodEvaluator.h
+  LikelihoodEvaluator.cpp
+  )
+
+
+ADD_EXECUTABLE(phyldog_light Phyldog_light.cpp ${PHYLDOGLIGHT_SRCS})
+target_link_libraries(phyldog_light
+  ${PLL_LIBRARIES}
+  ${BPP_LIBRARIES}
+)
+
+
+
 # 
 # ADD_EXECUTABLE(phyldog_static ReconcileDuplications.cpp ${PHYLDOG_SRCS})
 # target_link_libraries(phyldog_static 

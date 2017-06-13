@@ -42,7 +42,7 @@
 
 #include "ReconciliationTools.h"
 
-#include "mpi.h"
+//#include "mpi.h" //SHOULD BE CORRECTED 13062017   
 
 
 
@@ -2211,7 +2211,7 @@ double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
                                 std::vector <int> &num1lineages,
                                 std::vector <int> &num2lineages,
                                 std::set <int> &nodesToTryInNNISearch,
-                                bool fillTables )
+                                const bool fillTables )
 {
 
 /*  std::cout<< "findMLReconciliationDR "<<std::endl;
@@ -3207,7 +3207,7 @@ TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *
     std::string geneTree_File =ApplicationTools::getStringParameter ( "gene.tree.file",params,"none" );
     if ( geneTree_File=="none" ) {
       std::cout << "\n\nNo Gene tree was provided. The option init.gene.tree is set to user (by default), which means that the option gene.tree.file must be filled with the path of a valid tree file. \nIf you do not have a gene tree file, the program can start from a random tree, if you set init.gene.tree at random, or can build a gene tree with BioNJ or a PhyML-like algorithm with options bionj or phyml.\n\n" << std::endl;
-      MPI::COMM_WORLD.Abort ( 1 );
+      //MPI::COMM_WORLD.Abort ( 1 ); //SHOULD BE CORRECTED 13062017   
       exit ( -1 );
     }
     Newick newick ( true );

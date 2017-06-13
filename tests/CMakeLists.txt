@@ -1,8 +1,9 @@
 SET(PHYLDOG_SRCS
-  ../src/SpeciesTreeLikelihood.cpp
-  ../src/SpeciesTreeLikelihood.h
-  ../src/SpeciesTreeExploration.h
-  ../src/SpeciesTreeExploration.cpp
+  ../src/Constants.h
+  ../src/MPI_SpeciesTreeLikelihood.cpp
+  ../src/MPI_SpeciesTreeLikelihood.h
+  ../src/MPI_SpeciesTreeExploration.h
+  ../src/MPI_SpeciesTreeExploration.cpp
   ../src/ReconciliationTools.h
   ../src/ReconciliationTools.cpp
   ../src/DLGeneTreeLikelihood.cpp
@@ -23,7 +24,8 @@ SET(PHYLDOG_SRCS
   ../src/ClientComputingGeneLikelihoods.cpp
   ../src/LikelihoodEvaluator.h
   ../src/LikelihoodEvaluator.cpp
-)
+  )
+
 
 ADD_EXECUTABLE(test_likelihoodEvaluator test_likelihoodEvaluator.cpp ${PHYLDOG_SRCS})
 target_link_libraries(test_likelihoodEvaluator 

@@ -14,7 +14,7 @@ of alignments given the species tree, the gene trees and the parameters
 of duplication and loss.
 
 This software is governed by the CeCILL license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
+abiding by the rules of distribution of free software.  You can  use,
 modify and/ or redistribute the software under the terms of the CeCILL
 license as circulated by CEA, CNRS and INRIA at the following URL
 "http://www.cecill.info".
@@ -23,7 +23,7 @@ As a counterpart to the access to the source code and  rights to copy,
 modify and redistribute granted by the license, users are provided only
 with a limited warranty  and the software's author,  the holder of the
 economic rights,  and the successive licensors  have only  limited
-liability. 
+liability.
 
 In this respect, the user's attention is drawn to the risks associated
 with loading,  using,  modifying and/or developing or reproducing the
@@ -32,9 +32,9 @@ that may mean  that it is complicated to manipulate,  and  that  also
 therefore means  that it is reserved for developers  and  experienced
 professionals having in-depth computer knowledge. Users are therefore
 encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and,  more generally, to use and operate it in the
+same conditions as regards security.
 
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
@@ -80,7 +80,7 @@ void LikelihoodEvaluator::PLL_initializePLLInstance(){
   PLL_attributes.useRecom         = PLL_FALSE;
   PLL_attributes.randomNumberSeed = 0xDEADBEEF;
   PLL_attributes.numberOfThreads  = 8;            /* This only affects the pthreads version */
-  
+
   PLL_instance = pllCreateInstance (&PLL_attributes);
 }
 
@@ -105,36 +105,36 @@ void LikelihoodEvaluator::loadDataFromParams(){
   std::getline(tempName,name,'.');
   if(name.size() == 0)
     name = "unnamed";
-  
+
   cout << "@@Instanciating a Likelihood Evaluator named " << name << endl;
-    
+
   string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
   method = (methodString == "PLL"? PLL:BPP);
-  
+
   // loading data, imported from GeneTreeLikelihood (Bastien)
-  
+
   std::vector <std::string> spNames;
   bool cont = false;
   alphabet =  getAlphabetFromOptions(params, cont);
 
   if (!cont)
     throw(Exception("Unable to load this family: Alphabet"));
- 
+
   sites = getSequencesFromOptions(params, alphabet, cont);
 
   if (!cont)
     throw(Exception("Unable to load this family: Sequences"));
- 
+
   substitutionModel = getModelFromOptions(params, alphabet, sites, cont);
 
   if (!cont)
     throw(Exception("Unable to load this family: Model"));
-   
- 
+
+
   rateDistribution = getRateDistributionFromOptions(params, substitutionModel, cont);
 
-  
-  //For the moment, we have not filtered sequences, 
+
+  //For the moment, we have not filtered sequences,
   //so we don't want to spend time computing a tree that we may discard soon.
   //Instead we just create a random tree.
   std::vector<std::string> leafNames = sites->getSequencesNames();
@@ -142,10 +142,10 @@ void LikelihoodEvaluator::loadDataFromParams(){
 
   //Get the scaler variable
   scaler_ = ApplicationTools::getDoubleParameter("sequence.likelihood.scaler", params, 1.0, "", false, false);
-  
-  
-/*  
-  try 
+
+
+/*
+  try
   {
     bool cont = true;
     tree = getTreeFromOptions(params, alphabet, sites, substitutionModel, rateDistribution, cont);
@@ -210,19 +210,19 @@ void LikelihoodEvaluator::PLL_loadPartitions(string path)
   WHEREAMI( __FILE__ , __LINE__ );
   /* Parse the partitions file into a partition queue structure */
   PLL_partitionInfo = pllPartitionParse (path.c_str());
-  
+
   /* Validate the partitions */
   if (!pllPartitionsValidate (PLL_partitionInfo, PLL_alignmentData))
   {
     throw Exception("PLL: Partitions do not cover all sites.");
   }
-  
+
   /* Commit the partitions and build a partitions structure */
   PLL_partitions = pllPartitionsCommit (PLL_partitionInfo, PLL_alignmentData);
-  
+
   /* We don't need the the intermedia partition queue structure anymore */
   pllQueuePartitionsDestroy (&PLL_partitionInfo);
-  
+
   /* eliminate duplicate sites from the alignment and update weights vector */
   pllAlignmentRemoveDups (PLL_alignmentData, PLL_partitions);
 }
@@ -239,9 +239,9 @@ void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
   {
     throw Exception("PLL: Incompatible tree/alignment combination.");
   }
-  
+
   pllNewickParseDestroy(&PLL_newick);
-  
+
   WHEREAMI( __FILE__ , __LINE__ );
 }
 
@@ -250,7 +250,7 @@ void LikelihoodEvaluator::initialize_BPP_nniLk()
 {
   WHEREAMI( __FILE__ , __LINE__ );
   nniLk = new NNIHomogeneousTreeLikelihood(*tree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
-  
+
   nniLk->initParameters();
   nniLk->initialize();
   if(logLikelihood == 0)
@@ -265,9 +265,9 @@ void LikelihoodEvaluator::initialize_PLL()
   // must have the strict names loaded
   loadStrictNamesFromAlignment_forPLL();
   writeAlignmentFilesForPLL();
-  
+
   // preparing the tree
-  
+
   // PLL process
   alpha_ = 1.0;
 /*  baseFreq_[0]=0.25;
@@ -275,7 +275,7 @@ void LikelihoodEvaluator::initialize_PLL()
   baseFreq_[2]=0.25;
   baseFreq_[3]=0.25;
   subsMatrix_[0] = 1/6;
-  subsMatrix_[1] = 1/6;  
+  subsMatrix_[1] = 1/6;
   subsMatrix_[2] = 1/6;
   subsMatrix_[3] = 1/6;
   subsMatrix_[4] = 1/6;
@@ -284,11 +284,11 @@ void LikelihoodEvaluator::initialize_PLL()
   PLL_initializePLLInstance();
   PLL_loadAlignment(fileNamePrefix + "alignment.fasta");
   PLL_loadPartitions(fileNamePrefix + "partition.txt");
-  
-  
+
+
   if(logLikelihood == 0)
     logLikelihood = PLL_evaluate(&tree) * scaler_;
-  
+
 }
 
 void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
@@ -307,17 +307,17 @@ void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  
+
   //TODO debug remove
   Newick debugTree;
   stringstream debugSS;
   debugTree.write(**treeToEvaluate,debugSS);
 //  cout << "tree to evaluate:\n" << debugSS.str() << endl;
-  
+
   // preparing the tree
   TreeTemplate<Node>* treeForPLL = (*treeToEvaluate)->clone();
   convertTreeToStrict(treeForPLL);
-  
+
   // getting the root
   bool wasRooted = (treeForPLL->isRooted() ? true : false);
   set<string> leaves1, leaves2;
@@ -332,14 +332,14 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
     leaves2.insert(leaves2Vector.begin(),leaves2Vector.end());
     treeForPLL->unroot();
   }
-  
-  
+
+
   Newick newickForPll;
   stringstream newickStingForPll;
   newickForPll.write(*treeForPLL,newickStingForPll);
   PLL_loadNewick_fromString(newickStingForPll.str());
   delete treeForPLL;
-  
+
   // processing by PLL
   PLL_connectTreeAndAlignment();
   // pllSetFixedAlpha(alpha_, 0, PLL_partitions, PLL_instance);
@@ -352,8 +352,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   }
   else
     pllEvaluateLikelihood (PLL_instance, PLL_partitions, PLL_instance->start, PLL_TRUE, PLL_FALSE);
-  WHEREAMI( __FILE__ , __LINE__ );  
-  
+  WHEREAMI( __FILE__ , __LINE__ );
+
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
 
@@ -362,13 +362,13 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   // getting the new tree with new branch lengths
   pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
   newickStingForPll.str(PLL_instance->tree_string);
-  
+
   //debug
   //cout << "DEBUG returned tree from PLL, LikelihoodEvaluator l367 \n" << newickStingForPll.str() << endl;
-  
+
   delete *treeToEvaluate;
   *treeToEvaluate = newickForPll.read(newickStingForPll);
-  
+
   // getting the likelihood and then deleting PLL_instance
   double PLL_instance_likelihood = PLL_instance->likelihood * scaler_;
 
@@ -386,13 +386,13 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
     {
       vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
       set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
-      
+
       if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
         (*treeToEvaluate)->newOutGroup(*currSon);
 
     }
-    
-    // if not, we will try all the internal branches as potential roots    
+
+    // if not, we will try all the internal branches as potential roots
     if(!(*treeToEvaluate)->isRooted())
     {
       vector<Node*> outgroupCandidates = (*treeToEvaluate)->getNodes();
@@ -400,22 +400,22 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
       {
         vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
         set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
-        
+
         if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
         (*treeToEvaluate)->newOutGroup(*currCandidate);
-      } 
+      }
     }
-    
-    
+
+
     if(!(*treeToEvaluate)->isRooted())
     {
       cout << "Unable to re-root the tree, I will give up, sorry." << endl;
       cout << "l1.s = " << leaves1.size() << ". l2.s = " << leaves2.size() << endl;
       throw Exception("Unable to re-root the tree.");
-    } 
-    
+    }
+
   }
-  
+
 
   //std::cout << "DEBUG Before restoring: "<< TreeTemplateTools::treeToParenthesis(**treeToEvaluate) <<std::endl;
   restoreTreeFromStrict(*treeToEvaluate);
@@ -426,12 +426,12 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   debugTree.write(**treeToEvaluate,debugSS2);
   cout << "Final tree for BPP" << debugSS2.str() << endl;
   */
-  
+
   return(PLL_instance_likelihood);
 }
 
 double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
-{ 
+{
   WHEREAMI( __FILE__ , __LINE__ );
 
   // preparing the tree
@@ -454,16 +454,16 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 
   NNIHomogeneousTreeLikelihood * drlk = 0;
-  drlk  = new NNIHomogeneousTreeLikelihood (**treeToEvaluate, 
-                                              *(nniLk->getData()), 
-                                              nniLk->getSubstitutionModel(), 
-                                              nniLk->getRateDistribution(), 
+  drlk  = new NNIHomogeneousTreeLikelihood (**treeToEvaluate,
+                                              *(nniLk->getData()),
+                                              nniLk->getSubstitutionModel(),
+                                              nniLk->getRateDistribution(),
                                               true, false);
 
   drlk->initialize();
   auto_ptr<BackupListener> backupListener;
   int tlEvalMax = 100;
-  OutputStream* messageHandler = 0 ; 
+  OutputStream* messageHandler = 0 ;
   OptimizationTools::optimizeBranchLengthsParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*> (drlk), drlk->getParameters(), backupListener.get(), tolerance_, tlEvalMax, messageHandler, messageHandler, 0);
 
   delete *treeToEvaluate;
@@ -480,13 +480,13 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
     {
       vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
       set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
-      
+
       if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
         (*treeToEvaluate)->newOutGroup(*currSon);
 
     }
-    
-    // if not, we will try all the internal branches as potential roots    
+
+    // if not, we will try all the internal branches as potential roots
     if(!(*treeToEvaluate)->isRooted())
     {
       vector<Node*> outgroupCandidates = (*treeToEvaluate)->getNodes();
@@ -494,24 +494,24 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
       {
         vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
         set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
-        
+
         if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
         (*treeToEvaluate)->newOutGroup(*currCandidate);
-      } 
+      }
     }
-    
-    
+
+
     if(!(*treeToEvaluate)->isRooted())
     {
       cout << "Unable to re-root the tree, I will give up, sorry." << endl;
       cout << "l1.s = " << leaves1.size() << ". l2.s = " << leaves2.size() << endl;
       throw Exception("Unable to re-root the tree.");
-    } 
-    
+    }
+
   }
 
   return -drlk->getValue() * scaler_;
- 
+
 
 }
 
@@ -555,10 +555,10 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
     delete alternativeTree;
   if(method=PLL){
     remove(string(fileNamePrefix + "alignment.fasta").c_str());
-    remove(string(fileNamePrefix + "partition.txt").c_str()); 
+    remove(string(fileNamePrefix + "partition.txt").c_str());
   }
   WHEREAMI( __FILE__ , __LINE__ );
-  
+
 }
 
 void LikelihoodEvaluator::initialize()
@@ -572,13 +572,13 @@ void LikelihoodEvaluator::initialize()
     errorMessage << "\nNumber of sequences (here: "<< sites->getNumberOfSequences() << "sequences) must match to number of leaves in the tree (here: "<< tree->getNumberOfLeaves() << "leaves). I give up.";
     throw Exception(errorMessage.str());
   }
-  
+
   // ### common requirements for initialization
   if(method == PLL)
     initialize_PLL();
   else
     initialize_BPP_nniLk();
-  
+
   //
   initialized = true;
 }
@@ -592,7 +592,7 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternativ
   if(alternativeTree != 00)
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
-  
+
   if(method == PLL){
     alternativeLogLikelihood = PLL_evaluate( &alternativeTree ) * scaler_;
   }
@@ -686,10 +686,10 @@ void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
     currName = seqNames.at(currIdx);
     if(currName.at(currName.size()-1) == '\r')
       currName = currName.substr(0,(currName.size()-1));
-    
-//     cout << "Curr sequence name = ..." << currName << "..." << endl; 
-    
-    
+
+//     cout << "Curr sequence name = ..." << currName << "..." << endl;
+
+
 //     // determining current postfix with letters instead of integers.
 //     // Thanks PLL to be so strict!...
 //     // (it is not a clean base conversion)
@@ -702,21 +702,21 @@ void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 //       currIntegerPrefix = currIntegerPrefix / 10;
 //     }
 //     cout << "curr prefix = " << currPrefix.str() << endl;
-    
+
     currStrictName.clear();
     currStrictName.str("");
     currStrictName << "seq" << currIdx;
     realToStrict[currName] = currStrictName.str();
     strictToReal[currStrictName.str()] = currName;
-    
+
   }
-  
+
 }
 
 void LikelihoodEvaluator::convertTreeToStrict(TreeTemplate< Node >* targetTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  
+
   vector<Node*> leaves = targetTree->getLeaves();
   for(vector<Node*>::iterator currLeaf = leaves.begin(); currLeaf != leaves.end(); currLeaf++)
   {
@@ -760,7 +760,7 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   BasicSequence currSequence(sites->getAlphabet());
   //DEBUG
   cout << "Writing an alignment for PLL with " << sites->getNumberOfSequences() << " sequences. File: " << string(fileNamePrefix + "alignment.fasta") << endl;
-  
+
   for(unsigned int currSeqIndex = 0; currSeqIndex != sites->getNumberOfSequences(); currSeqIndex++)
   {
     currSequence = sites->getSequence(currSeqIndex);
@@ -779,8 +779,8 @@ if (alphabet->getSize() == 4) {
      std::cout << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes GTR for nucleotide models." <<std::endl;
      cout.flush();
      std::cerr << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes GTR for nucleotide models." <<std::endl;
-     cerr.flush();   
-     MPI::COMM_WORLD.Abort(1);
+     cerr.flush();
+     //MPI::COMM_WORLD.Abort(1); //SHOULD BE CORRECTED 13062017
      exit(-1);
     }
     if (ApplicationTools::getBooleanParameter("codon.partition", params, false, "") == true ) {
@@ -788,7 +788,7 @@ if (alphabet->getSize() == 4) {
       partitionFile << "DNA, p2=2-" << sites->getNumberOfSites() << "/3\n";
       partitionFile << "DNA, p3=3-" << sites->getNumberOfSites() << "/3\n";
     }
-     else 
+     else
       partitionFile << "DNA, p1=1-" << sites->getNumberOfSites() << "\n";
 }
 else if (alphabet->getSize() == 20) {
@@ -805,8 +805,8 @@ else if (alphabet->getSize() == 20) {
      std::cout << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes LG08, WAG01, JTT92 for protein models." <<std::endl;
      cout.flush();
      std::cerr << "Error: model unrecognized for optimization with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only recognizes LG08, WAG01, JTT92 for protein models." <<std::endl;
-     cerr.flush();   
-     MPI::COMM_WORLD.Abort(1);
+     cerr.flush();
+     //MPI::COMM_WORLD.Abort(1); //SHOULD BE CORRECTED 13062017  
      exit(-1);
     }
 }
@@ -815,7 +815,7 @@ else {
   cout.flush();
   std::cerr << "Error: alphabet incompatible with PLL. Maybe you want to use BPP by setting the option: likelihood.evaluator=BPP. PLL only works with DNA/RNA or Protein alphabets." <<std::endl;
   cerr.flush();
-  MPI::COMM_WORLD.Abort(1);
+  //MPI::COMM_WORLD.Abort(1); //SHOULD BE CORRECTED 13062017  
   exit(-1);
 }
   partitionFile.close();
@@ -826,11 +826,11 @@ LikelihoodEvaluator::LikelihoodEvaluator(LikelihoodEvaluator const &leval):
 params(leval.params), initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), aligmentFilesForPllWritten_(false), logLikelihood(0), pll_model_already_initialized_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  
+
   loadDataFromParams();
   tree = leval.tree;
   sites = leval.sites;
-  
+
   if(leval.initialized)
     initialize();
 }
@@ -849,10 +849,10 @@ initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL
   this->substitutionModel = model->clone();
   this->rateDistribution = rateDistribution->clone();
   this->sites = dynamic_cast<VectorSiteContainer*>(alignment->clone());
-  
+
   string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
   this->method = (methodString == "PLL"? PLL:BPP);
-  
+
   initialize();
-  
+
 }

@@ -73,7 +73,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include "ReconciliationTools.h"
 #include "COALTools.h"
-#include "SpeciesTreeExploration.h"
+#include "MPI_SpeciesTreeExploration.h"
 
 //#include "GeneTreeAlgorithms.h"
 

@@ -4,16 +4,16 @@ contributor : Bastien Boussau (2009-2013)
 
 bastien.boussau@univ-lyon1.fr
 
-This software is a computer program whose purpose is to simultaneously build 
-gene and species trees when gene families have undergone duplications and 
-losses. It can analyze thousands of gene families in dozens of genomes 
-simultaneously, and was presented in an article in Genome Research. Trees and 
-parameters are estimated in the maximum likelihood framework, by maximizing 
-theprobability of alignments given the species tree, the gene trees and the 
+This software is a computer program whose purpose is to simultaneously build
+gene and species trees when gene families have undergone duplications and
+losses. It can analyze thousands of gene families in dozens of genomes
+simultaneously, and was presented in an article in Genome Research. Trees and
+parameters are estimated in the maximum likelihood framework, by maximizing
+theprobability of alignments given the species tree, the gene trees and the
 parameters of duplication and loss.
 
 This software is governed by the CeCILL license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
+abiding by the rules of distribution of free software.  You can  use,
 modify and/ or redistribute the software under the terms of the CeCILL
 license as circulated by CEA, CNRS and INRIA at the following URL
 "http://www.cecill.info".
@@ -22,7 +22,7 @@ As a counterpart to the access to the source code and  rights to copy,
 modify and redistribute granted by the license, users are provided only
 with a limited warranty  and the software's author,  the holder of the
 economic rights,  and the successive licensors  have only  limited
-liability. 
+liability.
 
 In this respect, the user's attention is drawn to the risks associated
 with loading,  using,  modifying and/or developing or reproducing the
@@ -31,9 +31,9 @@ that may mean  that it is complicated to manipulate,  and  that  also
 therefore means  that it is reserved for developers  and  experienced
 professionals having in-depth computer knowledge. Users are therefore
 encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and,  more generally, to use and operate it in the
+same conditions as regards security.
 
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
@@ -53,20 +53,20 @@ using namespace bpp;
 using namespace std;
 
 /**************************************************************************
- * This function creates a sequence tree from a species tree and a std::map 
+ * This function creates a sequence tree from a species tree and a std::map
  * containing the link between the species and their sequences.
  **************************************************************************/
 
-TreeTemplate<Node> * buildARandomSequenceTreeFromASpeciesTree (std::map <std::string, 
-                                                               std::deque<std::string> > & spSeqs, 
-                                                               TreeTemplate<Node> & tree, 
+TreeTemplate<Node> * buildARandomSequenceTreeFromASpeciesTree (std::map <std::string,
+                                                               std::deque<std::string> > & spSeqs,
+                                                               TreeTemplate<Node> & tree,
                                                                std::map <std::string, std::string> & spSelectedSeq) {
-  
+
 	TreeTemplate<Node> * seqTree ;
 	seqTree = new TreeTemplate<Node>(tree);
 	//seqTree = tree;
 	spSelectedSeq.clear();
-  
+
 	for(std::map<std::string, std::deque<std::string> >::iterator it = spSeqs.begin(); it != spSeqs.end(); it++){
 		int numSeq = (it->second).size();
 		//    std::cout <<"Numseqs : "<<numSeq<<std::endl;
@@ -82,22 +82,22 @@ TreeTemplate<Node> * buildARandomSequenceTreeFromASpeciesTree (std::map <std::st
 		}
 	}
 	return seqTree;
-  
+
 }
 
 
 /**************************************************************************
- * This function creates a sequence tree from a species tree and the std::map 
+ * This function creates a sequence tree from a species tree and the std::map
  * containing the link between the species and the putative orthologous sequence.
  **************************************************************************/
 
-TreeTemplate<Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondanceMap (TreeTemplate<Node> & tree, 
-                                                                             std::map <std::string, 
+TreeTemplate<Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondanceMap (TreeTemplate<Node> & tree,
+                                                                             std::map <std::string,
                                                                              std::string> & spSelectedSeq) {
-  
+
 	TreeTemplate<Node> * seqTree ;
 	seqTree = new TreeTemplate<Node>(tree);
-  
+
 	std::vector <std::string> names = seqTree->getLeavesNames();
 	for(std::vector < std::string >::iterator it = names.begin(); it != names.end(); it++){
 		if (spSelectedSeq.count(*it)>0) {
@@ -111,27 +111,27 @@ TreeTemplate<Node> * buildASequenceTreeFromASpeciesTreeAndCorrespondanceMap (Tre
 			seqTree->getNode(leafId)->getFather()->removeSon(seqTree->getNode(leafId));
 		}
 	}
-  
+
 	return seqTree;
-  
+
 }
 
 /******************************************************************************/
 // This function refines branch lengths of a gene tree.
 /******************************************************************************/
 
-double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
-                                                             TreeTemplate<Node>  *& unrootedGeneTree, 
-                                                             VectorSiteContainer * sites, 
-                                                             SubstitutionModel* model, 
-                                                             DiscreteDistribution* rDist, 
+double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params,
+                                                             TreeTemplate<Node>  *& unrootedGeneTree,
+                                                             VectorSiteContainer * sites,
+                                                             SubstitutionModel* model,
+                                                             DiscreteDistribution* rDist,
                                                              string file, Alphabet *alphabet, bool mapping)
-{ 
+{
     DiscreteRatesAcrossSitesTreeLikelihood* tl;
     //DRHomogeneousTreeLikelihood * DRHomogeneousTreeLikelihood
     // std::cout << TreeTemplateTools::treeToParenthesis(*unrootedGeneTree) <<std::endl;
 
-    tl = new DRHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true);  
+    tl = new DRHomogeneousTreeLikelihood(*unrootedGeneTree, *sites, model, rDist, true);
     tl->initialize();//Only initializes the parameter list, and computes the likelihood
 
     double logL = tl->getValue();
@@ -182,9 +182,9 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
       exit(-1);
       }
 
-  if (!mapping) 
+  if (!mapping)
     {
-    
+
     tl = dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(
                                                                PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(tl), tl->getParameters(), params));
 
@@ -194,7 +194,7 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
     tl = dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(
                                                              PhylogeneticsApplicationTools::optimizeParameters(dynamic_cast<DiscreteRatesAcrossSitesTreeLikelihood*>(tl), tl->getParameters(), params));
 
-    
+
   }
 
 //  std::cout << "Sequence likelihood: "<< -logL << "; Optimized sequence log likelihood "<< -tl->getValue()  << std::endl;
@@ -202,7 +202,7 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
   if (unrootedGeneTree)
     delete unrootedGeneTree;
   unrootedGeneTree = new TreeTemplate<Node> ( tl->getTree() );
-  delete tl;   
+  delete tl;
   return logL;
 }
 
@@ -221,7 +221,7 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
                                                   double threshold)
 {
   //auto_ptr<SubstitutionCount> count(new UniformizationSubstitutionCount(model, reg.clone()));
-  
+
   //SubstitutionCount* count = new SimpleSubstitutionCount(reg);
   const CategorySubstitutionRegister* creg = 0;
   if (!stationarity) {
@@ -315,10 +315,10 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
                                                   double threshold)
 {
   //auto_ptr<SubstitutionCount> count(new UniformizationSubstitutionCount(model, reg.clone()));
-  
-  //SubstitutionCount* count = new SimpleSubstitutionCount(reg);  
+
+  //SubstitutionCount* count = new SimpleSubstitutionCount(reg);
   auto_ptr<ProbabilisticSubstitutionMapping> mapping(SubstitutionMappingTools::computeSubstitutionVectors(drtl, *count, false));
- 
+
   vector< vector<unsigned int> > counts(ids.size());
   unsigned int nbSites = mapping->getNumberOfSites();
   unsigned int nbTypes = mapping->getNumberOfSubstitutionTypes();
@@ -347,7 +347,7 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
         countsf += tmp;
       }
     }
-    
+
   ERROR:
     if (error) {
       //We do nothing. This happens for small branches.
@@ -359,7 +359,7 @@ double refineGeneTreeBranchLengthsUsingSequenceLikelihoodOnly (std::map<std::str
         ApplicationTools::displayWarning("On branch " + TextTools::toString(ids[k]) + ", " + TextTools::toString(nbIgnored) + " sites (" + TextTools::toString(ceil(static_cast<double>(nbIgnored * 100) / static_cast<double>(nbSites))) + "%) have been ignored because they are presumably saturated.");
       }
     }
-    
+
     counts[k].resize(countsf.size());
     for (size_t j = 0; j < countsf.size(); ++j) {
       counts[k][j] = static_cast<unsigned int>(floor(countsf[j] + 0.5)); //Round counts
@@ -387,11 +387,11 @@ void optimizeBLMapping(
   double numberOfSites = (double) tl->getNumberOfSites();
   vector<int> ids = tl->getTree().getNodesId();
   ids.pop_back(); //remove root id.
-  SubstitutionRegister* reg = 0;  
+  SubstitutionRegister* reg = 0;
   //Counting all substitutions
   reg = new TotalSubstitutionRegister(tl->getAlphabet());
   bool first = true;
-    SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);   
+    SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);
   while (currentValue > newValue + precision) {
     if (first)
       first=false;
@@ -407,9 +407,9 @@ void optimizeBLMapping(
       value = double(VectorTools::sum(counts[i])) / (double)numberOfSites;
       newBls.setParameterValue(name, newBls.getParameter(name).getConstraint()->getAcceptedLimit (value));
     }
-    
+
     tl->matchParametersValues(newBls);
-    
+
     newValue = tl->getValue();
   // std::cout <<"before: "<< currentValue<<" AFTER: "<< newValue <<std::endl;
       if (currentValue > newValue + precision) { //Significant improvement
@@ -418,13 +418,13 @@ void optimizeBLMapping(
  //       std::cout<< "AFTER: "<<TreeTemplateTools::treeToParenthesis(tl->getTree(), true)<< std::endl;
 
     }
-    else { 
+    else {
       if (currentValue < newValue) //new state worse, getting back to the former state
       tl->matchParametersValues(bls);
     }
   }
   */
-  
+
   /*
   //Counting all substitutions
   reg = new ComprehensiveSubstitutionRegister(tl->getAlphabet(), false);
@@ -467,7 +467,7 @@ void optimizeBLMapping(
 void optimizeBLMappingForSPRs(
                        DRTreeLikelihood* tl,
                        double precision, map<string, string> params)
-{    
+{
  /*   if (!tl->isInitialized () ) {
         tl->initialize();
     }
@@ -479,18 +479,18 @@ void optimizeBLMappingForSPRs(
     double numberOfSites = (double) tl->getNumberOfSites();
     vector<int> ids = tl->getTree().getNodesId();
     ids.pop_back(); //remove root id.
-    SubstitutionRegister* reg = 0;  
+    SubstitutionRegister* reg = 0;
 
     //Counting all substitutions
     reg = new TotalSubstitutionRegister(tl->getAlphabet());
-    
+
     //Then, normal optimization.
-    
-    
-    SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);   
+
+
+    SubstitutionCount *count = new SimpleSubstitutionCount( reg);  // new UniformizationSubstitutionCount(tl->getSubstitutionModel(0,0), reg);
    //We do the mapping based thing only once:
         //Perform the mapping:
-    
+
         counts = getTotalCountsOfSubstitutionsPerBranch(*tl, ids, tl->getSubstitutionModel(0,0), *reg, count, -1);
 
         double value;
@@ -506,14 +506,14 @@ void optimizeBLMappingForSPRs(
 
        // tl->matchParametersValues(newBls);
     tl->setParametersValues(newBls);
-    
+
         newValue = tl->getValue();
 
         if (currentValue > newValue + precision) { //Significant improvement
             bls = newBls;
-            tl->setParametersValues(bls);     
+            tl->setParametersValues(bls);
         }
-        else { 
+        else {
             if (currentValue < newValue) //new state worse, getting back to the former state
                 tl->matchParametersValues(bls);
             // tl->getValue();
@@ -523,18 +523,18 @@ void optimizeBLMappingForSPRs(
   //  }
     //Then, normal optimization.
 
-//ATTEMPT WITHOUT FULL OPTIMIZATION 16 10 2011   
+//ATTEMPT WITHOUT FULL OPTIMIZATION 16 10 2011
     //But with few rounds of optimization
-    
+
     int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
     {
         params[ std::string("optimization.max_number_f_eval")] = 10;
     }
-        
+
     PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
     params[ std::string("optimization.max_number_f_eval")] = backup;
      */
-    
+
 }
 
 /******************************************************************************/
@@ -544,16 +544,16 @@ void optimizeBLMappingForSPRs(
 void optimizeBLForSPRs(
                               DRTreeLikelihood* tl,
                               double precision, map<string, string> params)
-{    
+{
     //But with few rounds of optimization
     int backup = ApplicationTools::getIntParameter("optimization.max_number_f_eval", params, false, "", true, false);
     {
         params[ std::string("optimization.max_number_f_eval")] = 10;
     }
-    
+
     PhylogeneticsApplicationTools::optimizeParameters(tl, tl->getParameters(), params, "", true, false);
-    params[ std::string("optimization.max_number_f_eval")] = backup;    
-    
+    params[ std::string("optimization.max_number_f_eval")] = backup;
+
 }
 
 
@@ -598,7 +598,7 @@ throw (Exception)
                 }
                 sonArray   = sonData->getLikelihoodArrayForNeighbor(nodes[i]->getFather()->getId());
                 //Now we have the two arrays, we can build a branch likelihood object.
-                
+
                 //Initialize BranchLikelihood:
                 brLikFunction->initModel(tl->getSubstitutionModel(), tl->getRateDistribution());
                 brLikFunction->initLikelihoods(&fatherArray, &sonArray);
@@ -609,7 +609,7 @@ throw (Exception)
                 brLen.setName(name);
                 params.addParameter(brLen);
                 brLikFunction->setParameters(params);
-                
+
                 //Re-estimate branch length:
                 brentOptimizer->setFunction(brLikFunction);
                 brentOptimizer->getStopCondition()->setTolerance(0.1);
@@ -625,14 +625,14 @@ throw (Exception)
                 brLikFunction->resetLikelihoods(); //Array1 and Array2 will be destroyed after this function call.
                 //We should not keep pointers towards them...
 
-                
-                
+
+
             }
         }
     }
-    
-    
-    
+
+
+
 }
 
 
@@ -640,28 +640,28 @@ throw (Exception)
 // This function builds a bionj tree
 /******************************************************************************/
 
-TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & params, 
-                                      SiteContainer * sites, 
-                                      SubstitutionModel* model, 
-                                      DiscreteDistribution* rDist, 
+TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & params,
+                                      SiteContainer * sites,
+                                      SubstitutionModel* model,
+                                      DiscreteDistribution* rDist,
                                       Alphabet *alphabet) {
-    
+
     bool slow = false;
-    
-    
+
+
     if (slow) {
-    
+
     TreeTemplate<Node>  *unrootedGeneTree = 0;
-    
+
     //We don't want to use rate heterogeneity across sites with bionj, it seems to behave weirdly (e.g. very long branches)
     auto_ptr<DiscreteDistribution>   rDist2 (new ConstantDistribution(1.) );
     DistanceEstimation distEstimation(model->clone(), rDist2.release(), sites, 1, false);
-    
-    //DistanceEstimation distEstimation(model, rDist, sites, 1, false);
-    	
-    BioNJ * bionj = new BioNJ();     
 
-    bionj->outputPositiveLengths(true);  
+    //DistanceEstimation distEstimation(model, rDist, sites, 1, false);
+
+    BioNJ * bionj = new BioNJ();
+
+    bionj->outputPositiveLengths(true);
 
     std::string type = ApplicationTools::getStringParameter("bionj.optimization.method", params, "init");
     if(type == "init") type = OptimizationTools::DISTANCEMETHOD_INIT;
@@ -692,9 +692,9 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
                     Parameter* p = &allParameters.getParameter(param);
                     parametersToIgnore.addParameter(*p);
                 }
-                else ApplicationTools::displayWarning("Parameter '" + param + "' not found."); 
+                else ApplicationTools::displayWarning("Parameter '" + param + "' not found.");
             }
-        } 
+        }
         catch(ParameterNotFoundException pnfe)
         {
             ApplicationTools::displayError("Parameter '" + pnfe.getParameter() + "' not found, and so can't be ignored!");
@@ -705,17 +705,17 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     unrootedGeneTree = OptimizationTools::buildDistanceTree(distEstimation, *bionj, parametersToIgnore, !ignoreBrLen, type, tolerance);
     std::cout << std::endl;
     std::vector<Node*> nodes = unrootedGeneTree->getNodes();
-    
+
     for(unsigned int k = 0; k < nodes.size(); k++)
     {
         if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() < 0.000001) nodes[k]->setDistanceToFather(0.000001);
         if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() >= 5) throw Exception("Found a very large branch length in a gene tree; will avoid this family.");
         //Remove long branches, in case it helps
-        //if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() > 0.5) nodes[k]->setDistanceToFather(0.05);        
+        //if(nodes[k]->hasDistanceToFather() && nodes[k]->getDistanceToFather() > 0.5) nodes[k]->setDistanceToFather(0.05);
     }
 
     //delete rDist2;
-    delete bionj;  
+    delete bionj;
     return unrootedGeneTree;
     }
     else {
@@ -794,13 +794,13 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
               delete lik;
 
             }
-            else {                
-		(*dist)(i, j) = (*dist)(j, i) = - sizAlphabetMinus1OverSizAlphabet * log ( 1 - dista / sizAlphabetMinus1OverSizAlphabet );  
+            else {
+		(*dist)(i, j) = (*dist)(j, i) = - sizAlphabetMinus1OverSizAlphabet * log ( 1 - dista / sizAlphabetMinus1OverSizAlphabet );
 		//std::cout << "(*dist)(i, j) : "<< (*dist)(i, j) << " dista / sizAlphabetMinus1OverSizAlphabet: "<<  dista / sizAlphabetMinus1OverSizAlphabet << " dista : " << dista  <<std::endl;
 		}
         }
-       
-        
+
+
     }
         //Now we have the dist matrix, we can compute our bionj tree.
       BioNJ bionjTreeBuilder ( false, true, false );
@@ -823,18 +823,18 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
 
 
 /******************************************************************************/
-// This function refines a gene tree topology and branch lengths using the PhyML 
+// This function refines a gene tree topology and branch lengths using the PhyML
 // algorithm.
 /******************************************************************************/
 
-void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params, 
-                                                TreeTemplate<Node>  *& unrootedGeneTree, 
-                                                VectorSiteContainer * sites, 
-                                                SubstitutionModel* model, 
-                                                DiscreteDistribution* rDist, 
-                                                string file, 
+void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::string> & params,
+                                                TreeTemplate<Node>  *& unrootedGeneTree,
+                                                VectorSiteContainer * sites,
+                                                SubstitutionModel* model,
+                                                DiscreteDistribution* rDist,
+                                                string file,
                                                 Alphabet *alphabet)
-{ 
+{
   std::string backupParamOptTopo = params[ std::string("optimization.topology.algorithm_nni.method")];
   std::string backupParamnumEval = params[ std::string("optimization.max_number_f_eval")];
   std::string backupParamOptTol = params[ std::string("optimization.tolerance")];
@@ -889,11 +889,11 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
     ApplicationTools::displayError("!!! 0 values (inf in log) may be due to computer overflow, particularily if datasets are big (>~500 sequences).");
     exit(-1);
     }
-  
-  tl = dynamic_cast<NNIHomogeneousTreeLikelihood*>(PhylogeneticsApplicationTools::optimizeParameters(tl, 
-                                                                                                     tl->getParameters(), 
+
+  tl = dynamic_cast<NNIHomogeneousTreeLikelihood*>(PhylogeneticsApplicationTools::optimizeParameters(tl,
+                                                                                                     tl->getParameters(),
                                                                                                      params));
-  std::cout << "Sequence likelihood: "<< -logL << "; Optimized sequence log likelihood "<< -tl->getValue() <<" for family: " << file << std::endl; 
+  std::cout << "Sequence likelihood: "<< -logL << "; Optimized sequence log likelihood "<< -tl->getValue() <<" for family: " << file << std::endl;
   params[ std::string("optimization.topology.algorithm_nni.method")] = backupParamOptTopo ;
   params[ std::string("optimization.tolerance")] = backupParamOptTol;
   params[ std::string("optimization.max_number_f_eval")] = backupParamnumEval;
@@ -907,15 +907,15 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
 
 /*
 string parenthesisWithSpeciesNamesToGeneTree (TreeTemplate<Node> * geneTree,
-                                              std::map<std::string, std::string > seqSp ) {  
+                                              std::map<std::string, std::string > seqSp ) {
   //,                                             std::vector<string> &geneNames) {
-  
+
 }
 */
 
 /**************************************************************************
- * This function produces a string version of a gene tree, 
- * with gene names replaced by species names. 
+ * This function produces a string version of a gene tree,
+ * with gene names replaced by species names.
  **************************************************************************/
 string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
                                               std::map<std::string, std::string > seqSp ) {
@@ -932,12 +932,12 @@ string geneTreeToParenthesisWithSpeciesNames (TreeTemplate<Node> * geneTree,
       exit(-1);
     }
   }
-  return (TreeTemplateTools::treeToParenthesis(*geneTreeWithSpNames, false) );  
+  return (TreeTemplateTools::treeToParenthesis(*geneTreeWithSpNames, false) );
 }
 
 /**************************************************************************
- * This function produces a string version of a gene tree, 
- * with gene names changed to include species names. 
+ * This function produces a string version of a gene tree,
+ * with gene names changed to include species names.
  **************************************************************************/
 string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
                                               std::map<std::string, std::string > seqSp ) {
@@ -954,12 +954,12 @@ string geneTreeToParenthesisPlusSpeciesNames (TreeTemplate<Node> * geneTree,
       exit(-1);
     }
   }
-  return (TreeTemplateTools::treeToParenthesis(*geneTreeWithSpNames, false) );  
+  return (TreeTemplateTools::treeToParenthesis(*geneTreeWithSpNames, false) );
 }
 
 /**************************************************************************
- * This function produces a gene tree from a string version in which 
- * gene names have been changed to include species names. 
+ * This function produces a gene tree from a string version in which
+ * gene names have been changed to include species names.
  **************************************************************************/
 TreeTemplate<Node> * parenthesisPlusSpeciesNamesToGeneTree (string geneTreeStr) {
   TreeTemplate<Node> * geneTree = TreeTemplateTools::parenthesisToTree(geneTreeStr);
@@ -971,7 +971,7 @@ TreeTemplate<Node> * parenthesisPlusSpeciesNamesToGeneTree (string geneTreeStr) 
     (*it)->setName(stk.getToken(1));
     (*it)->setNodeProperty("S", BppString(stk.getToken(0)));
   }
-  return geneTree;  
+  return geneTree;
 }
 
 
@@ -992,7 +992,7 @@ void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
       exit(-1);
     }
   }
-  return;  
+  return;
 }
 
 
@@ -1003,16 +1003,16 @@ void annotateGeneTreeWithSpeciesNames (TreeTemplate<Node> * geneTree,
  * It uses SPRs and NNIs, and calls findMLReconciliationDR to compute the likelihood.
  **************************************************************************/
 
-double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree, 
-                             TreeTemplate<Node> *& geneTree, 
+double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
+                             TreeTemplate<Node> *& geneTree,
                              std::map<std::string, std::string > seqSp,
                              std::map<std::string, int > spID,
-                             std::vector< double> &lossExpectedNumbers, 
-                             std::vector < double> &duplicationExpectedNumbers, 
-                             int & MLindex, 
-                             std::vector <int> &num0lineages, 
-                             std::vector <int> &num1lineages, 
-                             std::vector <int> &num2lineages, 
+                             std::vector< double> &lossExpectedNumbers,
+                             std::vector < double> &duplicationExpectedNumbers,
+                             int & MLindex,
+                             std::vector <int> &num0lineages,
+                             std::vector <int> &num1lineages,
+                             std::vector <int> &num2lineages,
                              std::set <int> &nodesToTryInNNISearch)
 {
     TreeTemplate<Node> *tree = 0;
@@ -1021,61 +1021,61 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
     currentTree = geneTree->clone();
     breadthFirstreNumber (*currentTree);//, duplicationExpectedNumbers, lossExpectedNumbers);
     int sprLimit = 10; //Arbitrary.
-    std::vector <int> nodeIdsToRegraft; 
+    std::vector <int> nodeIdsToRegraft;
     double bestlogL;
     double logL;
     bool betterTree;
     unsigned int numIterationsWithoutImprovement = 0;
-    double startingML = findMLReconciliationDR (spTree, 
-                                                currentTree, 
+    double startingML = findMLReconciliationDR (spTree,
+                                                currentTree,
                                                 seqSp,
                                                 spID,
-                                                lossExpectedNumbers, 
-                                                duplicationExpectedNumbers, 
-                                                MLindex, 
-                                                num0lineages, 
-                                                num1lineages, 
-                                                num2lineages, 
+                                                lossExpectedNumbers,
+                                                duplicationExpectedNumbers,
+                                                MLindex,
+                                                num0lineages,
+                                                num1lineages,
+                                                num2lineages,
                                                 nodesToTryInNNISearch, false);
     tree = currentTree->clone();
     bestTree = currentTree->clone();
     bestlogL = startingML;
-    
+
     while (numIterationsWithoutImprovement + 1 < geneTree->getNumberOfNodes()) {
         for (unsigned int nodeForSPR=geneTree->getNumberOfNodes()-1 ; nodeForSPR >0; nodeForSPR--) {
             betterTree = false;
             tree = currentTree->clone();
             buildVectorOfRegraftingNodesLimitedDistance(*tree, nodeForSPR, sprLimit, nodeIdsToRegraft);
-            
+
             for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++) {
                 if (tree) {
                     delete tree;
                 }
                 tree = currentTree->clone();
                 makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i], false);
-                logL = findMLReconciliationDR (spTree, 
-                                               tree, 
+                logL = findMLReconciliationDR (spTree,
+                                               tree,
                                                seqSp,
                                                spID,
-                                               lossExpectedNumbers, 
-                                               duplicationExpectedNumbers, 
-                                               MLindex, 
-                                               num0lineages, 
-                                               num1lineages, 
-                                               num2lineages, 
+                                               lossExpectedNumbers,
+                                               duplicationExpectedNumbers,
+                                               MLindex,
+                                               num0lineages,
+                                               num1lineages,
+                                               num2lineages,
                                                nodesToTryInNNISearch, false);
                 if (logL-0.01>bestlogL) {
                     betterTree = true;
                     bestlogL =logL;
                     if (bestTree)
                         delete bestTree;
-                    bestTree = tree->clone();  
+                    bestTree = tree->clone();
                     /*std::cout << "Gene tree SPR: Better candidate tree likelihood : "<<bestlogL<< std::endl;
                      std::cout << TreeTemplateTools::treeToParenthesis(*tree, true)<< std::endl;*/
                 }
             }
             if (betterTree) {
-                logL = bestlogL; 
+                logL = bestlogL;
                 if (currentTree)
                     delete currentTree;
                 currentTree = bestTree->clone();
@@ -1084,10 +1084,10 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
                 numIterationsWithoutImprovement = 0;
             }
             else {
-                logL = bestlogL; 
+                logL = bestlogL;
                 if (currentTree)
                     delete currentTree;
-                currentTree = bestTree->clone(); 
+                currentTree = bestTree->clone();
                 numIterationsWithoutImprovement++;
             }
         }
@@ -1098,7 +1098,7 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
     if (tree) delete tree;
     if (bestTree) delete bestTree;
     if (currentTree) delete currentTree;
-   // std::cout << "DL initial likelihood: "<< startingML << "; Optimized DL log likelihood "<< bestlogL <<"." << std::endl; 
+   // std::cout << "DL initial likelihood: "<< startingML << "; Optimized DL log likelihood "<< bestlogL <<"." << std::endl;
     return bestlogL;
 }
 
@@ -1111,12 +1111,12 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
  **************************************************************************/
 
 
-void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree, 
-                                          TreeTemplate<Node> &tree, 
-                                          int nodeForSPR, 
-                                          int distance, 
+void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
+                                          TreeTemplate<Node> &tree,
+                                          int nodeForSPR,
+                                          int distance,
                                           std::vector <int> & nodeIdsToRegraft) {
-    
+
     Node * N = tree.getNode(nodeForSPR);
     Node * brother = 0;
     if (N->hasFather()) {
@@ -1128,7 +1128,7 @@ void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
         }
     }
     std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(N));
-    
+
     std::vector <int> allNodeIds = tree.getNodesId();
     //std::vector <int> allNodeIds;
     std::vector <int> allProximalNodes;
@@ -1137,9 +1137,9 @@ void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
     //Here, all nodes below some threshold have been added.
    // std::cout << "allProximalNodes.size() "<< allProximalNodes.size() <<std::endl;
     //Another idea: try all regrafting points such that the new father node has a species id between the pruned node species id and the species id of the father of the pruned node.
-    
+
     //Now we add nodes that may be good regrafting points based on their species ID.
-    
+
 //    if (tree.getNode(nodeForSPR)->hasFather() && tree.getNode(nodeForSPR)->getFather()->hasNodeProperty("S")) {
     if ( 0 /*N->hasNodeProperty("S")*/ ) {
 
@@ -1184,16 +1184,16 @@ void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
         getAllCandidateBranchingPointsFromSpeciesID (tree, spIds, allNodeIds);*/
     }
             //We also add nodes with the same species id, downstream from the father node in the gene tree
-    
-    
-            
+
+
+
     //std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)->getFather()));
-    
+
     forbiddenIds.push_back(tree.getRootNode()->getId());
-    
+
     //We don't want to reinsert the pruned subtree in the same place!
     forbiddenIds.push_back(brother->getId());
-    
+
     //We remove the nodes that are not appropriate for regrafting
     std::vector <int> toRemove;
     for (unsigned int i = 0 ; i< allNodeIds.size() ; i++) {
@@ -1201,7 +1201,7 @@ void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
             toRemove.push_back(i);
         }
     }
-    
+
     /*  std:: cout <<"nodeForSPR: "<< nodeForSPR <<"; FORBIDDEN IDS: "<<std::endl;
      VectorTools::print(forbiddenIds);*/
     sort(toRemove.begin(), toRemove.end(), cmp);
@@ -1211,11 +1211,11 @@ void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
         std::vector<int>::iterator vi = allNodeIds.begin();
         allNodeIds.erase(vi+toRemove[i]);
     }
-    
+
     allNodeIds = VectorTools::unique (allNodeIds);
     //Now we only consider those nodes not far from the pruned node:
     allNodeIds = VectorTools::vectorIntersection(allNodeIds, allProximalNodes);
-    
+
     //Now allNodeIds contains all the Ids of nodes where the subtree can be reattached.
     nodeIdsToRegraft = allNodeIds;
 }
@@ -1225,8 +1225,8 @@ void buildVectorOfRegraftingNodesGeneTree(TreeTemplate<Node> &spTree,
  * This function returns a vector of branching points that may diminish the number of duplications/losses.
  * The gene tree has to be rooted and annotated with species numbers.
  **************************************************************************/
-void getAllCandidateBranchingPointsFromSpeciesID (TreeTemplate<Node> &tree, 
-                                                  std::vector <std::string> spIds, 
+void getAllCandidateBranchingPointsFromSpeciesID (TreeTemplate<Node> &tree,
+                                                  std::vector <std::string> spIds,
                                                   std::vector <int> & allNodeIds) {
     for (unsigned int k = 0 ; k < spIds.size(); k++) {
         vector <Node *> nodes = tree.getNodes();
@@ -1301,12 +1301,12 @@ void getSonsOfNodesWithSimilarSpeciesIds(Node * node, string spId, std::vector <
  **************************************************************************/
 
 
-void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree, 
-											  TreeTemplate<Node> &tree, 
-											  int nodeForSPR, 
-											  int distance, 
+void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree,
+											  TreeTemplate<Node> &tree,
+											  int nodeForSPR,
+											  int distance,
 											  std::vector <int> & nodeIdsToRegraft) {
-    
+
     Node * N = tree.getNode(nodeForSPR);
     Node * brother = 0;
     if (N->hasFather()) {
@@ -1318,27 +1318,27 @@ void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree,
         }
     }
     std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(N));
-    
+
     // std::vector <int> allNodeIds = tree.getNodesId();
     std::vector <int> allNodeIds;
     std::vector <int> allProximalNodes;
 	//TEST12 11 2011
     getNeighboringNodesIdLimitedDistance(tree, nodeForSPR, distance, allProximalNodes);
     //Here, all nodes below some threshold have been added.
-    
+
     //Another idea: try all regrafting points such that the new father node has a species id between the pruned node species id and the species id of the father of the pruned node.
-    
+
     //Now we add nodes that may be good regrafting points based on their species ID.
-    
-    
-	
+
+
+
     //std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)->getFather()));
-    
+
     forbiddenIds.push_back(tree.getRootNode()->getId());
-    
+
     //We don't want to reinsert the pruned subtree in the same place!
     forbiddenIds.push_back(brother->getId());
-    
+
     //We remove the nodes that are not appropriate for regrafting
     std::vector <int> toRemove;
     for (unsigned int i = 0 ; i< allNodeIds.size() ; i++) {
@@ -1346,7 +1346,7 @@ void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree,
             toRemove.push_back(i);
         }
     }
-    
+
     /*  std:: cout <<"nodeForSPR: "<< nodeForSPR <<"; FORBIDDEN IDS: "<<std::endl;
      VectorTools::print(forbiddenIds);*/
     sort(toRemove.begin(), toRemove.end(), cmp);
@@ -1356,11 +1356,11 @@ void buildVectorOfRegraftingNodesCoalGeneTree(TreeTemplate<Node> &spTree,
         std::vector<int>::iterator vi = allNodeIds.begin();
         allNodeIds.erase(vi+toRemove[i]);
     }
-    
+
     allNodeIds = VectorTools::unique (allNodeIds);
     //Now we only consider those nodes not far from the pruned node:
     allNodeIds = VectorTools::vectorIntersection(allNodeIds, allProximalNodes);
-    
+
     //Now allNodeIds contains all the Ids of nodes where the subtree can be reattached.
     nodeIdsToRegraft = allNodeIds;
 }
@@ -1437,7 +1437,7 @@ throw (Exception)
 		//optimizer->setMaximumNumberOfEvaluations( 2 ) ; //tlEvalMax);
 		optimizer->optimize();
 	}
-	
+
 	/*std::cout << "Values ";
 	VectorTools::print(values);*/
 	// We're done.
@@ -1455,7 +1455,7 @@ bool editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
     editDuplicationNodesMuffato(spTree,
                                 geneTree,
                                 geneTree.getRootNode(),
-                                editionThreshold, 
+                                editionThreshold,
                                 edited);
     std::cout <<"\t\tEdited tree after Muffato move: \n"<< TreeTemplateTools::treeToParenthesis(geneTree, false, "Score") << "\n" << std::endl;
 
@@ -1465,7 +1465,7 @@ bool editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 				 TreeTemplate<Node> & geneTree,
 				 Node * node,
-				 double editionThreshold, 
+				 double editionThreshold,
                  bool& edited
                                 ) {
   //  Nhx *nhx = new Nhx();
@@ -1473,7 +1473,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
   if (node->isLeaf()) { }
   else {
       if (node->hasNodeProperty("Score")) {
-          
+
           double score = TextTools::toDouble((dynamic_cast<const BppString*>(node->getNodeProperty("Score")))->toSTL());
          // std::cout << "editDuplicationNodesMuffato 2: score: "<< score  <<std::endl;  std::cout <<"Gene Tree: \n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;  std::cout << "node id: "<< node->getId() <<std::endl; std::cout << "son 0 id: "<< node->getSon(0)->getId() <<std::endl; std::cout << "son 1 id: "<< node->getSon(1)->getId() <<std::endl; std::cout << "editionThreshold "<< editionThreshold <<std::endl;
           if ( score <= editionThreshold  ) {
@@ -1481,7 +1481,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
               //SpIds as currently found in the gene tree
               int ancestorSpId = TextTools::toInt((dynamic_cast<const BppString*>(node->getNodeProperty("S")))->toSTL());
               int son0SpId = TextTools::toInt( (dynamic_cast<const BppString*>(node->getSon(0)->getNodeProperty("S")))->toSTL() );
-              int son1SpId = TextTools::toInt( (dynamic_cast<const BppString*>(node->getSon(1)->getNodeProperty("S")))->toSTL() ); 
+              int son1SpId = TextTools::toInt( (dynamic_cast<const BppString*>(node->getSon(1)->getNodeProperty("S")))->toSTL() );
               if (ancestorSpId != son0SpId || ancestorSpId != son1SpId)
               {
                   //we edit the node
@@ -1499,21 +1499,21 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 					  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;*/
                   }
                   else if (node->getSon(0)->hasName() ) {
-                      //Need to create a father for node son0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-                      //And need to rename this father node0  
-					//  std::cout << "son0->getName() : " << node->getSon(0)->getName() << std::endl;  
+                      //Need to create a father for node son0
+                      //And need to rename this father node0
+					//  std::cout << "son0->getName() : " << node->getSon(0)->getName() << std::endl;
 
                       Node* grandSon0 = node->getSon(0);
                       node->removeSon(grandSon0);
-					//  std::cout << "grandSon0->getName() : " << grandSon0->getName() << std::endl;  
+					//  std::cout << "grandSon0->getName() : " << grandSon0->getName() << std::endl;
                       son0 = new Node();
                       son0->addSon( grandSon0 );
                       node->addSon( 0, son0 );
-                      son0->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE 
+                      son0->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
 					 /* std::cout<< "son0->getNumberOfSons(): "<< son0->getNumberOfSons() <<std::endl;
 					  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
 					  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;*/
-                      grandSon0->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                      grandSon0->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
                   }
                   if (! node->getSon(1)->isLeaf() ) {
                       son1 = node->getSon(1);
@@ -1524,20 +1524,20 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 
                   }
                   else if (node->getSon(1)->hasName() ) {
-                      //Need to create a father for node son1                                                                                                                                                                                                                                                                                                                        	  //And need to rename this father node1                                                                                                                                                                                                                                                                                                                          
-                     // std::cout << "son1->getName() : " << node->getSon(1)->getName() << std::endl;  
+                      //Need to create a father for node son1                                                                                                                                                                                                                                                                                                                        	  //And need to rename this father node1
+                     // std::cout << "son1->getName() : " << node->getSon(1)->getName() << std::endl;
                       Node* grandSon1 = node->getSon(1);
                       node->removeSon(grandSon1);
-                    //  std::cout << "grandSon1->getName() : " << grandSon1->getName() << std::endl;  
+                    //  std::cout << "grandSon1->getName() : " << grandSon1->getName() << std::endl;
                       son1 = new Node();
                       son1->addSon( grandSon1 );
                       node->addSon( 1, son1 );
-                      son1->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE   
+                      son1->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
 					/*  std::cout<< "son1->getNumberOfSons(): "<< son1->getNumberOfSons() <<std::endl;
 					  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
 					  std::cout<< "node->getSon(1)->getNumberOfSons(): "<< node->getSon(1)->getNumberOfSons() <<std::endl;*/
 
-                      grandSon1->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+                      grandSon1->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
                   }
                   //Idea: we only need to remove nodes from the subtrees whose root spId is identical to the node of interest
                   bool editSon0Subtree = false;
@@ -1551,14 +1551,14 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                 /*  std::cout << "ancestorSpId: "<<ancestorSpId <<std::endl;
                   std::cout << "son0SpId: "<<son0SpId <<std::endl;
                   std::cout << "son1SpId: "<<son1SpId <<std::endl;*/
-                  
+
                   //SpIds as they are in the species tree
                   Node *ancestor = spTree.getNode(ancestorSpId);
                   int ancestorSon0Id = 0;
                   int ancestorSon1Id = 0;
                   std::vector<int> ancestorSon0UnderlyingSpIds = TreeTemplateTools::getNodesId( *( ancestor->getSon(0) ) );
                   std::vector<int> ancestorSon1UnderlyingSpIds = TreeTemplateTools::getNodesId( *( ancestor->getSon(1) ) );
-			
+
 				/*  std::cout<< "son0->getNumberOfSons(): "<< son0->getNumberOfSons() <<std::endl;
 				  std::cout<< "son1->getNumberOfSons(): "<< son1->getNumberOfSons() <<std::endl;
 				  std::cout<< "node->getSon(0)->getNumberOfSons(): "<< node->getSon(0)->getNumberOfSons() <<std::endl;
@@ -1582,8 +1582,8 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                           }
                       }
                       if (ok)
-                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id))); 
-                   /*   else 
+                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id)));
+                   /*   else
                           son0->setNodeProperty("S", BppString(TextTools::toString(VectorTools::min() ) ) );*/
                       vector<Node* > son1sons = son1->getSons();
                       vector <int> son1sonsSp ;
@@ -1621,7 +1621,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                           }
                       }
                       if (ok)
-                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id))); 
+                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id)));
                       vector<Node* > son1sons = son1->getSons();
                       vector <int> son1sonsSp ;
                       ok = false;
@@ -1634,7 +1634,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                       }
                       if (ok)
                           son1->setNodeProperty("S", BppString(TextTools::toString(ancestorSon1Id)));
-                      
+
                   }
                   else {
                    //   std::cout << "We alter Id of subtree 1"<<std::endl;
@@ -1659,7 +1659,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                           }
                       }
                       if (ok)
-                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id))); 
+                          son0->setNodeProperty("S", BppString(TextTools::toString(ancestorSon0Id)));
                       vector<Node* > son1sons = son1->getSons();
                       vector <int> son1sonsSp ;
                       ok = false;
@@ -1672,26 +1672,26 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                       }
                       if (ok)
                           son1->setNodeProperty("S", BppString(TextTools::toString(ancestorSon1Id)));
-                      
+
                   }
               /*    std::cout << "ancestorSon0Id: "<<ancestorSon0Id <<std::endl;
                   std::cout << "ancestorSon1Id: "<<ancestorSon1Id <<std::endl;*/
-                  
-                  
-                  //Now, we get the node ids in the subtrees from the species tree                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                  //std::vector<int> 
+
+
+                  //Now, we get the node ids in the subtrees from the species tree
+                  //std::vector<int>
                   ancestorSon0UnderlyingSpIds = TreeTemplateTools::getNodesId( *( spTree.getNode( ancestorSon0Id ) ) );
                   ancestorSon1UnderlyingSpIds = TreeTemplateTools::getNodesId( *( spTree.getNode( ancestorSon1Id ) ) );
-                  
+
                 /*  std::cout << "ancestorSon0UnderlyingSpIds: "<< std::endl;
                   VectorTools::print(ancestorSon0UnderlyingSpIds);*/
-                  
-                  
-                  //now we need to move the grandsons around to make sure that everything is in the right place                                                                                                                                                                                                                                                                                                    std::cout << "son1->getId() : " << son1->getId() << std::endl;                                                                                                                                                                                                                                                                                                                                                                         
-                  //Now, we move, in the gene tree, the grandsons to make sure that everything is in the right place                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+
+                  //now we need to move the grandsons around to make sure that everything is in the right place                                                                                                                                                                                                                                                                                                    std::cout << "son1->getId() : " << son1->getId() << std::endl;
+                  //Now, we move, in the gene tree, the grandsons to make sure that everything is in the right place
                   std::map<Node*, int> sonsOfSon0;
                   std::map<Node*, int> sonsOfSon1;
-                  
+
                   if (editSon0Subtree) {
 					//  std::cout << "edit subtree 0 "<<std::endl;
                       for (size_t i = 0 ; i < son0->getNumberOfSons() ; i++) {
@@ -1710,9 +1710,9 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 						//  std::cout << "Node to edit: "<< son1->getSon(i)->getId() <<std::endl;
                       }
                   }
-              /*    std::cout << "HERHERE 2"  << std::endl;  
-                  std::cout <<"Gene Tree: TER\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
-				  std::cout << "sonsOfSon0.size(): "<< sonsOfSon0.size()  << std::endl;  
+              /*    std::cout << "HERHERE 2"  << std::endl;
+                  std::cout <<"Gene Tree: TER\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;
+				  std::cout << "sonsOfSon0.size(): "<< sonsOfSon0.size()  << std::endl;
 				  std::cout << "sonsOfSon1.size(): "<< sonsOfSon1.size()  << std::endl;  */
 
                   //Rearranging the grandsons
@@ -1724,12 +1724,12 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                           //We need to move the node, but we also need to check that indeed the other subtree should contain this node
                           if ( VectorTools::contains ( ancestorSon1UnderlyingSpIds, it->second ) ) {
                               makeMuffatoSPR(geneTree, it->first, son1, false );
-                              //std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
+                              //std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;
                           }
                           else {
                            //   std::cout << "DIFFICULTY NODE " << it->first->getId() << std::endl;
-                              //Difficulty: we cannot make a move that swaps sons to remove the duplication 
-                              //Instead, we may want to look for nodes further down the tree that we could remove, 
+                              //Difficulty: we cannot make a move that swaps sons to remove the duplication
+                              //Instead, we may want to look for nodes further down the tree that we could remove,
                               //like a rogue sequence that is nested deep in a clade where it does not belong
                           }
                       }
@@ -1740,7 +1740,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                           /*std::vector<Node*> ns = son0->getSons();
                            if (! VectorTools::contains (ns, it->first) ) {*/
                           makeMuffatoSPR(geneTree, it->first, son0, false );
-                       //   std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
+                       //   std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;
                       }
                       else {
                           //the node is already in the correct subtree, we do nothing
@@ -1750,23 +1750,23 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                            }*/
                       }
                   }
-                  
-                  // std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
+
+                  // std::cout <<"Gene Tree: QUAD\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;
                   node = removeNodesWithDegree1(node);
                   geneTree.resetNodesId();
-               //   std::cout <<"Gene Tree: QUINT\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl; 
-                  
-                  
-                  
-                  /*      
-                   //Removing nodes of out-degree 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+               //   std::cout <<"Gene Tree: QUINT\n" <<    TreeTemplateTools::treeToParenthesis(geneTree, true) << std::endl;
+
+
+
+                  /*
+                   //Removing nodes of out-degree 1
                    if (son0->getNumberOfSons() == 1) {
                    Node* father =  son0->getFather();
                    Node* son = son0->getSon(0);
                    son0->removeSon(son);
                    father->removeSon(son0);
                    father->addSon(son);
-                   son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                   son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
                    delete son0;
                    }
                    if (son1->getNumberOfSons() == 1) {
@@ -1775,18 +1775,18 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                    son1->removeSon(son);
                    father->removeSon(son1);
                    father->addSon(son);
-                   son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                   son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
                    delete son1;
                    }*/
             /*      std::cout << "node->getId() "<< node->getId() <<std::endl;
                   std::cout << "node->getSon(0)->getId() "<< node->getSon(0)->getId() <<std::endl;
                   std::cout << "node->getSon(1)->getId() "<< node->getSon(1)->getId() <<std::endl;*/
 
-                 /* 
+                 /*
                   if (! node->getSon(0)->isLeaf() ) {
                       recoverSAndSpPresentInSubtree ( spTree, node->getSon(0)->getSon(0) );
                       recoverSAndSpPresentInSubtree ( spTree, node->getSon(0)->getSon(1) );
-                  }                  
+                  }
                   if (! node->getSon(1)->isLeaf() ) {
                       recoverSAndSpPresentInSubtree ( spTree, node->getSon(1)->getSon(0) );
                       recoverSAndSpPresentInSubtree ( spTree, node->getSon(1)->getSon(1) );
@@ -1794,7 +1794,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
                   recoverSAndSpPresentInSubtree ( spTree, node->getSon(0) );
                   recoverSAndSpPresentInSubtree ( spTree, node->getSon(1) );*/
                   recoverSAndSpPresentInSubtree ( spTree, node );
-                  //Now we need to update the scores of the sons                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                  //Now we need to update the scores of the sons
                   if (!node->getSon(0)->isLeaf()) {
                       std::vector <Node *> sons = node->getSon(0)->getSons();
                       /*recoverSAndSpPresentInSubtree ( spTree, sons[0] );
@@ -1817,21 +1817,21 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
           }
       }
       /*                              std::cout << "editDuplicationNodesMuffato 9"  <<std::endl;              std::cout << TreeTemplateTools::treeToParenthesis(spTree, true)<<std::endl;             std::cout << "editDuplicationNodesMuffato 10"  <<std::endl;             std::cout << TreeTemplateTools::treeToParenthesis(geneTree, true)<<std::endl;           std::cout << "editDuplicationNodesMuffato 11"  <<std::endl;             std::cout << "editDuplicationNodesMuffato: id"<< node->getSon(0)->getId()  <<std::endl;         std::cout << "editDuplicationNodesMuffato: id"<< node->getSon(1)->getId()  <<std::endl;         */
-      //continue editing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+      //continue editing
       editDuplicationNodesMuffato(spTree,
                                   geneTree,
                                   node->getSon(0),
-                                  editionThreshold, 
+                                  editionThreshold,
                                   edited
                                  );
       editDuplicationNodesMuffato(spTree,
                                   geneTree,
                                   node->getSon(1),
-                                  editionThreshold, 
+                                  editionThreshold,
                                   edited
                                  );
   }
-  //      std::cout <<"Edited tree from ReconciliationTools: \n"<< TreeTemplateTools::treeToParenthesis(geneTree, false, "Score") << "\n" << std::endl;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+  //      std::cout <<"Edited tree from ReconciliationTools: \n"<< TreeTemplateTools::treeToParenthesis(geneTree, false, "Score") << "\n" << std::endl;
 }
 
 
@@ -1841,12 +1841,12 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 
 
 void recoverSAndSpPresentInSubtree ( TreeTemplate<Node> & spTree, Node * node ) {
- /*   if ( (! node->hasNodeProperty( "spPresentInSubtree" ) ) ||  ( ! node->hasNodeProperty( "S" ) ) ) 
+ /*   if ( (! node->hasNodeProperty( "spPresentInSubtree" ) ) ||  ( ! node->hasNodeProperty( "S" ) ) )
     {*/
     if (! node->isLeaf() )
     {
         vector<Node * > sons = node->getSons();
-    /*    if (! node->hasNodeProperty( "spPresentInSubtree" )  ) 
+    /*    if (! node->hasNodeProperty( "spPresentInSubtree" )  )
         {*/
             size_t siz = sons.size();
             if (siz > 2 ) {
@@ -1857,7 +1857,7 @@ void recoverSAndSpPresentInSubtree ( TreeTemplate<Node> & spTree, Node * node ) 
             recoverSAndSpPresentInSubtree ( spTree, sons[1] );
             std::vector<int> vec = VectorTools::vectorUnion((dynamic_cast<const BppVector<int> *>(sons[0]->getNodeProperty("spPresentInSubtree")))->toSTL(), (dynamic_cast<const BppVector<int> *>(sons[1]->getNodeProperty("spPresentInSubtree")))->toSTL());
             node->setNodeProperty("spPresentInSubtree", BppVector<int> (vec.begin(), vec.end() ));
-            
+
         /*}
         if ( ! node->hasNodeProperty( "S" ) )
         {*/
@@ -1866,15 +1866,15 @@ void recoverSAndSpPresentInSubtree ( TreeTemplate<Node> & spTree, Node * node ) 
             int b = TextTools::toInt((dynamic_cast<const BppString*>(sons[1]->getNodeProperty("S")))->toSTL());
             int lossA = 0;
             int lossB = 0;
-            
-            while (a!=b) 
+
+            while (a!=b)
             {
                 if (a>b){
-                    a = spTree.getNode(a)->getFather()->getId(); 
+                    a = spTree.getNode(a)->getFather()->getId();
                     lossA = lossA +1;
                 }
                 else {
-                    b = spTree.getNode(b)->getFather()->getId(); 
+                    b = spTree.getNode(b)->getFather()->getId();
                     lossB = lossB + 1;
                 }
             }
@@ -1889,14 +1889,14 @@ void recoverSAndSpPresentInSubtree ( TreeTemplate<Node> & spTree, Node * node ) 
 
 
 Node * removeNodesWithDegree1(Node * node) {
-    //Removing nodes of out-degree 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    //Removing nodes of out-degree 1
 	if (node->getNumberOfSons() == 1 ) {
         Node* father =  node->getFather();
         Node* son = node->getSon(0);
         node->removeSon(son);
         father->removeSon(node);
         father->addSon(son);
-        son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+        son->setDistanceToFather(DIST);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
         delete node;
         removeNodesWithDegree1(son);
         return father;
@@ -1909,4 +1909,92 @@ Node * removeNodesWithDegree1(Node * node) {
         }
         return node;
     }
+}
+
+
+
+
+
+
+/************************************************************************
+ * Evaluate vector of gene trees, and returns the index of the best one
+ ************************************************************************/
+
+size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
+                                                             TreeTemplate < Node > *bestTree,
+                                                             double& bestSequenceLogL,
+                                                             double& bestScenarioLk, bpp::TreeTemplate<bpp::Node>* spTree,
+                                                            std::map <std::string, std::string>& seqSp, std::map <std::string, int>& spId,
+                                                            std::vector <double>& lossExpectedNumbers,
+                                                            std::vector <double>& duplicationExpectedNumbers,
+                                                            int tentativeMLindex,
+                                                            std::vector <int>& tentativeNum0Lineages, std::vector <int>& tentativeNum1Lineages, std::vector <int>& tentativeNum2Lineages, std::set <int>& tentativeNodesToTryInNNISearch,
+                                                            bool considerSequenceLikelihood,
+                                                            LikelihoodEvaluator* levaluator) {
+
+    double candidateScenarioLk = 0.0;
+    double candidateSequenceLk = 0.0;
+    size_t bestI = 0;
+//TreeTemplate < Node > * bestTree = 0;
+    TreeTemplate < Node > * candidateTree = 0;
+
+    for (size_t i = 0; i < trees.size() ; ++i) {
+        candidateTree = dynamic_cast < TreeTemplate < Node > * > (trees[i]);
+        candidateScenarioLk =  findMLReconciliationDR (spTree, candidateTree,
+                                                       seqSp, spId,
+                                                       lossExpectedNumbers, duplicationExpectedNumbers,
+                                                       tentativeMLindex,
+                                                       tentativeNum0Lineages, tentativeNum1Lineages,
+                                                       tentativeNum2Lineages, tentativeNodesToTryInNNISearch, false); //false so that _tentativeNum*Lineages are not updated
+
+        if (considerSequenceLikelihood )
+        {
+            levaluator->setAlternativeTree(candidateTree);
+            candidateSequenceLk = levaluator->getAlternativeLogLikelihood();
+        }
+        std::cout << "Tree "<< i <<" : scenario LogLk: "<< candidateScenarioLk <<" ; sequence logLk : " << candidateSequenceLk <<std::endl;
+
+        if (i == 0) {
+            bestScenarioLk = candidateScenarioLk;
+            bestSequenceLogL = candidateSequenceLk;
+            if (bestTree ) {
+                delete bestTree;
+            }
+            bestTree = dynamic_cast<const TreeTemplate<Node> *> (levaluator->getTree())->clone();// candidateTree->clone();
+        }
+        else if (candidateScenarioLk + candidateSequenceLk > bestScenarioLk + bestSequenceLogL) {
+            bestScenarioLk = candidateScenarioLk;
+            bestSequenceLogL = candidateSequenceLk;
+            levaluator->acceptAlternativeTree();
+            if (bestTree ) {
+                delete bestTree;
+            }
+            bestTree =  dynamic_cast<const TreeTemplate<Node> *> (levaluator->getTree())->clone();// candidateTree->clone();
+            bestI = i;
+
+	//Rooting bestTree properly:
+	vector<Node*> rlkNodes = bestTree->getNodes();
+
+	for (unsigned int j = 0 ; j < rlkNodes.size() ; j++) {
+	  if (rlkNodes[j]->hasNodeProperty("outgroupNode")) {
+	    if (bestTree->getRootNode() == rlkNodes[j]) {
+	      if (j < rlkNodes.size()-1)
+	      {
+		bestTree->rootAt(rlkNodes[rlkNodes.size()-1]);
+	      }
+	      else {
+		bestTree->rootAt(rlkNodes[rlkNodes.size()-2]);
+	      }
+	    };
+	    bestTree->newOutGroup( rlkNodes[j] );
+	    break;
+	  }
+	}
+
+        }
+        delete candidateTree;
+    }
+    std::cout << "Best Tree: "<< bestI <<" : scenario LogLk: "<< bestScenarioLk <<" ; sequence logLk : " << bestSequenceLogL <<std::endl;
+
+    return bestI;
 }

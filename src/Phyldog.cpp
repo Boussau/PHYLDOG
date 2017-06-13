@@ -14,7 +14,7 @@ of alignments given the species tree, the gene trees and the parameters
 of duplication and loss.
 
 This software is governed by the CeCILL license under French law and
-abiding by the rules of distribution of free software.  You can  use, 
+abiding by the rules of distribution of free software.  You can  use,
 modify and/ or redistribute the software under the terms of the CeCILL
 license as circulated by CEA, CNRS and INRIA at the following URL
 "http://www.cecill.info".
@@ -23,7 +23,7 @@ As a counterpart to the access to the source code and  rights to copy,
 modify and redistribute granted by the license, users are provided only
 with a limited warranty  and the software's author,  the holder of the
 economic rights,  and the successive licensors  have only  limited
-liability. 
+liability.
 
 In this respect, the user's attention is drawn to the risks associated
 with loading,  using,  modifying and/or developing or reproducing the
@@ -32,9 +32,9 @@ that may mean  that it is complicated to manipulate,  and  that  also
 therefore means  that it is reserved for developers  and  experienced
 professionals having in-depth computer knowledge. Users are therefore
 encouraged to load and test the software's suitability as regards their
-requirements in conditions enabling the security of their systems and/or 
-data to be ensured and,  more generally, to use and operate it in the 
-same conditions as regards security. 
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and,  more generally, to use and operate it in the
+same conditions as regards security.
 
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
@@ -49,7 +49,7 @@ knowledge of the CeCILL license and that you accept its terms.
 namespace mpi = boost::mpi;
 
 
-#include "SpeciesTreeLikelihood.h"
+#include "MPI_SpeciesTreeLikelihood.h"
 #include "ClientComputingGeneLikelihoods.h"
 
 
@@ -69,7 +69,7 @@ void help()
     (*ApplicationTools::message << "      ... param=option_file").endLine();
     (*ApplicationTools::message << "Example of some options: ").endLine();
     (*ApplicationTools::message).endLine();
-    
+
     /*SequenceApplicationTools::printInputAlignmentHelp();
      PhylogeneticsApplicationTools::printInputTreeHelp();
      PhylogeneticsApplicationTools::printSubstitutionModelHelp();
@@ -171,23 +171,23 @@ int main(int args, char ** argv)
     MPI::COMM_WORLD.Abort(1);
     exit(-1);
   }
-  
-  
+
+
   try {
     ApplicationTools::startTimer();
         //All processors parse the main options
     std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
 
-    
+
         //##################################################################################################################
         //##################################################################################################################
         //############################################# IF AT THE SERVER NODE ##############################################
         //##################################################################################################################
         //##################################################################################################################
-        
-    if (rank == server) { 
+
+    if (rank == server) {
   WHEREAMI( __FILE__ , __LINE__ );
-            
+
             /*
             int z = 0;
             //   char hostname[256];
@@ -200,30 +200,30 @@ int main(int args, char ** argv)
                 std::cout << z <<std::endl;
                 sleep(5);
             }*/
-            
-            
+
+
             std::cout << "******************************************************************" << std::endl;
             std::cout << "*                   PHYLDOG, version 1.1.0                       *" << std::endl;
             std::cout << "* Author: B. Boussau                            Created 16/07/07 *" << std::endl;
             std::cout << "******************************************************************" << std::endl;
             std::cout << std::endl;
-            
+
             std::cout <<"Server of rank "<<rank <<" with PID "<< TextTools::toString((int)getpid())<<std::endl;
 
-            SpeciesTreeLikelihood spTL = SpeciesTreeLikelihood(world, server, size, params);
+            MPI_SpeciesTreeLikelihood spTL = MPI_SpeciesTreeLikelihood(world, server, size, params);
             //initialization, first communications, first likelihood computation
 
             spTL.initialize();
 
             spTL.MLSearch();
-                        
+
       std::cout << "PHYLDOG's done. Bye." << std::endl;
       ApplicationTools::displayTime("Total execution time:");
-            MPI_Barrier(world);  
+            MPI_Barrier(world);
             MPI::Finalize( );
     }//End if at the server node
-      
-        
+
+
         //##################################################################################################################
         //##################################################################################################################
         //############################################# IF AT A CLIENT NODE ################################################
@@ -244,7 +244,7 @@ int main(int args, char ** argv)
                  std::cout << " z=" << z <<std::endl;
                  sleep(5);
  	      }*/
-      
+
 	      ApplicationTools::startTimer();
 	      bool debug = ApplicationTools::getBooleanParameter("debug",params,false);
 	      string path = ApplicationTools::getStringParameter("PATH", params, "", "", true, false);
@@ -254,25 +254,25 @@ int main(int args, char ** argv)
 	      if (!debug) {
 		  //Redirecting stdout to a specific file for this client
 		  filestr.open (outputFile.c_str());
-		  backup = cout.rdbuf();     // back up cout's streambuf 
+		  backup = cout.rdbuf();     // back up cout's streambuf
 		  backupcerr = cerr.rdbuf(); // back up cerr's streambuf
-		  psbuf = filestr.rdbuf();   // get file's streambuf                                                                                                                                                               
-		  cout.rdbuf(psbuf);         // assign streambuf to cout     
+		  psbuf = filestr.rdbuf();   // get file's streambuf
+		  cout.rdbuf(psbuf);         // assign streambuf to cout
 		  cerr.rdbuf(psbuf);
 	      }
-	      
+
 	      //initialization, first communications, first likelihood computation
 	      ClientComputingGeneLikelihoods client = ClientComputingGeneLikelihoods(world, server, rank, params);
-	      
+
 	      //Main loop, computation of the gene tree likelihoods given species trees sent by the server.
 	      client.MLSearch();
 
 			if (!debug) {
 				cerr.rdbuf(backupcerr);    // restore cerr's original streambuf
-				cout.rdbuf(backup);        // restore cout's original streambuf                                                                                                                                                  
+				cout.rdbuf(backup);        // restore cout's original streambuf
 				filestr.close();
 			}
-			MPI_Barrier(world);  
+			MPI_Barrier(world);
 			MPI::Finalize( );
 		}//end if a client node
   }
@@ -297,7 +297,7 @@ int main(int args, char ** argv)
 /*
  // This bit of code is useful to use GDB on clients, when put into the client's code:
  //launch the application, which will output the client pid
- //then launch gdb, attach to the given pid ("attach pid" or "gdb phyldog pid"), 
+ //then launch gdb, attach to the given pid ("attach pid" or "gdb phyldog pid"),
  //use "up" to go up the stacks, and set the variable z to !=0 to get out of the loop with "set var z = 8".
  int z = 0;
  //   char hostname[256];
@@ -331,7 +331,7 @@ int main(int args, char ** argv)
 /*This code permits outputting trees with numbers of duplication or loss events at branches
  //set total numbers of loss and duplications on branches
  setLossesAndDuplications(*bestTree, bestLossNumbers, bestDuplicationNumbers);
- std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false); 
+ std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false);
  std::ofstream out (dupTree.c_str(), std::ios::out);
  out << treeToParenthesisWithIntNodeValues (*bestTree, false, DUPLICATIONS)<<std::endl;
  out.close();
@@ -340,11 +340,3 @@ int main(int args, char ** argv)
  out << treeToParenthesisWithIntNodeValues (*bestTree, false, LOSSES)<<std::endl;
  out.close();
  */
-
-
-
-
-
-
-
-

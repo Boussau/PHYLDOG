@@ -50,10 +50,10 @@ knowledge of the CeCILL license and that you accept its terms.
 #include<Bpp/Phyl/TreeTemplate.h>
 #include<Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 
-//From the BOOST library 
-#include <boost/mpi.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/mpi/communicator.hpp>
+//From the BOOST library //SHOULD BE CORRECTED 13062017  
+//#include <boost/mpi.hpp>
+//#include <boost/serialization/string.hpp>
+//#include <boost/mpi/communicator.hpp>
 
 
 extern "C" {

@@ -256,7 +256,7 @@ double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
                                 std::vector <int> &num1lineages,
                                 std::vector <int> &num2lineages,
                                 std::set <int> &nodesToTryInNNISearch,
-                                bool fillTables = true );
+                                const bool fillTables = true );
 double computeAverageLossProportionOnCompletelySequencedLineages ( const std::vector <int> & num0lineages,
         const std::vector <int> & num1lineages,
         const std::vector <int> & num2lineages,
