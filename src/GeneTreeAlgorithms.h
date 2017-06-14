@@ -374,4 +374,13 @@ void editDuplicationNodesMuffato
                                                              LikelihoodEvaluator* levaluator) ;
 
 
+void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate<bpp::Node>* spTree,
+                                                               bpp::TreeTemplate<bpp::Node>*& rootedTree,
+                                                               std::map <std::string, std::string>& seqSp, std::map <std::string, int>& spId,
+                                                               std::vector <double>& lossExpectedNumbers,
+                                                               std::vector <double>& duplicationExpectedNumbers,
+                                                               int tentativeMLindex,
+                                                               std::vector <int>& tentativeNum0Lineages, std::vector <int>& tentativeNum1Lineages, std::vector <int>& tentativeNum2Lineages, std::set <int>& tentativeNodesToTryInNNISearch,
+                                                               size_t sprLimitGeneTree, LikelihoodEvaluator* levaluator);
+
  #endif //_GENETREEALGORITHMS_H_
