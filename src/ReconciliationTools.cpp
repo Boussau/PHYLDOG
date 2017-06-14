@@ -42,14 +42,13 @@
 
 #include "ReconciliationTools.h"
 
-//#include "mpi.h" //SHOULD BE CORRECTED 13062017   
+//#include "mpi.h" //SHOULD BE CORRECTED 13062017
 
 
 
 
-void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, bool temporary ) {
+void writeReconciledGeneTree ( map<string, string >& params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string>& seqSp, bool temporary ) {
     WHEREAMI( __FILE__ , __LINE__ );
-  std::ofstream out;
   string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
   string reconcTree = ApplicationTools::getStringParameter ( "output.reconciled.tree.file", params, "reconciled.tree", "", false, false );
   reconcTree = reconcTree + suffix;
@@ -57,8 +56,16 @@ void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *
     //   string temp = "temp";
     reconcTree = reconcTree + "_temp";
   }
+  writeReconciledGeneTreeToFile (params, geneTree, speciesTree, seqSp, reconcTree);
 
+}
+
+
+
+void writeReconciledGeneTreeToFile ( map<string, string >& params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string>& seqSp, string& reconcTree ) {
+    WHEREAMI( __FILE__ , __LINE__ );
   Nhx *nhx = new Nhx();
+  std::ofstream out;
 
   breadthFirstreNumber ( *speciesTree );
   std::map <std::string, int> spId = computeSpeciesNamesToIdsMap ( *speciesTree );
@@ -73,7 +80,6 @@ void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *
   out.close();
   return;
 }
-
 
 
 
@@ -3207,7 +3213,7 @@ TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *
     std::string geneTree_File =ApplicationTools::getStringParameter ( "gene.tree.file",params,"none" );
     if ( geneTree_File=="none" ) {
       std::cout << "\n\nNo Gene tree was provided. The option init.gene.tree is set to user (by default), which means that the option gene.tree.file must be filled with the path of a valid tree file. \nIf you do not have a gene tree file, the program can start from a random tree, if you set init.gene.tree at random, or can build a gene tree with BioNJ or a PhyML-like algorithm with options bionj or phyml.\n\n" << std::endl;
-      //MPI::COMM_WORLD.Abort ( 1 ); //SHOULD BE CORRECTED 13062017   
+      //MPI::COMM_WORLD.Abort ( 1 ); //SHOULD BE CORRECTED 13062017
       exit ( -1 );
     }
     Newick newick ( true );
@@ -3614,7 +3620,7 @@ return;
 
 
 /******************************************************************************/
-// Recovers the events of duplication for a given gene tree wrt a species tree, 
+// Recovers the events of duplication for a given gene tree wrt a species tree,
 // so that we can tell which genes are orthologous and which genes are paralogous.
 // The output we want is as follows:
 /*
@@ -3705,7 +3711,7 @@ vector < std::string > recoverOrthologsAndParalogs(
 	    line = line + leafNames[leafNames.size()-1];
 	    outputMatrix.push_back(line);
             //line = "event(" +  TextTools::toString(dupBranch) + ",\"" + familyName + "\"," + "duplication" + ")" ;
-	    
+
             //We also need to check whether there have been losses
             if (aold > bold) { //loss in the lineage leading to a
                        /* std::cout << "BIS aold: "<< aold << " bold: "<< bold << std::endl;

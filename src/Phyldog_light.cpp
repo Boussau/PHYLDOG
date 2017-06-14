@@ -118,7 +118,7 @@ void help()
 
   (*ApplicationTools::message << "input.sequence.format=Fasta          | format of the sequence alignment. Could be Fasta, Phylip, Clustal, Mase, Nexus... Please see the bppsuite help for more details.").endLine();
 
-  (*ApplicationTools::message << "output.file=basename                 | base name used to output the reconstructed gene trees. \n\tThe program will output basename_reconciled.tree, in NHX format, where duplication and speciation nodes are annotated, with the tag 'Ev=D' or 'Ev=S' respectively. \n\tIt will also output basename_duplications.tree and basename_losses.tree, Newick trees annotated with numbers of duplications and losses, respectively, for this gene family. \n\tIt will also output basename_events.txt, where events of duplication and loss are written, along with the species ID information. The format is one event per line, with an event described as: event(SpeciesID, 'FamilyName', duplication|loss). \n\tIt will also output basename_orthologs.txt, where orthologs and paralogs are written. The format is one orthology/paralogy relationship per line, with first the family name, the type of relationship (Orthology or paralogy) then a list of genes, '<===>' and the other series of genes that are in relationship to the first ones.").endLine();
+  (*ApplicationTools::message << "output.file=basename                 | base name used to output the reconstructed gene trees. \n\tThe program will output basename_reconciled.tree, in NHX format, where duplication and speciation nodes are annotated, with the tag 'Ev=D' or 'Ev=S' respectively. \n\tIt will also output basename_events.txt, where events of duplication and loss are written, along with the species ID information. The format is one event per line, with an event described as: event(SpeciesID, 'FamilyName', duplication|loss). \n\tIt will also output basename_orthologs.txt, where orthologs and paralogs are written. The format is one orthology/paralogy relationship per line, with first the family name, the type of relationship (Orthology or paralogy) then a list of genes, '<===>' and the other series of genes that are in relationship to the first ones.").endLine();
 
   (*ApplicationTools::message << "output.numbered.tree.file=file       |  file where the species tree topology is saved, annotated with node indices. No file is produced if this option is not provided.").endLine();
 
@@ -175,6 +175,9 @@ int main(int args, char ** argv)
     TreeTemplate<Node> * rootedSpeciesTree_ = dynamic_cast < TreeTemplate < Node > * > (newick.read(spTreeFile));
     ApplicationTools::displayResult("Number of leaves", TextTools::toString(rootedSpeciesTree_->getNumberOfLeaves()));
 
+    // Getting the output file name
+    std::string outputFile =ApplicationTools::getStringParameter("output.file",params,"none", "", false, 1);
+
 
 
     // Now we start the gene family side
@@ -217,7 +220,7 @@ int main(int args, char ** argv)
     }
     unrootedGeneTree->unroot();
 
-    size_t sprLimitGeneTree_ = ApplicationTools::getIntParameter("SPR.limit", params, 2, "", false, false);
+    size_t sprLimitGeneTree = ApplicationTools::getIntParameter("SPR.limit", params, 3, "", false, false);
 
 
 
@@ -284,7 +287,23 @@ int main(int args, char ** argv)
       MLindex = -1;
 
       // Now we have the best rooted gene tree
+      // We can start gene tree exploration to improve the gene tree.
+      refineGeneTreeWithSPRsFast2 (params, rootedSpeciesTree_, rootedTree_,
+        seqSp, spId,
+        lossExpectedNumbers,
+        duplicationExpectedNumbers,
+        MLindex,
+        num0Lineages, num1Lineages, num2Lineages, nodesToTryInNNISearch,
+        sprLimitGeneTree, levaluator_);
 
+      // Now, outputting the gene tree
+      string temp ;
+      temp = outputFile+"_reconciled.tree";
+      writeReconciledGeneTreeToFile ( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, temp ) ;
+      temp = outputFile+"_events.txt";
+      outputNumbersOfEventsPerFamilyPerSpecies( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, temp, false );
+      temp =outputFile+"_orthologs.txt";
+      outputOrthologousAndParalogousGenes( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, temp, false ) ;
 
       std::cout << "PHYLDOG's done. Bye." << std::endl;
       ApplicationTools::displayTime("Total execution time:");

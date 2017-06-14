@@ -87,7 +87,8 @@ using namespace bpp;
 
 
 
-void writeReconciledGeneTree ( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, bool temporary ) ;
+void writeReconciledGeneTree ( map<string, string >& params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string>& seqSp, bool temporary ) ;
+void writeReconciledGeneTreeToFile ( map<string, string >& params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string>& seqSp, string& reconcTree );
 void assignArbitraryBranchLengths ( TreeTemplate<Node> & tree );
 void reNumber ( TreeTemplate<Node> & tree, Node * noeud, int & index );
 void reNumber ( TreeTemplate<Node> & tree );
@@ -389,7 +390,7 @@ vector < std::string > recoverDuplicationsAndLosses(
 //Wrapper that annotates a gene tree then calls recoverDuplicationsAndLosses and finally writes it to an events file.
 void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary );
 
-// Recovers the events of duplication for a given gene tree wrt a species tree, 
+// Recovers the events of duplication for a given gene tree wrt a species tree,
 // so that we can tell which genes are orthologous and which genes are paralogous.
 vector < std::string > recoverOrthologsAndParalogs(
                     TreeTemplate<Node> * cTree,
