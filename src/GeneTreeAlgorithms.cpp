@@ -2016,10 +2016,10 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
    std::vector <double>& duplicationExpectedNumbers,
    int tentativeMLindex,
    std::vector <int>& tentativeNum0Lineages, std::vector <int>& tentativeNum1Lineages, std::vector <int>& tentativeNum2Lineages, std::set <int>& tentativeNodesToTryInNNISearch,
-   size_t sprLimitGeneTree, LikelihoodEvaluator*& levaluator, double& scenarioLikelihood) {
+   size_t sprLimitGeneTree, LikelihoodEvaluator*& levaluator, double& scenarioLikelihood, std::string reconcTree) {
      WHEREAMI( __FILE__ , __LINE__ );
      double startingTime = ApplicationTools::getTime();
-
+     string temp = reconcTree + "_temp";
      resetLossesAndDuplications(*spTree, lossExpectedNumbers, duplicationExpectedNumbers);
     scenarioLikelihood = findMLReconciliationDR (spTree, rootedTree,
                                                 seqSp, spId,
@@ -2149,7 +2149,9 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
                    }
                  }
 
-                 writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree, seqSp, true ) ;
+                 writeReconciledGeneTreeToFile (params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree, seqSp, temp);
+
+                 //writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree, seqSp, true ) ;
 
                }
 

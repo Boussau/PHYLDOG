@@ -174,6 +174,7 @@ int main(int args, char ** argv)
     Newick newick(true);
     TreeTemplate<Node> * rootedSpeciesTree_ = dynamic_cast < TreeTemplate < Node > * > (newick.read(spTreeFile));
     ApplicationTools::displayResult("Number of leaves", TextTools::toString(rootedSpeciesTree_->getNumberOfLeaves()));
+    breadthFirstreNumber ( *rootedSpeciesTree_ );
 
     // Getting the output file name
     std::string outputFile =ApplicationTools::getStringParameter("output.file",params,"none", "", false, 1);
@@ -213,12 +214,9 @@ int main(int args, char ** argv)
 
     levaluator_->initialize();
 
-
-    TreeTemplate<Node> * unrootedGeneTree = rootedTree_->clone();
     if (!rootedTree_->isRooted()) {
       std::cout <<"gene tree is not rooted!!!\n "<< TreeTemplateTools::treeToParenthesis(*rootedTree_) <<std::endl;
     }
-    unrootedGeneTree->unroot();
 
     size_t sprLimitGeneTree = ApplicationTools::getIntParameter("SPR.limit", params, 3, "", false, false);
 
@@ -263,7 +261,7 @@ int main(int args, char ** argv)
         num0Lineages, num1Lineages,
         num2Lineages, nodesToTryInNNISearch, false);
       }
-      //std::cout << "THIRD: leval loglk: "<< levaluator_->getLogLikelihood() << " and scenario loglk: "<< scenarioLikelihood_<< std::endl;
+      std::cout << "\n\t\tTotal initial logLikelihood value: "<< levaluator_->getLogLikelihood() +  scenarioLikelihood << "\n\t\tSequence loglk: "<< levaluator_->getLogLikelihood()<<" and scenario loglk: "<< scenarioLikelihood<< std::endl;
 
       //Rooting the tree properly:
       vector<Node*> nodes = rootedTree_->getNodes();
@@ -288,24 +286,29 @@ int main(int args, char ** argv)
 
       // Now we have the best rooted gene tree
       // We can start gene tree exploration to improve the gene tree.
+      string temp ;
+      temp = outputFile+"_reconciled.tree";
+
       refineGeneTreeWithSPRsFast2 (params, rootedSpeciesTree_, rootedTree_,
         seqSp, spId,
         lossExpectedNumbers,
         duplicationExpectedNumbers,
         MLindex,
         num0Lineages, num1Lineages, num2Lineages, nodesToTryInNNISearch,
-        sprLimitGeneTree, levaluator_, scenarioLikelihood);
+        sprLimitGeneTree, levaluator_, scenarioLikelihood, temp);
+
+      std::cout << "\n\t\tTotal final logLikelihood value: "<< levaluator_->getLogLikelihood() +  scenarioLikelihood << "\n\t\tSequence loglk: "<< levaluator_->getLogLikelihood()<<" and scenario loglk: "<< scenarioLikelihood<< std::endl;
+
 
       // Now, outputting the gene tree
-      string temp ;
       temp = outputFile+"_reconciled.tree";
       writeReconciledGeneTreeToFile ( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, temp ) ;
       temp = outputFile+"_events.txt";
-      outputNumbersOfEventsPerFamilyPerSpecies( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, temp, false );
+      outputNumbersOfEventsToFile( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, outputFile, temp );
       temp =outputFile+"_orthologs.txt";
-      outputOrthologousAndParalogousGenes( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, temp, false ) ;
+      outputOrthologousAndParalogousGenesToFile( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, outputFile, temp ) ;
 
-      std::cout << "PHYLDOG's done. Bye." << std::endl;
+      std::cout << "PHYLDOG_LIGHT's done. Bye." << std::endl;
       ApplicationTools::displayTime("Total execution time:");
 
     }

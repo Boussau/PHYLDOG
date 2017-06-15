@@ -710,12 +710,17 @@ void DLGeneTreeLikelihood::print () const {
 void DLGeneTreeLikelihood::refineGeneTreeSPRsFast2 (map<string, string> params) {
   WHEREAMI( __FILE__ , __LINE__ );
 
+	string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
+  string reconcTree = ApplicationTools::getStringParameter ( "output.reconciled.tree.file", params, "reconciled.tree", "", false, false );
+  reconcTree = reconcTree + suffix;
+
+
 refineGeneTreeWithSPRsFast2 (params, spTree_, rootedTree_, seqSp_, spId_,
 		lossExpectedNumbers_,
 		duplicationExpectedNumbers_,
 		tentativeMLindex_,
 		tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_,  tentativeNodesToTryInNNISearch_,
-		sprLimitGeneTree_, levaluator_, scenarioLikelihood_);
+		sprLimitGeneTree_, levaluator_, scenarioLikelihood_, reconcTree);
 		//Update current elements
 		MLindex_ = tentativeMLindex_;
 		num0Lineages_ = tentativeNum0Lineages_;

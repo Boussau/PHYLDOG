@@ -1278,6 +1278,10 @@ void recoverLosses(Node *& node, int & a, const int & b, int & olda, int & a0,
 
   // const Node* const node = tree.getNode(a);
 
+  //std::cout <<"a "<<a <<std::endl;
+
+//std::cout << TreeTemplateTools::treeToParenthesis(tree) <<std::endl;
+
   olda=a;
 
   Node* nodeA;
@@ -1296,7 +1300,6 @@ void recoverLosses(Node *& node, int & a, const int & b, int & olda, int & a0,
 
   //a = node->getFather()->getId();
 
-  // std::cout <<"a "<<a <<std::endl;
 
   a = nodeA->getId();
 
@@ -1478,8 +1481,9 @@ double computeConditionalLikelihoodAndAssignSpId ( TreeTemplate<Node> & tree,
     int b, b0, oldb;
     a = a0 = olda = son0SpId;
     b = b0 = oldb = son1SpId;
-    /* std::cout <<"son0spid : "<<son0SpId<<std::endl;
-     *         std::cout <<"son1spid : "<<son1SpId<<std::endl;
+     /*std::cout <<"son0spid : "<<son0SpId<<std::endl;
+       std::cout <<"son1spid : "<<son1SpId<<std::endl;
+       std::cout <<"rootspid : "<<rootSpId<<std::endl;
      */
 
     /*  std::vector <int> ids = tree.getNodesId();
@@ -1627,6 +1631,7 @@ double computeSubtreeLikelihoodPostorder ( TreeTemplate<Node> & spTree,
                                            std::vector <std::vector<int> > & dupData )
 {
   int id=node->getId();
+/*  std::cout <<  "computeSubtreeLikelihoodPostorder: id: "<< id << " ; " << TreeTemplateTools::treeToParenthesis(geneTree, true) <<std::endl;*/
   if ( node->isLeaf() ) {
 
     if ( likelihoodData[id][0]==0.0 ) {
@@ -2232,6 +2237,12 @@ std::cout << TreeTemplateTools::treeToParenthesis(*geneTree, true)<<std::endl;*/
     std::cout <<"!!!!!!gene tree is not rooted in findMLReconciliationDR !!!!!!"<<std::endl;
     exit ( -1 );
   }
+  if ( !spTree->isRooted() )
+  {
+    std::cout << TreeTemplateTools::treeToParenthesis ( *spTree, true ) <<std::endl;
+    std::cout <<"!!!!!!species tree is not rooted in findMLReconciliationDR !!!!!!"<<std::endl;
+    exit ( -1 );
+  }
   std::vector <double> nodeData ( 3, 0.0 );
   std::vector <std::vector<double> > likelihoodData ( geneTree->getNumberOfNodes(), nodeData );
 
@@ -2248,6 +2259,7 @@ std::cout << TreeTemplateTools::treeToParenthesis(*geneTree, true)<<std::endl;*/
 
   {
     {
+      //std::cout << "findMLReconciliationDR geneTree: " << TreeTemplateTools::treeToParenthesis ( *geneTree, true ) <<std::endl;
 
       initialLikelihood = computeSubtreeLikelihoodPostorder ( *spTree, *geneTree,
                                                               geneRoot, seqSp, spID,
@@ -3588,7 +3600,6 @@ vector < std::string > recoverDuplicationsAndLosses(
 void outputNumbersOfEventsPerFamilyPerSpecies( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary ) {
 
   WHEREAMI( __FILE__ , __LINE__ );
-std::ofstream out;
 string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
 string evFile = ApplicationTools::getStringParameter ( "output.events.file", params, "events.txt", "", false, false );
 evFile = evFile + suffix;
@@ -3596,6 +3607,18 @@ if ( temporary ) {
   //   string temp = "temp";
   evFile = evFile + "_temp";
 }
+
+outputNumbersOfEventsToFile( params, geneTree,  speciesTree, seqSp, familyName, evFile);
+
+
+}
+
+
+
+void outputNumbersOfEventsToFile( map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, std::string& evFile ) {
+
+  WHEREAMI( __FILE__ , __LINE__ );
+  std::ofstream out;
 
 breadthFirstreNumber ( *speciesTree );
 std::map <std::string, int> spId = computeSpeciesNamesToIdsMap ( *speciesTree );
@@ -3607,7 +3630,6 @@ annotateGeneTreeWithDuplicationEvents ( *speciesTree,
                                         spId );
 
 vector < std::string > lines = recoverDuplicationsAndLosses(geneTree, speciesTree, familyName);
-
 out.open ( evFile.c_str(), std::ios::out );
 for (unsigned int i = 0; i < lines.size(); ++i) {
   out << lines[i] <<std::endl;
@@ -3617,6 +3639,7 @@ return;
 
 
 }
+
 
 
 /******************************************************************************/
@@ -3761,33 +3784,41 @@ vector < std::string > recoverOrthologsAndParalogs(
 void outputOrthologousAndParalogousGenes(map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, bool temporary ) {
 
   WHEREAMI( __FILE__ , __LINE__ );
-std::ofstream out;
-string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
-string orFile = ApplicationTools::getStringParameter ( "output.orthologs.file", params, "orthologs.txt", "", false, false );
-orFile = orFile + suffix;
-if ( temporary ) {
-  //   string temp = "temp";
-  orFile = orFile + "_temp";
+  string suffix = ApplicationTools::getStringParameter ( "output.file.suffix", params, "", "", false, false );
+  string orFile = ApplicationTools::getStringParameter ( "output.orthologs.file", params, "orthologs.txt", "", false, false );
+  orFile = orFile + suffix;
+  if ( temporary ) {
+    //   string temp = "temp";
+    orFile = orFile + "_temp";
+  }
+
+  outputOrthologousAndParalogousGenesToFile(params, geneTree, speciesTree, seqSp, familyName, orFile);
+
 }
 
-breadthFirstreNumber ( *speciesTree );
-std::map <std::string, int> spId = computeSpeciesNamesToIdsMap ( *speciesTree );
 
-annotateGeneTreeWithDuplicationEvents ( *speciesTree,
-                                        *geneTree,
-                                        geneTree->getRootNode(),
-                                        seqSp,
-                                        spId );
+void outputOrthologousAndParalogousGenesToFile(map<string, string > params, TreeTemplate<Node> *geneTree,  TreeTemplate<Node> *speciesTree, const std::map <std::string, std::string> seqSp, std::string& familyName, std::string& orFile ) {
 
-vector < std::string > lines = recoverOrthologsAndParalogs(geneTree, speciesTree, familyName);
+  WHEREAMI( __FILE__ , __LINE__ );
+  std::ofstream out;
 
-out.open ( orFile.c_str(), std::ios::out );
-out << lines[lines.size()-1] <<std::endl;
-for (unsigned int i = 0; i < lines.size()-1; ++i) {
-  out << lines[i] <<std::endl;
-}
-out.close();
-return;
+  breadthFirstreNumber ( *speciesTree );
+  std::map <std::string, int> spId = computeSpeciesNamesToIdsMap ( *speciesTree );
 
+  annotateGeneTreeWithDuplicationEvents ( *speciesTree,
+    *geneTree,
+    geneTree->getRootNode(),
+    seqSp,
+    spId );
+
+    vector < std::string > lines = recoverOrthologsAndParalogs(geneTree, speciesTree, familyName);
+
+    out.open ( orFile.c_str(), std::ios::out );
+    out << lines[lines.size()-1] <<std::endl;
+    for (unsigned int i = 0; i < lines.size()-1; ++i) {
+      out << lines[i] <<std::endl;
+    }
+    out.close();
+    return;
 
 }
