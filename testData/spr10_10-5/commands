@@ -12,4 +12,9 @@ for i in famille_6398.ReconciledTree ; do grep -o "Ev=D:S=[0-9]*" $i  ; done
 # With the "true" species tree
 mpirun -np 2 ../../build/bin/phyldog param=GeneralOptions.txt init.species.tree=user species.tree.file=species_tree.tree
 
+#Gene Family: famille_6398.opt total logLk: -23424.189611 ; scenario loglk: -201.678870
+
+#####################
+# We can compare the score of the above with phyldog_light: 
+../../build/bin/phyldog_light species.tree.file=species_tree.tree gene.tree.file=famille_6398.tree output.tree.file=geneTree_phyldog_light input.sequence.file=famille_6398.aln.fasta alphabet=DNA input.sequence.format=Fasta output.file=geneTree_phyldog_light model=GTR 'rate_distribution=Gamma(n=4, alpha=1)' optimization.topology=yes taxaseq.file=famille_6398.correspondances input.sequence.sites_to_use=all 'model=GTR(a=1.17322, b=0.27717, c=0.279888, d=0.41831, e=0.344783, theta=0.523374, theta1=0.542411, theta2=0.499195)' input.sequence.max_gap_allowed=10%
 
