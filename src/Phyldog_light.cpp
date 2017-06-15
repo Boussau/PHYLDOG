@@ -294,7 +294,7 @@ int main(int args, char ** argv)
         duplicationExpectedNumbers,
         MLindex,
         num0Lineages, num1Lineages, num2Lineages, nodesToTryInNNISearch,
-        sprLimitGeneTree, levaluator_);
+        sprLimitGeneTree, levaluator_, scenarioLikelihood);
 
       // Now, outputting the gene tree
       string temp ;

@@ -381,6 +381,6 @@ void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate
                                                                std::vector <double>& duplicationExpectedNumbers,
                                                                int tentativeMLindex,
                                                                std::vector <int>& tentativeNum0Lineages, std::vector <int>& tentativeNum1Lineages, std::vector <int>& tentativeNum2Lineages, std::set <int>& tentativeNodesToTryInNNISearch,
-                                                               size_t sprLimitGeneTree, LikelihoodEvaluator* levaluator);
+                                                               size_t sprLimitGeneTree, LikelihoodEvaluator*& levaluator, double& scenarioLikelihood);
 
  #endif //_GENETREEALGORITHMS_H_

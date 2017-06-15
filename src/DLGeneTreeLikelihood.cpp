@@ -674,23 +674,23 @@ void DLGeneTreeLikelihood::initialize() {
 /*******************************************************************************/
 void DLGeneTreeLikelihood::print () const {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "Species tree:"<<std::endl;
+  std::cout << "\tSpecies tree:"<<std::endl;
   std::cout << TreeTemplateTools::treeToParenthesis (getSpTree(), true)<<std::endl;
-  std::cout << "Gene family rooted tree:"<<std::endl;
+  std::cout << "\tGene family rooted tree:"<<std::endl;
   std::cout << TreeTemplateTools::treeToParenthesis (getRootedTree(), true)<<std::endl;
-  std::cout << "Gene family tree:"<<std::endl;
+  std::cout << "\tGene family tree:"<<std::endl;
   std::cout << TreeTemplateTools::treeToParenthesis (*(levaluator_->getTree()), true)<<std::endl;
-  std::cout << "0 lineage numbers"<<std::endl;
+  std::cout << "\t0 lineage numbers"<<std::endl;
   VectorTools::print(get0LineagesNumbers());
-  std::cout << "1 lineage numbers"<<std::endl;
+  std::cout << "\t1 lineage numbers"<<std::endl;
   VectorTools::print(get1LineagesNumbers());
-  std::cout << "2 lineages numbers"<<std::endl;
+  std::cout << "\t2 lineages numbers"<<std::endl;
   VectorTools::print(get2LineagesNumbers());
-  std::cout << "Expected numbers of losses"<<std::endl;
+  std::cout << "\tExpected numbers of losses"<<std::endl;
   VectorTools::print(lossExpectedNumbers_);
-  std::cout << "Expected numbers of duplications"<<std::endl;
+  std::cout << "\tExpected numbers of duplications"<<std::endl;
   VectorTools::print(duplicationExpectedNumbers_);
-  std::cout << "Root index"<<std::endl;
+  std::cout << "\tRoot index"<<std::endl;
   std::cout << MLindex_ <<std::endl;
 
 
@@ -715,7 +715,14 @@ refineGeneTreeWithSPRsFast2 (params, spTree_, rootedTree_, seqSp_, spId_,
 		duplicationExpectedNumbers_,
 		tentativeMLindex_,
 		tentativeNum0Lineages_, tentativeNum1Lineages_, tentativeNum2Lineages_,  tentativeNodesToTryInNNISearch_,
-		sprLimitGeneTree_, levaluator_);
+		sprLimitGeneTree_, levaluator_, scenarioLikelihood_);
+		//Update current elements
+		MLindex_ = tentativeMLindex_;
+		num0Lineages_ = tentativeNum0Lineages_;
+		num1Lineages_ = tentativeNum1Lineages_;
+		num2Lineages_ = tentativeNum2Lineages_;
+		nodesToTryInNNISearch_ = tentativeNodesToTryInNNISearch_;
+
 	//
   // double startingTime = ApplicationTools::getTime();
 	//

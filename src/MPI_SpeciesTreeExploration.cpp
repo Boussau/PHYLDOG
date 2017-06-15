@@ -1146,6 +1146,7 @@ void computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(const mp
 	 duplicationExpectedNumbers[i] = 0.001;
 	 }
 	 }*/
+
 	std::string currentSpeciesTree = computeSpeciesTreeLikelihood(world, index,
 																  stop, logL,
 																  num0Lineages,

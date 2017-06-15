@@ -2016,12 +2016,12 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
    std::vector <double>& duplicationExpectedNumbers,
    int tentativeMLindex,
    std::vector <int>& tentativeNum0Lineages, std::vector <int>& tentativeNum1Lineages, std::vector <int>& tentativeNum2Lineages, std::set <int>& tentativeNodesToTryInNNISearch,
-   size_t sprLimitGeneTree, LikelihoodEvaluator* levaluator) {
+   size_t sprLimitGeneTree, LikelihoodEvaluator*& levaluator, double& scenarioLikelihood) {
      WHEREAMI( __FILE__ , __LINE__ );
      double startingTime = ApplicationTools::getTime();
 
      resetLossesAndDuplications(*spTree, lossExpectedNumbers, duplicationExpectedNumbers);
-     double scenarioLikelihood = findMLReconciliationDR (spTree, rootedTree,
+    scenarioLikelihood = findMLReconciliationDR (spTree, rootedTree,
                                                 seqSp, spId,
                                                 lossExpectedNumbers, duplicationExpectedNumbers,
                                                 tentativeMLindex,

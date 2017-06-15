@@ -492,8 +492,8 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         //SPR optimization:
         //std::cout <<"Before optimization: "<<TreeTemplateTools::treeToParenthesis(treeLikelihoods_[i]->getRootedTree(), true)<<std::endl;
         std::string SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams_[i], "normal", "", true, false);
-        std::cout << "rearrangementType "<< rearrangementType << std::endl;
-        std::cout << "SPRalgorithm "<< SPRalgorithm << std::endl;
+        std::cout << "rearrangementType: "<< rearrangementType << std::endl;
+        std::cout << "SPRalgorithm: "<< SPRalgorithm << std::endl;
 
         if (reconciliationModel_ == "DL") {
           WHEREAMI( __FILE__ , __LINE__ );
@@ -532,7 +532,6 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         }
         else if (reconciliationModel_ == "COAL") {
           WHEREAMI( __FILE__ , __LINE__ );
-
           if (rearrangementType == "nni") {
             NNIRearrange(timing, i, startingTime, totalTime);
           }
@@ -548,15 +547,12 @@ void ClientComputingGeneLikelihoods::MLSearch() {
           std::cout << "Family "<< assignedFilenames_[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;
         }
       }
-std::cout << "CCGL " <<std::endl;
       if (geneTree_) {
         delete geneTree_;
         geneTree_ = 0;
       }
-      std::cout << "CCGL 1" <<std::endl;
 
       geneTree_ = new TreeTemplate<Node>(treeLikelihoods_[i]->getRootedTree());
-      std::cout << "CCGL 2" <<std::endl;
 
       ///LIKELIHOOD OPTIMIZED
       // resetLossesAndDuplications(*tree, lossExpectedNumbers, duplicationExpectedNumbers);
@@ -569,8 +565,6 @@ std::cout << "CCGL " <<std::endl;
         num2Lineages_ = num2Lineages_ + allNum2Lineages_[i];
         MLindex_ = dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->getRootNodeindex();
         allLogLs_[i] = dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->getValue();
-        std::cout << "CCGL 3" <<std::endl;
-
       }
       else if (reconciliationModel_ == "COAL") {
         allNum12Lineages_[i] = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->getNum12Lineages();
@@ -582,8 +576,7 @@ std::cout << "CCGL " <<std::endl;
       }
       logL_ = logL_ + allLogLs_[i];
       std::cout<<"Gene Family: " << assignedFilenames_[i] << " total logLk: "<< - allLogLs_[i]<< " ; scenario loglk: "<< treeLikelihoods_[i]->getScenarioLikelihood() <<std::endl;
-      std::cout << "CCGL 4" <<std::endl;
-
+      
       if (std::isnan(allLogLs_[i]))
       {
         std::cout<<TreeTemplateTools::treeToParenthesis (*geneTree_, false, EVENT)<<std::endl;
